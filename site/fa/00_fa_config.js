@@ -16,6 +16,7 @@ global.FA = {
   costBase: 0.05,
   costPower: 1,
   mythicCostMultiplier: 5,     // Mythic enchants cost 5x as much per level
+  ultimateCostMultiplier: 10,  // Ultimates cost 10x as much per level
 
   // ---- Ascended enchants ----
   // No level cap unless maxLevel is set. Enchants count from every equipped item (both hands
@@ -116,7 +117,37 @@ global.FA = {
     timber:       { name: 'Timber', type: 'vein', mythic: true, blocks: 'logs', perLevel: 32, cap: 512 },
     radiance:     { name: 'Radiance', type: 'aura', mythic: true, perLevel: 2 },
     headhunter:   { name: 'Headhunter', type: 'heads', mythic: true, perLevel: 0.01 },
-    gravity_slam: { name: 'Gravity Slam', type: 'slam', mythic: true, perLevel: 1 }
+    gravity_slam: { name: 'Gravity Slam', type: 'slam', mythic: true, perLevel: 1 },
+
+    // ---- Ultimates: cinematic combo moves ----
+    // Sneak + hit an enemy to unleash one (then it needs `cooldown` seconds, minus 1 per level, at least 5).
+    // Every hit in the combo deals the triggering hit's damage x `power`, x(1 + perLevel x (L - 1)), so your other
+    // enchants make them stronger. You can't be hurt during a combo and always land back where you started.
+    // Tomes need Ascended Souls, which only Ascended bosses drop.
+    thunder_waltz:   { name: "Thunder God's Waltz", type: 'ultimate', ultimate: true, move: 'thunder_waltz', power: 0.6, perLevel: 0.25, cooldown: 40,
+      desc: 'Blink in a circle around the target slashing it, leap into the sky, call down three lightning strikes, then it explodes and you land back home' },
+    thousand_cuts:   { name: 'Phantom Thousand Cuts', type: 'ultimate', ultimate: true, move: 'thousand_cuts', power: 0.35, perLevel: 0.25, cooldown: 30,
+      desc: 'Sixteen afterimage slashes from every direction in under a second, then one final cut' },
+    heaven_splitter: { name: 'Heaven Splitter', type: 'ultimate', ultimate: true, move: 'heaven_splitter', power: 3, perLevel: 0.25, cooldown: 35,
+      desc: 'Launch the target into the sky, appear above it, and slam it into the ground with a shockwave' },
+    dragon_spiral:   { name: 'Dragon Flame Spiral', type: 'ultimate', ultimate: true, move: 'dragon_spiral', power: 0.5, perLevel: 0.25, cooldown: 35,
+      desc: 'Spiral upward around the target in a pillar of fire, then a flame nova burns everything nearby' },
+    void_collapse:   { name: 'Void Collapse', type: 'ultimate', ultimate: true, move: 'void_collapse', power: 2, perLevel: 0.25, cooldown: 45,
+      desc: 'Drag every enemy around into one point, hold them there, then crush them all at once' },
+    starfall:        { name: 'Starfall', type: 'ultimate', ultimate: true, move: 'starfall', power: 1.2, perLevel: 0.25, cooldown: 45,
+      desc: 'Leap high and rain ten meteors onto the enemies around your target' },
+    shadow_barrage:  { name: 'Shadow Clone Barrage', type: 'ultimate', ultimate: true, move: 'shadow_barrage', power: 1.5, perLevel: 0.25, cooldown: 30,
+      desc: 'Blink to every enemy nearby and strike each one, then return in a puff of smoke' },
+    frozen_eternity: { name: 'Frozen Eternity', type: 'ultimate', ultimate: true, move: 'frozen_eternity', power: 1.5, perLevel: 0.25, cooldown: 50,
+      desc: 'Freeze time around you, strike every frozen enemy, then shatter them all' },
+    spirit_bomb:     { name: 'Spirit Bomb', type: 'ultimate', ultimate: true, move: 'spirit_bomb', power: 4, perLevel: 0.25, cooldown: 60,
+      desc: 'Gather a growing sphere of light overhead for two seconds, then hurl it at the target' },
+    blade_storm:     { name: 'Blade Storm Dance', type: 'ultimate', ultimate: true, move: 'blade_storm', power: 0.6, perLevel: 0.25, cooldown: 35,
+      desc: 'Become a whirlwind of blades for three seconds, cutting everything around you' },
+    eclipse:         { name: 'Eclipse Judgement', type: 'ultimate', ultimate: true, move: 'eclipse', power: 3, perLevel: 0.25, cooldown: 55,
+      desc: 'Blind every enemy, then a pillar of light falls on the target while you are healed' },
+    phoenix_dive:    { name: 'Phoenix Dive', type: 'ultimate', ultimate: true, move: 'phoenix_dive', power: 2.5, perLevel: 0.25, cooldown: 40,
+      desc: 'Soar into the sky, then dive onto the target in a trail of fire and explode on impact' }
   },
 
   // ---- Mythic Fragments: drop from danger-zone mobs, needed for Mythic tomes ----
@@ -487,7 +518,7 @@ global.FA = {
     damageMult: 3,
     minionsPerPhase: 3,        // summoned at 66% and 33% health
     titles: ['the Unending', 'the Ashborn', 'of the Void', 'the Devourer', 'the Hollow King', 'Worldbreaker'],
-    drops: [['kubejs:chaos_tome', 1, 3], ['kubejs:mythic_fragment', 3, 8], ['kubejs:dense_ascension_core', 2, 6]]
+    drops: [['kubejs:chaos_tome', 1, 3], ['kubejs:mythic_fragment', 3, 8], ['kubejs:dense_ascension_core', 2, 6], ['kubejs:ascended_soul', 1, 2]]
   },
 
   // ---- Safety limits (not power caps) ----
@@ -609,6 +640,8 @@ global.FA_describeDef = (e, level) => {
       if (!e._scaled) e._scaled = e.parts.map(pid => global.FA_scalePart(global.FA.enchants[pid], global.FA.fusionStrength))
       return e._scaled.map(p => global.FA_describeDef(p, level)).join(' + ')
     }
+    case 'ultimate': return 'sneak + hit: ' + e.desc.charAt(0).toLowerCase() + e.desc.slice(1) + ' (' + global.FA_ultPower(e, level).toFixed(2) +
+      'x hit damage per strike, every ' + global.FA_ultCooldown(e, level) + 's)'
     case 'slam': return 'landing smashes nearby enemies for ' + num(e.perLevel * level) + ' damage per block fallen, no fall damage'
   }
   return ''
@@ -815,8 +848,14 @@ global.FA_rollCost = (level, rarity) => Math.ceil(global.FA_cost(level) * global
 // The price multiplier of an enchant: Mythic ones use mythicCostMultiplier, others can set costMult
 global.FA_costMult = id => {
   let e = id ? global.FA.enchants[id] : null
-  return e ? (e.mythic ? global.FA.mythicCostMultiplier : e.costMult || 1) : 1
+  return e ? (e.ultimate ? global.FA.ultimateCostMultiplier : e.mythic ? global.FA.mythicCostMultiplier : e.costMult || 1) : 1
 }
+
+// Ultimate helpers: the combo moves the engine knows, cooldown and power at a level
+global.FA_ULTIMATE_MOVES = ['thunder_waltz', 'thousand_cuts', 'heaven_splitter', 'dragon_spiral', 'void_collapse', 'starfall',
+  'shadow_barrage', 'frozen_eternity', 'spirit_bomb', 'blade_storm', 'eclipse', 'phoenix_dive']
+global.FA_ultCooldown = (e, level) => Math.max(5, e.cooldown - (level - 1))
+global.FA_ultPower = (e, level) => e.power * (1 + e.perLevel * (level - 1))
 global.FA_cost = (level, id) => Math.ceil(global.FA.costBase * Math.pow(level + 1, global.FA.costPower) * global.FA_costMult(id))
 
 // ---- Config check ----
@@ -833,10 +872,10 @@ global.FA_TYPES = {
   mining: ['perLevel'], eternal: [], flight: [], chain_lightning: ['perLevel', 'radius'], gravity_well: ['perLevel', 'base', 'cap'],
   death_nova: ['perLevel'], time_stop: [], phoenix: ['cooldown', 'perLevel', 'minCooldown'], projectile_teleport: [],
   souls: ['perLevel'], overkill: ['perLevel', 'radius'], rampage: ['perLevel', 'maxStacks', 'seconds'], vein: ['perLevel', 'cap'],
-  aura: ['perLevel'], heads: ['perLevel'], slam: ['perLevel'], fusion: []
+  aura: ['perLevel'], heads: ['perLevel'], slam: ['perLevel'], fusion: [], ultimate: ['power', 'perLevel', 'cooldown']
 }
 // Fusions can't be made from these: they need cleanup when gear comes off, or they're one-offs
-let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, fusion: true }
+let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, fusion: true, ultimate: true }
 let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
 let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
 
@@ -876,6 +915,9 @@ global.FA_validate = cfg => {
       let parent = cfg.enchants[pid]
       return parent && !parent.mythic && !FA_NO_FUSE[parent.type]
     }))) { problems.push('fusion "' + id + '" needs two different, non-Mythic parents that exist'); ok = false }
+    if (e.type == 'ultimate' && (global.FA_ULTIMATE_MOVES.indexOf(e.move) < 0 || typeof e.desc != 'string')) {
+      problems.push('ultimate "' + id + '" needs a known move (' + global.FA_ULTIMATE_MOVES.join(', ') + ') and a desc'); ok = false
+    }
     if (e.costMult !== undefined && !need(e.costMult, 'enchants.' + id + '.costMult', 1)) ok = false
     if (e.type == 'drop' && !/^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(String(e.item))) { problems.push('enchants.' + id + '.item is not an item id'); ok = false }
     if (['hit_effect', 'self_effect', 'passive'].indexOf(e.type) >= 0 && e.effect === undefined) { problems.push('enchants.' + id + '.effect is missing'); ok = false }
@@ -896,6 +938,7 @@ global.FA_validate = cfg => {
   if (!okNum(cfg.costBase, 0.000001)) { problems.push('costBase reset to 0.05'); cfg.costBase = 0.05 }
   if (!okNum(cfg.costPower, 0)) { problems.push('costPower reset to 1'); cfg.costPower = 1 }
   if (!okNum(cfg.fusionStrength, 0.01) || cfg.fusionStrength > 1) { problems.push('fusionStrength reset to 0.6'); cfg.fusionStrength = 0.6 }
+  if (!okNum(cfg.ultimateCostMultiplier, 1)) { problems.push('ultimateCostMultiplier reset to 10'); cfg.ultimateCostMultiplier = 10 }
   if (!okNum(cfg.mythicCostMultiplier, 1)) { problems.push('mythicCostMultiplier reset to 5'); cfg.mythicCostMultiplier = 5 }
   ;['maxExtraDropStacks', 'maxCleaveTargets', 'maxUpgradesPerCommand'].forEach(f => {
     if (!okNum(cfg[f], 1)) { problems.push(f + ' reset to 8'); cfg[f] = 8 }

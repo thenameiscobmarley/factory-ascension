@@ -60,9 +60,10 @@
   const options = (() => {
     let html = '<option value="">+ Add enchant…</option>';
     GROUPS.forEach(g => {
-      html += '<optgroup label="' + g[0] + '">' + ids.filter(id => !E[id].mythic && g[1].includes(E[id].type)).map(id => '<option value="' + id + '">' + esc(E[id].name) + "</option>").join("") + "</optgroup>";
+      html += '<optgroup label="' + g[0] + '">' + ids.filter(id => !E[id].mythic && !E[id].ultimate && g[1].includes(E[id].type)).map(id => '<option value="' + id + '">' + esc(E[id].name) + "</option>").join("") + "</optgroup>";
     });
     html += '<optgroup label="Mythic">' + ids.filter(id => E[id].mythic).map(id => '<option value="' + id + '">✦ ' + esc(E[id].name) + "</option>").join("") + "</optgroup>";
+    html += '<optgroup label="Ultimate">' + ids.filter(id => E[id].ultimate).map(id => '<option value="' + id + '">☄ ' + esc(E[id].name) + "</option>").join("") + "</optgroup>";
     html += '<optgroup label="Fusion">' + ids.filter(id => E[id].type == "fusion").map(id => '<option value="' + id + '">⚗ ' + esc(E[id].name) + " (" +
       esc(E[E[id].parts[0]].name) + " + " + esc(E[E[id].parts[1]].name) + ")</option>").join("") + "</optgroup>";
     return html;

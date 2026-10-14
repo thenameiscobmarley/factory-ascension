@@ -1,6 +1,6 @@
 # Ascended enchants
 
-274 enchants. Levels have no cap unless a max is listed. Each enchant counts from every equipped item
+286 enchants. Levels have no cap unless a max is listed. Each enchant counts from every equipped item
 (both hands and all armor), so any enchant works on any gear.
 
 Unlock: hold a Tome in one hand and the gear in the other, right-click the tome.
@@ -123,6 +123,28 @@ Mythic levels cost 5x the Essence.
 | **Radiance** | burns enemies within 3 blocks for 2 damage/s | burns enemies within 13 blocks for 200 damage/s | none | beacon |
 | **Headhunter** | 1% chance to drop mob heads | 100% chance to drop mob heads | none | skeleton skull |
 | **Gravity Slam** | landing smashes nearby enemies for 1 damage per block fallen, no fall damage | landing smashes nearby enemies for 100 damage per block fallen, no fall damage | none | crying obsidian |
+
+## Ultimate
+
+Cinematic combo moves: **sneak + hit** an enemy to unleash one. You can't be hurt mid-combo and always land back where you started.
+Every strike deals the triggering hit's damage x the power below, so your other enchants make them stronger. Each level adds 25% power and
+takes 1 second off the cooldown (5 s minimum). Tomes need **2 Ascended Souls** (only Ascended bosses drop them) + 4 Mythic Fragments, superheated.
+Ultimate levels cost 10x the Essence.
+
+| Enchant | Level 1 | Level 100 | Max | Tome catalysts |
+|---|---|---|---|---|
+| **Thunder God's Waltz** | sneak + hit: blink in a circle around the target slashing it, leap into the sky, call down three lightning strikes, then it explodes and you land back home (0.60x hit damage per strike, every 40s) | sneak + hit: blink in a circle around the target slashing it, leap into the sky, call down three lightning strikes, then it explodes and you land back home (15.45x hit damage per strike, every 5s) | none | trident |
+| **Phantom Thousand Cuts** | sneak + hit: sixteen afterimage slashes from every direction in under a second, then one final cut (0.35x hit damage per strike, every 30s) | sneak + hit: sixteen afterimage slashes from every direction in under a second, then one final cut (9.01x hit damage per strike, every 5s) | none | golden sword |
+| **Heaven Splitter** | sneak + hit: launch the target into the sky, appear above it, and slam it into the ground with a shockwave (3.00x hit damage per strike, every 35s) | sneak + hit: launch the target into the sky, appear above it, and slam it into the ground with a shockwave (77.25x hit damage per strike, every 5s) | none | sticky piston |
+| **Dragon Flame Spiral** | sneak + hit: spiral upward around the target in a pillar of fire, then a flame nova burns everything nearby (0.50x hit damage per strike, every 35s) | sneak + hit: spiral upward around the target in a pillar of fire, then a flame nova burns everything nearby (12.88x hit damage per strike, every 5s) | none | dragon head |
+| **Void Collapse** | sneak + hit: drag every enemy around into one point, hold them there, then crush them all at once (2.00x hit damage per strike, every 45s) | sneak + hit: drag every enemy around into one point, hold them there, then crush them all at once (51.50x hit damage per strike, every 5s) | none | ender chest |
+| **Starfall** | sneak + hit: leap high and rain ten meteors onto the enemies around your target (1.20x hit damage per strike, every 45s) | sneak + hit: leap high and rain ten meteors onto the enemies around your target (30.90x hit damage per strike, every 5s) | none | firework rocket |
+| **Shadow Clone Barrage** | sneak + hit: blink to every enemy nearby and strike each one, then return in a puff of smoke (1.50x hit damage per strike, every 30s) | sneak + hit: blink to every enemy nearby and strike each one, then return in a puff of smoke (38.63x hit damage per strike, every 5s) | none | black dye |
+| **Frozen Eternity** | sneak + hit: freeze time around you, strike every frozen enemy, then shatter them all (1.50x hit damage per strike, every 50s) | sneak + hit: freeze time around you, strike every frozen enemy, then shatter them all (38.63x hit damage per strike, every 5s) | none | packed ice |
+| **Spirit Bomb** | sneak + hit: gather a growing sphere of light overhead for two seconds, then hurl it at the target (4.00x hit damage per strike, every 60s) | sneak + hit: gather a growing sphere of light overhead for two seconds, then hurl it at the target (103.00x hit damage per strike, every 5s) | none | glowstone |
+| **Blade Storm Dance** | sneak + hit: become a whirlwind of blades for three seconds, cutting everything around you (0.60x hit damage per strike, every 35s) | sneak + hit: become a whirlwind of blades for three seconds, cutting everything around you (15.45x hit damage per strike, every 5s) | none | iron sword |
+| **Eclipse Judgement** | sneak + hit: blind every enemy, then a pillar of light falls on the target while you are healed (3.00x hit damage per strike, every 55s) | sneak + hit: blind every enemy, then a pillar of light falls on the target while you are healed (77.25x hit damage per strike, every 5s) | none | daylight detector |
+| **Phoenix Dive** | sneak + hit: soar into the sky, then dive onto the target in a trail of fire and explode on impact (2.50x hit damage per strike, every 40s) | sneak + hit: soar into the sky, then dive onto the target in a trail of fire and explode on impact (64.38x hit damage per strike, every 5s) | none | fire charge |
 
 ## Fusion
 

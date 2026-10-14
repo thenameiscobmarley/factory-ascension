@@ -118,7 +118,7 @@
     ["Passive", ["regen", "passive", "magnet", "repair"]],
     ["Utility", ["attribute", "mining", "eternal"]]
   ];
-  const groupOf = id => E[id].mythic ? "Mythic" : E[id].type == "fusion" ? "Fusion" : (GROUPS.find(g => g[1].includes(E[id].type)) || ["Other"])[0];
+  const groupOf = id => E[id].ultimate ? "Ultimate" : E[id].mythic ? "Mythic" : E[id].type == "fusion" ? "Fusion" : (GROUPS.find(g => g[1].includes(E[id].type)) || ["Other"])[0];
   const nice = item => item.indexOf("kubejs:tome_") === 0 && E[item.slice(12)] ? "Tome of " + E[item.slice(12)].name
     : item.replace(/^(minecraft|create|kubejs):/, "").replace(/_/g, " ");
   const catalysts = id => {
@@ -143,7 +143,7 @@
   const toSlider = l => Math.round(Math.log10(l) / 5 * 1000);
   let level = 1, group = "All", query = "";
 
-  const chips = ["All"].concat(GROUPS.map(g => g[0]), ["Mythic", "Fusion"]);
+  const chips = ["All"].concat(GROUPS.map(g => g[0]), ["Mythic", "Ultimate", "Fusion"]);
   $("#chips").innerHTML = chips.map(g => '<button class="uv-chip' + (g == "All" ? " is-active" : "") + '" role="tab" data-g="' + g + '">' + g +
     ' <small>' + (g == "All" ? ids.length : ids.filter(id => groupOf(id) == g).length) + "</small></button>").join("");
   $("#presets").innerHTML = PRESETS.map(p => '<button class="uv-btn uv-btn--sm uv-btn--ghost" data-l="' + p + '">' + global.FA_num(p) + "</button>").join("");
@@ -152,9 +152,9 @@
   const grid = $("#grid");
   grid.innerHTML = ids.map(id => {
     const e = E[id];
-    return '<article class="ench' + (e.mythic ? " is-mythic" : e.type == "fusion" ? " is-fusion" : "") + '" data-id="' + id + '">' +
+    return '<article class="ench' + (e.ultimate ? " is-ultimate" : e.mythic ? " is-mythic" : e.type == "fusion" ? " is-fusion" : "") + '" data-id="' + id + '">' +
       '<img src="' + tex("tome_" + id) + '" alt="" loading="lazy" width="48" height="48" />' +
-      "<h3>" + (e.mythic ? "✦ " : "") + esc(e.name) + '<span class="lv"></span></h3>' +
+      "<h3>" + (e.ultimate ? "☄ " : e.mythic ? "✦ " : "") + esc(e.name) + '<span class="lv"></span></h3>' +
       '<p class="what"></p><span class="cost"></span>' +
       '<div class="meta"><span class="tag">' + groupOf(id) + "</span>" +
       (e.maxLevel ? '<span class="tag">max ' + e.maxLevel + "</span>" : '<span class="tag">no cap</span>') +
@@ -231,6 +231,46 @@
   $("#mythicGrid").innerHTML = ids.filter(id => E[id].mythic).map(id =>
     '<div class="myth"><img src="' + tex("tome_" + id) + '" alt="" /><b>' + esc(E[id].name) + "</b><span>" +
     esc(global.FA_describe(id, E[id].maxLevel || 10)) + "</span></div>").join("");
+
+  // ---------- ultimates: cards + a top-down replay of Thunder God's Waltz ----------
+  const ults = ids.filter(id => E[id].ultimate);
+  const showUlt = id => {
+    const e = E[id];
+    $("#ultName").textContent = "☄ " + e.name;
+    $("#ultDesc").textContent = e.desc + ". Level 1: " + e.power + "x your hit per strike, every " + global.FA_ultCooldown(e, 1) + "s.";
+    document.querySelectorAll(".ult").forEach(b => b.classList.toggle("is-active", b.dataset.id == id));
+  };
+  $("#ultGrid").innerHTML = ults.map(id => '<button class="ult" data-id="' + id + '"><b><img src="' + tex("tome_" + id) + '" alt="" />' + esc(E[id].name) +
+    "</b><span>" + esc(E[id].desc) + "</span><small>" + E[id].power + "x per strike · " + E[id].cooldown + "s cooldown</small></button>").join("");
+  $("#ultGrid").addEventListener("click", e => { const b = e.target.closest(".ult"); if (b) showUlt(b.dataset.id); });
+  showUlt("thunder_waltz");
+
+  // The replay: the same beats as the in-game move (8 circling slashes, up, 3 bolts, boom, home)
+  const svg = $("#replay"), dot = $("#heroDot"), slashes = $("#slashes"), bolts = $("#bolts"), boom = $("#boom"), stepText = $("#replayStep");
+  let timers = [];
+  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+  const move = (x, y, r) => { dot.setAttribute("cx", x); dot.setAttribute("cy", y); if (r) dot.setAttribute("r", r); };
+  function replay() {
+    timers.forEach(clearTimeout); timers = [];
+    slashes.innerHTML = ""; bolts.innerHTML = ""; boom.classList.remove("go"); dot.style.opacity = 1;
+    move(-48, 30, 3.2); stepText.textContent = "Sneak + hit";
+    for (let i = 0; i < 8; i++) at(300 + i * 150, () => {
+      const a = i * Math.PI / 4, x = Math.cos(a) * 30, y = Math.sin(a) * 30;
+      move(x.toFixed(1), y.toFixed(1));
+      stepText.textContent = "Blink " + (i + 1) + " / 8";
+      slashes.insertAdjacentHTML("beforeend", '<line class="slash" x1="' + (x * 0.25).toFixed(1) + '" y1="' + (y * 0.25 - 6).toFixed(1) + '" x2="' + (-x * 0.25).toFixed(1) + '" y2="' + (-y * 0.25 + 6).toFixed(1) + '" />');
+    });
+    at(1600, () => { move(0, -2, 5.5); dot.style.opacity = 0.6; stepText.textContent = "Into the sky"; });
+    for (let i = 0; i < 3; i++) at(1950 + i * 300, () => {
+      stepText.textContent = "Lightning " + (i + 1) + " / 3";
+      const ox = (i - 1) * 4;
+      bolts.insertAdjacentHTML("beforeend", '<polyline class="bolt" points="' + (ox - 6) + ',-56 ' + (ox + 4) + ',-36 ' + (ox - 4) + ',-28 ' + (ox + 6) + ',-8 ' + (ox - 1) + ',0" />');
+    });
+    at(2950, () => { boom.classList.remove("go"); void boom.getBoundingClientRect(); boom.classList.add("go"); stepText.textContent = "Boom"; });
+    at(3600, () => { dot.style.opacity = 1; move(-48, 30, 3.2); stepText.textContent = "Back where you started"; });
+  }
+  $("#replayBtn").addEventListener("click", replay);
+  new IntersectionObserver(es => { if (es[0].isIntersecting) replay(); }, { threshold: 0.5 }).observe($(".replay"));
 
   // ---------- chaos forge (same generator as the game: global.FA_rollEnchant) ----------
   const C = FA.chaos;

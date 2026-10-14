@@ -16,7 +16,7 @@
 <nav class="top">
   <a class="brand" href="#top"><img src="fa/items/ascension_core.png" alt="" width="24" height="24" /> Factory Ascension</a>
   <div class="links">
-    <a href="#loop">Loop</a><a href="#enchants" class="hide-sm">Enchants</a><a href="#chaos">Chaos</a><a href="#danger">Danger</a><a href="builder.html">Builder</a><a href="recipes.html">Recipes</a><a href="#install">Install</a>
+    <a href="#loop">Loop</a><a href="#enchants" class="hide-sm">Enchants</a><a href="#ultimates">Ultimates</a><a href="#chaos">Chaos</a><a href="#danger">Danger</a><a href="builder.html">Builder</a><a href="recipes.html">Recipes</a><a href="#install">Install</a>
   </div>
   <a class="uv-btn uv-btn--sm uv-btn--primary" href="https://github.com/thenameiscobmarley/factory-ascension">GitHub</a>
 </nav>
@@ -36,15 +36,15 @@
       Protection 3000 isn't a cheat. It's just a bigger factory.</p>
     <div class="cta" data-uv-reveal>
       <a class="uv-btn uv-btn--lg uv-btn--primary magnet" href="#install">Install it</a>
-      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="#enchants">Browse 274 enchants</a>
+      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="#enchants">Browse 286 enchants</a>
       <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="builder.html">Gear Builder</a>
     </div>
   </div>
   <div class="stats">
-    <div><b data-uv-count="274">0</b><small>enchants</small></div>
+    <div><b data-uv-count="286">0</b><small>enchants</small></div>
     <div><b data-uv-count="15">0</b><small>Mythic powers</small></div>
     <div><b>&infin;</b><small>level cap</small></div>
-    <div><b data-uv-count="264">0</b><small>safety checks</small></div>
+    <div><b data-uv-count="292">0</b><small>safety checks</small></div>
   </div>
 </header>
 
@@ -82,7 +82,7 @@
 <section class="sec" id="enchants">
   <div class="wrap">
     <p class="mono" data-uv-reveal>02 · Enchants</p>
-    <h2 class="uv-h2" data-uv-reveal>274 enchants. No ceiling.</h2>
+    <h2 class="uv-h2" data-uv-reveal>286 enchants. No ceiling.</h2>
     <p class="sub" data-uv-reveal>Drag the level and watch them scale. These numbers come straight from the pack's config, so they're exactly what you get in game.</p>
 
     <div class="controls">
@@ -114,10 +114,40 @@
   </div>
 </section>
 
+<!-- ============ ULTIMATES ============ -->
+<section class="sec ultimates" id="ultimates">
+  <div class="wrap">
+    <p class="mono" data-uv-reveal>04 · Ultimates</p>
+    <h2 class="ult-title" data-uv-reveal>&#9732; Sneak. Hit. Unleash.</h2>
+    <p class="sub" data-uv-reveal>Ultimates are cinematic combo moves. Sneak and hit an enemy, and the game takes over: you blink around it,
+      launch into the sky, call down lightning, and land right back where you started. You can't be hurt mid-combo, and every hit scales
+      with your other enchants. Their tomes need <b>Ascended Souls</b>, which only Ascended bosses drop.</p>
+    <div class="ult-stage">
+      <div class="replay" aria-hidden="true">
+        <svg viewBox="-60 -60 120 120" id="replay">
+          <circle class="ring" r="30" />
+          <g id="slashes"></g>
+          <circle class="target" r="5" />
+          <circle class="hero-dot" id="heroDot" r="3.2" cx="-48" cy="30" />
+          <g id="bolts"></g>
+          <circle class="boom" id="boom" r="4" />
+        </svg>
+        <p class="mono" id="replayStep">Thunder God's Waltz</p>
+      </div>
+      <div class="ult-side">
+        <p class="ult-name" id="ultName"></p>
+        <p class="ult-desc" id="ultDesc"></p>
+        <button class="uv-btn uv-btn--primary magnet" id="replayBtn">Replay Thunder God's Waltz</button>
+      </div>
+    </div>
+    <div class="ult-grid" id="ultGrid" data-uv-stagger="up"></div>
+  </div>
+</section>
+
 <!-- ============ CHAOS ============ -->
 <section class="sec chaos" id="chaos">
   <div class="wrap">
-    <p class="mono" data-uv-reveal>04 · Chaos Forge</p>
+    <p class="mono" data-uv-reveal>05 · Chaos Forge</p>
     <h2 class="chaos-title" data-uv-reveal>Roll the dice on your gear.</h2>
     <p class="sub" data-uv-reveal>A <b>Chaos Tome</b> rolls a brand-new enchant that's never existed before: a rarity, a name and up to three random effects.
       This forge runs the exact same generator as the game, so every seed below is a real enchant you could pull.</p>
@@ -149,7 +179,7 @@
     <div class="sky" id="sky"></div>
     <i class="shade" id="shade"></i>
     <div class="danger-ui">
-      <p class="mono">05 · Danger zones · scroll to travel</p>
+      <p class="mono">06 · Danger zones · scroll to travel</p>
       <h2 class="zone" id="zoneName">Safe Lands</h2>
       <div class="dist"><b id="dist">0</b><span>blocks from spawn</span></div>
       <div class="readout">
@@ -168,7 +198,7 @@
 <!-- ============ SAFETY ============ -->
 <section class="sec" id="safety">
   <div class="wrap">
-    <p class="mono" data-uv-reveal>06 · Safety</p>
+    <p class="mono" data-uv-reveal>07 · Safety</p>
     <h2 class="uv-h2" data-uv-reveal>Insane power. Zero dupes.</h2>
     <p class="sub" data-uv-reveal>Uncapped numbers are only fun if they can't break your world. Every script is checked outside the game before it ships.</p>
     <div class="safety" data-uv-stagger="up">
@@ -203,14 +233,14 @@
   <span class="ok">ok</span>   exactly one tome used per unlock
   <span class="ok">ok</span>   a failed upgrade is rolled back (no free levels)
   <span class="ok">ok</span>   gear drops are never duplicated
-<b class="ok">all checks passed</b>  <span class="dim">(264)</span></pre>
+<b class="ok">all checks passed</b>  <span class="dim">(292)</span></pre>
   </div>
 </section>
 
 <!-- ============ INSTALL ============ -->
 <section class="sec" id="install">
   <div class="wrap">
-    <p class="mono" data-uv-reveal>07 · Install</p>
+    <p class="mono" data-uv-reveal>08 · Install</p>
     <h2 class="uv-h2" data-uv-reveal>Fifteen minutes to ascend.</h2>
     <ol class="steps" data-uv-stagger="up">
       <li><b>Make a Forge 1.20.1 instance</b><span>Prism Launcher works great. On Fedora it's in Discover, or:</span>

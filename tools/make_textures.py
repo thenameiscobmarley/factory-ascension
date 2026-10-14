@@ -320,6 +320,21 @@ def condensed_block(tier, tiers):
     return px
 
 
+def soul():
+    """A pale blue spirit flame with a bright core."""
+    px = blank()
+    for y in range(N):
+        for x in range(N):
+            dx, dy = (x - 7.5) / 4.2, (y - 9.5) / 5.5
+            wob = 0.25 * math.sin(y * 1.3)
+            if dx * dx + dy * dy <= 1 and y > 2 or (abs(x - 7.5 - wob * 3) < (y - 1) / 3.5 and 1 < y < 9):
+                t = max(0, min(1, (y - 2) / 12))
+                px[y][x] = lerp((230, 250, 255), (60, 140, 255), t) + (255,)
+    for x, y in ((7, 9), (8, 9), (7, 10), (8, 10)):
+        px[y][x] = (255, 255, 255, 255)
+    return px
+
+
 def fragment():
     """Jagged glowing shard."""
     px = blank()
@@ -355,8 +370,13 @@ def tome_colors():
     """(id -> (cover, gem)) for every enchant in the config, varied a little per enchant."""
     text = open(CONFIG).read()
     out = {}
-    for m in re.finditer(r"^\s{4}(\w+):\s*\{ name: '[^']*', type: '(\w+)'(.*)$", text, re.M):
+    # Names can be in single or double quotes ("Thunder God's Waltz")
+    for m in re.finditer(r"^\s{4}(\w+):\s*\{ name: (?:'[^']*'|\"[^\"]*\"), type: '(\w+)'(.*)$", text, re.M):
         name, type_ = m.group(1), m.group(2)
+        if "ultimate: true" in m.group(3):
+            # Ultimate: black cover, crimson-gold gem (book() adds the gold trim)
+            out[name] = ((14, 8, 10), tuple(int(c * 255) for c in colorsys.hsv_to_rgb((zlib.crc32(name.encode()) % 100) / 100.0 * 0.12, 0.8, 1.0)), True)
+            continue
         if "mythic: true" in m.group(3):
             # Mythic: near-black cover, bright gem, gold trim (see book())
             hue = TYPE_HUES.get(type_, 0.5)
@@ -399,6 +419,7 @@ def main():
     for fid, a, b in fusions():
         textures["tome_" + fid] = outline(fusion_book(tomes[a], tomes[b]), edge)
     textures["mythic_fragment"] = outline(fragment(), (30, 8, 40, 255))
+    textures["ascended_soul"] = outline(soul(), (10, 20, 40, 255))
     textures["chaos_tome"] = outline(chaos_book(), edge)
     gems = gem_colors()
     for name, color in gems.items():

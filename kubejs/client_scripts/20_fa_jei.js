@@ -37,6 +37,10 @@ if (typeof JEIEvents != 'undefined') {
       'Elites drop them often, other mobs rarely. Ascended bosses always drop several. Blood Moons double the odds.',
       'Mythic tomes need 4 of them.'
     ])
+    info('kubejs:ascended_soul', [
+      'Only Ascended bosses drop these: rare giant mobs deep in the danger zones (danger ' + FA.bosses.minDanger + '+). Each drops 1 or 2.',
+      'Ultimate tomes need 2, plus 4 Mythic Fragments and a catalyst, in a superheated mixer.'
+    ])
     info('kubejs:chaos_tome', [
       'Hold gear in your other hand and right-click: rolls a brand-new random enchant (Common to Mythic).',
       'Up to ' + FA.chaos.maxPerItem + ' rolled enchants per item. Sneak on a full item to reroll its newest one.'

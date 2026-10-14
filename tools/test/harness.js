@@ -73,7 +73,7 @@ var Java = {
       'net.minecraft.world.entity.raid.Raider': RaiderClass,
       'net.minecraft.world.entity.MobType': MobType,
       'net.minecraft.world.entity.ExperienceOrb': OrbClass,
-      'net.minecraft.world.effect.MobEffects': { MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
+      'net.minecraft.world.effect.MobEffects': { MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', BLINDNESS: 'blindness', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
       'net.minecraft.world.effect.MobEffectInstance': function (effect, ticks, amp) { this.effect = effect; this.ticks = ticks; this.amp = amp },
       'net.minecraft.world.entity.EntityType': {
         LIGHTNING_BOLT: { create: function () { return { moveTo: function () {}, setVisualOnly: function (v) { this.visual = v } } } },
@@ -199,7 +199,11 @@ function makePlayer(server, uuid) {
   p.creative = false
   p.isCreative = function () { return this.creative }
   p.isSpectator = function () { return false }
-  p.teleportTo = function (x, y, z) { this.teleported = [x, y, z] }
+  // Both teleportTo(x, y, z) and teleportTo(level, x, y, z, yaw, pitch)
+  p.teleportTo = function (a, b, c, d, e, f) {
+    if (typeof a == 'object') { this.x = b; this.y = c; this.z = d; this.yaw = e; this.pitch = f; this.teleports = (this.teleports || 0) + 1; this.teleported = [b, c, d] }
+    else this.teleported = [a, b, c]
+  }
   p.fallDistance = 5
   p.displayClientMessage = function (t) { this.bar.push(t.s) }
   p.tell = function (t) { this.messages.push(t) }
@@ -240,18 +244,20 @@ function livingBits(o, maxHealth) {
   o.getStringUUID = o.getStringUUID || function () { return 'mob' }
   o.displayClientMessage = o.displayClientMessage || function () {}
   var self = o
+  // The same world object every call, like the game
   o.level = function () {
-    return {
+    return self._lvl || (self._lvl = {
       dimension: function () { return { location: function () { return self.dim } } },
       getGameTime: function () { return gameTime },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
       isClientSide: function () { return false },
       addFreshEntity: function (e) { bolts.push(e) },
       getEntitiesOfClass: function (cls, box) { var l = self.nearby.filter(function (e) { return e instanceof cls }); return { size: function () { return l.length }, get: function (i) { return l[i] } } }
-    }
+    })
   }
   o.getBoundingBox = function () { return { inflate: function () { return 'box' } } }
-  o.getX = function () { return this.x }; o.getZ = function () { return this.z }; o.getY = function () { return 64 }
+  o.getX = function () { return this.x }; o.getZ = function () { return this.z }; o.getY = function () { return this.y !== undefined ? this.y : 64 }
+  o.getYRot = function () { return this.yaw || 0 }; o.getXRot = function () { return this.pitch || 0 }
   o.damageSources = function () { return { thorns: function () { return 'thorns' }, playerAttack: function () { return 'playerAttack' } } }
   o.getAllSlots = o.getAllSlots || function () { return javaList([]) }
   return o
@@ -266,7 +272,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
@@ -293,9 +299,11 @@ check('every block has a texture', missingBlockTex.length == 0, missingBlockTex.
 var enchantCount = Object.keys(global.FA.enchants).length
 var mythics = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].mythic })
 var fusionIds = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].type == 'fusion' })
-check('274 enchants (59 + 15 Mythic + 200 Fusion)', enchantCount == 274 && mythics.length == 15 && fusionIds.length == 200, enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length)
+var ultIds = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].ultimate })
+check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount == 286 && mythics.length == 15 && fusionIds.length == 200 && ultIds.length == 12,
+  enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
-check('items registered (4 core + blank + tomes + chaos + fragment + gems + 3 clusters)', created.length == 10 + enchantCount + gemCount, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters)', created.length == 11 + enchantCount + gemCount, created.length)
 var File = java.io.File
 var missing = created.filter(function (id) { return !new File('kubejs/assets/kubejs/textures/item/' + id + '.png').exists() })
 check('every item has a texture', missing.length == 0, missing.join(','))
@@ -416,7 +424,8 @@ function src(attacker, opts) {
   return {
     getEntity: function () { return attacker },
     is: function (tag) { return tag == 'bypass' ? !!opts.bypass : opts.tags ? opts.tags.indexOf(tag) >= 0 : false },
-    getMsgId: function () { return opts.msg || 'player' }
+    getMsgId: function () { return opts.msg || 'player' },
+    getDirectEntity: function () { return opts.direct !== undefined ? opts.direct : attacker }
   }
 }
 function hit(attacker, victim, amount, opts) {
@@ -617,7 +626,7 @@ check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
 print('\ntooltips')
 var advanced = null, simple = 0
 handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, addAdvanced: function (ing, f) { advanced = f } }) })
-check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == Object.keys(global.FA.essenceValues).length + 1 + enchantCount + 1 + 1 + 4 + gemCount + 2 + (global.FA_condensedTiers() + 1) + 1, simple)
+check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == Object.keys(global.FA.essenceValues).length + 1 + enchantCount + 1 + 1 + 1 + 4 + gemCount + 2 + (global.FA_condensedTiers() + 1) + 1, simple)
 var lines = { arr: ['Netherite Chestplate', 'When on body:'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(chest, false, lines)
 check('enchants show right under the item name', /Ascended Protection 3,000/.test(lines.arr[1]), lines.arr.join(' | '))
@@ -1151,6 +1160,82 @@ check('fusions of Mythics, of the same enchant twice, or of attribute enchants a
 var fusedTip = { arr: ['Fused'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(fuseSword, false, fusedTip)
 print('  sample: ' + fusedTip.arr[1])
+
+print('\nultimates')
+var serverTick = handlers.forge['ServerTickEvent']
+function ticks(n) { for (var i = 0; i < n; i++) serverTick({ phase: 'END', getServer: function () { return server } }) }
+// A small arena: the hero, a target 4 blocks away and three more enemies around it
+function arena(ultId, lv) {
+  var hero2 = makePlayer(server, 'ult_' + ultId), blade2 = gear('Ult Blade')
+  faSetLevel(blade2, ultId, lv || 1); hero2.main = blade2
+  hero2.x = 100; hero2.y = 70; hero2.z = 100; hero2.yaw = 33; hero2.pitch = -5; hero2.sneaking = true
+  var target3 = makeMob(); target3.x = 104; target3.y = 70; target3.z = 100; target3.hp = target3.maxHp = 1e9
+  var others = [makeMob(), makeMob(), makeMob()]
+  others.forEach(function (m, i) { m.x = 104 + i; m.y = 70; m.z = 101; m.hp = m.maxHp = 1e9 })
+  var all = [target3].concat(others)
+  target3.nearby = all; hero2.nearby = all; others.forEach(function (m) { m.nearby = all })
+  return { hero: hero2, target: target3, others: others }
+}
+faWarned = {}
+var moveReports = []
+ultIds.forEach(function (ultId) {
+  var A = arena(ultId, 5)
+  var dealt = hit(A.hero, A.target, 10)   // the triggering hit
+  var started = !!faCombos[A.hero.getStringUUID()]
+  ticks(200)
+  var dmg = A.target.hurtBy.length + A.others.reduce(function (n, m) { return n + m.hurtBy.length }, 0)
+  var home = A.hero.x == 100 && A.hero.y == 70 && A.hero.z == 100 && A.hero.yaw == 33
+  moveReports.push(global.FA.enchants[ultId].name + ': ' + dmg + ' hits' + (A.hero.teleports ? ', ' + A.hero.teleports + ' teleports' : ''))
+  check(global.FA.enchants[ultId].name + ' plays out, lands hits and leaves you back home', started && dmg > 0 && home && !faCombos[A.hero.getStringUUID()],
+    'started ' + started + ' hits ' + dmg + ' at ' + [A.hero.x, A.hero.y, A.hero.z, A.hero.yaw].join(','))
+})
+print('  ' + moveReports.join(' | '))
+check('no combo step ever crashed', Object.keys(faWarned).length == 0, Object.keys(faWarned).join(','))
+check('the scheduler is empty again afterwards', faQueue.length == 0, faQueue.length)
+
+var W = arena('thunder_waltz', 1)
+hit(W.hero, W.target, 10)
+ticks(10)
+check("Thunder God's Waltz circles the target facing it", W.hero.teleports >= 2 && Math.abs(Math.sqrt(Math.pow(W.hero.x - 104, 2) + Math.pow(W.hero.z - 100, 2)) - 3) < 0.01)
+var face = faLook(W.hero.x, W.hero.y + 1.6, W.hero.z, 104, 71, 100)
+check('...always looking straight at it', Math.abs(W.hero.yaw - face.yaw) < 0.01)
+var duringHit = hit(makeMob(), W.hero, 50)
+var attackEv = { c: false, getSource: function () { return src(makeMob()) }, getEntity: function () { return W.hero }, isCanceled: function () { return this.c }, setCanceled: function (v) { this.c = v } }
+handlers.forge['LivingAttackEvent'](attackEv)
+check('you are untouchable mid-combo', attackEv.c)
+var killEv = { c: false, getSource: function () { return src(null, { bypass: true }) }, getEntity: function () { return W.hero }, isCanceled: function () { return this.c }, setCanceled: function (v) { this.c = v } }
+handlers.forge['LivingAttackEvent'](killEv)
+check('...except /kill and the void', !killEv.c)
+var fallEv = { mult: 1, getEntity: function () { return W.hero }, getDistance: function () { return 20 }, setDamageMultiplier: function (m) { this.mult = m } }
+handlers.forge['LivingFallEvent'](fallEv)
+check('...and take no fall damage from the combo', fallEv.mult == 0)
+W.target.hp = 0; W.target.isAlive = function () { return false }
+ticks(200)
+check('if the target dies mid-combo, it still finishes and brings you home', W.hero.x == 100 && W.hero.z == 100 && !faCombos[W.hero.getStringUUID()])
+
+var L2 = arena('thunder_waltz', 1)
+hit(L2.hero, L2.target, 10); ticks(6)
+handlers.forge['PlayerLoggedOutEvent']({ getEntity: function () { return L2.hero } })
+check('logging out mid-combo puts you back first', L2.hero.x == 100 && L2.hero.z == 100 && !faCombos[L2.hero.getStringUUID()])
+ticks(200)
+
+var C2 = arena('blade_storm', 1)
+hit(C2.hero, C2.target, 10); ticks(200)
+var before2 = C2.target.hurtBy.length
+hit(C2.hero, C2.target, 10)
+check('Ultimates have a cooldown', !faCombos[C2.hero.getStringUUID()])
+var N2 = arena('blade_storm', 1); N2.hero.sneaking = false
+hit(N2.hero, N2.target, 10)
+check('only a sneaking hit unleashes it', !faCombos[N2.hero.getStringUUID()])
+var P2 = arena('blade_storm', 1)
+hit(P2.hero, P2.target, 10, { direct: makeMob(), tags: ['projectile'] })
+check('arrows never trigger it (melee only)', !faCombos[P2.hero.getStringUUID()])
+check('Ultimate power: level 5 = 2x, cooldown drops a second per level (min 5s)', near(global.FA_ultPower({ power: 1, perLevel: 0.25 }, 5), 2) &&
+  global.FA_ultCooldown({ cooldown: 40 }, 100) == 5)
+check('Ultimate tomes need 2 Ascended Souls + 4 Mythic Fragments', byId('tome_thunder_waltz').json.ingredients.filter(function (i) { return i.item == 'kubejs:ascended_soul' }).length == 2 &&
+  byId('tome_thunder_waltz').json.heatRequirement == 'superheated')
+check('Ascended bosses drop Ascended Souls', global.FA.bosses.drops.some(function (d) { return d[0] == 'kubejs:ascended_soul' }))
+check('Ultimates cost 10x Essence per level', global.FA_cost(10, 'eclipse') == Math.ceil(0.05 * 11 * 10))
 
 print('\njei')
 check('JEI hides only the half-made assembly item', jei.hidden.join() == 'kubejs:incomplete_ascension_core')

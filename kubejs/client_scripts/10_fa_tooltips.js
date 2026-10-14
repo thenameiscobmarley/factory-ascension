@@ -10,7 +10,7 @@ let FA_TYPE_COLORS = {
   attribute: 'white', mining: 'blue', eternal: 'lightPurple',
   flight: 'gold', chain_lightning: 'gold', gravity_well: 'gold', death_nova: 'gold', time_stop: 'gold', phoenix: 'gold',
   projectile_teleport: 'gold', souls: 'gold', overkill: 'gold', rampage: 'gold', vein: 'gold', aura: 'gold', heads: 'gold', slam: 'gold',
-  fusion: 'darkAqua'
+  fusion: 'darkAqua', ultimate: 'red'
 }
 
 let FA_TIP_RARITY = { gray: 'gray', aqua: 'aqua', light_purple: 'lightPurple', gold: 'gold', red: 'red' }
@@ -34,7 +34,7 @@ ItemEvents.tooltip(event => {
       if (level <= 0) return
       let e = global.FA.enchants[id]
       let name = e.name + (e.maxLevel == 1 ? '' : ' ' + global.FA_num(level))
-      let label = e.mythic ? Text.lightPurple('\u2726 ').append(Text.gold(name)) : faColor(id)(name)
+      let label = e.ultimate ? Text.red('\u2604 ').append(Text.gold(name).bold(true)) : e.mythic ? Text.lightPurple('\u2726 ').append(Text.gold(name)) : faColor(id)(name)
       text.add(line++, label.append(Text.darkGray('  ' + global.FA_describe(id, level))))
     })
     // Rolled (Chaos Tome) enchants: name in its rarity color, then each effect
@@ -84,7 +84,7 @@ ItemEvents.tooltip(event => {
   Object.keys(global.FA.enchants).forEach(id => {
     let e = global.FA.enchants[id]
     event.add('kubejs:tome_' + id, [
-      e.mythic ? Text.lightPurple('\u2726 MYTHIC').bold(true) : e.type == 'fusion'
+      e.ultimate ? Text.red('\u2604 ULTIMATE').bold(true) : e.mythic ? Text.lightPurple('\u2726 MYTHIC').bold(true) : e.type == 'fusion'
         ? Text.darkAqua('\u2697 FUSION of ' + global.FA.enchants[e.parts[0]].name + ' + ' + global.FA.enchants[e.parts[1]].name) : Text.darkGray('Ascended'),
       faColor(id)('Level 1: ' + global.FA_describe(id, 1)),
       Text.gray('Hold gear in your other hand and right-click to unlock'),
@@ -132,6 +132,10 @@ ItemEvents.tooltip(event => {
   event.add('kubejs:liquid_essence_bucket', [
     Text.lightPurple('Sneak + right-click to drink: +' + (1000 / global.FA.altar.mbPerEssence) + ' Essence'),
     Text.darkGray('Or pipe it into an Ascension Altar')
+  ])
+  event.add('kubejs:ascended_soul', [
+    Text.red('Torn from an Ascended boss'),
+    Text.gray('2 of them + 4 Mythic Fragments + a catalyst make an Ultimate tome (superheated mixer)')
   ])
   event.add('kubejs:mythic_fragment', [
     Text.lightPurple('Drops from mobs out in the danger zones, mostly Elites'),

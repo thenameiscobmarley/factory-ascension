@@ -93,7 +93,20 @@ ServerEvents.recipes(event => {
     timber: ['create:mechanical_saw'],
     radiance: ['minecraft:beacon'],
     headhunter: ['minecraft:skeleton_skull'],
-    gravity_slam: ['minecraft:crying_obsidian']
+    gravity_slam: ['minecraft:crying_obsidian'],
+    // Ultimate (plus 2 Ascended Souls and 4 Mythic Fragments each, superheated)
+    thunder_waltz: ['minecraft:trident'],
+    thousand_cuts: ['minecraft:golden_sword'],
+    heaven_splitter: ['minecraft:sticky_piston'],
+    dragon_spiral: ['minecraft:dragon_head'],
+    void_collapse: ['minecraft:ender_chest'],
+    starfall: ['minecraft:firework_rocket'],
+    shadow_barrage: ['minecraft:black_dye'],
+    frozen_eternity: ['minecraft:packed_ice'],
+    spirit_bomb: ['minecraft:glowstone'],
+    blade_storm: ['minecraft:iron_sword'],
+    eclipse: ['minecraft:daylight_detector'],
+    phoenix_dive: ['minecraft:fire_charge']
   }
 
   // Chaos Tome: blank tome + 4 cores + an eye of ender, superheated
@@ -121,8 +134,9 @@ ServerEvents.recipes(event => {
       console.error('[Factory Ascension] no tome recipe for enchant "' + id + '"')
       return
     }
-    let mythic = global.FA.enchants[id].mythic
+    let mythic = global.FA.enchants[id].mythic || global.FA.enchants[id].ultimate
     if (mythic) items = items.concat(['kubejs:mythic_fragment', 'kubejs:mythic_fragment', 'kubejs:mythic_fragment', 'kubejs:mythic_fragment'])
+    if (global.FA.enchants[id].ultimate) items = items.concat(['kubejs:ascended_soul', 'kubejs:ascended_soul'])
     event.custom({
       type: 'create:mixing',
       ingredients: [{ item: 'kubejs:blank_ascension_tome' }].concat(items.map(i => ({ item: i }))),

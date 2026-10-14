@@ -19,6 +19,7 @@ var groups = [
   ['Passive', ['regen', 'passive', 'magnet', 'repair']],
   ['Movement & utility', ['attribute', 'mining', 'eternal']],
   ['Mythic', 'mythic'],
+  ['Ultimate', 'ultimate'],
   ['Fusion', 'fusion']
 ]
 function nice(id) {
@@ -27,7 +28,7 @@ function nice(id) {
 }
 function catalysts(id) {
   var counts = {}, order = []
-  recipes[id].filter(function (i) { return i != 'kubejs:mythic_fragment' }).forEach(function (i) { if (!counts[i]) { counts[i] = 0; order.push(i) } counts[i]++ })
+  recipes[id].filter(function (i) { return i != 'kubejs:mythic_fragment' && i != 'kubejs:ascended_soul' }).forEach(function (i) { if (!counts[i]) { counts[i] = 0; order.push(i) } counts[i]++ })
   return order.map(function (i) { return (counts[i] > 1 ? counts[i] + 'x ' : '') + nice(i) }).join(', ')
 }
 
@@ -47,6 +48,12 @@ groups.forEach(function (g) {
       '(15% + 0.5% per danger level, max 75%), other danger-zone mobs rarely (0.2% per danger level, max 5%).',
       'Mythic levels cost ' + global.FA.mythicCostMultiplier + 'x the Essence.', '')
   }
+  if (g[1] == 'ultimate') {
+    out.push('Cinematic combo moves: **sneak + hit** an enemy to unleash one. You can\'t be hurt mid-combo and always land back where you started.',
+      'Every strike deals the triggering hit\'s damage x the power below, so your other enchants make them stronger. Each level adds 25% power and',
+      'takes 1 second off the cooldown (5 s minimum). Tomes need **2 Ascended Souls** (only Ascended bosses drop them) + 4 Mythic Fragments, superheated.',
+      'Ultimate levels cost ' + global.FA.ultimateCostMultiplier + 'x the Essence.', '')
+  }
   if (g[1] == 'fusion') {
     out.push('Two enchants fused into one tome: each Fusion does both of its parents\' effects at ' + Math.round(global.FA.fusionStrength * 100) + '% strength.',
       'Tome: the two parent tomes + an Ascension Core in a **heated** mixer. Fusion levels cost ' + global.FA.fusionCostMultiplier + 'x the Essence.', '')
@@ -54,7 +61,7 @@ groups.forEach(function (g) {
   out.push('| Enchant | Level 1 | Level 100 | Max | Tome catalysts |', '|---|---|---|---|---|')
   Object.keys(E).forEach(function (id) {
     var e = E[id]
-    if (g[1] == 'mythic' ? !e.mythic : g[1] == 'fusion' ? e.type != 'fusion' : (e.mythic || e.type == 'fusion' || g[1].indexOf(e.type) < 0)) return
+    if (g[1] == 'mythic' ? !e.mythic : g[1] == 'ultimate' ? !e.ultimate : g[1] == 'fusion' ? e.type != 'fusion' : (e.mythic || e.ultimate || e.type == 'fusion' || g[1].indexOf(e.type) < 0)) return
     var at100 = e.maxLevel ? '' : global.FA_describe(id, 100)
     out.push('| **' + e.name + '** | ' + global.FA_describe(id, 1) + ' | ' + at100 + ' | ' +
       (e.maxLevel ? e.maxLevel + ' (' + global.FA_describe(id, e.maxLevel) + ')' : 'none') + ' | ' + catalysts(id) + ' |')

@@ -13,11 +13,14 @@ StartupEvents.registry('item', event => {
   event.create('blank_ascension_tome').displayName('Blank Ascension Tome').rarity('uncommon')
   Object.keys(global.FA.enchants).forEach(id => {
     let e = global.FA.enchants[id]
-    event.create('tome_' + id).displayName((e.mythic ? 'Mythic Tome of ' : e.type == 'fusion' ? 'Fusion Tome of ' : 'Tome of ') + e.name).rarity('epic').glow(true)
+    event.create('tome_' + id).displayName((e.ultimate ? 'Ultimate Tome: ' : e.mythic ? 'Mythic Tome of ' : e.type == 'fusion' ? 'Fusion Tome of ' : 'Tome of ') + e.name).rarity('epic').glow(true)
   })
 
   // Rolls a random enchant (rarity, name and effects) onto gear
   event.create('chaos_tome').displayName('Chaos Tome').rarity('epic').glow(true)
+
+  // Dropped only by Ascended bosses, needed for Ultimate tomes
+  event.create('ascended_soul').displayName('Ascended Soul').rarity('epic').glow(true)
 
   // Dropped by mobs out in the danger zones, needed for Mythic tomes
   event.create('mythic_fragment').displayName('Mythic Fragment').rarity('epic').glow(true)

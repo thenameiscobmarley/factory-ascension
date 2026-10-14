@@ -21,7 +21,7 @@ cobble generators -> mineral clusters -> ores -> diamonds, rose quartz, steel
 
 ## Ascended enchants
 
-**274 enchants** (59 Ascended + 15 Mythic + 200 Fusion), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
+**286 enchants** (59 Ascended + 15 Mythic + 12 Ultimate + 200 Fusion), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
 factory can pay for. They count from **every equipped item**, both hands and all armor, so any enchant
 works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md](docs/ENCHANTS.md)**.
 
@@ -34,6 +34,33 @@ works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md]
 | Passive | Renewal, Night Sight, Gills, Fireproof, Industrious, Leaping, Sustenance, Magnetism, Restoration |
 | Movement & utility | Swiftness, Reach, Stride, Frenzy, Lucky, Excavation, Eternal |
 | **✦ Mythic** | Wings, Thunderlord, Black Hole, Meteor, Chronos, Phoenix, Voidwalker, Soul Harvest, Overkill, Rampage, Vein Miner, Timber, Radiance, Headhunter, Gravity Slam |
+
+### ☄ Ultimates (12): cinematic combo moves
+
+**Sneak + hit** an enemy and the game takes over. *Thunder God's Waltz*: you blink in a circle around the target slashing it
+from 8 sides (always facing it), leap into the sky, call down three lightning strikes, it explodes, and you land exactly
+where you started. The others:
+
+| Ultimate | The move |
+|---|---|
+| Phantom Thousand Cuts | 16 afterimage slashes from every direction in under a second, then one final cut |
+| Heaven Splitter | Launch the target into the sky, appear above it, slam it into the ground with a shockwave |
+| Dragon Flame Spiral | Spiral up around the target in a pillar of fire, then a flame nova |
+| Void Collapse | Drag every enemy around into one point, hold them, crush them all at once |
+| Starfall | Leap high and rain ten meteors on the enemies around your target |
+| Shadow Clone Barrage | Blink to every enemy nearby and strike each one, then return |
+| Frozen Eternity | Freeze time around you, strike every frozen enemy, then shatter them all |
+| Spirit Bomb | Gather a growing sphere of light overhead, then hurl it |
+| Blade Storm Dance | Become a whirlwind of blades for three seconds |
+| Eclipse Judgement | Blind every enemy, then a pillar of light falls on the target while you heal |
+| Phoenix Dive | Soar up, then dive onto the target in a trail of fire and explode |
+
+- Every strike deals the triggering hit's damage x the move's power, so all your other enchants make Ultimates stronger.
+  Each level adds 25% power and takes a second off the cooldown (5 s minimum).
+- You can't be hurt mid-combo (except by `/kill` and the void), take no fall damage from it, and always land back home.
+  If the target dies the combo still finishes; if you log out you're put back first; a failsafe returns you even if a step fails.
+- Combo hits never trigger other enchants or another Ultimate. Bosses still resist being frozen, launched or pulled.
+- Tomes need **2 Ascended Souls** (a new drop only Ascended bosses have) + 4 Mythic Fragments, superheated. 10x Essence per level.
 
 ### ⚗ Fusion enchants (200)
 
@@ -258,7 +285,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 264 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 292 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
