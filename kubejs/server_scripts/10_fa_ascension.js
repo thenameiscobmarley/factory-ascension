@@ -109,6 +109,14 @@ function faTomeLevel(tome, id) {
   return Math.max(1, faGetLevel(tome, id))
 }
 
+// The level a tome puts on gear: its own level x its foil (if any), within the enchant's max
+function faAppliedLevel(tome, id) {
+  let level = faTomeLevel(tome, id)
+  let foil = global.FA_foilOf(tome)
+  if (foil >= 0) level = Math.floor(level * global.FA.foils.types[foil].mult)
+  return Math.max(1, Math.min(faMaxLevel(id), level))
+}
+
 // A tome item holding one enchant at a level
 function faMakeTome(id, level) {
   let tome = Item.of('kubejs:tome_' + id)
@@ -367,7 +375,7 @@ function faUnlock(player, tome, id, gear) {
     player.displayClientMessage(Text.red('Hold the gear you want to enchant in your other hand.'), true)
     return
   }
-  let tomeLevel = faTomeLevel(tome, id)
+  let tomeLevel = faAppliedLevel(tome, id)
   let had = faGetLevel(gear, id)
   if (had >= tomeLevel) {
     player.displayClientMessage(Text.yellow('That already has ' + name + ' ' + global.FA_num(had) + '. Level this tome past it first (hold it, /ascension).'), true)

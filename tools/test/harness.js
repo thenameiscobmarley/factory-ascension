@@ -312,7 +312,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
   'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js',
-  'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
+  'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
@@ -375,7 +375,7 @@ check('486 enchants (59 + 15 Mythic + 200 Fusion + 200 Triad + 12 Ultimate)', en
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.foils.types.length, created.length)
 check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
   return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
@@ -1934,6 +1934,38 @@ fixer.given = []
 faDetach(fixer, 0)
 check('[Detach] takes it off and gives the attachment back', global.FA_attachIds(sword9).join() == 'taser' && fixer.given[0].id == 'kubejs:attachment_chainsaw')
 check('every attachment has a recipe', global.FA.attachments.list.every(function (a) { return recipes.some(function (r) { return r.rid == 'kubejs:factory_ascension/attachment_' + a.id }) }))
+
+// ---------------- Foils ----------------
+print('\nfoils')
+var FT = global.FA.foils.types, fr = new java.util.Random(4)
+var tallyF = function (rarity) { var t = FT.map(function () { return 0 }), none = 0; for (var i = 0; i < 20000; i++) { var f = global.FA_rollFoil(function () { return fr.nextDouble() }, rarity); if (f < 0) none++; else t[f]++ } return { t: t, none: none } }
+var commonF = tallyF(0), secretF = tallyF(5)
+check('Common cards are rarely foiled; Secret Rares always are, with better foils', commonF.none > 17000 && secretF.none == 0 &&
+  secretF.t[7] / 20000 > commonF.t[7] / (20000 - commonF.none) * 2, commonF.none + ' / ' + secretF.t.join(','))
+var ft = stack(1); ft.id = 'kubejs:tome_sharpness'; faSetLevel(ft, 'sharpness', 100)
+global.FA_setFoil(ft, 2)
+check('a Gold Foil tome goes on gear at x1.5 (level 100 -> 150) and sets its look (CustomModelData 3)', faAppliedLevel(ft, 'sharpness') == 150 && ft.tag.d.CustomModelData == 3 && global.FA_foilOf(ft) == 2)
+var foiler = makePlayer(server, 'foiler'), fgear = gear('Sword'); foiler.main = ft; foiler.off = fgear
+server.persistentData.putDouble('fa_essence_foiler', 1000)
+handlers.rightClicked['kubejs:tome_sharpness']({ player: foiler, item: ft, hand: 'MAIN_HAND', cancel: function () {} })
+check('applying the foiled tome puts Sharpness 150 on the gear', faGetLevel(fgear, 'sharpness') == 150, faGetLevel(fgear, 'sharpness'))
+var plainT = stack(1); plainT.id = 'kubejs:tome_smite'; var vs = stack(2); vs.id = 'kubejs:foil_sheet_void'
+foiler.main = vs; foiler.off = plainT
+handlers.rightClicked['kubejs:foil_sheet_void']({ player: foiler, item: vs, hand: 'MAIN_HAND', cancel: function () {} })
+check('a Foil Sheet foils the tome in your other hand', global.FA_foilOf(plainT) == 6 && vs.count == 1)
+var bs = stack(1); bs.id = 'kubejs:foil_sheet_bronze'; foiler.main = bs
+handlers.rightClicked['kubejs:foil_sheet_bronze']({ player: foiler, item: bs, hand: 'MAIN_HAND', cancel: function () {} })
+check('a worse foil never replaces a better one (sheet kept)', global.FA_foilOf(plainT) == 6 && bs.count == 1)
+var foiledVal = faSellValue(plainT).value, plainT2 = stack(1); plainT2.id = 'kubejs:tome_smite'
+check('a foiled tome sells for x its foil', near(foiledVal, faSellValue(plainT2).value * FT[6].mult))
+var noModel = Object.keys(global.FA.enchants).filter(function (id) {
+  var f = new File('kubejs/assets/kubejs/models/item/tome_' + id + '.json')
+  if (!f.exists()) return true
+  var m = JSON.parse(String(new java.lang.String(java.nio.file.Files.readAllBytes(f.toPath()), 'UTF-8')))
+  return m.overrides.length != FT.length || !FT.every(function (t, i) { return new File('kubejs/assets/kubejs/models/item/foil/' + t.id + '/tome_' + id + '.json').exists() && m.overrides[i].predicate.custom_model_data == i + 1 })
+})
+check('every tome has a model with all ' + FT.length + ' foil looks, and every foil has its overlay', noModel.length == 0 &&
+  FT.every(function (t) { return new File('kubejs/assets/kubejs/textures/item/foil_overlay_' + t.id + '.png').exists() }), noModel.slice(0, 3).join(','))
 
 // ---------------- Selling ----------------
 print('\nselling')

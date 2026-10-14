@@ -70,6 +70,10 @@ StartupEvents.registry('item', event => {
     })
   })
 
+  // Foil Sheets: apply a foil to a tome (config: foils)
+  global.FA.foils.types.forEach((f, i) => event.create('foil_sheet_' + f.id).displayName(f.name + ' Foil Sheet')
+    .rarity(i < 2 ? 'common' : i < 4 ? 'uncommon' : i < 6 ? 'rare' : 'epic').glow(i >= 3))
+
   // Enchantment card packs (foil) and booster boxes of them (config: packs)
   event.create('enchantment_pack').displayName('Enchantment Pack').rarity('rare').glow(true)
   event.create('booster_box').displayName('Enchantment Booster Box').rarity('epic').glow(true)

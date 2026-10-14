@@ -495,3 +495,95 @@ def chaos_tome():
     _cover(px, rainbow, GOLD, frame=1, kind='mythic')
     _paint(px, raster(add(poly(star_pts(0.5, 0.5, 0.48, 0.18, 6))) + cut(circ(0.5, 0.5, 0.08)), 13), 12, 8, (255, 255, 255), (40, 20, 60), (255, 255, 255))
     return px
+
+
+# ---- Foils: a see-through overlay drawn over a tome's cover (the tome model's second layer) ----
+
+def _rainbow(t):
+    import colorsys
+    return tuple(int(c * 255) for c in colorsys.hsv_to_rgb(t % 1.0, 0.7, 1.0))
+
+
+def foil_overlay(foil):
+    """32x32 RGBA overlay for one foil, covering the tome's front cover. Better foils are bolder and busier."""
+    import random
+    rnd = random.Random(foil)
+    px = [[(0, 0, 0, 0)] * S for _ in range(S)]
+    fx0, fx1, fy0, fy1 = SPINE + 1, X1, Y0, Y1
+    face = lambda x, y: fx0 <= x <= fx1 and fy0 <= y <= fy1
+    border = lambda x, y, w: face(x, y) and (x - fx0 < w or fx1 - x < w or y - fy0 < w or fy1 - y < w)
+    put = lambda x, y, c, a: px[y].__setitem__(x, tuple(c) + (a,))
+    for y in range(S):
+        for x in range(S):
+            if not face(x, y):
+                continue
+            d = (x + y) / 40.0
+            if foil == 'bronze':
+                if border(x, y, 1): put(x, y, (214, 130, 70), 210)
+                elif abs((x - y) - 4) < 2: put(x, y, (255, 200, 150), 80)
+            elif foil == 'silver':
+                if border(x, y, 1): put(x, y, (235, 240, 250), 220)
+                elif abs((x - y) - 6) < 2 or abs((x - y) + 6) < 1: put(x, y, (255, 255, 255), 95)
+            elif foil == 'gold':
+                if border(x, y, 2): put(x, y, (255, 214, 70) if border(x, y, 1) else (200, 140, 30), 235)
+                elif abs((x - y) - 3) < 2: put(x, y, (255, 240, 170), 100)
+            elif foil == 'holo':
+                if border(x, y, 1): put(x, y, _rainbow(d * 2), 230)
+                else: put(x, y, _rainbow(d * 3 + ((x - y) % 6) / 18.0), 85)
+            elif foil == 'prismatic':
+                if border(x, y, 2): put(x, y, _rainbow(d * 2 + 0.3), 240)
+                else: put(x, y, _rainbow(d * 4), 100)
+            elif foil == 'galaxy':
+                if border(x, y, 1): put(x, y, (190, 120, 255), 235)
+                else:
+                    t = (y - fy0) / float(fy1 - fy0)
+                    put(x, y, (int(40 + 60 * t), int(20 + 10 * t), int(90 + 60 * (1 - t))), 150)
+            elif foil == 'void':
+                if border(x, y, 2): put(x, y, (200, 90, 255) if border(x, y, 1) else (110, 30, 170), 245)
+                else: put(x, y, (8, 4, 14), 165)
+            elif foil == 'celestial':
+                if border(x, y, 2): put(x, y, (255, 236, 150) if border(x, y, 1) else (255, 255, 255), 245)
+                else:
+                    cx, cy = (fx0 + fx1) / 2.0, (fy0 + fy1) / 2.0
+                    import math
+                    ang = math.atan2(y - cy, x - cx)
+                    ray = (math.cos(ang * 8) + 1) / 2
+                    put(x, y, (255, 250, 220), int(60 + 80 * ray))
+    # Sparkles on the better foils
+    stars = {'gold': 3, 'prismatic': 5, 'galaxy': 14, 'void': 6, 'celestial': 10}.get(foil, 0)
+    for _ in range(stars):
+        x, y = rnd.randint(fx0 + 2, fx1 - 2), rnd.randint(fy0 + 2, fy1 - 2)
+        c = (200, 120, 255) if foil == 'void' else (255, 255, 255)
+        put(x, y, c, 255)
+        if foil in ('galaxy', 'celestial') and rnd.random() < 0.4:
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                if face(x + dx, y + dy): put(x + dx, y + dy, c, 150)
+    return px
+
+
+def foil_sheet(foil):
+    """A Foil Sheet icon: a slightly curled sheet showing the foil's finish."""
+    over = foil_overlay(foil)
+    px = [[(0, 0, 0, 0)] * S for _ in range(S)]
+    for y in range(4, 28):
+        for x in range(6, 26):
+            curl = x > 21 and y < 4 + (x - 21)
+            if curl:
+                continue
+            base = (210, 214, 224)
+            # Sample the overlay from the cover area, stretched over the sheet
+            ox = SPINE + 1 + int((x - 6) / 20.0 * (X1 - SPINE - 1))
+            oy = Y0 + int((y - 4) / 24.0 * (Y1 - Y0))
+            r, g, b, a = over[oy][ox]
+            if a == 0 and foil in ('bronze', 'silver', 'gold'):
+                tint = {'bronze': (200, 130, 80), 'silver': (220, 226, 236), 'gold': (240, 200, 90)}[foil]
+                c = tuple(int(base[i] * 0.3 + tint[i] * 0.7) for i in range(3))
+            else:
+                c = tuple(int(base[i] * (1 - a / 255.0) + (r, g, b)[i] * (a / 255.0)) for i in range(3))
+            px[y][x] = c + (255,)
+    for x in range(22, 26):
+        for y in range(4, 4 + (x - 21)):
+            if y < 28 and x - 21 > y - 4:
+                px[y][x] = (150, 150, 160, 255)
+    return px
+

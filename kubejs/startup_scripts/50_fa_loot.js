@@ -155,7 +155,12 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
         let left = roll.drop.count
         while (left > 0 && made.length < 8) {
           let n = Math.min(left, proto.getMaxStackSize())
-          made.push(Item.of(roll.drop.id, n))
+          let st = Item.of(roll.drop.id, n)
+          // Tomes from loot can come foiled, better foils from better tiers
+          if (String(roll.drop.id).indexOf('kubejs:tome_') == 0 && global.FA.foils.enabled && Math.random() < global.FA.foils.lootChance) {
+            global.FA_setFoil(st, global.FA_foilQuality(Math.random, Math.min(5, roll.tier)))
+          }
+          made.push(st)
           left -= n
         }
         label = roll.drop.count + 'x ' + proto.getHoverName().getString()

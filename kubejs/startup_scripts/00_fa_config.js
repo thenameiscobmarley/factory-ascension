@@ -835,6 +835,29 @@ global.FA = {
     ]
   },
 
+  // ---- Foils: shiny finishes on enchant tomes ----
+  // A foil multiplies the tome's level when it's applied to gear (a level 100 tome with Gold Foil goes on as 150).
+  // Each foil also changes how the tome looks, so you can tell its foil at a glance. Pack cards roll foils (better
+  // cards, better odds); Foil Sheets are crafted and applied by right-clicking with the tome in your other hand.
+  // weight: how often it rolls; recipe: shapeless ingredients for its Foil Sheet.
+  foils: {
+    enabled: true,
+    types: [
+      { id: 'bronze', name: 'Bronze', mult: 1.1, weight: 40, color: 'gold', recipe: ['minecraft:paper', 'minecraft:copper_ingot', 'minecraft:copper_ingot'] },
+      { id: 'silver', name: 'Silver', mult: 1.25, weight: 25, color: 'white', recipe: ['minecraft:paper', 'minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:quartz'] },
+      { id: 'gold', name: 'Gold', mult: 1.5, weight: 15, color: 'yellow', recipe: ['minecraft:paper', 'minecraft:gold_ingot', 'minecraft:gold_ingot', 'kubejs:ascendite_ingot'] },
+      { id: 'holo', name: 'Holographic', mult: 2, weight: 10, color: 'aqua', recipe: ['minecraft:paper', 'minecraft:prismarine_crystals', 'minecraft:amethyst_shard', 'kubejs:ascension_shard', 'minecraft:glass_pane'] },
+      { id: 'prismatic', name: 'Prismatic', mult: 3, weight: 6, color: 'light_purple', recipe: ['minecraft:paper', 'minecraft:diamond', 'minecraft:red_dye', 'minecraft:yellow_dye', 'minecraft:lime_dye', 'minecraft:light_blue_dye', 'minecraft:purple_dye'] },
+      { id: 'galaxy', name: 'Galaxy', mult: 5, weight: 3, color: 'dark_purple', recipe: ['minecraft:paper', 'kubejs:voidsteel_ingot', 'minecraft:ender_eye', 'kubejs:mythic_fragment'] },
+      { id: 'void', name: 'Void', mult: 8, weight: 0.8, color: 'dark_gray', recipe: ['minecraft:paper', 'kubejs:celestium_ingot', 'minecraft:crying_obsidian', 'kubejs:mythic_fragment', 'kubejs:mythic_fragment'] },
+      { id: 'celestial', name: 'Celestial', mult: 12, weight: 0.2, color: 'gold', recipe: ['minecraft:paper', 'kubejs:ascendium_ingot', 'kubejs:ascension_singularity', 'minecraft:nether_star'] }
+    ],
+    // Chance a pack card comes foiled, by card rarity (Common .. Secret Rare); foil quality leans up with rarity
+    cardChance: [0.08, 0.15, 0.3, 1, 1, 1],
+    rarityBoost: 0.6,          // per rarity step, better foils' weights grow by (1 + this) ^ foil tier
+    lootChance: 0.15           // chance a tome from danger-zone loot comes foiled
+  },
+
   // ---- Jackpots: the rare insane find ----
   // Relic and card enchant levels have a long lucky tail: most rolls are normal, a few are many times higher, and a
   // sliver reach levelCap. levelAlpha sets how fat the tail is (lower = more huge rolls): with 1.6, a roll x10 higher
@@ -1593,6 +1616,28 @@ global.FA_luckyMult = rnd => {
   return Math.min(J.levelCap, Math.pow(Math.max(1e-12, 1 - rnd()), -1 / J.levelAlpha))
 }
 
+// A foil for a card or loot tome: index into foils.types (or -1 for none). rarity: 0 (Common) .. 5 (Secret Rare)
+global.FA_rollFoil = (rnd, rarity) => {
+  let F = global.FA.foils
+  if (!F.enabled) return -1
+  let chance = F.cardChance[Math.min(F.cardChance.length - 1, Math.max(0, rarity))]
+  if (rnd() >= chance) return -1
+  return global.FA_foilQuality(rnd, rarity)
+}
+
+// Which foil, leaning toward better ones the higher the rarity (0..5)
+global.FA_foilQuality = (rnd, rarity) => {
+  let F = global.FA.foils
+  let w = F.types.map((t, i) => t.weight * Math.pow(1 + F.rarityBoost, i * rarity / 5))
+  let total = w.reduce((a, b) => a + b, 0)
+  let pick = rnd() * total
+  for (let i = 0; i < w.length; i++) {
+    pick -= w[i]
+    if (pick < 0) return i
+  }
+  return w.length - 1
+}
+
 // One card from a pack: { rarity index, enchant id, level }. rnd: 0..1 random; minRarity: lowest allowed index.
 global.FA_rollCard = (rnd, minRarity) => {
   let P = global.FA.packs
@@ -1612,7 +1657,7 @@ global.FA_rollCard = (rnd, minRarity) => {
   let level = Math.round((R.level[0] + Math.floor(rnd() * (R.level[1] - R.level[0] + 1))) * global.FA_luckyMult(rnd))
   level = Math.min(level, global.FA.jackpot.levelCap)
   if (E[id].maxLevel) level = Math.min(level, E[id].maxLevel)
-  return { rarity: ri, id: id, level: Math.max(1, level) }
+  return { rarity: ri, id: id, level: Math.max(1, level), foil: global.FA_rollFoil(rnd, ri) }
 }
 
 // A whole pack of cards; the last one is Rare or better when lastCardRare is on

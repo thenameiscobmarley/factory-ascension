@@ -426,6 +426,27 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.setItemInHand('main_hand', sword)
   })
 
+  // ---- Foils: a sheet applied with a real click, then the foiled tome applied with a real click ----
+  attempt('foils', () => {
+    player.getInventory().clearContent()
+    let tome = Item.of('kubejs:tome_cleave')
+    faSetLevel(tome, 'cleave', 40)
+    player.setItemInHand('main_hand', Item.of('kubejs:foil_sheet_gold'))
+    player.setItemInHand('off_hand', tome)
+    player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+    let foiled = player.getOffhandItem()
+    let cmd = foiled.nbt ? foiled.nbt.getInt('CustomModelData') : 0
+    check('a Gold Foil Sheet foils a tome (real click; look number ' + cmd + ')', global.FA_foilOf(foiled) == 2 && cmd == 3, cmd)
+    player.setItemInHand('main_hand', foiled)
+    player.setItemInHand('off_hand', Item.of('minecraft:iron_axe'))
+    faSetEssence(player, 1000)
+    player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+    let got = faGetLevel(player.getOffhandItem(), 'cleave')
+    check('the Gold-foiled level 40 tome puts Cleave ' + got + ' on an axe (x1.5)', got == 60, got)
+    player.getInventory().clearContent()
+    player.setItemInHand('main_hand', sword)
+  })
+
   // ---- Jackpot chests and Triads ----
   attempt('jackpots', () => {
     let jackpots = 0, biggest = ''

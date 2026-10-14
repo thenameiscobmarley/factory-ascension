@@ -777,6 +777,27 @@ def ascendite_textures(textures):
     print("wrote Ascendite ore, block, armor layers and %d items" % (len(ASC_SPRITES) + 3))
 
 
+MODEL_OUT = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "models", "item")
+
+
+def write_tome_models(tome_ids, foil_ids):
+    """Each tome's model picks a foil overlay by CustomModelData (1 = first foil ...). The overlay is layer1 over the tome."""
+    import json
+    for f in foil_ids:
+        os.makedirs(os.path.join(MODEL_OUT, "foil", f), exist_ok=True)
+    for tid in tome_ids:
+        name = "tome_" + tid
+        base = {"parent": "minecraft:item/generated", "textures": {"layer0": "kubejs:item/" + name},
+                "overrides": [{"predicate": {"custom_model_data": i + 1}, "model": "kubejs:item/foil/%s/%s" % (f, name)} for i, f in enumerate(foil_ids)]}
+        with open(os.path.join(MODEL_OUT, name + ".json"), "w") as out:
+            json.dump(base, out, separators=(",", ":"))
+        for f in foil_ids:
+            with open(os.path.join(MODEL_OUT, "foil", f, name + ".json"), "w") as out:
+                json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "kubejs:item/" + name, "layer1": "kubejs:item/foil_overlay_" + f}},
+                          out, separators=(",", ":"))
+    print("wrote %d tome models with %d foil looks each" % (len(tome_ids), len(foil_ids)))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     edge = (24, 10, 36, 255)
@@ -815,6 +836,15 @@ def main():
     # Triad tomes: three bands with the three parents' colors and emblems
     for tid, a, b, c in triads():
         textures["tome_" + tid] = tome32(tome_art.triad_tome([a, b, c], [tomes[a], tomes[b], tomes[c]]))
+    # Foils: an overlay per foil (the tome model's second layer) and a Foil Sheet icon each
+    foil_ids = re.findall(r"\{ id: '(\w+)', name: '[^']*', mult: [\d.]+", open(CONFIG).read())
+    if len(foil_ids) < 8:
+        raise SystemExit('could not read foils from ' + CONFIG)
+    for f in foil_ids:
+        png(os.path.join(OUT, "foil_overlay_" + f + ".png"), tome_art.foil_overlay(f))
+        sheet = tome_art.foil_sheet(f)
+        textures["foil_sheet_" + f] = Outlined(sheet, sheet, edge)
+    write_tome_models([n[5:] for n in textures if n.startswith("tome_")], foil_ids)
     seen = {}
     for name, px in textures.items():
         if name.startswith("tome_"):

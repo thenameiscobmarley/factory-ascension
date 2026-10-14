@@ -315,6 +315,29 @@ An Artifact is more than enchants. It keeps everything it had, and gains:
 **How to get one:** gear with 2,500 total enchant levels shows **[Awaken]** in `/ascension` (25,000 Essence + 1 Ascended
 Soul). Or get lucky: 15% of Mythic Relic drops come out as Artifacts, announced to the server.
 
+## Foils: shiny tomes that hit harder
+
+A **foil** on an enchant tome multiplies the level it puts on gear, and changes how the tome looks so you can tell at a
+glance:
+
+| Foil | Power | Look |
+|---|---|---|
+| Bronze | x1.1 | a copper edge and sheen |
+| Silver | x1.25 | a bright silver edge, two sheens |
+| Gold | x1.5 | a thick gold frame |
+| Holographic | x2 | rainbow stripes and a rainbow edge |
+| Prismatic | x3 | a full rainbow wash |
+| Galaxy | x5 | a purple night sky full of stars |
+| Void | x8 | pitch black with a glowing violet edge |
+| Celestial | x12 | white-gold rays and sparkles |
+
+- **Looted:** pack cards roll foils (8% of Commons, always on Holo cards and up, with better foils the rarer the card),
+  and 15% of tomes from danger-zone loot come foiled.
+- **Crafted:** a **Foil Sheet** for each foil, from copper and paper up to Ascendium and a nether star. Hold the sheet,
+  put the tome in your other hand, right-click. A better foil replaces a worse one; a worse one is refused.
+- A level 100 tome with Gold Foil goes on gear as level 150. Foiled tomes also sell for x their foil.
+- Everything is in the `foils` section of the config.
+
 ## Jackpots: the rare insane find
 
 - **Chests:** every chest the pack touches has a 1.5% jackpot roll for a huge stack: 10-40 Enchantment Packs, 4-16 Gear
@@ -604,12 +627,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 53 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 55 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 450 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 457 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

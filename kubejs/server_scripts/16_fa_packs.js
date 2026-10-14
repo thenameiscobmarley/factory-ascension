@@ -18,6 +18,7 @@ function faOpenPack(player, pack) {
   let name = player.username
   cards.forEach(c => {
     let tome = faMakeTome(c.id, c.level)
+    if (c.foil >= 0) global.FA_setFoil(tome, c.foil)
     let R = P.rarities[c.rarity]
     if (R.holo) {
       let tag = tome.getOrCreateTag()
@@ -33,6 +34,11 @@ function faOpenPack(player, pack) {
       let R = P.rarities[c.rarity]
       let e = global.FA.enchants[c.id]
       let line = faCardText(c.rarity, (R.holo ? '✦ ' : '') + R.name + ': ').append(Text.white(e.name + (c.level > 1 ? ' ' + global.FA_num(c.level) : '')))
+      if (c.foil >= 0) {
+        let F = global.FA.foils.types[c.foil]
+        line = line.append(Text.gold('  [' + F.name + ' Foil x' + F.mult + ']'))
+        if (c.foil >= 5) faSound(player, 'minecraft:block.amethyst_block.resonate', 0.6)
+      }
       player.tell(Text.darkGray('  Card ' + (i + 1) + '/' + cards.length + '  ').append(line))
       faSound(player, R.holo ? 'minecraft:ui.toast.challenge_complete' : 'minecraft:entity.experience_orb.pickup', R.holo ? 1 : 0.8 + c.rarity * 0.15)
       if (R.holo) {

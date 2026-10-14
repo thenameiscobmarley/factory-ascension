@@ -33,6 +33,8 @@ function faSellValue(stack) {
     let each = S.tomes[kind] + S.levelRefund * faLevelsCost(tomeId, level)
     let tag = stack.nbt
     if (tag && tag.getCompound(FA_ITEM_TAG).contains('card')) each *= S.holoBonus
+    let foil = global.FA_foilOf(stack)
+    if (foil >= 0) each *= global.FA.foils.types[foil].mult
     return { value: each * n, what: n + 'x Tome of ' + e.name + (level > 1 ? ' ' + global.FA_num(level) : '') }
   }
   if (faIsGear(stack)) {

@@ -152,6 +152,32 @@ function faLevels(entity) {
   return levels
 }
 
+// ---- Foils on tomes (config: foils): FactoryAscension.foil + vanilla CustomModelData, which picks the foil look ----
+global.FA_setFoil = (stack, index) => {
+  let F = global.FA.foils
+  let tag = stack.getOrCreateTag()
+  let data = tag.getCompound(FA_TAG)
+  if (index < 0) {
+    data.remove('foil')
+    tag.remove('CustomModelData')
+  } else {
+    data.putString('foil', F.types[index].id)
+    tag.putInt('CustomModelData', index + 1)
+  }
+  tag.put(FA_TAG, data)
+}
+
+// The foil index on a stack, or -1
+global.FA_foilOf = stack => {
+  if (faEmpty(stack)) return -1
+  let tag = stack.nbt
+  if (!tag || !tag.contains(FA_TAG)) return -1
+  let id = String(tag.getCompound(FA_TAG).getString('foil'))
+  let types = global.FA.foils.types
+  for (let i = 0; i < types.length; i++) if (types[i].id == id) return i
+  return -1
+}
+
 // ---- Condition: a wear grade per piece of gear (config: condition) ----
 
 // The stack's grade index, or -1 if it hasn't rolled one

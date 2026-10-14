@@ -56,6 +56,19 @@ ItemEvents.tooltip(event => {
       let at = data.getCompound('attach')
       at.getAllKeys().forEach(k => text.add(line++, Text.gold('\u2699 ' + global.FA_attachmentText(String(at.getString(k))))))
     }
+    // Foil on a tome: what it does to the level it puts on gear
+    if (data.contains('foil')) {
+      let F = global.FA.foils.types.filter(f => f.id == String(data.getString('foil')))[0]
+      let tid = String(item.getId()).replace('kubejs:tome_', '')
+      let te = global.FA.enchants[tid]
+      if (F && te) {
+        let base = Math.max(1, data.getInt(tid))
+        let applied = Math.floor(base * F.mult)
+        if (te.maxLevel) applied = Math.min(applied, te.maxLevel)
+        let fc = { gold: 'gold', white: 'white', yellow: 'yellow', aqua: 'aqua', light_purple: 'lightPurple', dark_purple: 'darkPurple', dark_gray: 'darkGray' }[F.color] || 'gold'
+        text.add(line++, Text[fc]('\u2756 ' + F.name.toUpperCase() + ' FOIL').bold(true).append(Text.gray('  x' + F.mult + ': goes on gear at level ' + global.FA_num(applied))))
+      }
+    }
     // A holo card pulled from a pack
     if (data.contains('card')) text.add(line++, Text.lightPurple('\u2726 HOLO \u00b7 ' + data.getString('card')).bold(true))
     // Condition grade, right under the name
@@ -362,6 +375,14 @@ ItemEvents.tooltip(event => {
     Text.gray('Use: ').append(Text.white('hold the gear in your other hand and right-click this')),
     tip('Up to ' + FA.attachments.slots + ' attachments per item. Take one off with [Detach] in /ascension.'),
     made(itemList(at.recipe) + ' (crafting grid)')]))
+
+  // Foil Sheets
+  FA.foils.types.forEach((f, i) => details('kubejs:foil_sheet_' + f.id, ['Cheap shine, honest work.', 'Polished to a mirror.', 'Every collector wants one.', 'It shifts color as you turn it.',
+    'Splits light into every color.', 'A whole night sky, pressed thin.', 'It drinks the light around it.', 'Forged from the light of a dying star.'][i] || 'Shiny.', () => [
+    Text.gray('Foil: ').append(Text.gold(f.name + ', x' + f.mult + ' level')).append(Text.darkGray('  (#' + (i + 1) + ' of ' + FA.foils.types.length + ')')),
+    Text.gray('Use: ').append(Text.white('hold an enchant tome in your other hand and right-click this')),
+    tip('A tome with a foil goes on gear at its level x ' + f.mult + ', and its cover shows the foil. A better foil replaces a worse one.'),
+    made(itemList(f.recipe) + ' (crafting grid)')]))
 
   // Card packs
   let PK = FA.packs
