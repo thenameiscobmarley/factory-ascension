@@ -565,6 +565,30 @@ global.FA = {
     drops: [['kubejs:chaos_tome', 1, 3], ['kubejs:mythic_fragment', 3, 8], ['kubejs:dense_ascension_core', 2, 6], ['kubejs:ascended_soul', 1, 2]]
   },
 
+  // ---- Ascendite: a new early-game ore, with its own tools and armor ----
+  // Mined from the start, it opens cheap ways into the factory (brass without a Blaze Burner, Precision Mechanisms
+  // without sequenced assembly) and Ascension Cores without the expensive diamond line.
+  ascendite: {
+    ore: {
+      veinSize: 8,             // blocks per vein (like iron's 9)
+      veinsPerChunk: 10,
+      minY: -48, maxY: 80,     // most common halfway between
+      shardChance: 0.12,       // chance a mined ore also drops an Ascension Shard (+0.04 per Fortune level)
+      shardFortune: 0.04
+    },
+    shardsPerCore: 4,          // Ascension Shards -> 1 Ascension Core (crafting grid)
+    hauntChance: 0.3,          // Encased Fan through soul fire: Crushed Raw Iron -> Crushed Raw Ascendite (renewable)
+    // Between iron and diamond. Mines diamonds; levels well with Ascended enchants like any gear.
+    tools: { uses: 900, speed: 7.5, attackDamageBonus: 2.5, level: 2, enchantability: 18 },
+    armor: {
+      durabilityMultiplier: 22,
+      protection: [2, 6, 7, 2],  // boots, leggings, chestplate, helmet
+      toughness: 1,
+      knockbackResistance: 0,
+      enchantability: 18
+    }
+  },
+
   // ---- Safety limits (not power caps) ----
   maxExtraDropStacks: 8,       // most extra item stacks one kill can spawn, so loot enchants can't lag the server
   maxCleaveTargets: 16,

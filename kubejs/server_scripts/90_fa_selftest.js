@@ -14,6 +14,7 @@ const $STFluidAction = Java.loadClass('net.minecraftforge.fluids.capability.IFlu
 const $STItemEntity = Java.loadClass('net.minecraft.world.entity.item.ItemEntity')
 const $STLiving = Java.loadClass('net.minecraft.world.entity.LivingEntity')
 const $STArmorStand = Java.loadClass('net.minecraft.world.entity.decoration.ArmorStand')
+const $STHand = Java.loadClass('net.minecraft.world.InteractionHand')
 
 let faSelftestBusy = false
 
@@ -111,6 +112,30 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     check('upgrading to Sharpness 100 spends Essence', faGetLevel(sword, 'sharpness') == 100 && faGetEssence(player) < 1e6, faGetLevel(sword, 'sharpness'))
   })
 
+  // A real right-click, through Minecraft's own item-use code (the way a player's click reaches the scripts)
+  attempt('tome right-click', () => {
+    let useWith = (tomeHand, tome, gear) => {
+      player.setItemInHand(tomeHand == 'main' ? 'main_hand' : 'off_hand', tome)
+      player.setItemInHand(tomeHand == 'main' ? 'off_hand' : 'main_hand', gear)
+      player.gameMode.useItem(player, level, tome, tomeHand == 'main' ? $STHand.MAIN_HAND : $STHand.OFF_HAND)
+      return faGetLevel(tomeHand == 'main' ? player.getOffhandItem() : player.getMainHandItem(), 'plunder')
+    }
+    let a = useWith('main', Item.of('kubejs:tome_plunder'), Item.of('minecraft:iron_sword'))
+    let b = useWith('off', Item.of('kubejs:tome_plunder'), Item.of('minecraft:iron_sword'))
+    check('right-clicking a tome enchants the gear in the other hand (tome in either hand)', a == 1 && b == 1, a + ' / ' + b)
+    player.setItemInHand('off_hand', Item.of('minecraft:air'))
+    player.setItemInHand('main_hand', sword)   // the combat check below swings the Sharpness 100 sword
+  })
+
+  // The title you get when you walk into a new danger zone
+  attempt('zone notice', () => {
+    player.setPositionAndRotation(0.5, 100, 0.5, 0, 0)
+    global.FA_dangerNotice(player)
+    player.setPositionAndRotation(X, Y, Z, 0, 0)
+    let shown = global.FA_dangerNotice(player)
+    check('walking out into a danger zone shows its title', shown == 'zone', shown)
+  })
+
   // ---- 3. Combat hooks (startup scripts, fired by the real damage event) ----
   attempt('combat', () => {
     let z = spawn('minecraft:zombie', X + 2, Y, Z)
@@ -147,6 +172,40 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
   })
 
   // ---- 6. Altar + Condenser on real Create blocks (checked a second later) ----
+  // ---- Ascendite: gear stats, ore drops, recipes, worldgen ----
+  attempt('ascendite', () => {
+    let AS = global.FA.ascendite
+    let pick = Item.of('kubejs:ascendite_pickaxe')
+    let chest = Item.of('kubejs:ascendite_chestplate')
+    let defense = chest.item.getDefense()
+    check('Ascendite gear has its own tier (pickaxe ' + pick.getMaxDamage() + ' uses, chestplate ' + defense + ' armor)',
+      pick.getMaxDamage() == AS.tools.uses && defense == AS.armor.protection[2], pick.getMaxDamage() + ' / ' + defense)
+    // Mine a real ore block with a real pickaxe and see what drops
+    let orePos = place(X - 8, Y, Z - 8, 'kubejs:ascendite_ore')
+    player.setItemInHand('main_hand', Item.of('minecraft:iron_pickaxe'))
+    player.gameMode.destroyBlock(orePos)
+    let raw = 0
+    let drops = level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().move(-8, 0, -8).inflate(3))
+    for (let i = 0; i < drops.size(); i++) {
+      let it = drops.get(i).getItem()
+      if (String(it.getId()) == 'kubejs:raw_ascendite') raw += it.getCount()
+      drops.get(i).discard()
+    }
+    check('mining Ascendite ore drops Raw Ascendite', raw >= 1, raw)
+    let recipeIds = ['core_by_hand', 'core_from_shards', 'core_mixing', 'core_compacting', 'starter_brass', 'starter_precision_mechanism', 'ascendite_pickaxe']
+    let missing = recipeIds.filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent())
+    check('the cheaper core recipes and starter recipes are loaded', missing.length == 0, missing.join(', '))
+    // The ore feature is in the world's worldgen registry: place one vein into a block of stone and look for ore
+    let sx = X + 10, sy = Y + 2, sz = Z - 14
+    for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) for (let dz = -3; dz <= 3; dz++) place(sx + dx, sy + dy, sz + dz, 'minecraft:stone')
+    server.runCommandSilent('execute in minecraft:overworld run place feature kubejs:ore_ascendite ' + sx + ' ' + sy + ' ' + sz)
+    let ores = 0
+    for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) for (let dz = -3; dz <= 3; dz++) {
+      if (String(level.getBlock(new $STBlockPos(sx + dx, sy + dy, sz + dz)).id) == 'kubejs:ascendite_ore') ores++
+    }
+    check('Ascendite ore worldgen is loaded (a vein placed ' + ores + ' ore)', ores > 0, ores)
+  })
+
   let altarPos, condPos, altarTank, condTank, depot, chestPos, altarGear, condFilled = 0
   attempt('machines setup', () => {
     altarTank = place(X + 4, Y, Z + 4, 'create:basin')

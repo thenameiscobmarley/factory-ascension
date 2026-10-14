@@ -12,7 +12,7 @@ function check(name, ok, detail) {
 function near(a, b) { return Math.abs(a - b) < 1e-6 * Math.max(1, Math.abs(b)) }
 
 // ---------------- Fakes ----------------
-var handlers = { registry: [], recipes: [], rightClicked: {}, commands: [], tooltip: [], forge: {} }
+var handlers = { registry: [], recipes: [], rightClicked: {}, commands: [], tooltip: [], forge: {}, tags: {}, data: [], toolTiers: [], armorTiers: [] }
 var global = {}
 var logged = []
 var console = { info: function (m) { print('  [info] ' + m) }, warn: function (m) { logged.push(m) }, error: function (m) { logged.push(m); if (!quiet) print('  [error] ' + m) } }
@@ -128,8 +128,10 @@ var JEIEvents = {
 }
 var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
 var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn } }
-var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn } }
-var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) } }
+var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn },
+  tags: function (type, fn) { (handlers.tags[type] = handlers.tags[type] || []).push(fn) }, highPriorityData: function (fn) { handlers.data.push(fn) } }
+var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) },
+  toolTierRegistry: function (fn) { handlers.toolTiers.push(fn) }, armorTierRegistry: function (fn) { handlers.armorTiers.push(fn) } }
 // Several scripts can hook the same Forge event: keep them all and call each in turn
 var ForgeEvents = { onEvent: function (cls, fn) {
   var k = cls.split(/[.$]/).pop(), prev = handlers.forge[k]
@@ -275,7 +277,8 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
   'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
-  'server_scripts/30_fa_material_recipes.js', 'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
+  'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js',
+  'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
   load('kubejs/' + f)
   print('loaded ' + f)
@@ -288,12 +291,29 @@ var created = [], createdBlocks = [], createdFluids = []
 var builder = {}
 ;['displayName', 'rarity', 'glow', 'maxStackSize', 'thinTexture', 'bucketColor', 'soundType', 'hardness', 'resistance', 'requiresTool',
   'tagBlock', 'lightLevel', 'textureAll'].forEach(function (m) { builder[m] = function () { return builder } })
+var gearTiers = {}
 handlers.registry.forEach(function (r) {
   var list = r.type == 'item' ? created : r.type == 'block' ? createdBlocks : createdFluids
-  r.fn({ create: function (id) { list.push(id); return builder } })
+  r.fn({ create: function (id, type) {
+    list.push(id)
+    var b = {}
+    Object.keys(builder).forEach(function (m) { b[m] = function () { return b } })
+    b.tier = function (t) { gearTiers[id] = { type: type, tier: t }; return b }
+    return b
+  } })
 })
+var toolTiers = {}, armorTiers = {}
+handlers.toolTiers.forEach(function (fn) { fn({ add: function (id, f) { f(toolTiers[id] = {}) } }) })
+handlers.armorTiers.forEach(function (fn) { fn({ add: function (id, f) { f(armorTiers[id] = {}) } }) })
+var AS = global.FA.ascendite
+check('Ascendite tool and armor tiers come from the config', toolTiers.ascendite.uses == AS.tools.uses && toolTiers.ascendite.level == AS.tools.level &&
+  armorTiers.ascendite.slotProtections === AS.armor.protection && armorTiers.ascendite.repairIngredient == 'kubejs:ascendite_ingot')
+var gearIds = Object.keys(gearTiers)
+check('9 Ascendite tools and armor pieces use the Ascendite tier', gearIds.length == 9 && gearIds.every(function (id) { return gearTiers[id].tier == 'ascendite' && id == 'ascendite_' + gearTiers[id].type }),
+  gearIds.join(','))
+check('worn Ascendite armor has both texture layers', [1, 2].every(function (l) { return new java.io.File('kubejs/assets/kubejs/textures/models/armor/ascendite_layer_' + l + '.png').exists() }))
 var condTiers = global.FA_condensedTiers()
-check('altar, condenser and 51 Condensed Essence blocks registered', createdBlocks.length == 2 + condTiers + 1 && createdBlocks.indexOf('essence_condenser') >= 0 &&
+check('altar, condenser, 51 Condensed Essence blocks and 3 Ascendite blocks registered', createdBlocks.length == 2 + condTiers + 1 + 3 && createdBlocks.indexOf('essence_condenser') >= 0 &&
   createdBlocks.indexOf('condensed_essence_50') >= 0 && createdFluids.join() == 'liquid_essence', createdBlocks.length)
 var missingBlockTex = createdBlocks.filter(function (b) { return !new java.io.File('kubejs/assets/kubejs/textures/block/' + b + '.png').exists() })
 check('every block has a texture', missingBlockTex.length == 0, missingBlockTex.join(','))
@@ -304,7 +324,7 @@ var ultIds = Object.keys(global.FA.enchants).filter(function (id) { return globa
 check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount == 286 && mythics.length == 15 && fusionIds.length == 200 && ultIds.length == 12,
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters)', created.length == 11 + enchantCount + gemCount, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear)', created.length == 11 + enchantCount + gemCount + 14, created.length)
 var File = java.io.File
 var missing = created.filter(function (id) { return !new File('kubejs/assets/kubejs/textures/item/' + id + '.png').exists() })
 check('every item has a texture', missing.length == 0, missing.join(','))
@@ -314,13 +334,19 @@ print('\nrecipes')
 var recipes = []
 var ev = {
   custom: function (j) { var r = { json: j, id: function (i) { r.rid = i; return r } }; recipes.push(r); return r },
-  shapeless: function (o, i) { var r = { json: { type: 'shapeless' }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r },
-  shaped: function (o, p, k) { var r = { json: { type: 'shaped', out: o, key: k }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r }
+  shapeless: function (o, i) { var r = { json: { type: 'shapeless', out: o, ins: i }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r },
+  shaped: function (o, p, k) { var r = { json: { type: 'shaped', out: o, key: k, pattern: p }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r }
 }
+;['smelting', 'blasting'].forEach(function (t) {
+  ev[t] = function (o, i) { var r = { json: { type: t, out: o, input: i }, xp: function () { return r }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r }
+})
 handlers.recipes.forEach(function (fn) { fn(ev) })
 function byId(id) { return recipes.filter(function (r) { return r.rid == 'kubejs:factory_ascension/' + id })[0] }
 check('core recipe has 4 steps with TFMG steel', byId('ascension_core').json.sequence.length == 4)
 check('every recipe has an id', recipes.every(function (r) { return !!r.rid }))
+// Minecraft refuses a shaped recipe whose key has a symbol the pattern doesn't use (found on a real server)
+var badKeys = recipes.filter(function (r) { return r.json.type == 'shaped' && Object.keys(r.json.key).some(function (k) { return r.json.pattern.join('').indexOf(k) < 0 }) })
+check('every shaped recipe uses every key symbol', badKeys.length == 0, badKeys.map(function (r) { return r.rid }).join(', '))
 var ids = recipes.map(function (r) { return r.rid })
 check('recipe ids are unique', ids.filter(function (x, i) { return ids.indexOf(x) != i }).length == 0)
 check('a tome recipe for every enchant', Object.keys(E).every(function (id) { return !!byId('tome_' + id) }))
@@ -336,6 +362,34 @@ function isSubset(a, b) { var c = b.slice(); return a.every(function (x) { var i
 var clash = []
 basinRecipes.forEach(function (a) { basinRecipes.forEach(function (b) { if (a !== b && a.json.type == b.json.type && isSubset(itemBag(a), itemBag(b))) clash.push(a.rid + ' in ' + b.rid) }) })
 check('no basin recipe (mixing or compacting) is a subset of another', clash.length == 0, clash.join('; '))
+// More ways to make Ascension Cores, none of them sequenced assembly
+var coreWays = recipes.filter(function (r) { return r.rid != 'kubejs:factory_ascension/ascension_core' &&
+  (r.json.out == 'kubejs:ascension_core' || (r.json.results && r.json.results.length == 1 && r.json.results[0].item == 'kubejs:ascension_core')) })
+check('Ascension Cores have 4 more recipes without sequenced assembly', coreWays.length == 4 && coreWays.every(function (r) { return r.json.type != 'create:sequenced_assembly' }),
+  coreWays.map(function (r) { return r.rid }).join(','))
+check('Ascendite ores and raw ore smelt into ingots', ['raw_ascendite', 'crushed_raw_ascendite', 'ascendite_ore', 'deepslate_ascendite_ore'].every(function (id) {
+  return recipes.some(function (r) { return r.json.type == 'smelting' && r.json.input == 'kubejs:' + id && r.json.out == 'kubejs:ascendite_ingot' }) }))
+check('every Ascendite tool and armor piece has a recipe', gearIds.every(function (id) { return !!byId(id) }))
+check('starter recipes: brass, precision mechanism, blaze burner, TFMG steel', ['starter_brass', 'starter_precision_mechanism', 'starter_blaze_burner', 'starter_steel'].every(function (id) { return !!byId(id) }))
+// Tags and the ore's loot table
+var tagged = {}
+;['item', 'block'].forEach(function (t) { (handlers.tags[t] || []).forEach(function (fn) { fn({ add: function (tag, id) { (tagged[t + ' ' + tag] = tagged[t + ' ' + tag] || []).push(id) } }) }) })
+check('Ascendite ores are forge:ores (Vein Miner and ore finders see them)', (tagged['block forge:ores'] || []).length == 2 && (tagged['item forge:ingots/ascendite'] || []).length == 1)
+var dataJson = {}
+handlers.data.forEach(function (fn) { fn({ addJson: function (id, j) { dataJson[id] = j } }) })
+var oreLoot = dataJson['kubejs:loot_tables/blocks/ascendite_ore']
+check('ore loot: raw ore with Fortune, Silk Touch keeps the ore, shard chance from the config', !!oreLoot && JSON.stringify(oreLoot).indexOf('minecraft:ore_drops') >= 0 &&
+  JSON.stringify(oreLoot).indexOf('silk_touch') >= 0 && oreLoot.pools[1].conditions[1].chances[0] == AS.ore.shardChance && !!dataJson['kubejs:loot_tables/blocks/deepslate_ascendite_ore'])
+// Ore worldgen is a datapack (KubeJS worldgen doesn't work on 1.20.1); it must match the config
+var FA_WORLDGEN_CHECK = true
+load('tools/make_worldgen.js')
+var wg = FA_worldgenFiles(AS.ore), stale = []
+Object.keys(wg).forEach(function (path) {
+  var f = new java.io.File(path)
+  var onDisk = f.exists() ? JSON.parse(String(new java.lang.String(java.nio.file.Files.readAllBytes(f.toPath()), 'UTF-8'))) : null
+  if (JSON.stringify(onDisk) != JSON.stringify(wg[path])) stale.push(path)
+})
+check('ore worldgen files match the config (else run tools/make_worldgen.js)', stale.length == 0, stale.join(', '))
 
 // ---------------- Essence ----------------
 print('\nessence')
@@ -698,6 +752,21 @@ check('a new level inside the same zone shows on the action bar only', server.co
 explorer.x = 0
 tick({ phase: 'END', player: explorer })
 check('heading home shows Safe Lands', server.commands.some(function (c) { return /Safe Lands/.test(c) }))
+// Logging in out in a danger zone announces it; logging in at home stays quiet
+var returning = makePlayer(server, 'returning'); returning.age = 20; returning.x = 6000
+server.commands = []
+check('logging in inside a danger zone shows its title', global.FA_dangerNotice(returning) == 'zone' && server.commands.some(function (c) { return /Dread Reaches/.test(c) }))
+var homebody = makePlayer(server, 'homebody'); homebody.age = 20
+check('logging in at spawn shows nothing', global.FA_dangerNotice(homebody) == '')
+// KubeJS hands back a fresh copy of config objects on every read of global: zones must compare by name
+var realZone = global.FA_zone
+global.FA_zone = function (d) { var z = realZone(d); return { from: z.from, name: z.name, color: z.color } }
+returning.x = 6600
+check('a new level in the same zone is not a new zone, even with copied zone objects', global.FA_dangerNotice(returning) == 'level')
+global.FA_zone = realZone
+handlers.forge['PlayerLoggedOutEvent']({ getEntity: function () { return returning } })
+server.commands = []
+check('after logging out and back in, the zone is announced again', global.FA_dangerNotice(returning) == 'zone')
 explorer.messages = []
 explorer.x = 6000
 faShowDanger(explorer)

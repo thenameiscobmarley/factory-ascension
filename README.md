@@ -13,8 +13,9 @@ so going AFK is always safe.
 ## The loop
 
 ```
+day one: mine Ascendite -> Ascendite tools + armor, hand-made Ascension Cores, early brass
 cobble generators -> mineral clusters -> ores -> diamonds, rose quartz, steel
-   -> Ascension Cores (Create assembly line) -> absorb into your Essence bank
+   -> Ascension Cores (Create assembly line, or cheaper Ascendite recipes) -> absorb into your Essence bank
    -> Tomes unlock Ascended enchants on any gear -> spend Essence to level them up
    -> crush bosses and dungeons -> grow the factory -> repeat
 ```
@@ -215,10 +216,55 @@ mob with a boss bar, x60 the zone's health and x3 its damage. At 66% and 33% hea
 and every few seconds it slams nearby players away. Bosses ignore Slowness, Levitation, Weakness, Chronos and Black Hole,
 and Reaper can't execute them. Killing one drops Chaos Tomes, Mythic Fragments and Dense Cores, and the whole server hears about it.
 
+## Ascendite: the early-game ore
+
+A new teal ore in the Overworld, Y -48 to 80 (most common around Y 16), in stone and deepslate. A stone pickaxe mines it.
+
+- **Drops:** Raw Ascendite (more with Fortune), plus a 12% chance of an **Ascension Shard** (+4% per Fortune level).
+  Silk Touch gives the ore block. It's tagged `forge:ores`, so Vein Miner works on it.
+- **Processing:** smelt or blast Raw Ascendite into ingots, or crush it with Create (extra ore, XP, sometimes a shard),
+  then wash Crushed Raw Ascendite for 9 nuggets. Ingot / nugget / block convert both ways.
+- **Renewable later:** blow Crushed Raw Iron through soul fire with an Encased Fan: 30% becomes Crushed Raw Ascendite.
+- **Tools and armor** (sword, pickaxe, axe, shovel, hoe, helmet, chestplate, leggings, boots): between iron and diamond.
+  900 durability, mines diamonds, armor 2/6/7/2 + 1 toughness. They take Ascended enchants like any gear.
+
+### Starting the factory (all need Ascendite)
+
+| Makes | Recipe | Skips |
+|---|---|---|
+| 2 Brass Ingots | Copper ingot + zinc ingot + Ascendite nugget (crafting grid) | a Blaze Burner |
+| 2 Andesite Alloy | 2 andesite + 2 Ascendite nuggets | half the nuggets |
+| Precision Mechanism | 2 cogwheels + 2 golden sheets + Ascendite ingot (crafting grid) | sequenced assembly |
+| Blaze Burner | Empty Blaze Burner + Block of Ascendite + magma block | catching a blaze |
+| TFMG Steel Ingot | Iron ingot + coal + Ascendite nugget, heated mixer | TFMG's blast furnace |
+
+### More ways to make Ascension Cores (no sequenced assembly)
+
+| Recipe | Where |
+|---|---|
+| 4 Ascendite ingots + 4 redstone + 1 lapis | crafting grid, from day one |
+| 4 Ascension Shards | crafting grid, or a Mechanical Press over a basin |
+| 2 Ascendite ingots + 1 redstone + 250 mB lava | heated mixer (automates) |
+
+The original diamond assembly line still works. All the numbers are in the `ascendite` section of `00_fa_config.js`.
+
+## Storage: Tom's Simple Storage
+
+For a chest that sorts itself, scrolls, and gets bigger the more you add, the pack uses
+[Tom's Simple Storage](https://www.curseforge.com/minecraft/mc-mods/toms-storage) (124M+ downloads).
+KubeJS can't add new inventory screens, so this is better than anything a script could do:
+
+1. Place chests, barrels or Create Item Vaults touching each other in a row, as long as you like.
+2. Put an **Inventory Connector** touching the row. Every connected container joins one big storage.
+3. Put a **Storage Terminal** on the connector. It shows everything in one list: sorted, searchable, and you scroll through it.
+4. More chests in the row = more space. Use **Inventory Cables** to reach containers further away.
+
 ## Danger zones
 
 Near spawn, mobs are normal. Past 1000 blocks, every 500 blocks adds a **danger level**, with no cap.
-Crossing into a new zone shows its name on screen. Far-out mobs are tougher, but drop more.
+Crossing into a new zone puts its name and danger on screen as a big title, with a sound (a cave rumble going deeper).
+A new danger level inside the same zone shows above the hotbar. Logging in out in a danger zone shows it too.
+Far-out mobs are tougher, but drop more.
 
 | Distance from spawn | Zone | Danger | Mobs | Loot |
 |---|---|---|---|---|
@@ -252,7 +298,7 @@ The enchants show in the item's tooltip right under its name, with what they do,
 
 | Item | How |
 |---|---|
-| Ascension Core | Sequenced assembly on a diamond: deploy polished rose quartz, (deploy TFMG steel), fill 250 mB lava, press. 3 loops |
+| Ascension Core | Sequenced assembly on a diamond: deploy polished rose quartz, (deploy TFMG steel), fill 250 mB lava, press. 3 loops. Cheaper Ascendite recipes [above](#more-ways-to-make-ascension-cores-no-sequenced-assembly) |
 | Dense Core / Singularity | Compact 9 (heated) / 9 Dense (superheated). Unpack in a crafting grid |
 | Blank Ascension Tome | Deployer: Ascension Core onto a book |
 | Enchant Tomes | Heated mixer: blank tome + catalyst (see JEI) |
@@ -306,12 +352,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension event` | Everyone | The current world event |
 | `/ascension event start <name>` / `stop` | Ops | Start or stop a world event |
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
-| `/ascension selftest` | Ops / console | Runs 19 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 25 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 311 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 326 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

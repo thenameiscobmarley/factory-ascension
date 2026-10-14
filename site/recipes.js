@@ -9,7 +9,8 @@
   const MACHINES = {
     "create:mixing": "Mechanical Mixer + Basin", "create:compacting": "Mechanical Press + Basin (compacting)", "create:crushing": "Crushing Wheels",
     "create:deploying": "Deployer", "create:sequenced_assembly": "Sequenced assembly line", "create:filling": "Spout", "create:pressing": "Mechanical Press",
-    shaped: "Crafting table", shapeless: "Crafting table", condenser: "Essence Condenser (tank below, chest on top)"
+    "create:splashing": "Encased Fan through water (washing)", "create:haunting": "Encased Fan through soul fire (haunting)",
+    smelting: "Furnace", blasting: "Blast Furnace", shaped: "Crafting table", shapeless: "Crafting table", condenser: "Essence Condenser (tank below, chest on top)"
   };
   const HEAT = { heated: "Blaze Burner: heated", superheated: "Blaze Burner: superheated (blaze cake)" };
   // Where the raw materials come from, for the ends of every chain
@@ -18,7 +19,10 @@
     "minecraft:netherrack": "Drill contraptions in the Nether", "minecraft:quartz": "Wash soul sand with an Encased Fan through water",
     "fluid:minecraft:lava": "Pump a lava lake, or a dripstone lava farm", "fluid:minecraft:water": "Any infinite water source + Mechanical Pump",
     "minecraft:book": "Paper (sugar cane) + leather", "create:polished_rose_quartz": "Mix redstone + quartz into rose quartz, polish with sandpaper on a Deployer",
-    "tfmg:steel_ingot": "TFMG's steel line (blast furnace)", "minecraft:redstone": "Gem Mineral Cluster, crushed", "minecraft:lapis_lazuli": "Gem Mineral Cluster, crushed"
+    "tfmg:steel_ingot": "TFMG's steel line (blast furnace), or early: mix iron + coal + an Ascendite nugget",
+    "kubejs:ascendite_ore": "Mine it: Overworld, Y -48 to 80", "kubejs:deepslate_ascendite_ore": "Mine it deep: Overworld, below Y 0",
+    "kubejs:raw_ascendite": "Mine Ascendite ore (Overworld, Y -48 to 80)", "kubejs:ascension_shard": "Mining Ascendite ore (12% per ore, more with Fortune)",
+    "minecraft:copper_ingot": "Copper ore, or crushed copper from Common Mineral Clusters", "create:zinc_ingot": "Zinc ore, or crushed zinc from Common Mineral Clusters", "minecraft:redstone": "Gem Mineral Cluster, crushed", "minecraft:lapis_lazuli": "Gem Mineral Cluster, crushed"
   };
   const tex = id => id.indexOf("kubejs:") === 0 && id.indexOf("fluid:") !== 0 ? "fa/items/" + id.slice(7) + ".png" : null;
   // Fluids show in their real colors (Liquid Essence's comes from the pack config)
@@ -61,6 +65,14 @@
         return { id: () => {} };
       }
     };
+    // Furnace recipes: one input, one output
+    ["smelting", "blasting"].forEach(type => {
+      ev[type] = (out, input) => {
+        add({ machine: type, inputs: [{ id: input, count: 1 }], outputs: [{ id: out, count: 1 }] });
+        const r = { xp: () => r, id: () => {} };
+        return r;
+      };
+    });
     FA_RECIPE_FNS.forEach(fn => { try { fn(ev); } catch (e) { console.error(e); } });
     // Machines that aren't recipes in the pack's scripts, but make things all the same
     add({ machine: "condenser", inputs: [{ id: "fluid:kubejs:liquid_essence", count: 1, amount: global.FA.condensed.mbPerBlock }], outputs: [{ id: "kubejs:condensed_essence_0", count: 1 }] });

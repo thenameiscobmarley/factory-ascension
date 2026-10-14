@@ -50,6 +50,11 @@ diamonds + polished rose quartz + lava (+ TFMG steel)
 
 Polished rose quartz: mix redstone + quartz into rose quartz, then deployers with sandpaper polish it.
 
+Cheaper, no assembly line: a heated mixer takes 2 Ascendite ingots + 1 redstone + 250 mB lava for one core,
+and a press over a basin turns 4 Ascension Shards into one. Ascendite becomes renewable once you have Common
+Mineral Clusters: crush them, then blow the Crushed Raw Iron through soul fire (Encased Fan) for 30% Crushed Raw
+Ascendite, wash it into nuggets or smelt it into ingots.
+
 ## Tome line
 
 ```

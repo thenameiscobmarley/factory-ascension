@@ -53,10 +53,12 @@ You should end up with:
 minecraft/kubejs/
   startup_scripts/00_fa_config.js, 10_fa_items.js, 20_fa_enchant_effects.js, 30_fa_world.js, 40_fa_ultimates.js, 50_fa_loot.js
   server_scripts/10_fa_ascension.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js,
-                 40_fa_progress.js, 45_fa_altar.js, 90_fa_selftest.js
+                 32_fa_ascendite_data.js, 35_fa_starter_recipes.js, 40_fa_progress.js, 45_fa_altar.js, 90_fa_selftest.js
   client_scripts/10_fa_tooltips.js, 20_fa_jei.js
-  assets/kubejs/textures/item/   (314 .png files)
-  assets/kubejs/textures/block/  (53 .png files: altar, condenser, 51 Condensed Essence tiers)
+  data/kubejs/   (Ascendite ore worldgen: worldgen/ and forge/biome_modifier/)
+  assets/kubejs/textures/item/   (329 .png files)
+  assets/kubejs/textures/block/  (56 .png files: altar, condenser, 51 Condensed Essence tiers, Ascendite ores + block)
+  assets/kubejs/textures/models/armor/  (2 .png files: worn Ascendite armor)
 ```
 
 ## 7. Check it works
@@ -73,9 +75,10 @@ minecraft/kubejs/
    All 286 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
-4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 19 checks
-   with a fake player (Essence, enchants, danger zones, gems, rebirth, altar, condenser, loot, hordes, events,
-   bosses, an Ultimate), cleans up, and prints **19 / 19 passed**. Any FAIL line says which part is broken.
+4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 25 checks
+   with a fake player (Essence, a real tome right-click, enchants, danger zones, Ascendite, gems, rebirth, altar,
+   condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **25 / 25 passed**.
+   Any FAIL line says which part is broken.
 5. If something's missing, open the instance folder -> `logs/kubejs/` and look in
    `startup.log`, `server.log` and `client.log` for lines with `[Factory Ascension]` or `ERROR`.
 

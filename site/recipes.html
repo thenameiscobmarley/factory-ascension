@@ -56,7 +56,7 @@
     if (type != "item" && type != "block") return;
     fn({ create: function (id) {
       var b = {}, full = "kubejs:" + id;
-      ["rarity", "glow", "maxStackSize", "soundType", "hardness", "resistance", "requiresTool", "tagBlock", "lightLevel", "textureAll"].forEach(function (m) { b[m] = function () { return b; }; });
+      ["rarity", "glow", "maxStackSize", "soundType", "hardness", "resistance", "requiresTool", "tagBlock", "lightLevel", "textureAll", "tier"].forEach(function (m) { b[m] = function () { return b; }; });
       b.displayName = function (n) { FA_NAMES[full] = n; return b; };
       return b;
     } });
@@ -74,6 +74,7 @@
 <script src="fa/20_fa_core_recipes.js"></script>
 <script src="fa/25_fa_tome_recipes.js"></script>
 <script src="fa/30_fa_material_recipes.js"></script>
+<script src="fa/35_fa_starter_recipes.js"></script>
 <script src="vendor/uivault/uivault.js"></script>
 <script src="recipes.js"></script>
 </body>

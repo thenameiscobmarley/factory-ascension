@@ -1,6 +1,10 @@
 // priority: 900
 // Factory Ascension - items. Textures live in kubejs/assets/kubejs/textures/item/.
 
+// [type, display name] for every Ascendite tool and armor piece
+const FA_GEAR = [['sword', 'Sword'], ['pickaxe', 'Pickaxe'], ['axe', 'Axe'], ['shovel', 'Shovel'], ['hoe', 'Hoe'],
+  ['helmet', 'Helmet'], ['chestplate', 'Chestplate'], ['leggings', 'Leggings'], ['boots', 'Boots']]
+
 StartupEvents.registry('item', event => {
   // Essence items: absorbed into your Essence bank
   event.create('ascension_core').displayName('Ascension Core').rarity('rare').glow(true)
@@ -40,7 +44,43 @@ StartupEvents.registry('item', event => {
   event.create('common_mineral_cluster').displayName('Common Mineral Cluster')
   event.create('gem_mineral_cluster').displayName('Gem Mineral Cluster').rarity('uncommon')
   event.create('exotic_mineral_cluster').displayName('Exotic Mineral Cluster').rarity('rare')
+
+  // Ascendite: early-game ore. Raw -> smelt or crush, plus shards that make Ascension Cores by hand
+  event.create('raw_ascendite').displayName('Raw Ascendite')
+  event.create('crushed_raw_ascendite').displayName('Crushed Raw Ascendite')
+  event.create('ascendite_ingot').displayName('Ascendite Ingot')
+  event.create('ascendite_nugget').displayName('Ascendite Nugget')
+  event.create('ascension_shard').displayName('Ascension Shard').rarity('uncommon').glow(true)
+  // Tools and armor use the tiers registered below (numbers in the config)
+  FA_GEAR.forEach(g => event.create('ascendite_' + g[0], g[0]).displayName('Ascendite ' + g[1]).tier('ascendite'))
 })
+
+// Tool and armor tiers (the website runs this file without them, so they're optional here)
+if (typeof ItemEvents != 'undefined' && ItemEvents.toolTierRegistry) {
+  ItemEvents.toolTierRegistry(event => {
+    let T = global.FA.ascendite.tools
+    event.add('ascendite', tier => {
+      tier.uses = T.uses
+      tier.speed = T.speed
+      tier.attackDamageBonus = T.attackDamageBonus
+      tier.level = T.level
+      tier.enchantmentValue = T.enchantability
+      tier.repairIngredient = 'kubejs:ascendite_ingot'
+    })
+  })
+  ItemEvents.armorTierRegistry(event => {
+    let A = global.FA.ascendite.armor
+    event.add('ascendite', tier => {
+      tier.durabilityMultiplier = A.durabilityMultiplier
+      tier.slotProtections = A.protection
+      tier.toughness = A.toughness
+      tier.knockbackResistance = A.knockbackResistance
+      tier.enchantmentValue = A.enchantability
+      tier.equipSound = 'minecraft:item.armor.equip_iron'
+      tier.repairIngredient = 'kubejs:ascendite_ingot'
+    })
+  })
+}
 
 // Liquid Essence: melted cores. Pipe it, tank it, feed it to an Ascension Altar, or drink a bucket for Essence.
 StartupEvents.registry('fluid', event => {
@@ -66,4 +106,15 @@ StartupEvents.registry('block', event => {
       .hardness(1.5).resistance(6).tagBlock('minecraft:mineable/pickaxe').lightLevel(Math.min(1, 0.3 + tier / tiers * 0.7))
       .textureAll('kubejs:block/condensed_essence_' + tier)
   }
+
+  // Ascendite ore (drops come from a loot table made in 32_fa_ascendite_data.js) and its storage block
+  event.create('ascendite_ore').displayName('Ascendite Ore').soundType('stone')
+    .hardness(3).resistance(3).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').tagBlock('minecraft:needs_stone_tool')
+    .textureAll('kubejs:block/ascendite_ore')
+  event.create('deepslate_ascendite_ore').displayName('Deepslate Ascendite Ore').soundType('deepslate')
+    .hardness(4.5).resistance(3).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').tagBlock('minecraft:needs_stone_tool')
+    .textureAll('kubejs:block/deepslate_ascendite_ore')
+  event.create('ascendite_block').displayName('Block of Ascendite').soundType('metal')
+    .hardness(5).resistance(6).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').tagBlock('minecraft:needs_stone_tool')
+    .textureAll('kubejs:block/ascendite_block')
 })

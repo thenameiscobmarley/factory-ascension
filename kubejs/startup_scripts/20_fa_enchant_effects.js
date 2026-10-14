@@ -793,15 +793,17 @@ function faDangerNotice(player) {
   let last = faLastDanger[uuid]
   faLastDanger[uuid] = danger
   if (danger > 0) faStat(player, 'max_danger', danger, 'max')
-  if (last === undefined || last == danger) return
+  // First check after logging in: only worth a title if you're somewhere dangerous
+  if (last === undefined ? danger <= 0 : last == danger) return ''
 
   let zone = global.FA_zone(danger)
   let m = global.FA_dangerMult(danger, false)
   let server = player.getServer()
   let name = player.username
 
-  if (zone !== global.FA_zone(last)) {
-    let deeper = danger > last
+  // Compared by name: objects read back through KubeJS's global aren't always the same object
+  if (last === undefined || String(zone.name) != String(global.FA_zone(last).name)) {
+    let deeper = last === undefined || danger > last
     server.runCommandSilent('title ' + name + ' times 10 60 20')
     server.runCommandSilent('title ' + name + ' subtitle {"text":"Danger ' + danger +
       (danger > 0 ? '  \u00b7  mobs x' + m.health.toFixed(1) + ' tougher, x' + m.loot.toFixed(1) + ' loot' : '  \u00b7  mobs are normal here') +
@@ -813,8 +815,21 @@ function faDangerNotice(player) {
     let color = FA_TEXT_COLORS[zone.color] || 'gray'
     player.displayClientMessage(Text[color]('\u26a0 Danger ' + danger + '  \u00b7  mobs: x' + m.health.toFixed(1) + ' health, x' +
       m.damage.toFixed(1) + ' damage, x' + m.loot.toFixed(1) + ' loot'), true)
+    return 'level'
   }
+  return 'zone'
 }
+// For /ascension selftest (server scripts can't see startup functions): returns '' (nothing shown),
+// 'zone' (a title for a new zone) or 'level' (an action-bar line for a new level in the same zone)
+global.FA_dangerNotice = player => faDangerNotice(player)
+// Forget the zone on logout, so logging back in somewhere dangerous announces it again
+ForgeEvents.onEvent('net.minecraftforge.event.entity.player.PlayerEvent$PlayerLoggedOutEvent', event => {
+  try {
+    delete faLastDanger[event.getEntity().stringUuid]
+  } catch (err) {
+    faWarnOnce('danger logout', err)
+  }
+})
 
 // Wings: creative-style flight while equipped. The grant is remembered on the player,
 // so flight is taken away again when the gear comes off, even after a restart.

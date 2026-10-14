@@ -23,7 +23,7 @@ def png(path, px):
 
     with open(path, "wb") as f:
         f.write(b"\x89PNG\r\n\x1a\n")
-        f.write(chunk(b"IHDR", struct.pack(">IIBBBBB", N, N, 8, 6, 0, 0, 0)))
+        f.write(chunk(b"IHDR", struct.pack(">IIBBBBB", len(px[0]), len(px), 8, 6, 0, 0, 0)))
         f.write(chunk(b"IDAT", zlib.compress(raw, 9)))
         f.write(chunk(b"IEND", b""))
 
@@ -394,6 +394,210 @@ def tome_colors():
 
 
 
+# ---- Ascendite: teal metal with a violet sheen ----
+ASC_LIGHT, ASC_MID, ASC_DARK = (150, 245, 225), (45, 180, 175), (18, 88, 104)
+ASC_VIOLET = (175, 115, 255)
+ARMOR_OUT = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "textures", "models", "armor")
+
+
+def asc(t):
+    """Ascendite metal shade, t = 0 (bright) .. 1 (dark)."""
+    return lerp(ASC_LIGHT, ASC_MID, min(1, t * 2)) if t < 0.5 else lerp(ASC_MID, ASC_DARK, (t - 0.5) * 2)
+
+
+def from_mask(rows, shade):
+    """16x16 sprite from an ASCII mask: '#' metal (shaded top-left to bottom-right), 'h' handle, 'v' violet, 'w' shine."""
+    px = blank()
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch == '#':
+                px[y][x] = shade((x + y) / 30.0) + (255,)
+            elif ch == 'h':
+                px[y][x] = lerp((137, 103, 62), (73, 54, 30), (x + y) / 30.0) + (255,)
+            elif ch == 'v':
+                px[y][x] = ASC_VIOLET + (255,)
+            elif ch == 'w':
+                px[y][x] = (235, 255, 250, 255)
+    return px
+
+
+ASC_SPRITES = {
+    "ascendite_ingot": [
+        "................", "................", "................", "................",
+        "................", ".......www......", ".....w#####.....", "...w##########..",
+        "..#############.", "..############v.", "...##########v..", ".....#######....",
+        "................", "................", "................", "................"],
+    "ascendite_nugget": [
+        "................", "................", "................", "................",
+        "................", "................", "......ww........", ".....w###.......",
+        "....#####v......", "....######......", ".....####.......", "................",
+        "................", "................", "................", "................"],
+    "ascendite_sword": [
+        "..............w#", ".............w##", "............w##.", "...........###..",
+        "..........###...", ".........###....", "........###.....", ".......###......",
+        "..v...###.......", "...v.###........", "....v##.........", ".....hv.........",
+        "....h..v........", "...h............", ".hh.............", ".h.............."],
+    "ascendite_pickaxe": [
+        "................", "....w#####......", "...########.....", "..##.....h##....",
+        "........h..##...", ".......h....#v..", "......h.....##..", ".....h.......#..",
+        "....h........#..", "...h............", "..h.............", ".h..............",
+        "................", "................", "................", "................"],
+    "ascendite_axe": [
+        "........w#......", ".......w###.....", "......#####v....", ".....######h....",
+        ".....#####h##...", "......###h.##...", ".......#h.......", ".......h........",
+        "......h.........", ".....h..........", "....h...........", "...h............",
+        "..h.............", ".h..............", "................", "................"],
+    "ascendite_shovel": [
+        "................", "...........ww#..", "..........####..", ".........#####..",
+        "..........###v..", ".........h##....", "........h.......", ".......h........",
+        "......h.........", ".....h..........", "....h...........", "...h............",
+        "..h.............", ".h..............", "................", "................"],
+    "ascendite_hoe": [
+        "................", "........ww#.....", ".......####v....", "..........#h....",
+        ".........h......", "........h.......", ".......h........", "......h.........",
+        ".....h..........", "....h...........", "...h............", "..h.............",
+        ".h..............", "................", "................", "................"],
+    "ascendite_helmet": [
+        "................", "................", "................", "....w#######....",
+        "...##########...", "..############..", "..####vvvv####..", "..###......###..",
+        "..###......###..", "..##........##..", "................", "................",
+        "................", "................", "................", "................"],
+    "ascendite_chestplate": [
+        "................", "..www....###....", ".####....####...", ".#####..#####...",
+        ".##############.", "..############..", "...####vv####...", "...###vvvv###...",
+        "...##########...", "...##########...", "...##########...", "...##########...",
+        "....########....", "................", "................", "................"],
+    "ascendite_leggings": [
+        "................", "...w#########...", "...##vvvvvv##...", "...##########...",
+        "...####..####...", "...###....###...", "...###....###...", "...###....###...",
+        "...###....###...", "...###....###...", "...###....###...", "...###....###...",
+        "................", "................", "................", "................"],
+    "ascendite_boots": [
+        "................", "................", "................", "................",
+        "................", "................", "..w##......##w..", "..###......###..",
+        "..###......###..", "..###......###..", ".####v....v####.", ".#####....#####.",
+        ".#####....#####.", "................", "................", "................"],
+}
+
+
+def raw_ascendite():
+    return cluster((95, 200, 190), (25, 95, 110), [ASC_LIGHT, ASC_VIOLET, (230, 255, 250)], 11)
+
+
+def crushed_ascendite():
+    rnd = random.Random(12)
+    px = blank()
+    for cx, cy, r in ((5, 6, 3.2), (10, 5, 2.6), (8, 11, 3.0), (12, 11, 2.0)):
+        for y in range(N):
+            for x in range(N):
+                if (x - cx) ** 2 + (y - cy) ** 2 <= r * r:
+                    px[y][x] = asc((y - cy + r) / (2 * r) * 0.8 + 0.2 * rnd.random()) + (255,)
+    for x, y in ((4, 5), (9, 4), (7, 10), (12, 10)):
+        px[y][x] = (235, 255, 250, 255)
+    px[12][8] = ASC_VIOLET + (255,)
+    return px
+
+
+def ascension_shard():
+    """A slim violet-teal crystal splinter."""
+    px = blank()
+    for y in range(2, 15):
+        w = 1 if y < 4 or y > 12 else 2
+        cx = 4 + (y - 2) * 0.6
+        for x in range(int(cx), int(cx) + w + 1):
+            t = (y - 2) / 12.0
+            px[15 - y][x] = lerp((240, 200, 255), ASC_VIOLET, t) + (255,) if x == int(cx) else lerp(ASC_LIGHT, ASC_MID, t) + (255,)
+    px[3][11] = px[4][10] = (255, 255, 255, 255)
+    return px
+
+
+def ascendite_ore(deep):
+    rnd = random.Random(21 if deep else 20)
+    px = [[None] * N for _ in range(N)]
+    for y in range(N):
+        for x in range(N):
+            v = rnd.random()
+            if deep:
+                base = lerp((70, 70, 78), (40, 40, 46), v * 0.8 + (0.2 if y % 4 == 0 else 0))
+            else:
+                base = lerp((140, 140, 140), (105, 105, 105), v)
+            px[y][x] = base + (255,)
+    for cx, cy in ((4, 4), (11, 5), (6, 11), (12, 12)):
+        for dx, dy in ((0, 0), (1, 0), (0, 1), (-1, 0), (1, 1)):
+            x, y = cx + dx, cy + dy
+            if 0 <= x < N and 0 <= y < N:
+                px[y][x] = asc(0.25 + 0.5 * rnd.random()) + (255,)
+        px[cy][cx] = ASC_LIGHT + (255,)
+    px[5][12] = px[12][7] = ASC_VIOLET + (255,)
+    return px
+
+
+def ascendite_storage_block():
+    rnd = random.Random(22)
+    px = [[None] * N for _ in range(N)]
+    for y in range(N):
+        for x in range(N):
+            px[y][x] = asc(0.25 + 0.3 * (x + y) / 30.0 + 0.08 * rnd.random()) + (255,)
+    for i in range(N):
+        px[0][i] = px[i][0] = ASC_LIGHT + (255,)
+        px[N - 1][i] = px[i][N - 1] = ASC_DARK + (255,)
+    for i in range(3, 13):
+        px[i][i] = lerp(ASC_VIOLET, ASC_LIGHT, 0.3) + (255,)
+    return px
+
+
+def armor_layer(layer):
+    """64x32 worn-armor texture. Layer 1: helmet (head), chestplate (body + arms), boots (bottom of legs).
+    Layer 2: leggings (waist + legs). Unused parts of the sheet stay transparent."""
+    W, H = 64, 32
+    rnd = random.Random(30 + layer)
+    px = [[(0, 0, 0, 0)] * W for _ in range(H)]
+
+    def fill(x0, y0, x1, y1, rows=None):
+        for y in range(y0, y1):
+            if rows and not rows(y):
+                continue
+            for x in range(x0, x1):
+                t = 0.25 + 0.45 * (y - y0) / max(1, y1 - y0) + 0.1 * rnd.random()
+                c = asc(t)
+                if y in (y0, y1 - 1) or x in (x0, x1 - 1):
+                    c = lerp(c, ASC_DARK, 0.5)
+                px[y][x] = c + (255,)
+
+    if layer == 1:
+        fill(0, 0, 32, 16)                      # head box
+        for y in range(8, 16):                  # visor slit on the face
+            if y == 12:
+                for x in range(9, 15):
+                    px[y][x] = (20, 30, 40, 255)
+        fill(16, 16, 40, 32)                    # body
+        fill(40, 16, 56, 32)                    # arms
+        fill(0, 16, 16, 32, rows=lambda y: y >= 26 or y < 20)   # boots: lower legs + soles
+        for x in range(20, 28):                 # violet chest gem
+            px[24][x] = ASC_VIOLET + (255,)
+    else:
+        fill(16, 16, 40, 28)                    # waist / hips
+        fill(0, 16, 16, 30)                     # legs
+        for x in range(20, 28):
+            px[17][x] = ASC_VIOLET + (255,)     # belt
+    return px
+
+
+def ascendite_textures(textures):
+    for name, rows in ASC_SPRITES.items():
+        textures[name] = outline(from_mask(rows, asc), (8, 40, 48, 255))
+    textures["raw_ascendite"] = outline(raw_ascendite(), (8, 40, 48, 255))
+    textures["crushed_raw_ascendite"] = outline(crushed_ascendite(), (8, 40, 48, 255))
+    textures["ascension_shard"] = outline(ascension_shard(), (30, 10, 50, 255))
+    png(os.path.join(BLOCK_OUT, "ascendite_ore.png"), ascendite_ore(False))
+    png(os.path.join(BLOCK_OUT, "deepslate_ascendite_ore.png"), ascendite_ore(True))
+    png(os.path.join(BLOCK_OUT, "ascendite_block.png"), ascendite_storage_block())
+    os.makedirs(ARMOR_OUT, exist_ok=True)
+    for layer in (1, 2):
+        png(os.path.join(ARMOR_OUT, "ascendite_layer_%d.png" % layer), armor_layer(layer))
+    print("wrote Ascendite ore, block, armor layers and %d items" % (len(ASC_SPRITES) + 3))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     edge = (24, 10, 36, 255)
@@ -426,6 +630,7 @@ def main():
         for tier in (1, 2, 3):
             textures["gem_%s_%d" % (name, tier)] = outline(gem_item(color, tier), (20, 16, 24, 255))
     os.makedirs(BLOCK_OUT, exist_ok=True)
+    ascendite_textures(textures)
     png(os.path.join(BLOCK_OUT, "ascension_altar.png"), altar_block())
     png(os.path.join(BLOCK_OUT, "essence_condenser.png"), condenser_block())
     tiers = condensed_tiers()

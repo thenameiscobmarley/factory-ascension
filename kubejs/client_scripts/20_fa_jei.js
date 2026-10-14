@@ -28,6 +28,18 @@ if (typeof JEIEvents != 'undefined') {
     ])
 
     // Where things come from when it isn't a recipe
+    let O = FA.ascendite.ore
+    ;['kubejs:ascendite_ore', 'kubejs:deepslate_ascendite_ore', 'kubejs:raw_ascendite'].forEach(id => info(id, [
+      'Ascendite ore is found in the Overworld from Y ' + O.minY + ' to ' + O.maxY + ', most often halfway between. A stone pickaxe mines it.',
+      'Smelt Raw Ascendite into ingots, or crush it with Create for extra ore. Mined ore can also drop an Ascension Shard (' +
+        Math.round(O.shardChance * 100) + '%, more with Fortune).',
+      'Ascendite makes tools and armor between iron and diamond, early brass, Precision Mechanisms and Blaze Burners, and Ascension Cores by hand.',
+      'Later it is renewable: blow Crushed Raw Iron through soul fire with an Encased Fan (' + Math.round(FA.ascendite.hauntChance * 100) + '% Crushed Raw Ascendite).'
+    ]))
+    info('kubejs:ascension_shard', [
+      'Drops from Ascendite ore (' + Math.round(O.shardChance * 100) + '%, more with Fortune), and sometimes from crushing it.',
+      FA.ascendite.shardsPerCore + ' shards make an Ascension Core, in the crafting grid or pressed in a Basin.'
+    ])
     info(global.FA_condensedId(0), [
       'Made by an Essence Condenser from ' + FA.condensed.mbPerBlock + ' mB of Liquid Essence.',
       'Compact ' + FA.condensed.ratio + ' into the next tier with a Mechanical Press over a Basin, up to ' + global.FA_condensedName(global.FA_condensedTiers()) + '.',

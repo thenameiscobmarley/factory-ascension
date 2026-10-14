@@ -26,6 +26,7 @@ count and the version notes on each page. Create add-ons sometimes lag behind ne
 | Mod | Why |
 |---|---|
 | [Sophisticated Backpacks](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) + [Sophisticated Core](https://www.curseforge.com/minecraft/mc-mods/sophisticated-core) | Upgradeable backpacks (up to netherite size) with pickup, magnet, filter and void upgrades, for hauling horde loot home |
+| [Tom's Simple Storage](https://www.curseforge.com/minecraft/mc-mods/toms-storage) | Auto-sorting storage: chests in a row join into one inventory with a scrollable, searchable Storage Terminal. More chests = more space. Tested with 1.20-1.7.1 |
 
 ## Things to fight
 
