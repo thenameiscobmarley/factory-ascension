@@ -316,6 +316,31 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.setPositionAndRotation(X, Y, Z, 0, 0)
   })
 
+  // ---- Rare variants: a spawn rolls one, Golden drops its loot, Blazing burns what it hits ----
+  attempt('variants', () => {
+    let golden = global.FA_variantType('golden')
+    let saved = golden.chance
+    golden.chance = 1
+    let g = spawn('minecraft:pig', X + 8, Y, Z - 8)
+    golden.chance = saved
+    check('a new spawn can roll a variant (forced Golden): ' + (g.getCustomName() ? g.getCustomName().getString() : 'no name'),
+      global.FA_variantOf(g) == 'golden' && g.isCustomNameVisible(), global.FA_variantOf(g))
+    g.attack(player.damageSources().playerAttack(player), 1000)
+    let got = []
+    let near = level.getEntitiesOfClass($STItemEntity, g.getBoundingBox().inflate(3))
+    for (let i = 0; i < near.size(); i++) {
+      got.push(String(near.get(i).getItem().getId()))
+      near.get(i).discard()
+    }
+    check('a Golden mob drops gold blocks, cores and more', got.indexOf('minecraft:gold_block') >= 0 && got.indexOf('kubejs:ascension_core') >= 0, got.join(', '))
+    let blazer = spawn('minecraft:zombie', X + 8, Y, Z - 10)
+    ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => blazer.getPersistentData().remove(k))
+    global.FA_makeVariant(blazer, 'blazing')
+    let target = spawn('minecraft:pig', X + 8, Y, Z - 11)
+    target.attack(blazer.damageSources().mobAttack(blazer), 1)
+    check('a Blazing mob sets what it hits on fire', target.isOnFire())
+  })
+
   let altarPos, condPos, altarTank, condTank, depot, chestPos, altarGear, condFilled = 0
   attempt('machines setup', () => {
     altarTank = place(X + 4, Y, Z + 4, 'create:basin')

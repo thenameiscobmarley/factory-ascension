@@ -254,6 +254,19 @@ The tools and armor are gunmetal steel with glowing teal energy channels, gold g
 and leather-wrapped grips with gold bands. Worn armor matches: a gold-trimmed helm with a glowing eye slit, gem and nose guard,
 gold pauldrons, a teal V into the chest gem, a belt with a gem buckle, gold knee plates and capped boots with a glowing sole.
 
+## Rare mob variants
+
+Any mob can spawn as a rare variant. The rarer it is, the better it drops. Kills are announced in chat.
+
+| Variant | Odds (per spawn) | What it does | Drops |
+|---|---|---|---|
+| Blazing / Frozen / Storm | 1 in 1,000 each (hostile mobs) | its hits set you on fire / slow you / call lightning for +20% damage | themed materials (blaze powder, packed ice, glowstone...) + 1 loot roll, x2 XP |
+| ✦ Shiny | 1 in 1,000 | sparkles; a chime and a message when it spawns near you | a Chipped gem + 2 loot rolls one tier better, x5 XP |
+| ★ Golden | 1 in 4,000 | gold sparkles, glows through walls, chime when it spawns | 1-2 gold blocks, 2-5 Ascension Cores, a Flawless gem, 3 loot rolls two tiers better, x10 XP |
+
+Variants never despawn, so you can go back for one. Bosses, Elites and named mobs never become variants. Everything is in
+the `variants` section of the config.
+
 ## Gear condition: Battle-Scarred to Pristine
 
 Every tool, weapon and piece of armor (from any mod) rolls a **condition grade** once: when it's crafted, or the first
@@ -450,12 +463,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 35 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 38 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 371 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 380 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

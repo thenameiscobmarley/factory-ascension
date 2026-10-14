@@ -78,7 +78,7 @@ var Java = {
       'net.minecraft.world.entity.raid.Raider': RaiderClass,
       'net.minecraft.world.entity.MobType': MobType,
       'net.minecraft.world.entity.ExperienceOrb': OrbClass,
-      'net.minecraft.world.effect.MobEffects': { MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', BLINDNESS: 'blindness', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
+      'net.minecraft.world.effect.MobEffects': { GLOWING: 'glowing', MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', BLINDNESS: 'blindness', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
       'net.minecraft.world.effect.MobEffectInstance': function (effect, ticks, amp) { this.effect = effect; this.ticks = ticks; this.amp = amp },
       'net.minecraft.world.entity.EntityType': {
         LIGHTNING_BOLT: { create: function () { return { setPosition: function () {}, setVisualOnly: function (v) { this.visual = v } } } },
@@ -226,6 +226,8 @@ function livingBits(o, maxHealth) {
   o.pdata = new Compound(); o.x = 0; o.z = 0
   o.getPersistentData = function () { return this.pdata }
   o.setCustomName = function (n) { this.customName = n.s }
+  o.hasCustomName = function () { return !!this.customName }
+  o.getCustomName = function () { return this.customName ? fakeText(this.customName) : null }
   o.setCustomNameVisible = function (v) { this.nameVisible = v }
   // KubeJS: e.type is the id string
   o.type = o.type || 'minecraft:zombie'
@@ -256,7 +258,9 @@ function livingBits(o, maxHealth) {
   // KubeJS: entity.level and level.dimension are properties; time comes from the server's tick count
   o.level = {
       get dimension() { return self.dim },
-      getServer: function () { return { getTickCount: function () { return gameTime }, runCommandSilent: function (c) { (self.levelCommands = self.levelCommands || []).push(c) } } },
+      getServer: function () { return { getTickCount: function () { return gameTime }, runCommandSilent: function (c) { (self.levelCommands = self.levelCommands || []).push(c) },
+        getPlayerList: function () { return { getPlayers: function () { var a = []; a.size = function () { return 0 }; return a } } },
+        tell: function (t) { (self.levelTells = self.levelTells || []).push(t.s) } } },
       getBlockState: function () { return { isAir: function () { return true } } },
       createEntity: function (t) { var m = makeMob(); m.type = t; spawnedMinions.push(m); return m },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
@@ -286,7 +290,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
@@ -1701,6 +1705,42 @@ popped = []; blockSet = null
 handlers.blockClick({ player: miner2, item: hammer2, block: { id: 'minecraft:stone', set: function (b) { blockSet = b }, popItem: function () {} }, level: miner2.level, cancel: function () {} })
 check('non-rock blocks are left alone', blockSet === null)
 Math.random = realRandom
+
+// ---------------- Rare mob variants ----------------
+print('\nvariants')
+var VT = global.FA.variants.types
+var counts = {}, N = 400000, rr = new java.util.Random(7)
+for (var vi = 0; vi < N; vi++) { var vid = global.FA_rollVariant(function () { return rr.nextDouble() }, true); if (vid) counts[vid] = (counts[vid] || 0) + 1 }
+check('variant odds: Golden ~1 in 4000, Shiny ~1 in 1000, each elemental ~1 in 1000 (400,000 hostile spawns)',
+  Math.abs((counts.golden || 0) - N * 0.00025) < 45 && Math.abs((counts.shiny || 0) - N * 0.001) < 90 && Math.abs((counts.storm || 0) - N * 0.001) < 90, JSON.stringify(counts))
+var peaceful = 0
+for (var vj = 0; vj < 200000; vj++) { var pid = global.FA_rollVariant(function () { return rr.nextDouble() }, false); if (pid && global.FA_variantType(pid).elemental) peaceful++ }
+check('animals can be Shiny or Golden but never elemental', peaceful == 0)
+var goldPig = makeMob(); goldPig.type = 'minecraft:pig'
+global.FA_makeVariant(goldPig, 'golden')
+check('a Golden mob gets its name, glows and never despawns', /Golden Zombie/.test(goldPig.customName) && goldPig.nameVisible && goldPig.persistent &&
+  goldPig.effects.some(function (e) { return e.effect == 'glowing' }) && global.FA_variantOf(goldPig) == 'golden', goldPig.customName)
+var hurtHooks = handlers.forge['LivingHurtEvent']
+var blazer = makeMob(); global.FA_makeVariant(blazer, 'blazing')
+var burnt = makePlayer(server, 'burnt')
+hit(blazer, burnt, 4)
+check('a Blazing mob\'s hit sets you on fire', burnt.fire == global.FA.variants.fireSeconds, burnt.fire)
+var froster = makeMob(); global.FA_makeVariant(froster, 'frozen')
+var chilled = makePlayer(server, 'chilled')
+hit(froster, chilled, 4)
+check('a Frozen mob\'s hit slows you', chilled.effects.some(function (e) { return e.effect == 'slowness' && e.amp == 1 }))
+var stormer = makeMob(); global.FA_makeVariant(stormer, 'storm')
+var zapped = makePlayer(server, 'zapped')
+check('a Storm mob\'s hit calls lightning and hits 20% harder', near(hit(stormer, zapped, 10), 12), hit(stormer, zapped, 10))
+var gdrops = dropEvent(plainHero, goldPig, []); dropsHook(gdrops)
+var gids = gdrops.list.arr.map(function (ie) { return ie.getItem().id })
+check('a Golden mob drops gold, cores, a Flawless gem and 3 loot rolls', gids.indexOf('minecraft:gold_block') >= 0 && gids.indexOf('kubejs:ascension_core') >= 0 &&
+  gids.some(function (x) { return /^kubejs:gem_\w+_2$/.test(x) }) && gids.length >= 6, gids.join(','))
+var vxp = { xp: 10, getEntity: function () { return goldPig }, getAttackingPlayer: function () { return plainHero }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
+xpHook(vxp)
+check('a Golden mob drops x10 XP', vxp.xp == 100, vxp.xp)
+var named = makeMob(); named.customName = 'Bob'
+check('named mobs (pets, bosses, elites) never turn into variants', global.FA_variantOf(named) == '')
 
 // ---------------- Leveling tomes, applying them, extracting enchants ----------------
 print('\ntome levels')
