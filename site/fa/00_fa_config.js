@@ -620,6 +620,29 @@ global.FA = {
     ]
   },
 
+  // ---- Rock Hammers: smash rock into gravel, nuggets and the odd ore ----
+  // Hammer in your main hand + rocks in your other hand, right-click: smash one (sneak: sneakCount).
+  // Or right-click a placed rock block to smash it where it is (a Create Deployer holding a hammer does this too).
+  hammer: {
+    sneakCount: 8,
+    // uses: durability; luck: multiplies every chance; cooldown: ticks between smashes
+    tools: {
+      'kubejs:rock_hammer': { uses: 250, luck: 1, cooldown: 6 },
+      'kubejs:ascendite_rock_hammer': { uses: 1200, luck: 1.6, cooldown: 3 }
+    },
+    // rock -> [[item, chance, max count]]; each line rolls on its own. Items from mods that aren't installed are skipped.
+    rocks: {
+      'minecraft:cobblestone': [['minecraft:gravel', 0.5, 1], ['minecraft:flint', 0.1, 1], ['minecraft:iron_nugget', 0.3, 3], ['create:copper_nugget', 0.25, 3],
+        ['create:zinc_nugget', 0.15, 2], ['minecraft:gold_nugget', 0.08, 2], ['minecraft:coal', 0.1, 1], ['kubejs:raw_ascendite', 0.03, 1]],
+      'minecraft:cobbled_deepslate': [['minecraft:gravel', 0.4, 1], ['minecraft:iron_nugget', 0.35, 4], ['minecraft:gold_nugget', 0.15, 3], ['minecraft:redstone', 0.2, 2],
+        ['minecraft:lapis_lazuli', 0.12, 2], ['kubejs:raw_ascendite', 0.06, 1], ['minecraft:diamond', 0.005, 1]],
+      'minecraft:gravel': [['minecraft:sand', 0.5, 1], ['minecraft:flint', 0.3, 1], ['minecraft:iron_nugget', 0.12, 2], ['minecraft:gold_nugget', 0.05, 1]],
+      'minecraft:netherrack': [['minecraft:quartz', 0.2, 1], ['minecraft:gold_nugget', 0.2, 3], ['minecraft:glowstone_dust', 0.08, 2]],
+      'minecraft:blackstone': [['minecraft:gold_nugget', 0.3, 4], ['minecraft:quartz', 0.1, 1], ['minecraft:netherite_scrap', 0.003, 1]],
+      'minecraft:end_stone': [['minecraft:ender_pearl', 0.03, 1], ['minecraft:chorus_fruit', 0.05, 1]]
+    }
+  },
+
   // ---- Safety limits (not power caps) ----
   maxExtraDropStacks: 8,       // most extra item stacks one kill can spawn, so loot enchants can't lag the server
   maxCleaveTargets: 16,
@@ -1089,6 +1112,18 @@ let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, 
 let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
 let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
 
+// One smash of a rock with a hammer: [[item, count]] (rnd: a 0..1 random function). Shared by the game and tests.
+global.FA_smash = (rnd, rock, hammerId) => {
+  let H = global.FA.hammer
+  let table = H.rocks[rock], tool = H.tools[hammerId]
+  if (!table || !tool) return []
+  let out = []
+  table.forEach(d => {
+    if (rnd() < Math.min(1, d[1] * tool.luck)) out.push([d[0], 1 + Math.floor(rnd() * d[2])])
+  })
+  return out
+}
+
 global.FA_validate = cfg => {
   let problems = []
   let okNum = (v, min) => typeof v == 'number' && isFinite(v) && v >= min
@@ -1264,6 +1299,13 @@ global.FA_validate = cfg => {
       okNum(fd.hunger, 0) && okNum(fd.saturation, 0) && effectOk(fd.effect)))) {
     problems.push('mobFood settings are broken, mob food drops were switched off')
     mf.enabled = false
+  }
+  let hm = cfg.hammer
+  let idOk = id => /^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(id)
+  if (!(hm && okNum(hm.sneakCount, 1) && hm.tools && Object.keys(hm.tools).every(t => idOk(t) && okNum(hm.tools[t].uses, 1) && okNum(hm.tools[t].luck, 0) && okNum(hm.tools[t].cooldown, 0)) &&
+    hm.rocks && Object.keys(hm.rocks).every(r => idOk(r) && hm.rocks[r].every(d => idOk(d[0]) && okNum(d[1], 0) && d[1] <= 1 && okNum(d[2], 1))))) {
+    problems.push('hammer settings are broken, Rock Hammers smash nothing')
+    cfg.hammer = { sneakCount: 8, tools: hm && hm.tools ? hm.tools : {}, rocks: {} }
   }
   return problems
 }

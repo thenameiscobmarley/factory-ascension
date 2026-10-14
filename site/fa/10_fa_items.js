@@ -64,6 +64,11 @@ StartupEvents.registry('item', event => {
     })
   })
 
+  // Rock Hammers: smash rock into gravel, nuggets and ore (config: hammer)
+  event.create('rock_hammer').displayName('Rock Hammer').maxDamage(global.FA.hammer.tools['kubejs:rock_hammer'].uses)
+  event.create('ascendite_rock_hammer').displayName('Ascendite Rock Hammer').rarity('uncommon')
+    .maxDamage(global.FA.hammer.tools['kubejs:ascendite_rock_hammer'].uses)
+
   // Tools and armor use the tiers registered below (numbers in the config)
   FA_GEAR.forEach(g => event.create('ascendite_' + g[0], g[0]).displayName('Ascendite ' + g[1]).tier('ascendite'))
 })

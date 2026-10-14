@@ -16,6 +16,8 @@ const $STLiving = Java.loadClass('net.minecraft.world.entity.LivingEntity')
 const $STArmorStand = Java.loadClass('net.minecraft.world.entity.decoration.ArmorStand')
 const $STHand = Java.loadClass('net.minecraft.world.InteractionHand')
 const $STEffects = Java.loadClass('net.minecraft.world.effect.MobEffects')
+const $STHit = Java.loadClass('net.minecraft.world.phys.BlockHitResult')
+const $STVec = Java.loadClass('net.minecraft.world.phys.Vec3')
 
 let faSelftestBusy = false
 
@@ -231,6 +233,30 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.removeAllEffects()
     let cooks = ['cook_', 'smoke_', 'campfire_'].filter(k => server.getRecipeManager().byKey('kubejs:factory_ascension/' + k + 'pig_eyes').isPresent())
     check('raw food cooks in a furnace, smoker and campfire', cooks.length == 3, cooks.join(', '))
+  })
+
+  // ---- Rock Hammer: hand mode and block mode, through Minecraft's own click handling ----
+  attempt('rock hammer', () => {
+    player.getCooldowns().removeCooldown(Item.of('kubejs:rock_hammer').getItem())
+    let hammer = Item.of('kubejs:rock_hammer')
+    let rocks = Item.of('minecraft:cobblestone', 16)
+    player.setItemInHand('main_hand', hammer)
+    player.setItemInHand('off_hand', rocks)
+    player.gameMode.useItem(player, level, hammer, $STHand.MAIN_HAND)
+    let left = player.getOffhandItem().getCount()
+    check('Rock Hammer: right-click smashes one cobblestone from the other hand (and wears the hammer)',
+      left == 15 && player.getMainHandItem().getDamageValue() == 1, left + ' rocks left, damage ' + player.getMainHandItem().getDamageValue())
+    player.setItemInHand('off_hand', Item.of('minecraft:air'))
+    player.getCooldowns().removeCooldown(hammer.getItem())
+    let rockPos = place(X - 10, Y, Z - 4, 'minecraft:cobblestone')
+    player.setPositionAndRotation(X - 10, Y, Z - 2, 180, 0)
+    let hit = new $STHit(new $STVec(X - 9.5, Y + 0.5, Z - 3.0), $STDirection.SOUTH, rockPos, false)
+    player.gameMode.useItemOn(player, level, player.getMainHandItem(), $STHand.MAIN_HAND, hit)
+    let after = String(level.getBlock(rockPos).id)
+    let pops = level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().inflate(4)).size()
+    check('Rock Hammer: right-clicking a placed cobblestone smashes it in place', after == 'minecraft:air', after + ', ' + pops + ' drops')
+    level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().inflate(4)).forEach(e => e.discard())
+    player.setPositionAndRotation(X, Y, Z, 0, 0)
   })
 
   let altarPos, condPos, altarTank, condTank, depot, chestPos, altarGear, condFilled = 0

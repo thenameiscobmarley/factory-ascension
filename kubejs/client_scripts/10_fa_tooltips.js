@@ -314,6 +314,20 @@ ItemEvents.tooltip(event => {
     Text.gray('Tier: ').append(Text.aqua('between iron and diamond')).append(Text.darkGray('  ' + T.uses + ' durability, ' + (T.level >= 2 ? 'mines diamonds' : 'mines iron'))),
     made('Ascendite Ingots + Sticks, like iron tools. Repair with Ascendite Ingots in an anvil.'),
     tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
+  // Rock Hammers
+  let HM = FA.hammer
+  let rockNames = Object.keys(HM.rocks).map(faItemName).join(', ')
+  Object.keys(HM.tools).forEach(hid => {
+    let T = HM.tools[hid]
+    details(hid, hid.indexOf('ascendite') >= 0 ? 'It hums when it hits something valuable.' : 'Every miner starts somewhere.', () => [
+      Text.gray('Hand: ').append(Text.white('hammer in your main hand, rocks in the other, right-click')).append(Text.darkGray(' (sneak: ' + HM.sneakCount + ' at once)')),
+      Text.gray('Block: ').append(Text.white('right-click a placed rock to smash it in place. A Create Deployer can do it too.')),
+      tip('Smashes: ' + rockNames),
+      tip('Cobblestone: gravel, flint, iron, copper, zinc and gold nuggets, coal, sometimes Raw Ascendite'),
+      tip(T.uses + ' uses' + (T.luck != 1 ? ', x' + T.luck + ' luck on every drop' : '') + ', ' + (T.cooldown / 20).toFixed(2) + 's between smashes'),
+      made(hid.indexOf('ascendite') >= 0 ? '5 Ascendite Ingots + 2 Sticks' : '5 Iron Ingots + 2 Sticks')])
+  })
+
   // Mob food
   let MF = FA.mobFood
   let pretty = id => String(id).replace(/^[a-z0-9_]+:/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -340,7 +354,8 @@ ItemEvents.tooltip(event => {
   let P = A.armor.protection, slots = { boots: 0, leggings: 1, chestplate: 2, helmet: 3 }
   let total = P[0] + P[1] + P[2] + P[3]
   Object.keys(slots).forEach(g => details('kubejs:ascendite_' + g, 'Forged from Ascendite: light, sharp, and ready to ascend.', () => [
-    Text.gray('Armor: ').append(Text.aqua(String(P[slots[g]]))).append(Text.darkGray('  (full set: ' + total + ' armor, ' + 4 * A.armor.toughness + ' toughness)')),
+    Text.gray('This piece: ').append(Text.aqua(P[slots[g]] + ' armor, ' + A.armor.toughness + ' toughness'))
+      .append(Text.darkGray('  (all 4 pieces: ' + total + ' armor, ' + 4 * A.armor.toughness + ' toughness)')),
     made('Ascendite Ingots, like iron armor. Repair with Ascendite Ingots in an anvil.'),
     tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
 })

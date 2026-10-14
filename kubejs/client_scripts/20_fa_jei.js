@@ -36,6 +36,12 @@ if (typeof JEIEvents != 'undefined') {
       'Ascendite makes tools and armor between iron and diamond, early brass, Precision Mechanisms and Blaze Burners, and Ascension Cores by hand.',
       'Later it is renewable: blow Crushed Raw Iron through soul fire with an Encased Fan (' + Math.round(FA.ascendite.hauntChance * 100) + '% Crushed Raw Ascendite).'
     ]))
+    // Rock Hammers: what every rock can give
+    let HM = FA.hammer
+    let name = id => { try { return String(Item.of(id).getHoverName().getString()) } catch (err) { return id } }
+    ;Object.keys(HM.tools).forEach(hid => info(hid, ['Hammer in your main hand and rocks in your other hand: right-click to smash one, sneak for ' + HM.sneakCount + '.',
+      'Or right-click a placed rock block (a Create Deployer holding the hammer works too).'].concat(Object.keys(HM.rocks).map(r =>
+      name(r) + ': ' + HM.rocks[r].map(d => name(d[0]) + ' ' + Math.round(Math.min(1, d[1] * HM.tools[hid].luck) * 1000) / 10 + '%').join(', ')))))
     info('kubejs:ascension_shard', [
       'Drops from Ascendite ore (' + Math.round(O.shardChance * 100) + '%, more with Fortune), and sometimes from crushing it.',
       FA.ascendite.shardsPerCore + ' shards make an Ascension Core, in the crafting grid or pressed in a Basin.'

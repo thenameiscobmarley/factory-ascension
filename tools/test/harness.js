@@ -129,7 +129,8 @@ var JEIEvents = {
   information: function (fn) { fn({ addItem: function (id, lines) { jei.info[id] = lines } }) }
 }
 var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
-var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn } }
+var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn },
+  rightClicked: function (fn) { handlers.blockClick = fn } }
 var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn },
   tags: function (type, fn) { (handlers.tags[type] = handlers.tags[type] || []).push(fn) }, highPriorityData: function (fn) { handlers.data.push(fn) } }
 var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) },
@@ -161,7 +162,9 @@ function stack(count, max, name) {
     get nbt() { return this.tag },
     set nbt(t) { this.tag = t },
     getOrCreateTag: function () { if (!this.tag) this.tag = new Compound(); return this.tag },
-    getHoverName: function () { var t = fakeText(this.name); t.getString = function () { return this.s }; return t }
+    getHoverName: function () { var t = fakeText(this.name); t.getString = function () { return this.s }; return t },
+    getId: function () { return this.id }, getItem: function () { return this.id },
+    damage: 0, getDamageValue: function () { return this.damage }, setDamageValue: function (d) { this.damage = d }, getMaxDamage: function () { return this.maxDamage || 0 }
   }
 }
 function gear(name) { return stack(1, 1, name) }
@@ -207,6 +210,8 @@ function makePlayer(server, uuid) {
   p.displayClientMessage = function (t) { this.bar.push(t.s) }
   p.tell = function (t) { this.messages.push(t) }
   p.give = function (i) { this.given.push(i) }
+  p.cooldowns = {}
+  p.getCooldowns = function () { var self = this; return { isOnCooldown: function (it) { return !!self.cooldowns[it] }, addCooldown: function (it, t) { self.cooldowns[it] = t } } }
   return p
 }
 // Shared living-entity behaviour for fake players and mobs
@@ -249,7 +254,7 @@ function livingBits(o, maxHealth) {
   // KubeJS: entity.level and level.dimension are properties; time comes from the server's tick count
   o.level = {
       get dimension() { return self.dim },
-      getServer: function () { return { getTickCount: function () { return gameTime } } },
+      getServer: function () { return { getTickCount: function () { return gameTime }, runCommandSilent: function (c) { (self.levelCommands = self.levelCommands || []).push(c) } } },
       getBlockState: function () { return { isAir: function () { return true } } },
       createEntity: function (t) { var m = makeMob(); m.type = t; spawnedMinions.push(m); return m },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
@@ -281,7 +286,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
   'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
-  'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js',
+  'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
   load('kubejs/' + f)
@@ -294,7 +299,7 @@ print('\nitems')
 var created = [], createdBlocks = [], createdFluids = []
 var builder = {}
 ;['displayName', 'rarity', 'glow', 'maxStackSize', 'thinTexture', 'bucketColor', 'soundType', 'hardness', 'resistance', 'requiresTool',
-  'tagBlock', 'lightLevel', 'textureAll'].forEach(function (m) { builder[m] = function () { return builder } })
+  'tagBlock', 'lightLevel', 'textureAll', 'maxDamage'].forEach(function (m) { builder[m] = function () { return builder } })
 var gearTiers = {}, foodDefs = {}
 handlers.registry.forEach(function (r) {
   var list = r.type == 'item' ? created : r.type == 'block' ? createdBlocks : createdFluids
@@ -336,7 +341,7 @@ check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount =
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 2, created.length)
 check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
   return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
@@ -1646,6 +1651,44 @@ check('a crash inside a secondary hit never leaves enchants switched off', nextH
 var reload = makeMob(); reload.pdata.putInt('fa_danger', 7)
 spawn(reload, 60000, { fromDisk: true })
 check('reloaded mobs keep their saved danger level', reload.pdata.getInt('fa_danger') == 7)
+
+// ---------------- Rock Hammers ----------------
+print('\nrock hammers')
+var HM = global.FA.hammer
+var allYes = function () { return 0 }
+var smashed = global.FA_smash(allYes, 'minecraft:cobblestone', 'kubejs:rock_hammer')
+check('a lucky smash of cobblestone can give every drop on its list', smashed.length == HM.rocks['minecraft:cobblestone'].length, smashed.map(function (r) { return r[0] }).join(','))
+var luckyRoll = function () { return 0.04 }
+check('the Ascendite hammer is luckier (a 4% roll beats Raw Ascendite 3% only with x1.6 luck)',
+  !global.FA_smash(luckyRoll, 'minecraft:cobblestone', 'kubejs:rock_hammer').some(function (r) { return r[0] == 'kubejs:raw_ascendite' }) &&
+  global.FA_smash(luckyRoll, 'minecraft:cobblestone', 'kubejs:ascendite_rock_hammer').some(function (r) { return r[0] == 'kubejs:raw_ascendite' }))
+check('things that aren\'t rocks smash into nothing', global.FA_smash(allYes, 'minecraft:dirt', 'kubejs:rock_hammer').length == 0)
+var miner2 = makePlayer(server, 'smasher')
+var hammerStack = stack(1, 1); hammerStack.id = 'kubejs:rock_hammer'; hammerStack.maxDamage = 250
+var rocks = stack(20); rocks.id = 'minecraft:cobblestone'
+miner2.main = hammerStack; miner2.off = rocks
+Math.random = function () { return 0 }
+var hamCancel = false
+handlers.rightClicked['kubejs:rock_hammer']({ player: miner2, item: hammerStack, hand: 'MAIN_HAND', cancel: function () { hamCancel = true } })
+check('hand smash: one cobblestone in, its drops out, 1 durability used, short cooldown', rocks.count == 19 && miner2.given.length == HM.rocks['minecraft:cobblestone'].length &&
+  hammerStack.damage == 1 && miner2.cooldowns['kubejs:rock_hammer'] == HM.tools['kubejs:rock_hammer'].cooldown && hamCancel, rocks.count + ' / ' + miner2.given.length + ' / ' + hammerStack.damage)
+miner2.cooldowns = {}; miner2.sneaking = true
+handlers.rightClicked['kubejs:rock_hammer']({ player: miner2, item: hammerStack, hand: 'MAIN_HAND', cancel: function () {} })
+check('sneaking smashes ' + HM.sneakCount + ' at once', rocks.count == 19 - HM.sneakCount && hammerStack.damage == 1 + HM.sneakCount, rocks.count)
+miner2.sneaking = false; miner2.cooldowns = {}
+hammerStack.damage = 249
+handlers.rightClicked['kubejs:rock_hammer']({ player: miner2, item: hammerStack, hand: 'MAIN_HAND', cancel: function () {} })
+check('a worn-out hammer breaks', hammerStack.count == 0)
+var popped = [], blockSet = null
+var rockBlock = { id: 'minecraft:cobbled_deepslate', x: 1, y: 2, z: 3, set: function (b) { blockSet = b }, popItem: function (it) { popped.push(it.id) } }
+var hammer2 = stack(1, 1); hammer2.id = 'kubejs:ascendite_rock_hammer'; hammer2.maxDamage = 1200
+var bc = false
+handlers.blockClick({ player: miner2, item: hammer2, block: rockBlock, level: miner2.level, cancel: function () { bc = true } })
+check('block smash: the rock turns to air and pops its drops in place', blockSet == 'minecraft:air' && popped.length == HM.rocks['minecraft:cobbled_deepslate'].length && bc && hammer2.damage == 1, popped.join(','))
+popped = []; blockSet = null
+handlers.blockClick({ player: miner2, item: hammer2, block: { id: 'minecraft:stone', set: function (b) { blockSet = b }, popItem: function () {} }, level: miner2.level, cancel: function () {} })
+check('non-rock blocks are left alone', blockSet === null)
+Math.random = realRandom
 
 // ---------------- KubeJS's `global` ----------------
 // In KubeJS `global` is a Java map, and reading a key that holds null crashes the game (a real crash, from the

@@ -744,6 +744,9 @@ def ascendite_textures(textures):
     for kind, draw in gear_art.ICONS.items():
         px = draw()
         textures["ascendite_" + kind] = Outlined(px, px, (10, 12, 20, 255))
+    for name, draw in gear_art.HAMMERS.items():
+        px = draw()
+        textures[name] = Outlined(px, px, (10, 12, 20, 255))
     textures["raw_ascendite"] = outline(raw_ascendite(), (8, 40, 48, 255))
     textures["crushed_raw_ascendite"] = outline(crushed_ascendite(), (8, 40, 48, 255))
     textures["ascension_shard"] = outline(ascension_shard(), (30, 10, 50, 255))

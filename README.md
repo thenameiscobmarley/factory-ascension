@@ -251,7 +251,28 @@ The original diamond assembly line still works. All the numbers are in the `asce
 ### Ascendite gear
 
 The tools and armor are gunmetal steel with glowing teal energy channels, gold guards, collars and trim, violet gems
-and leather-wrapped grips with gold bands. Worn armor matches: gold-trimmed plates, a teal visor slit and a chest gem.
+and leather-wrapped grips with gold bands. Worn armor matches: a gold-trimmed helm with a glowing eye slit, gem and nose guard,
+gold pauldrons, a teal V into the chest gem, a belt with a gem buckle, gold knee plates and capped boots with a glowing sole.
+
+## Rock Hammers: smash rock into ore
+
+Craft a **Rock Hammer** (5 iron ingots + 2 sticks, 250 uses) or an **Ascendite Rock Hammer** (5 Ascendite ingots, 1,200 uses,
+x1.6 luck on every drop, twice as fast).
+
+- **By hand:** hammer in your main hand, rocks in the other, right-click to smash one. Sneak to smash 8.
+- **In place:** right-click a placed rock block to smash it where it is. A Create **Deployer** holding a hammer does this
+  too, so a cobblestone generator + a deployer is an automatic ore smasher.
+
+| Rock | Can give |
+|---|---|
+| Cobblestone | gravel, flint, iron / copper / zinc / gold nuggets, coal, Raw Ascendite (3%) |
+| Cobbled Deepslate | gravel, iron and gold nuggets, redstone, lapis, Raw Ascendite (6%), diamond (0.5%) |
+| Gravel | sand, flint, iron and gold nuggets |
+| Netherrack | quartz, gold nuggets, glowstone dust |
+| Blackstone | gold nuggets, quartz, netherite scrap (0.3%) |
+| End Stone | ender pearls, chorus fruit |
+
+Every chance is in the `hammer` section of the config. JEI's info page on each hammer lists the exact odds.
 
 ## Mob food
 
@@ -392,12 +413,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension event` | Everyone | The current world event |
 | `/ascension event start <name>` / `stop` | Ops | Start or stop a world event |
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
-| `/ascension selftest` | Ops / console | Runs 28 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 30 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 337 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 345 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
