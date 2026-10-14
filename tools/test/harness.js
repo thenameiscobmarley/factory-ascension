@@ -1167,6 +1167,44 @@ bossMob.removed = true
 faLastSecond = 0; tickBoss({ phase: 'END', getServer: function () { return bossServer } })
 check('dead bosses take their bar with them', !faBosses[bossMob.getStringUUID()] && tracked.bar.players.length == 0)
 
+print('\nwebsite gear math vs the game')
+load('site/calc.js')
+// Random builds: write them onto fake gear, read them back with the real engine, compare with the site's math
+var seed2 = 777
+function rnd2(n) { seed2 = (seed2 * 16807) % 2147483647; return seed2 % n }
+var mismatches = []
+var slotKeys = ['main', 'off', 'head', 'chest', 'legs', 'feet']
+for (var b = 0; b < 300; b++) {
+  var build = { slots: {} }, pl = makePlayer(server, 'b' + b), items = {}
+  slotKeys.forEach(function (sk) {
+    if (rnd2(4) == 0) return
+    var item = { e: {}, stars: rnd2(3), gems: [], rolled: [] }
+    var g = gear(sk)
+    for (var k = 0; k < 1 + rnd2(4); k++) { var id = ids[rnd2(ids.length)]; var lv = 1 + rnd2(5000); item.e[id] = lv; faSetLevel(g, id, lv) }
+    if (rnd2(2)) { item.e.protection = 1 + rnd2(300); faSetLevel(g, 'protection', item.e.protection) }
+    var gtypes = Object.keys(global.FA.gems.types)
+    for (var k2 = 0; k2 < rnd2(4); k2++) {
+      var gt = gtypes[rnd2(gtypes.length)], tier = 1 + rnd2(3)
+      item.gems.push([gt, tier])
+      var all = g.getOrCreateTag().getCompound('FactoryAscension'); var gemsTag = all.getCompound('gems'); var one = new Compound()
+      one.putString('type', gt); one.putInt('tier', tier); gemsTag.put(String(k2), one); all.put('gems', gemsTag); g.tag.put('FactoryAscension', all)
+    }
+    for (var k3 = 0; k3 < rnd2(3); k3++) { var sd3 = 1 + rnd2(2000000000), rl = 1 + rnd2(800); item.rolled.push([sd3, rl]); faSetRolled(g, k3, sd3, rl) }
+    if (item.stars) { var all2 = g.getOrCreateTag().getCompound('FactoryAscension'); all2.putInt('stars', item.stars); g.tag.put('FactoryAscension', all2) }
+    build.slots[sk] = item; items[sk] = g
+  })
+  pl.main = items.main || stack(0); pl.off = items.off || stack(0)
+  pl.armor = [items.head || stack(0), items.chest || stack(0), items.legs || stack(0), items.feet || stack(0)]
+  var game = faLevels(pl), site = FA_CALC.levels(build)
+  Object.keys(game).concat(Object.keys(site)).forEach(function (k4) { if (k4 != '__sets' && game[k4] !== site[k4] && mismatches.length < 5) mismatches.push('build ' + b + ' ' + k4 + ': game ' + game[k4] + ' site ' + site[k4]) })
+}
+check('300 random builds: the website gear builder reads gear exactly like the game', mismatches.length == 0, mismatches.join(' | '))
+var tank2 = FA_CALC.summary(FA_CALC.levels({ slots: { chest: { e: { protection: 3000, vitality: 50 } } } }))
+check('builder summary: Protection 3000 + Vitality 50 = same damage taken as in combat', near(tank2.taken, 1 / 121 * 20 / 120))
+var costBuild = { slots: { main: { e: { sharpness: 100 } } } }
+var expectCost = 0; for (var k5 = 0; k5 < 100; k5++) expectCost += global.FA_cost(k5, 'sharpness')
+check('builder Essence cost matches the upgrade prices', FA_CALC.cost(costBuild) == expectCost)
+
 print('\nsafety: recipes and hooks')
 var outputs = {}
 recipes.forEach(function (r) {

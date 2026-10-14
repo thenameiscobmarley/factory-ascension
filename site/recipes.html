@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" data-uv-theme="volcano">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Factory Recipes</title>
+<meta name="description" content="Every Factory Ascension recipe as a full factory chain, from cobblestone to the finished item, with the Create machines each step needs." />
+<meta name="theme-color" content="#0b0908" />
+<link rel="icon" href="fa/items/ascension_core.png" />
+<link rel="stylesheet" href="vendor/uivault/fonts.css" />
+<link rel="stylesheet" href="vendor/uivault/uivault.css" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="pages.css" />
+</head>
+<body class="page">
+
+<nav class="top">
+  <a class="brand" href="index.html"><img src="fa/items/ascension_core.png" alt="" width="24" height="24" /> Factory Ascension</a>
+  <div class="links">
+    <a href="index.html#enchants">Enchants</a><a href="index.html#chaos">Chaos</a><a href="index.html#danger">Danger</a>
+    <a href="builder.html">Builder</a><a href="recipes.html" aria-current="page">Recipes</a><a href="index.html#install">Install</a>
+  </div>
+  <a class="uv-btn uv-btn--sm uv-btn--primary" href="https://github.com/thenameiscobmarley/factory-ascension">GitHub</a>
+</nav>
+
+<header class="page-head wrap">
+  <p class="mono">Factory recipes</p>
+  <h1>From cobblestone to godhood.</h1>
+  <p class="sub">Pick anything the pack adds and see its whole factory chain: every step, the Create machine that does it, and how hot the
+    basin has to be. Click an ingredient to open its own chain. Read straight from the pack's recipe scripts.</p>
+  <div class="cta">
+    <label class="toggle"><input type="checkbox" id="tfmg" checked /> TFMG installed</label>
+    <label class="toggle"><input type="checkbox" id="mek" checked /> Mekanism installed</label>
+  </div>
+</header>
+
+<main class="wrap recipes">
+  <aside class="list">
+    <input class="uv-input" id="find" type="search" placeholder="Search items…" aria-label="Search items" />
+    <div id="items" role="listbox" aria-label="Items"></div>
+  </aside>
+  <section class="chain" id="chain" aria-live="polite"></section>
+</main>
+
+<footer>
+  <p><a href="index.html">Factory Ascension</a> · built with <a href="https://thenameiscobmarley.github.io/ui-vault/">UI Vault</a></p>
+</footer>
+
+<!-- The pack's real item list and recipe scripts, run with small stand-ins for KubeJS -->
+<script>
+  var global = {};
+  var FA_NAMES = {};
+  var FA_RECIPE_FNS = [];
+  var StartupEvents = { registry: function (type, fn) {
+    if (type != "item") return;
+    fn({ create: function (id) {
+      var b = {}, full = "kubejs:" + id;
+      ["rarity", "glow", "maxStackSize"].forEach(function (m) { b[m] = function () { return b; }; });
+      b.displayName = function (n) { FA_NAMES[full] = n; return b; };
+      return b;
+    } });
+  } };
+  var ServerEvents = { recipes: function (fn) { FA_RECIPE_FNS.push(fn); } };
+  var Platform = { isLoaded: function (m) { return !!FA_MODS[m]; } };
+  var FA_MODS = { tfmg: true, mekanism: true };
+  var Item = { of: function (id, n) { return { id: id, count: n || 1, isEmpty: function () {
+    var ns = id.split(":")[0];
+    return (ns == "tfmg" || ns == "mekanism") && !FA_MODS[ns];
+  } }; } };
+</script>
+<script src="fa/00_fa_config.js"></script>
+<script src="fa/10_fa_items.js"></script>
+<script src="fa/20_fa_core_recipes.js"></script>
+<script src="fa/25_fa_tome_recipes.js"></script>
+<script src="fa/30_fa_material_recipes.js"></script>
+<script src="vendor/uivault/uivault.js"></script>
+<script src="recipes.js"></script>
+</body>
+</html>

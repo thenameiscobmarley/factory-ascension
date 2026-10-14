@@ -233,7 +233,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 237 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 240 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
@@ -253,7 +253,11 @@ MIT
 
 ## Website
 
-`site/` is the project website, built with [UI Vault](https://github.com/thenameiscobmarley/ui-vault).
+`site/` is the project website, built with [UI Vault](https://github.com/thenameiscobmarley/ui-vault):
+the home page (enchant browser, Chaos Forge, danger journey), a **[Gear Builder](https://thenameiscobmarley.github.io/factory-ascension/builder.html)**
+(theorycraft all six slots with stars, gems, rolls and sets, then share the link) and a
+**[Recipes](https://thenameiscobmarley.github.io/factory-ascension/recipes.html)** page (every item's full factory chain).
+The builder's math (`site/calc.js`) is checked against the game engine by the test harness on 300 random builds.
 It runs the pack's real config in the browser, so every number on it matches the game.
 After changing the config or textures, rebuild it with `tools/build_site.sh [path/to/ui-vault]` and commit.
 Pushing to `main` deploys it to GitHub Pages, and the deploy fails if the site's copy of the config is out of date.

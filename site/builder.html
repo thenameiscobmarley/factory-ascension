@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-uv-theme="volcano">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gear Builder</title>
+<meta name="description" content="Theorycraft a Factory Ascension loadout: enchants, stars, gems, rolled enchants and set bonuses, with the same math the game uses." />
+<meta name="theme-color" content="#0b0908" />
+<link rel="icon" href="fa/items/ascension_core.png" />
+<link rel="stylesheet" href="vendor/uivault/fonts.css" />
+<link rel="stylesheet" href="vendor/uivault/uivault.css" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="pages.css" />
+</head>
+<body class="page">
+
+<nav class="top">
+  <a class="brand" href="index.html"><img src="fa/items/ascension_core.png" alt="" width="24" height="24" /> Factory Ascension</a>
+  <div class="links">
+    <a href="index.html#enchants">Enchants</a><a href="index.html#chaos">Chaos</a><a href="index.html#danger">Danger</a>
+    <a href="builder.html" aria-current="page">Builder</a><a href="recipes.html">Recipes</a><a href="index.html#install">Install</a>
+  </div>
+  <a class="uv-btn uv-btn--sm uv-btn--primary" href="https://github.com/thenameiscobmarley/factory-ascension">GitHub</a>
+</nav>
+
+<header class="page-head wrap">
+  <p class="mono">Gear Builder</p>
+  <h1>Theorycraft your loadout.</h1>
+  <p class="sub">Put enchants, Rebirth stars, gems and Chaos rolls on all six slots and see what they add up to.
+    It uses the game's own config and the same math the game uses, checked against it on hundreds of random builds.</p>
+  <div class="cta">
+    <span class="mono dim">Start from:</span>
+    <span id="presets" class="preset-row"></span>
+    <button class="uv-btn uv-btn--sm uv-btn--primary" id="share">Copy share link</button>
+    <button class="uv-btn uv-btn--sm uv-btn--ghost" id="reset">Clear</button>
+  </div>
+</header>
+
+<main class="wrap builder">
+  <section class="slots" id="slots" aria-label="Gear slots"></section>
+  <aside class="totals" id="totals" aria-live="polite"></aside>
+</main>
+
+<footer>
+  <p><a href="index.html">Factory Ascension</a> · built with <a href="https://thenameiscobmarley.github.io/ui-vault/">UI Vault</a></p>
+</footer>
+
+<script>var global = {};</script>
+<script src="fa/00_fa_config.js"></script>
+<script src="calc.js"></script>
+<script src="vendor/uivault/uivault.js"></script>
+<script src="builder.js"></script>
+</body>
+</html>

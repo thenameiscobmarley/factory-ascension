@@ -1,0 +1,76 @@
+/* Builder + Recipes pages (on top of site.css) */
+.page .top .links a[aria-current] { color: var(--gold); }
+.page-head { padding: 120px 0 26px; }
+.page-head h1 { font: 400 clamp(56px, 8vw, 112px)/.9 var(--display); margin: 0 0 14px;
+  background: linear-gradient(0deg, #ff3d00, #ffb300 55%, #fff3c4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.preset-row { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.cta { align-items: center; }
+.toggle { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); font-size: 14px; margin-right: 14px; }
+
+/* ---- builder ---- */
+.builder { display: grid; grid-template-columns: 1fr 380px; gap: 22px; align-items: start; padding-bottom: 80px; }
+@media (max-width: 1000px) { .builder { grid-template-columns: 1fr; } }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.slot { padding: 16px; display: grid; gap: 8px; align-content: start; }
+.slot header { display: flex; justify-content: space-between; align-items: center; }
+.slot h2 { margin: 0; font: 400 26px/1 var(--display); letter-spacing: .03em; }
+.stars { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--mono); color: var(--gold); }
+.stars button, .row .x { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--line); background: #ffffff08; color: var(--text); cursor: pointer; }
+.stars button:hover, .row .x:hover { border-color: var(--gold); }
+.row { display: grid; grid-template-columns: 24px 1fr 110px 26px; gap: 8px; align-items: center; }
+.row img { width: 24px; height: 24px; }
+.row .nm { font-size: 14px; } .row .nm.myth { color: #e9d7ff; }
+.row .lv { padding: 6px 8px; font: 13px var(--mono); }
+.row.roll { grid-template-columns: 1fr 110px 26px; } .row.roll .nm { color: var(--rc); } .row.roll small { color: var(--dim); font: 10px var(--mono); text-transform: uppercase; }
+.slot .add, .slot .gem { width: 100%; }
+.gems { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.gems select { font-size: 12px; padding: 6px; }
+.dice { justify-self: start; }
+.totals { position: sticky; top: 76px; padding: 20px; border-radius: 16px; border: 1px solid var(--line); background: linear-gradient(180deg, #ffffff08, #ffffff02); max-height: calc(100vh - 96px); overflow: auto; }
+.bigs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.big { padding: 12px; border-radius: 12px; background: #00000040; border: 1px solid var(--line); display: grid; gap: 2px; }
+.big small, .cost small { font: 500 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.big b { font: 400 32px/1 var(--display); letter-spacing: .02em; color: var(--gold); word-break: break-all; }
+.big em { font: 12px "Geist", sans-serif; font-style: normal; color: var(--dim); }
+.cost { margin-top: 10px; padding: 12px; border-radius: 12px; border: 1px solid #c08cff44; background: #c08cff10; display: flex; justify-content: space-between; align-items: center; }
+.cost b { font: 400 30px/1 var(--display); color: #e9d7ff; }
+.sets { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.totals h3 { font: 500 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; }
+.kv, .all { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.kv li { display: flex; justify-content: space-between; font-size: 14px; } .kv b { color: var(--gold); font-weight: 600; }
+.all li { display: grid; font-size: 13px; padding: 6px 8px; border-radius: 8px; background: #ffffff05; }
+.all li b { font-weight: 600; } .all li span { color: var(--muted); }
+.all li.myth b { color: #e9d7ff; } .all li.rolled b { color: #4fe3e8; }
+
+/* ---- recipes ---- */
+.recipes { display: grid; grid-template-columns: 300px 1fr; gap: 22px; align-items: start; padding-bottom: 80px; }
+@media (max-width: 860px) { .recipes { grid-template-columns: 1fr; } .list { position: static !important; max-height: 320px !important; } }
+.list { position: sticky; top: 76px; display: grid; gap: 10px; max-height: calc(100vh - 96px); }
+.list #items { overflow: auto; display: grid; gap: 4px; padding-right: 4px; }
+.it { display: flex; gap: 10px; align-items: center; text-align: left; padding: 7px 10px; border-radius: 8px; border: 1px solid transparent; background: none; color: var(--text); font: 14px "Geist", sans-serif; cursor: pointer; }
+.it:hover { background: #ffffff08; } .it.is-active { border-color: var(--gold); background: #ffb84d12; }
+.it img, .ing img, .chain-head img, .base img, summary img { width: 24px; height: 24px; flex: none; }
+.dot { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: #ffffff12; color: var(--muted); font: 600 12px var(--mono); font-style: normal; flex: none; }
+.dot.fl { background: #4fa3ff30; color: #9fd0ff; border-radius: 50%; }
+.chain-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+.chain-head img { width: 64px; height: 64px; }
+.chain-head h2 { margin: 0; font: 400 44px/1 var(--display); letter-spacing: .02em; }
+.chain-head p { margin: 2px 0 0; font: 12px var(--mono); }
+.rc { padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: #ffffff06; margin: 10px 0; }
+.mach { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.mach b { font: 400 22px/1 var(--display); letter-spacing: .03em; color: var(--gold); }
+.heat { font: 500 11px var(--mono); padding: 3px 8px; border-radius: 999px; border: 1px solid #ff8a3d66; color: #ffb27a; }
+.heat.superheated { border-color: #4fa3ff88; color: #9fd0ff; }
+.io { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.ins, .outs { display: flex; gap: 6px; flex-wrap: wrap; }
+.arrow { color: var(--dim); font-size: 22px; }
+.ing { display: inline-flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: #0d0b0a; color: var(--text); font: 13px "Geist", sans-serif; }
+.ing.has { cursor: pointer; } .ing.has:hover { border-color: var(--gold); }
+.ing em { color: var(--gold); font-style: normal; font-size: 12px; }
+.steps-mini { margin: 0 0 6px; padding-left: 20px; color: var(--muted); font-size: 14px; }
+.sub { margin-left: 14px; padding-left: 14px; border-left: 1px dashed #ffffff22; }
+.sub details { margin: 6px 0; }
+.sub summary { cursor: pointer; display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 14px; padding: 4px 0; list-style-position: outside; }
+.base { display: flex; gap: 10px; align-items: center; margin: 8px 0; font-size: 14px; color: var(--muted); }
+.base b { color: var(--text); }
+.totals, .list #items { scrollbar-width: thin; scrollbar-color: #ffffff26 transparent; }
