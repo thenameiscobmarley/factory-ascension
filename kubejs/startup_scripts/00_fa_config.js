@@ -620,6 +620,25 @@ global.FA = {
     ]
   },
 
+  // ---- Glowing ores: light level 0-15 each ore gives off, so veins show up in dark caves ----
+  // Ores from mods that aren't installed are skipped. Set enabled: false for vanilla lighting.
+  glowingOres: {
+    enabled: true,
+    light: {
+      'kubejs:ascendite_ore': 7, 'kubejs:deepslate_ascendite_ore': 7,
+      'minecraft:diamond_ore': 6, 'minecraft:deepslate_diamond_ore': 6, 'minecraft:emerald_ore': 6, 'minecraft:deepslate_emerald_ore': 6,
+      'minecraft:ancient_debris': 5,
+      'minecraft:gold_ore': 4, 'minecraft:deepslate_gold_ore': 4, 'minecraft:nether_gold_ore': 4,
+      'minecraft:lapis_ore': 4, 'minecraft:deepslate_lapis_ore': 4, 'minecraft:redstone_ore': 4, 'minecraft:deepslate_redstone_ore': 4,
+      'minecraft:iron_ore': 3, 'minecraft:deepslate_iron_ore': 3, 'minecraft:copper_ore': 3, 'minecraft:deepslate_copper_ore': 3,
+      'minecraft:nether_quartz_ore': 3, 'create:zinc_ore': 3, 'create:deepslate_zinc_ore': 3,
+      'minecraft:coal_ore': 2, 'minecraft:deepslate_coal_ore': 2,
+      'mekanism:osmium_ore': 3, 'mekanism:deepslate_osmium_ore': 3, 'mekanism:tin_ore': 3, 'mekanism:deepslate_tin_ore': 3,
+      'mekanism:lead_ore': 3, 'mekanism:deepslate_lead_ore': 3, 'mekanism:uranium_ore': 4, 'mekanism:deepslate_uranium_ore': 4,
+      'mekanism:fluorite_ore': 3, 'mekanism:deepslate_fluorite_ore': 3
+    }
+  },
+
   // ---- Rock Hammers: smash rock into gravel, nuggets and the odd ore ----
   // Hammer in your main hand + rocks in your other hand, right-click: smash one (sneak: sneakCount).
   // Or right-click a placed rock block to smash it where it is (a Create Deployer holding a hammer does this too).
@@ -691,7 +710,7 @@ global.FA = {
 // Runtime state shared between scripts lives in this object. Nothing reachable from `global` may ever hold null:
 // in KubeJS `global` is a Java map, and reading a key that holds null crashes the game (it did, in the server tick).
 // Objects stored on it may be read the same way, so "no value" is written as false instead.
-global.FA_STATE = { event: false }
+global.FA_STATE = { event: false, center: false }
 
 // Fusion enchants become ordinary enchant entries (type 'fusion'), so tomes, upgrades, the altar, tooltips,
 // JEI and the website all handle them like any other enchant
@@ -823,17 +842,21 @@ global.FA_dangerLevel = (level, x, z) => {
   let dim = String(level.dimension)
   let dist
   let bonus = 0
+  // The safe zone is centered on world spawn, or wherever an op moved it (/ascension center set)
+  let center = global.FA_STATE.center
   if (dim == 'minecraft:overworld') {
-    let spawn = level.getSharedSpawnPos()
-    dist = Math.sqrt(Math.pow(x - spawn.getX(), 2) + Math.pow(z - spawn.getZ(), 2))
+    let cx = center ? center.x : level.getSharedSpawnPos().getX()
+    let cz = center ? center.z : level.getSharedSpawnPos().getZ()
+    dist = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(z - cz, 2))
+  } else if (dim == 'minecraft:the_nether') {
+    // Nether coordinates are 1/8 of the Overworld's, so the Nether's center follows a moved center too
+    let nx = center ? center.x / d.netherScale : 0
+    let nz = center ? center.z / d.netherScale : 0
+    dist = Math.sqrt(Math.pow(x - nx, 2) + Math.pow(z - nz, 2)) * d.netherScale
+    bonus = d.netherBonus
   } else {
     dist = Math.sqrt(x * x + z * z)
-    if (dim == 'minecraft:the_nether') {
-      dist *= d.netherScale
-      bonus = d.netherBonus
-    } else if (dim == 'minecraft:the_end') {
-      bonus = d.endBonus
-    }
+    if (dim == 'minecraft:the_end') bonus = d.endBonus
   }
   let danger = Math.max(0, Math.floor((dist - d.safeRadius) / d.blocksPerLevel) + 1) + bonus
   if (dist < d.safeRadius) danger = bonus

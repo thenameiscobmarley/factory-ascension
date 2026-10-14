@@ -132,7 +132,7 @@ var JEIEvents = {
 var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
 var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn },
   rightClicked: function (fn) { handlers.blockClick = fn } }
-var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn },
+var ServerEvents = { loaded: function (fn) { handlers.loaded = fn }, recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn },
   tags: function (type, fn) { (handlers.tags[type] = handlers.tags[type] || []).push(fn) }, highPriorityData: function (fn) { handlers.data.push(fn) } }
 var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) },
   crafted: function (fn) { handlers.crafted = fn },
@@ -418,7 +418,7 @@ check('no basin recipe (mixing or compacting) is a subset of another', clash.len
 // More ways to make Ascension Cores, none of them sequenced assembly
 var coreWays = recipes.filter(function (r) { return r.rid != 'kubejs:factory_ascension/ascension_core' &&
   (r.json.out == 'kubejs:ascension_core' || (r.json.results && r.json.results.length == 1 && r.json.results[0].item == 'kubejs:ascension_core')) })
-check('Ascension Cores have 4 more recipes without sequenced assembly', coreWays.length == 4 && coreWays.every(function (r) { return r.json.type != 'create:sequenced_assembly' }),
+check('Ascension Cores have 5 more recipes without sequenced assembly', coreWays.length == 5 && coreWays.every(function (r) { return r.json.type != 'create:sequenced_assembly' }),
   coreWays.map(function (r) { return r.rid }).join(','))
 check('Ascendite ores and raw ore smelt into ingots', ['raw_ascendite', 'crushed_raw_ascendite', 'ascendite_ore', 'deepslate_ascendite_ore'].every(function (id) {
   return recipes.some(function (r) { return r.json.type == 'smelting' && r.json.input == 'kubejs:' + id && r.json.out == 'kubejs:ascendite_ingot' }) }))
@@ -1705,6 +1705,24 @@ popped = []; blockSet = null
 handlers.blockClick({ player: miner2, item: hammer2, block: { id: 'minecraft:stone', set: function (b) { blockSet = b }, popItem: function () {} }, level: miner2.level, cancel: function () {} })
 check('non-rock blocks are left alone', blockSet === null)
 Math.random = realRandom
+
+// ---------------- Moving the safe zone ----------------
+print('\nsafe zone center')
+var mover = makePlayer(server, 'mover')
+server.overworld = function () { return { getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } } } }
+mover.x = 6000; mover.z = 0
+check('6000 blocks from spawn is danger 11', global.FA_dangerLevel(mover.level, 6000, 0) == 11)
+faCenterCommand(mover, 'set')
+check('/ascension center set: where you stand becomes the middle of the safe zone', global.FA_dangerLevel(mover.level, 6000, 0) == 0 &&
+  global.FA_dangerLevel(mover.level, 0, 0) == 11 && global.FA_STATE.center.x == 6000)
+var netherLvl = { dimension: 'minecraft:the_nether' }
+check('the Nether\'s safe zone follows it (Overworld 6000 = Nether 750)', global.FA_dangerLevel(netherLvl, 750, 0) == global.FA.danger.netherBonus)
+global.FA_STATE.center = false
+faLoadCenter(server)
+check('the center is saved with the world and loads back', global.FA_STATE.center && global.FA_STATE.center.x == 6000)
+faCenterCommand(mover, 'reset')
+check('/ascension center reset: back to world spawn (and never null on global)', global.FA_STATE.center === false && global.FA_dangerLevel(mover.level, 6000, 0) == 11)
+check('two more starter recipes: an amethyst Ascension Core and an Ascendite alloy ingot', !!byId('core_from_amethyst') && !!byId('ascendite_alloy'))
 
 // ---------------- Rare mob variants ----------------
 print('\nvariants')

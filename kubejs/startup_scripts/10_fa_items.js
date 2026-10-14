@@ -5,6 +5,12 @@
 const FA_GEAR = [['sword', 'Sword'], ['pickaxe', 'Pickaxe'], ['axe', 'Axe'], ['shovel', 'Shovel'], ['hoe', 'Hoe'],
   ['helmet', 'Helmet'], ['chestplate', 'Chestplate'], ['leggings', 'Leggings'], ['boots', 'Boots']]
 
+// Light an ore gives off (config: glowingOres), as KubeJS's 0-1 light level
+function faOreLight(id) {
+  let G = global.FA.glowingOres
+  return G.enabled && G.light[id] ? Math.min(15, G.light[id]) / 15 : 0
+}
+
 StartupEvents.registry('item', event => {
   // Essence items: absorbed into your Essence bank
   event.create('ascension_core').displayName('Ascension Core').rarity('rare').glow(true)
@@ -131,11 +137,27 @@ StartupEvents.registry('block', event => {
   // Ascendite ore (drops come from a loot table made in 32_fa_ascendite_data.js) and its storage block
   event.create('ascendite_ore').displayName('Ascendite Ore').soundType('stone')
     .hardness(3).resistance(3).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').tagBlock('minecraft:needs_stone_tool')
-    .textureAll('kubejs:block/ascendite_ore')
+    .lightLevel(faOreLight('kubejs:ascendite_ore')).textureAll('kubejs:block/ascendite_ore')
   event.create('deepslate_ascendite_ore').displayName('Deepslate Ascendite Ore').soundType('deepslate')
     .hardness(4.5).resistance(3).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').tagBlock('minecraft:needs_stone_tool')
-    .textureAll('kubejs:block/deepslate_ascendite_ore')
+    .lightLevel(faOreLight('kubejs:deepslate_ascendite_ore')).textureAll('kubejs:block/deepslate_ascendite_ore')
   event.create('ascendite_block').displayName('Block of Ascendite').soundType('metal')
     .hardness(5).resistance(6).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').tagBlock('minecraft:needs_stone_tool')
     .textureAll('kubejs:block/ascendite_block')
 })
+
+// Glowing ores: everything else in the config's list (vanilla and other mods' ores). Skipped on the website.
+if (typeof BlockEvents != 'undefined' && BlockEvents.modification) {
+  BlockEvents.modification(event => {
+    let G = global.FA.glowingOres
+    if (!G.enabled) return
+    Object.keys(G.light).forEach(id => {
+      if (id.indexOf('kubejs:') == 0 || !Platform.isLoaded(id.split(':')[0])) return
+      try {
+        event.modify(id, block => { block.lightEmission = Math.min(15, G.light[id]) })
+      } catch (err) {
+        console.warn('[Factory Ascension] could not make ' + id + ' glow: ' + err)
+      }
+    })
+  })
+}

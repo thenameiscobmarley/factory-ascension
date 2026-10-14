@@ -51,6 +51,10 @@ ServerEvents.recipes(event => {
     results: [{ item: 'kubejs:crushed_raw_ascendite', chance: A.hauntChance }]
   }).id(id('haunt_crushed_iron'))
 
+  // Before you find the ore: alloy an ingot from early Overworld materials
+  event.shapeless('kubejs:ascendite_ingot', ['minecraft:iron_ingot', 'minecraft:copper_ingot', 'minecraft:lapis_lazuli', 'minecraft:lapis_lazuli',
+    'minecraft:amethyst_shard']).id(id('ascendite_alloy'))
+
   // Storage
   event.shapeless('kubejs:ascendite_block', many('kubejs:ascendite_ingot', 9)).id(id('ascendite_block'))
   event.shapeless(Item.of('kubejs:ascendite_ingot', 9), ['kubejs:ascendite_block']).id(id('unpack_ascendite_block'))
@@ -101,6 +105,9 @@ ServerEvents.recipes(event => {
   // By hand, from day one
   event.shaped('kubejs:ascension_core', ['RIR', 'IQI', 'RIR'], { R: 'minecraft:redstone', I: I, Q: 'minecraft:lapis_lazuli' })
     .id(id('core_by_hand'))
+  // Day-one core from things you find in the first caves (no Ascendite needed)
+  event.shaped('kubejs:ascension_core', ['ARA', 'RGR', 'ARA'], { A: 'minecraft:amethyst_shard', R: 'minecraft:redstone', G: 'minecraft:gold_ingot' })
+    .id(id('core_from_amethyst'))
   // From Ascension Shards (mined from Ascendite ore, or crushed out of it)
   event.shapeless('kubejs:ascension_core', many('kubejs:ascension_shard', A.shardsPerCore)).id(id('core_from_shards'))
   // Automated, in a heated mixer: cheaper than the hand recipe once the factory runs

@@ -620,6 +620,25 @@ global.FA = {
     ]
   },
 
+  // ---- Glowing ores: light level 0-15 each ore gives off, so veins show up in dark caves ----
+  // Ores from mods that aren't installed are skipped. Set enabled: false for vanilla lighting.
+  glowingOres: {
+    enabled: true,
+    light: {
+      'kubejs:ascendite_ore': 7, 'kubejs:deepslate_ascendite_ore': 7,
+      'minecraft:diamond_ore': 6, 'minecraft:deepslate_diamond_ore': 6, 'minecraft:emerald_ore': 6, 'minecraft:deepslate_emerald_ore': 6,
+      'minecraft:ancient_debris': 5,
+      'minecraft:gold_ore': 4, 'minecraft:deepslate_gold_ore': 4, 'minecraft:nether_gold_ore': 4,
+      'minecraft:lapis_ore': 4, 'minecraft:deepslate_lapis_ore': 4, 'minecraft:redstone_ore': 4, 'minecraft:deepslate_redstone_ore': 4,
+      'minecraft:iron_ore': 3, 'minecraft:deepslate_iron_ore': 3, 'minecraft:copper_ore': 3, 'minecraft:deepslate_copper_ore': 3,
+      'minecraft:nether_quartz_ore': 3, 'create:zinc_ore': 3, 'create:deepslate_zinc_ore': 3,
+      'minecraft:coal_ore': 2, 'minecraft:deepslate_coal_ore': 2,
+      'mekanism:osmium_ore': 3, 'mekanism:deepslate_osmium_ore': 3, 'mekanism:tin_ore': 3, 'mekanism:deepslate_tin_ore': 3,
+      'mekanism:lead_ore': 3, 'mekanism:deepslate_lead_ore': 3, 'mekanism:uranium_ore': 4, 'mekanism:deepslate_uranium_ore': 4,
+      'mekanism:fluorite_ore': 3, 'mekanism:deepslate_fluorite_ore': 3
+    }
+  },
+
   // ---- Rock Hammers: smash rock into gravel, nuggets and the odd ore ----
   // Hammer in your main hand + rocks in your other hand, right-click: smash one (sneak: sneakCount).
   // Or right-click a placed rock block to smash it where it is (a Create Deployer holding a hammer does this too).
@@ -659,6 +678,29 @@ global.FA = {
     ]
   },
 
+  // ---- Rare mob variants: the rarer, the better ----
+  // Rolled once per mob spawn, rarest first. Elementals are hostile mobs only; Shiny and Golden can be any mob.
+  // chance: per spawn; xp: x experience; lootRolls/lootBump: loot rolls like danger-zone loot, bumped up that many tiers;
+  // drops: [item, min, max] or ['gem', tier] (a random gem of that tier).
+  variants: {
+    enabled: true,
+    types: [
+      { id: 'golden', name: 'Golden', symbol: '\u2605', chance: 0.00025, color: 'gold', particle: 'minecraft:wax_on', glow: true, announceSpawn: true,
+        xp: 10, lootRolls: 3, lootBump: 2, drops: [['minecraft:gold_block', 1, 2], ['kubejs:ascension_core', 2, 5], ['gem', 2]] },
+      { id: 'shiny', name: 'Shiny', symbol: '\u2726', chance: 0.001, color: 'aqua', particle: 'minecraft:end_rod', announceSpawn: true,
+        xp: 5, lootRolls: 2, lootBump: 1, drops: [['gem', 1]] },
+      { id: 'blazing', name: 'Blazing', chance: 0.001, elemental: true, onHit: 'fire', color: 'red', particle: 'minecraft:flame',
+        xp: 2, lootRolls: 1, lootBump: 0, drops: [['minecraft:blaze_powder', 1, 3], ['minecraft:magma_cream', 0, 1]] },
+      { id: 'frozen', name: 'Frozen', chance: 0.001, elemental: true, onHit: 'frost', color: 'blue', particle: 'minecraft:snowflake',
+        xp: 2, lootRolls: 1, lootBump: 0, drops: [['minecraft:packed_ice', 1, 2], ['minecraft:snowball', 2, 4], ['minecraft:prismarine_crystals', 0, 2]] },
+      { id: 'storm', name: 'Storm', chance: 0.001, elemental: true, onHit: 'storm', color: 'yellow', particle: 'minecraft:electric_spark',
+        xp: 2, lootRolls: 1, lootBump: 0, drops: [['minecraft:glowstone_dust', 2, 4], ['minecraft:redstone', 2, 4]] }
+    ],
+    fireSeconds: 4,            // Blazing: sets you on fire
+    frostSeconds: 3,           // Frozen: Slowness II
+    stormBonus: 0.2            // Storm: a lightning strike, +20% damage on that hit
+  },
+
   // ---- Safety limits (not power caps) ----
   maxExtraDropStacks: 8,       // most extra item stacks one kill can spawn, so loot enchants can't lag the server
   maxCleaveTargets: 16,
@@ -668,7 +710,7 @@ global.FA = {
 // Runtime state shared between scripts lives in this object. Nothing reachable from `global` may ever hold null:
 // in KubeJS `global` is a Java map, and reading a key that holds null crashes the game (it did, in the server tick).
 // Objects stored on it may be read the same way, so "no value" is written as false instead.
-global.FA_STATE = { event: false }
+global.FA_STATE = { event: false, center: false }
 
 // Fusion enchants become ordinary enchant entries (type 'fusion'), so tomes, upgrades, the altar, tooltips,
 // JEI and the website all handle them like any other enchant
@@ -800,17 +842,21 @@ global.FA_dangerLevel = (level, x, z) => {
   let dim = String(level.dimension)
   let dist
   let bonus = 0
+  // The safe zone is centered on world spawn, or wherever an op moved it (/ascension center set)
+  let center = global.FA_STATE.center
   if (dim == 'minecraft:overworld') {
-    let spawn = level.getSharedSpawnPos()
-    dist = Math.sqrt(Math.pow(x - spawn.getX(), 2) + Math.pow(z - spawn.getZ(), 2))
+    let cx = center ? center.x : level.getSharedSpawnPos().getX()
+    let cz = center ? center.z : level.getSharedSpawnPos().getZ()
+    dist = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(z - cz, 2))
+  } else if (dim == 'minecraft:the_nether') {
+    // Nether coordinates are 1/8 of the Overworld's, so the Nether's center follows a moved center too
+    let nx = center ? center.x / d.netherScale : 0
+    let nz = center ? center.z / d.netherScale : 0
+    dist = Math.sqrt(Math.pow(x - nx, 2) + Math.pow(z - nz, 2)) * d.netherScale
+    bonus = d.netherBonus
   } else {
     dist = Math.sqrt(x * x + z * z)
-    if (dim == 'minecraft:the_nether') {
-      dist *= d.netherScale
-      bonus = d.netherBonus
-    } else if (dim == 'minecraft:the_end') {
-      bonus = d.endBonus
-    }
+    if (dim == 'minecraft:the_end') bonus = d.endBonus
   }
   let danger = Math.max(0, Math.floor((dist - d.safeRadius) / d.blocksPerLevel) + 1) + bonus
   if (dist < d.safeRadius) danger = bonus
@@ -1128,6 +1174,19 @@ let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, 
 let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
 let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
 
+// Which variant a new mob becomes (rarest checked first), or '' for none. Elementals only for hostile mobs.
+global.FA_rollVariant = (rnd, hostile) => {
+  let V = global.FA.variants
+  if (!V.enabled) return ''
+  for (let i = 0; i < V.types.length; i++) {
+    let t = V.types[i]
+    if (t.elemental && !hostile) continue
+    if (rnd() < t.chance) return t.id
+  }
+  return ''
+}
+global.FA_variantType = id => global.FA.variants.types.filter(t => t.id == id)[0]
+
 // A random condition grade (index into condition.grades), by weight
 global.FA_rollCondition = rnd => {
   let G = global.FA.condition.grades
@@ -1334,6 +1393,14 @@ global.FA_validate = cfg => {
     okNum(g.damage, 0) && okNum(g.defense, 0) && okNum(g.wear, 0) && g.wear < 1))) {
     problems.push('condition settings are broken, gear conditions were switched off')
     cond.enabled = false
+  }
+  let vr = cfg.variants
+  if (vr && vr.enabled && !(vr.types && vr.types.length > 0 && vr.types.every(t => /^[a-z_]+$/.test(t.id) && typeof t.name == 'string' &&
+    okNum(t.chance, 0) && t.chance <= 1 && okNum(t.xp, 0) && okNum(t.lootRolls, 0) && okNum(t.lootBump, 0) && t.drops &&
+    t.drops.every(d => d[0] == 'gem' ? d[1] >= 1 && d[1] <= 3 : okNum(d[1], 0) && okNum(d[2], d[1]))) &&
+    okNum(vr.fireSeconds, 0) && okNum(vr.frostSeconds, 0) && okNum(vr.stormBonus, 0))) {
+    problems.push('variants settings are broken, rare mob variants were switched off')
+    vr.enabled = false
   }
   let hm = cfg.hammer
   let idOk = id => /^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(id)

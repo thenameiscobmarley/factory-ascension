@@ -592,6 +592,49 @@ ItemEvents.rightClicked('kubejs:chaos_tome', event => {
   event.cancel()
 })
 
+// ---- The safe zone's center ----
+// Normally world spawn. /ascension center set moves it to you (Overworld); it's saved with the world.
+
+function faSetCenter(server, center) {
+  let data = server.persistentData
+  if (center) {
+    let c = data.getCompound('fa_danger_center')
+    c.putInt('x', center.x)
+    c.putInt('z', center.z)
+    data.put('fa_danger_center', c)
+  } else {
+    data.remove('fa_danger_center')
+  }
+  global.FA_STATE.center = center || false   // never null on global
+}
+
+function faLoadCenter(server) {
+  let c = server.persistentData.getCompound('fa_danger_center')
+  global.FA_STATE.center = c.contains('x') ? { x: c.getInt('x'), z: c.getInt('z') } : false
+}
+
+ServerEvents.loaded(event => faLoadCenter(event.server))
+
+function faCenterCommand(player, mode) {
+  let D = global.FA.danger
+  if (mode == 'set') {
+    if (String(player.level.dimension) != 'minecraft:overworld') {
+      player.tell(Text.red('Stand in the Overworld to move the safe zone.'))
+      return 0
+    }
+    faSetCenter(player.getServer(), { x: Math.floor(player.getX()), z: Math.floor(player.getZ()) })
+  } else if (mode == 'reset') {
+    faSetCenter(player.getServer(), false)
+  }
+  let c = global.FA_STATE.center
+  let spawn = player.getServer().overworld().getSharedSpawnPos()
+  let where = c ? 'X ' + c.x + ', Z ' + c.z : 'world spawn (X ' + spawn.getX() + ', Z ' + spawn.getZ() + ')'
+  player.tell(Text.green(mode ? 'Safe zone ' + (mode == 'set' ? 'moved' : 'reset') + ': ' : 'Safe zone: ').append(Text.white('centered on ' + where)))
+  player.tell(Text.gray('No extra danger within ' + D.safeRadius + ' blocks of it, then +1 danger every ' + D.blocksPerLevel + ' blocks. ')
+    .append(Text.darkGray('Mobs that already spawned keep their old level.')))
+  return 1
+}
+
 ServerEvents.commandRegistry(event => {
   let { commands: Commands, arguments: Arguments } = event
 
@@ -631,6 +674,11 @@ ServerEvents.commandRegistry(event => {
     .then(tomeCmd)
     .then(extractCmd)
     .then(Commands.literal('danger').executes(ctx => faShowDanger(ctx.source.getPlayerOrException())))
+    // Op-only: move the safe zone (no extra difficulty) to where you stand, or back to world spawn
+    .then(Commands.literal('center').requires(src => src.hasPermission(2))
+      .executes(ctx => faCenterCommand(ctx.source.getPlayerOrException(), ''))
+      .then(Commands.literal('set').executes(ctx => faCenterCommand(ctx.source.getPlayerOrException(), 'set')))
+      .then(Commands.literal('reset').executes(ctx => faCenterCommand(ctx.source.getPlayerOrException(), 'reset'))))
     .then(Commands.literal('milestones').executes(ctx => faShowMilestones(ctx.source.getPlayerOrException())))
     .then(Commands.literal('rebirth')
       .executes(ctx => faRebirth(ctx.source.getPlayerOrException(), false))

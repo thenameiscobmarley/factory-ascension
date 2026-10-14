@@ -316,6 +316,22 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.setPositionAndRotation(X, Y, Z, 0, 0)
   })
 
+  // ---- Glowing ores and the movable safe zone ----
+  attempt('glowing ores', () => {
+    let G = global.FA.glowingOres.light
+    let dpos = place(X + 12, Y, Z + 12, 'minecraft:diamond_ore')
+    let apos = place(X + 12, Y, Z + 13, 'kubejs:ascendite_ore')
+    let dl = level.getBlockState(dpos).getLightEmission(), al = level.getBlockState(apos).getLightEmission()
+    check('ores glow in the dark (diamond ore ' + dl + ', Ascendite ore ' + al + ')', dl == G['minecraft:diamond_ore'] && al == G['kubejs:ascendite_ore'], dl + ' / ' + al)
+  })
+  attempt('safe zone center', () => {
+    let saved = global.FA_STATE.center
+    faCenterCommand(player, 'set')
+    let here = global.FA_dangerLevel(level, X, Z)
+    faSetCenter(server, saved || false)
+    check('/ascension center set makes where you stand safe (danger ' + here + ')', here == 0, here)
+  })
+
   // ---- Rare variants: a spawn rolls one, Golden drops its loot, Blazing burns what it hits ----
   attempt('variants', () => {
     let golden = global.FA_variantType('golden')

@@ -219,6 +219,10 @@ and Reaper can't execute them. Killing one drops Chaos Tomes, Mythic Fragments a
 ## Ascendite: the early-game ore
 
 A new teal ore in the Overworld, Y -48 to 80 (most common around Y 16), in stone and deepslate. A stone pickaxe mines it.
+It glows in the dark, and so do vanilla, Create and Mekanism ores (diamond and emerald brightest, coal faintest), so veins
+stand out in caves. Light levels are in the `glowingOres` section of the config.
+
+Haven't found any yet? Alloy an **Ascendite Ingot** by hand: iron ingot + copper ingot + 2 lapis + an amethyst shard.
 
 - **Drops:** Raw Ascendite (more with Fortune), plus a 12% chance of an **Ascension Shard** (+4% per Fortune level).
   Silk Touch gives the ore block. It's tagged `forge:ores`, so Vein Miner works on it.
@@ -242,6 +246,7 @@ A new teal ore in the Overworld, Y -48 to 80 (most common around Y 16), in stone
 
 | Recipe | Where |
 |---|---|
+| 4 amethyst shards + 4 redstone + 1 gold ingot | crafting grid, from your first cave (no Ascendite needed) |
 | 4 Ascendite ingots + 4 redstone + 1 lapis | crafting grid, from day one |
 | 4 Ascension Shards | crafting grid, or a Mechanical Press over a basin |
 | 2 Ascendite ingots + 1 redstone + 250 mB lava | heated mixer (automates) |
@@ -366,6 +371,9 @@ Far-out mobs are tougher, but drop more.
 - **The Nether** counts distance x8 and is always at least danger 3. **The End** is always at least danger 6.
 - Only hostile, non-boss mobs scale. Boss fights from other mods stay as their makers designed them.
 - `/ascension danger` shows the danger where you're standing.
+- Ops can move the safe zone: `/ascension center set` makes where you stand the middle of it (Overworld; the Nether's
+  center follows at 1/8), `/ascension center reset` puts it back on world spawn, `/ascension center` shows it. It's saved
+  with the world. Mobs that already spawned keep their old level.
 - Every number is in the `danger` section of `00_fa_config.js`. Set `enabled: false` to turn it off.
 
 ## How to use it
@@ -460,15 +468,16 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension rebirth` | Everyone | Rebirth the held item (asks to confirm) |
 | `/ascension event` | Everyone | The current world event |
 | `/ascension event start <name>` / `stop` | Ops | Start or stop a world event |
+| `/ascension center` / `set` / `reset` | Ops | Show, move to you, or reset the safe zone's center |
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 38 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 40 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 380 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 386 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
