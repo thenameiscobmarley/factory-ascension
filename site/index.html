@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en" data-uv-theme="volcano">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Factory Ascension</title>
+<meta name="description" content="A Minecraft Create modpack where your factory is your power: 74 uncapped enchants, Mythic powers from the danger zones, and Protection 3000 if your factory is big enough." />
+<meta name="theme-color" content="#0b0908" />
+<link rel="icon" href="fa/items/ascension_core.png" />
+<link rel="stylesheet" href="vendor/uivault/fonts.css" />
+<link rel="stylesheet" href="vendor/uivault/uivault.css" />
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<nav class="top">
+  <a class="brand" href="#top"><img src="fa/items/ascension_core.png" alt="" width="24" height="24" /> Factory Ascension</a>
+  <div class="links">
+    <a href="#loop">Loop</a><a href="#enchants">Enchants</a><a href="#mythic">Mythic</a><a href="#danger">Danger</a><a href="#safety">Safety</a><a href="#install">Install</a>
+  </div>
+  <a class="uv-btn uv-btn--sm uv-btn--primary" href="https://github.com/thenameiscobmarley/factory-ascension">GitHub</a>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <canvas class="embers" aria-hidden="true"></canvas>
+  <div class="gears" aria-hidden="true">
+    <svg class="gear g1" viewBox="-50 -50 100 100"></svg>
+    <svg class="gear g2" viewBox="-50 -50 100 100"></svg>
+    <svg class="gear g3" viewBox="-50 -50 100 100"></svg>
+  </div>
+  <div class="hero-copy">
+    <p class="mono" data-uv-reveal>Minecraft · Forge 1.20.1 · Create</p>
+    <h1><span class="solid">Factory</span><span class="hollow">Ascension</span></h1>
+    <p class="lede" data-uv-reveal>Your Create factory <em>is</em> your power. Every core it builds makes your gear stronger, with no level cap.
+      Protection 3000 isn't a cheat. It's just a bigger factory.</p>
+    <div class="cta" data-uv-reveal>
+      <a class="uv-btn uv-btn--lg uv-btn--primary magnet" href="#install">Install it</a>
+      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="#enchants">Browse 74 enchants</a>
+    </div>
+  </div>
+  <div class="stats">
+    <div><b data-uv-count="74">0</b><small>enchants</small></div>
+    <div><b data-uv-count="15">0</b><small>Mythic powers</small></div>
+    <div><b>&infin;</b><small>level cap</small></div>
+    <div><b data-uv-count="177">0</b><small>safety checks</small></div>
+  </div>
+</header>
+
+<div class="uv-marquee ticker" aria-hidden="true">
+  <div id="tickerA"></div><div id="tickerB"></div>
+</div>
+
+<!-- ============ LOOP ============ -->
+<section class="sec" id="loop">
+  <div class="wrap">
+    <p class="mono" data-uv-reveal>01 · The loop</p>
+    <h2 class="uv-h2" data-uv-reveal>Build. Absorb. Ascend.</h2>
+    <p class="sub" data-uv-reveal>Everything runs through Create machines, so the only limit on your power is the size of your factory.</p>
+    <ol class="belt" data-uv-stagger="up">
+      <li><img src="fa/items/common_mineral_cluster.png" alt="" /><b>Mine forever</b><span>Cobble generators feed mixers that make mineral clusters. Crush them for every ore, even diamonds and netherite.</span></li>
+      <li><img src="fa/items/ascension_core.png" alt="" /><b>Assemble cores</b><span>A Create assembly line turns diamonds, rose quartz and lava into Ascension Cores.</span></li>
+      <li><img src="fa/items/ascension_singularity.png" alt="" /><b>Absorb Essence</b><span>Right-click cores into your Essence bank. Compress them 9:1 into Dense Cores and Singularities.</span></li>
+      <li><img src="fa/items/tome_sharpness.png" alt="" /><b>Unlock enchants</b><span>Mix a tome, hold it next to any gear and right-click. Any enchant goes on any item.</span></li>
+      <li><img src="fa/items/tome_wings.png" alt="" /><b>Ascend</b><span>Spend Essence on levels with no cap. Then go further out, where the mobs and the loot get scarier.</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ ENCHANTS ============ -->
+<section class="sec" id="enchants">
+  <div class="wrap">
+    <p class="mono" data-uv-reveal>02 · Enchants</p>
+    <h2 class="uv-h2" data-uv-reveal>74 enchants. No ceiling.</h2>
+    <p class="sub" data-uv-reveal>Drag the level and watch them scale. These numbers come straight from the pack's config, so they're exactly what you get in game.</p>
+
+    <div class="controls">
+      <input class="uv-input search" id="search" type="search" placeholder="Search enchants, effects, catalysts…" aria-label="Search enchants" />
+      <div class="level">
+        <label for="lvl">Level <output id="lvlOut">1</output></label>
+        <input class="uv-range" id="lvl" type="range" min="0" max="1000" value="0" />
+        <div class="presets" id="presets"></div>
+      </div>
+    </div>
+    <div class="chips" id="chips" role="tablist"></div>
+    <p class="count" id="count"></p>
+    <div class="grid" id="grid"></div>
+  </div>
+</section>
+
+<!-- ============ MYTHIC ============ -->
+<section class="sec mythic" id="mythic">
+  <div class="wrap">
+    <p class="mono" data-uv-reveal>03 · Mythic</p>
+    <h2 class="mythic-title" data-uv-reveal>&#10022; The rare, crazy tier</h2>
+    <div class="mythic-intro">
+      <img class="frag" src="fa/items/mythic_fragment.png" alt="Mythic Fragment" data-uv-reveal="zoom" />
+      <p data-uv-reveal>Mythic tomes can't be made from factory materials alone. They need <b>Mythic Fragments</b>, which only drop from mobs
+        out in the danger zones, mostly from Elites. <span id="fragRates"></span>
+        The factory makes you strong. Exploring makes you <em>strange</em>.</p>
+    </div>
+    <div class="mythic-grid" id="mythicGrid" data-uv-stagger="up"></div>
+  </div>
+</section>
+
+<!-- ============ DANGER ============ -->
+<section class="uv-pin danger" id="danger" style="--len: 520vh">
+  <div class="uv-pin__stage">
+    <div class="sky" id="sky"></div>
+    <div class="danger-ui">
+      <p class="mono">04 · Danger zones · scroll to travel</p>
+      <h2 class="zone" id="zoneName">Safe Lands</h2>
+      <div class="dist"><b id="dist">0</b><span>blocks from spawn</span></div>
+      <div class="readout">
+        <div class="uv-stat"><small>Danger</small><b id="dLevel">0</b></div>
+        <div class="uv-stat"><small>Mob health</small><b id="dHealth">x1.0</b></div>
+        <div class="uv-stat"><small>Mob damage</small><b id="dDamage">x1.0</b></div>
+        <div class="uv-stat"><small>Loot</small><b id="dLoot">x1.0</b></div>
+        <div class="uv-stat"><small>Elites</small><b id="dElite">0%</b></div>
+      </div>
+      <div class="rail"><i id="railDot"></i><div id="railZones"></div></div>
+    </div>
+    <div class="elite" id="elite"><span>&#9760; Elite Zombie &middot; Lv <b id="eliteLv">0</b></span><img src="fa/items/mythic_fragment.png" alt="" /><small>drops Mythic Fragments</small></div>
+  </div>
+</section>
+
+<!-- ============ SAFETY ============ -->
+<section class="sec" id="safety">
+  <div class="wrap">
+    <p class="mono" data-uv-reveal>05 · Safety</p>
+    <h2 class="uv-h2" data-uv-reveal>Insane power. Zero dupes.</h2>
+    <p class="sub" data-uv-reveal>Uncapped numbers are only fun if they can't break your world. Every script is checked outside the game before it ships.</p>
+    <div class="safety" data-uv-stagger="up">
+      <article class="uv-card">
+        <h3>No duplication</h3>
+        <ul>
+          <li>Loot bonuses never copy gear or items with NBT, so a mob can't duplicate your sword.</li>
+          <li>Upgrades are all-or-nothing, with rollback. Tomes are only used up when an unlock succeeds.</li>
+          <li>A fuzz test runs 3,000 random moves and checks that every bit of Essence is accounted for.</li>
+        </ul>
+      </article>
+      <article class="uv-card">
+        <h3>No corruption</h3>
+        <ul>
+          <li>Essence has a backup copy in the player's file, and it restores itself if world data is lost.</li>
+          <li>NaN, negative or out-of-range values read as 0 and are never written.</li>
+          <li>A startup config check switches off anything broken instead of crashing.</li>
+        </ul>
+      </article>
+      <article class="uv-card">
+        <h3>No runaway effects</h3>
+        <ul>
+          <li>Chain effects can't chain into each other, so a Meteor kill can't blow up a whole farm.</li>
+          <li>Area damage only hits hostile mobs. Lightning is visual only.</li>
+          <li><code>/kill</code> and the void always work, whatever your Protection.</li>
+        </ul>
+      </article>
+    </div>
+    <pre class="term" data-uv-reveal><span class="dim">$ java -jar rhino.jar tools/test/harness.js</span>
+<span class="dim">safety: no duplication (fuzz)</span>
+  <span class="ok">ok</span>   Essence is conserved: absorbed = bank + cost of every level on items
+  <span class="ok">ok</span>   exactly one tome used per unlock
+  <span class="ok">ok</span>   a failed upgrade is rolled back (no free levels)
+  <span class="ok">ok</span>   gear drops are never duplicated
+<b class="ok">all checks passed</b>  <span class="dim">(177)</span></pre>
+  </div>
+</section>
+
+<!-- ============ INSTALL ============ -->
+<section class="sec" id="install">
+  <div class="wrap">
+    <p class="mono" data-uv-reveal>06 · Install</p>
+    <h2 class="uv-h2" data-uv-reveal>Fifteen minutes to ascend.</h2>
+    <ol class="steps" data-uv-stagger="up">
+      <li><b>Make a Forge 1.20.1 instance</b><span>Prism Launcher works great. On Fedora it's in Discover, or:</span>
+        <button class="code" data-copy="flatpak install flathub org.prismlauncher.PrismLauncher">flatpak install flathub org.prismlauncher.PrismLauncher</button></li>
+      <li><b>Add the mods</b><span>Required: Create, KubeJS, Rhino, Architectury API. The rest are recommended.</span>
+        <div class="mods" id="mods"></div></li>
+      <li><b>Get the scripts</b><span>Download the repo and copy its <code>kubejs</code> folder into your instance's <code>minecraft</code> folder.</span>
+        <button class="code" data-copy="git clone https://github.com/thenameiscobmarley/factory-ascension.git">git clone https://github.com/thenameiscobmarley/factory-ascension.git</button></li>
+      <li><b>Test it in creative</b><span>Hold the tome with a sword in your other hand, right-click, then type <code>/ascension</code>.</span>
+        <button class="code" data-copy="/give @s kubejs:tome_wings">/give @s kubejs:tome_wings</button>
+        <button class="code" data-copy="/ascension essence add 1000">/ascension essence add 1000</button></li>
+    </ol>
+    <div class="cta center" data-uv-reveal>
+      <a class="uv-btn uv-btn--lg uv-btn--primary magnet" href="https://github.com/thenameiscobmarley/factory-ascension/blob/main/INSTALL.md">Full install guide</a>
+      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="https://github.com/thenameiscobmarley/factory-ascension/archive/refs/heads/main.zip">Download .zip</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Factory Ascension · MIT · built with <a href="https://thenameiscobmarley.github.io/ui-vault/">UI Vault</a></p>
+  <p class="dim">Not affiliated with Mojang, Create or any mod author. Every number on this page is read from the pack's own config.</p>
+</footer>
+
+
+<!-- The pack's real config and tome recipes, run in the browser with tiny stand-ins for KubeJS -->
+<script>
+  var global = {};
+  var FA_RECIPES = {};
+  var ServerEvents = {
+    recipes: function (fn) {
+      fn({ custom: function (j) {
+        var out = j.results && j.results[0] && j.results[0].item;
+        if (out && out.indexOf("kubejs:tome_") === 0) FA_RECIPES[out.slice(12)] = { items: j.ingredients.slice(1).map(function (i) { return i.item; }), heat: j.heatRequirement };
+        return { id: function () {} };
+      } });
+    }
+  };
+</script>
+<script src="fa/00_fa_config.js"></script>
+<script src="fa/25_fa_tome_recipes.js"></script>
+<script src="vendor/uivault/uivault.js"></script>
+<script src="site.js"></script>
+</body>
+</html>

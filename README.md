@@ -1,5 +1,7 @@
 # Factory Ascension
 
+**Website: https://thenameiscobmarley.github.io/factory-ascension/**
+
 A Minecraft modpack setup (Forge 1.20.1) where your **Create factory powers your gear**.
 The bigger the factory grows, the stronger your enchants get, with no level cap.
 Want **Protection 3000**? Build a factory big enough to pay for it.
@@ -171,3 +173,10 @@ added there get a tome texture and a docs entry automatically.
 ## License
 
 MIT
+
+## Website
+
+`site/` is the project website, built with [UI Vault](https://github.com/thenameiscobmarley/ui-vault).
+It runs the pack's real config in the browser, so every number on it matches the game.
+After changing the config or textures, rebuild it with `tools/build_site.sh [path/to/ui-vault]` and commit.
+Pushing to `main` deploys it to GitHub Pages, and the deploy fails if the site's copy of the config is out of date.

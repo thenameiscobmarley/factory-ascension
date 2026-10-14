@@ -1,0 +1,34 @@
+# Publishes site/ to GitHub Pages on every push to main.
+# The site is built locally with tools/build_site.sh (it vendors UI Vault and copies the live config),
+# so this only uploads what's committed.
+name: Pages
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the site is in sync with the pack
+        run: |
+          cmp kubejs/startup_scripts/00_fa_config.js site/fa/00_fa_config.js
+          cmp kubejs/server_scripts/25_fa_tome_recipes.js site/fa/25_fa_tome_recipes.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
