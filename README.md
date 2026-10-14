@@ -190,19 +190,20 @@ About once every 20 minutes something happens to the whole server:
 (danger 60 = packs of 4), up to +6, in clear space beside it. Extras never bring their own extras or become bosses, and none
 spawn while 60 hostiles are already within 48 blocks, so it stays playable.
 
-**Loot drops:** danger-zone kills can drop a loot roll (6% near the edge of the Safe Lands, up to 60% deep out). Elites roll twice
+**Loot drops:** danger-zone kills can drop a loot roll (10% near the edge of the Safe Lands, up to 75% deep out). Elites roll twice
 and lean a tier up, Ascended bosses roll four times and lean two up. The deeper you go, the better the odds:
 
 | Tier | At danger 0 | At danger 80 | What drops |
 |---|---|---|---|
 | Common | 60% | 37% | Stacks of cores and mineral clusters (bigger stacks deeper out) |
-| Uncommon | 25% | 28% | Dense Cores, Condensed Essence, base tomes, Chipped gems |
-| Rare | 10% | 18% | Chaos Tomes, Flawless gems, Fusion tomes, Mythic Fragments |
-| Epic | 4% | 12% | Perfect gems, Mythic tomes, Singularities, dense Condensed Essence |
+| Uncommon | 25% | 28% | Dense Cores, Condensed Essence, base tomes, Chipped gems, **Rare Relics**, Enchantment Packs |
+| Rare | 10% | 18% | Chaos Tomes, Flawless gems, Fusion tomes, Mythic Fragments, **Rare and Epic Relics**, packs |
+| Epic | 4% | 12% | Perfect gems, Mythic tomes, Singularities, dense Condensed Essence, **Epic Relics**, Booster Boxes |
 | Legendary | 0.9% | 4% | **Legendary Relics**, Ascended Souls, very dense Condensed Essence |
 | Mythic | 0.1% | 0.7% | **Mythic Relics**, Ultimate tomes, Ascended Souls |
 
-**Relics** are named, pre-enchanted diamond or netherite gear, like *Dreadbound Greaves of Ruin*. Their enchants suit what
+**Relics** are named, pre-enchanted gear, like *Dreadbound Greaves of Ruin*: Rare (iron, 1-2 enchants), Epic (diamond,
+2-3 enchants), Legendary (diamond, 2-4) and Mythic (netherite, 4-6 plus a Mythic enchant). Their enchants suit what
 they are (weapons roll offense, armor rolls defense, pickaxes roll utility), at levels that scale with the danger. Mythic Relics
 also carry a Mythic enchant, a Chaos roll, Perfect gems and sometimes a star. Upgrade them like any other gear.
 Epic and better drops glow, shoot a beam of light and play a sound; Legendary and Mythic ones put a title on your screen.
@@ -287,6 +288,14 @@ An Artifact is more than enchants. It keeps everything it had, and gains:
 
 **How to get one:** gear with 2,500 total enchant levels shows **[Awaken]** in `/ascension` (25,000 Essence + 1 Ascended
 Soul). Or get lucky: 15% of Mythic Relic drops come out as Artifacts, announced to the server.
+
+## Sealed Gear Caches: gear in chests
+
+Vanilla chests now hold **Sealed Gear Caches**: dungeons, mineshafts, temples, shipwrecks, outposts, village weaponsmiths,
+armorers and toolsmiths, strongholds, nether fortresses, bastions, mansions, ancient cities and end cities (the best
+chests often have two). Right-click a cache to break the seal for one piece of relic gear. **Its quality depends on the
+danger where you open it**: near spawn it's mostly Rare and Epic, but deep in the danger zones Legendary and Mythic gear
+becomes common (and a Mythic one can come out as an Artifact). Odds are in the `caches` section of the config.
 
 ## Enchantment card packs
 
@@ -515,12 +524,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 45 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 46 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 413 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 418 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

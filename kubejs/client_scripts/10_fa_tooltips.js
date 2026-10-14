@@ -360,6 +360,12 @@ ItemEvents.tooltip(event => {
     Text.gray('Right-click to open: ').append(Text.white(PK.boxPacks + ' Enchantment Packs')),
     tip('Found in the best chests (end cities, ancient cities, bastions, mansions) and Epic+ danger-zone loot')])
 
+  // Sealed Gear Cache
+  details('kubejs:gear_cache', 'Something heavy shifts inside when you shake it.', () => [
+    Text.gray('Right-click to break the seal: ').append(Text.white('one piece of relic gear (weapon, armor or a pickaxe)')),
+    tip('Rare (iron) and Epic (diamond) gear is common; Legendary and Mythic get likelier the more dangerous the place you open it'),
+    tip('Found in dungeon, temple, stronghold, village smithy, nether, bastion, mansion, ancient city and end city chests')])
+
   // Polishing Cloth
   details('kubejs:polishing_cloth', 'A little elbow grease goes a long way.', () => [
     Text.gray('Use: ').append(Text.white('hold gear in your other hand and right-click the cloth')),

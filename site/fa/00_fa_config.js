@@ -168,27 +168,30 @@ global.FA = {
   // pre-enchanted gear with big levels (upgradeable like any other gear).
   loot: {
     enabled: true,
-    chance: 0.06, chancePerLevel: 0.004, chanceCap: 0.6,
+    chance: 0.1, chancePerLevel: 0.006, chanceCap: 0.75,
     eliteRolls: 2, bossRolls: 4,
     tiers: [
       // weight at danger 0, and how fast it grows per danger level (higher tiers grow faster)
       { name: 'Common', color: 'white', weight: 60, growth: 0,
         drops: [['item', 'kubejs:ascension_core', 4, 12, 5], ['item', 'kubejs:gem_mineral_cluster', 8, 24, 3], ['item', 'kubejs:common_mineral_cluster', 16, 48, 3], ['gem', 1, 2]] },
       { name: 'Uncommon', color: 'green', weight: 25, growth: 0.01,
-        drops: [['item', 'kubejs:dense_ascension_core', 2, 6, 4], ['condensed', 0, 0, 3], ['tome', 'base', 3], ['gem', 1, 2], ['item', 'kubejs:exotic_mineral_cluster', 8, 16, 2], ['item', 'kubejs:enchantment_pack', 1, 1, 2]] },
+        drops: [['item', 'kubejs:dense_ascension_core', 2, 6, 4], ['condensed', 0, 0, 3], ['tome', 'base', 3], ['gem', 1, 2], ['item', 'kubejs:exotic_mineral_cluster', 8, 16, 2], ['item', 'kubejs:enchantment_pack', 1, 1, 2], ['relic', 'rare', 3]] },
       { name: 'Rare', color: 'aqua', weight: 10, growth: 0.025,
-        drops: [['item', 'kubejs:chaos_tome', 1, 2, 4], ['gem', 2, 3], ['tome', 'fusion', 3], ['item', 'kubejs:mythic_fragment', 1, 3, 3], ['condensed', 1, 3, 2], ['item', 'kubejs:enchantment_pack', 1, 3, 3]] },
+        drops: [['item', 'kubejs:chaos_tome', 1, 2, 4], ['gem', 2, 3], ['tome', 'fusion', 3], ['item', 'kubejs:mythic_fragment', 1, 3, 3], ['condensed', 1, 3, 2], ['item', 'kubejs:enchantment_pack', 1, 3, 3], ['relic', 'rare', 4], ['relic', 'epic', 2]] },
       { name: 'Epic', color: 'light_purple', weight: 4, growth: 0.05,
-        drops: [['gem', 3, 3], ['tome', 'mythic', 3], ['item', 'kubejs:ascension_singularity', 1, 3, 2], ['condensed', 4, 8, 2], ['item', 'kubejs:chaos_tome', 3, 5, 2], ['item', 'kubejs:booster_box', 1, 1, 1]] },
+        drops: [['gem', 3, 3], ['tome', 'mythic', 3], ['item', 'kubejs:ascension_singularity', 1, 3, 2], ['condensed', 4, 8, 2], ['item', 'kubejs:chaos_tome', 3, 5, 2], ['item', 'kubejs:booster_box', 1, 1, 1], ['relic', 'epic', 5]] },
       { name: 'Legendary', color: 'gold', weight: 0.9, growth: 0.08,
         drops: [['relic', 'legendary', 5], ['item', 'kubejs:ascended_soul', 1, 1, 2], ['condensed', 10, 16, 2], ['tome', 'mythic', 2], ['item', 'kubejs:booster_box', 1, 2, 2]] },
       { name: 'Mythic', color: 'red', weight: 0.1, growth: 0.12,
         drops: [['relic', 'mythic', 5], ['tome', 'ultimate', 2], ['condensed', 20, 30, 2], ['item', 'kubejs:ascended_soul', 2, 3, 1]] }
     ],
     // Relics: gear rolled with enchants that match what it is (weapons get offense, armor defense, tools utility)
+    // metal: iron, diamond or netherite gear
     relics: {
-      legendary: { enchants: [2, 4], levelMult: 1, mythicEnchants: 0, gems: [0, 1], rolled: 0, starChance: 0, color: 'gold' },
-      mythic: { enchants: [4, 6], levelMult: 3, mythicEnchants: 1, gems: [1, 3], rolled: 1, starChance: 0.35, color: 'red' }
+      rare: { metal: 'iron', enchants: [1, 2], levelMult: 0.5, mythicEnchants: 0, gems: [0, 0], rolled: 0, starChance: 0, color: 'aqua' },
+      epic: { metal: 'diamond', enchants: [2, 3], levelMult: 0.75, mythicEnchants: 0, gems: [0, 1], rolled: 0, starChance: 0, color: 'light_purple' },
+      legendary: { metal: 'diamond', enchants: [2, 4], levelMult: 1, mythicEnchants: 0, gems: [0, 1], rolled: 0, starChance: 0, color: 'gold' },
+      mythic: { metal: 'netherite', enchants: [4, 6], levelMult: 3, mythicEnchants: 1, gems: [1, 3], rolled: 1, starChance: 0.35, color: 'red' }
     }
   },
 
@@ -645,6 +648,33 @@ global.FA = {
       'minecraft:chests/nether_bridge': [0.25, 0.02], 'minecraft:chests/bastion_treasure': [0.6, 0.15],
       'minecraft:chests/woodland_mansion': [0.5, 0.1], 'minecraft:chests/ancient_city': [0.6, 0.15],
       'minecraft:chests/end_city_treasure': [0.6, 0.2]
+    }
+  },
+
+  // ---- Sealed Gear Caches: relic gear found in vanilla chests ----
+  // Right-click a cache to break the seal: one piece of relic gear (weapon, armor or tool). Its quality depends on the
+  // danger level where you open it, so chests out in the danger zones give much better gear.
+  caches: {
+    // weight at danger 0 and growth per danger level, like loot tiers
+    qualities: [
+      { quality: 'rare', weight: 70, growth: 0 },
+      { quality: 'epic', weight: 25, growth: 0.04 },
+      { quality: 'legendary', weight: 5, growth: 0.1 },
+      { quality: 'mythic', weight: 0.5, growth: 0.15 }
+    ],
+    // [chance of a cache, chance of a second one] per vanilla chest
+    chests: {
+      'minecraft:chests/simple_dungeon': [0.45, 0.1], 'minecraft:chests/abandoned_mineshaft': [0.35, 0.05],
+      'minecraft:chests/desert_pyramid': [0.5, 0.15], 'minecraft:chests/jungle_temple': [0.5, 0.15],
+      'minecraft:chests/shipwreck_treasure': [0.4, 0.1], 'minecraft:chests/buried_treasure': [0.6, 0.2],
+      'minecraft:chests/pillager_outpost': [0.5, 0.15], 'minecraft:chests/ruined_portal': [0.35, 0.05],
+      'minecraft:chests/igloo_chest': [0.4, 0.05], 'minecraft:chests/village/village_weaponsmith': [0.4, 0.05],
+      'minecraft:chests/village/village_armorer': [0.4, 0.05], 'minecraft:chests/village/village_toolsmith': [0.4, 0.05],
+      'minecraft:chests/stronghold_corridor': [0.6, 0.2], 'minecraft:chests/stronghold_crossing': [0.5, 0.15],
+      'minecraft:chests/nether_bridge': [0.55, 0.2], 'minecraft:chests/bastion_treasure': [0.9, 0.6],
+      'minecraft:chests/bastion_other': [0.5, 0.15], 'minecraft:chests/bastion_bridge': [0.5, 0.15],
+      'minecraft:chests/woodland_mansion': [0.8, 0.4], 'minecraft:chests/ancient_city': [0.9, 0.5],
+      'minecraft:chests/end_city_treasure': [0.9, 0.6]
     }
   },
 
@@ -1144,7 +1174,7 @@ global.FA_makeRelic = (r, quality, danger) => {
   let pick = list => list[Math.floor(r() * list.length)]
   let kindName = pick(Object.keys(FA_RELIC_KINDS))
   let kind = FA_RELIC_KINDS[kindName]
-  let metal = quality == 'mythic' ? 'netherite' : 'diamond'
+  let metal = Q.metal || (quality == 'mythic' ? 'netherite' : 'diamond')
   let item = 'minecraft:' + metal + '_' + pick(kind.items)
   let E = global.FA.enchants
   let suits = id => FA_RELIC_TYPES[kind.slot].indexOf(E[id].type) >= 0 && !E[id].ultimate
@@ -1276,6 +1306,19 @@ global.FA_openPack = rnd => {
   let cards = []
   for (let i = 0; i < P.cards; i++) cards.push(global.FA_rollCard(rnd, i == P.cards - 1 && P.lastCardRare ? 2 : 0))
   return cards
+}
+
+// Which relic quality a Sealed Gear Cache opened at this danger level gives
+global.FA_cacheQuality = (rnd, danger) => {
+  let Q = global.FA.caches.qualities
+  let w = Q.map(q => q.weight * Math.pow(1 + q.growth, Math.max(0, danger)))
+  let total = w.reduce((a, b) => a + b, 0)
+  let pick = rnd() * total
+  for (let i = 0; i < Q.length; i++) {
+    pick -= w[i]
+    if (pick < 0) return Q[i].quality
+  }
+  return Q[Q.length - 1].quality
 }
 
 // A brand-new Artifact (plain data): name, title, color, aura, lore and rolled quirks fitting the gear kind

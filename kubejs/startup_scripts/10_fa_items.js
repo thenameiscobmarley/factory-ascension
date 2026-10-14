@@ -73,6 +73,8 @@ StartupEvents.registry('item', event => {
   // Enchantment card packs (foil) and booster boxes of them (config: packs)
   event.create('enchantment_pack').displayName('Enchantment Pack').rarity('rare').glow(true)
   event.create('booster_box').displayName('Enchantment Booster Box').rarity('epic').glow(true)
+  // A piece of relic gear, sealed; its quality depends on the danger where it's opened (config: caches)
+  event.create('gear_cache').displayName('Sealed Gear Cache').rarity('rare')
 
   // Rerolls a piece of gear's condition, keeping the better grade (config: condition)
   event.create('polishing_cloth').displayName('Polishing Cloth').rarity('uncommon')

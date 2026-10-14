@@ -348,14 +348,29 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     }
     check('opening an Enchantment Pack (real click) gives 5 tome cards', tomes == global.FA.packs.cards && player.getMainHandItem().getCount() == 1, tomes)
     player.getInventory().clearContent()
-    let found = 0
+    let found = 0, caches = 0
     for (let i = 0; i < 40; i++) server.runCommandSilent('loot spawn ' + (X - 12) + ' ' + (Y + 2) + ' ' + (Z + 12) + ' loot minecraft:chests/simple_dungeon')
     let near = level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().move(-12, 0, 12).inflate(6))
     for (let i = 0; i < near.size(); i++) {
-      if (String(near.get(i).getItem().getId()) == 'kubejs:enchantment_pack') found++
+      let id = String(near.get(i).getItem().getId())
+      if (id == 'kubejs:enchantment_pack') found++
+      if (id == 'kubejs:gear_cache') caches += near.get(i).getItem().getCount()
       near.get(i).discard()
     }
-    check('Enchantment Packs turn up in dungeon chests (' + found + ' in 40 chests)', found > 0, found)
+    check('Enchantment Packs and Gear Caches turn up in dungeon chests (' + found + ' packs, ' + caches + ' caches in 40 chests)', found > 0 && caches > 0, found + ' / ' + caches)
+    // A cache opened with a real click gives a piece of relic gear
+    player.getInventory().clearContent()
+    let cache = Item.of('kubejs:gear_cache')
+    player.setItemInHand('main_hand', cache)
+    player.gameMode.useItem(player, level, cache, $STHand.MAIN_HAND)
+    let gearGot = ''
+    let inv2 = player.getInventory()
+    for (let i = 0; i < inv2.getContainerSize(); i++) {
+      let st = inv2.getItem(i)
+      if (st && !st.isEmpty() && /^minecraft:(iron|diamond|netherite)_/.test(String(st.getId()))) gearGot = String(st.getId()) + ' "' + st.getHoverName().getString() + '"'
+    }
+    check('a Sealed Gear Cache (real click) gives relic gear: ' + gearGot, gearGot != '', gearGot)
+    player.getInventory().clearContent()
   })
   attempt('artifacts', () => {
     let blade = Item.of('minecraft:netherite_sword')

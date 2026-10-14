@@ -288,8 +288,20 @@ def booster_box():
     return px
 
 
+def gear_cache():
+    """A sealed wooden crate: planks, iron corner bands, a glowing teal seal with a gold rim."""
+    return draw([
+        ('wood', add(rect(0.12, 0.22, 0.88, 0.86))),
+        ('grip', add(rect(0.12, 0.42, 0.88, 0.45), rect(0.12, 0.63, 0.88, 0.66))),
+        ('steel', add(rect(0.1, 0.2, 0.22, 0.88), rect(0.78, 0.2, 0.9, 0.88), rect(0.1, 0.18, 0.9, 0.28))),
+        ('gold', add(circ(0.5, 0.56, 0.15))),
+        ('teal', add(circ(0.5, 0.56, 0.09))),
+        ('gem', add(circ(0.5, 0.56, 0.04))),
+    ])
+
+
 HAMMERS = {'rock_hammer': rock_hammer, 'ascendite_rock_hammer': ascendite_rock_hammer, 'polishing_cloth': polishing_cloth,
-           'enchantment_pack': enchantment_pack, 'booster_box': booster_box}
+           'enchantment_pack': enchantment_pack, 'booster_box': booster_box, 'gear_cache': gear_cache}
 
 ICONS = {'sword': sword, 'pickaxe': pickaxe, 'axe': axe, 'shovel': shovel, 'hoe': hoe,
          'helmet': helmet, 'chestplate': chestplate, 'leggings': leggings, 'boots': boots}

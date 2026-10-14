@@ -363,7 +363,7 @@ check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount =
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 5, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6, created.length)
 check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
   return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
@@ -1422,7 +1422,7 @@ check('loot odds add up to 100% at every depth', near(o0.reduce(function (a, b) 
 check('deeper zones shift the odds toward the top tiers', o80[4] + o80[5] > 4 * (o0[4] + o0[5]) && o80[0] < o0[0], (o0[4] + o0[5]).toFixed(4) + ' -> ' + (o80[4] + o80[5]).toFixed(4))
 print('  odds at danger 0: ' + o0.map(function (x, i) { return global.FA.loot.tiers[i].name + ' ' + (x * 100).toFixed(1) + '%' }).join(', '))
 print('  odds at danger 80: ' + o80.map(function (x, i) { return global.FA.loot.tiers[i].name + ' ' + (x * 100).toFixed(1) + '%' }).join(', '))
-check('a kill drops a loot roll more often deeper: 6.4% at danger 1, 38% at danger 80', near(global.FA_lootChance(1), 0.064) && near(global.FA_lootChance(80), 0.38))
+check('a kill drops a loot roll more often deeper: 10.6% at danger 1, 58% at danger 80, capped at 75%', near(global.FA_lootChance(1), 0.106) && near(global.FA_lootChance(80), 0.58) && near(global.FA_lootChance(500), 0.75))
 var known = {}; created.concat(createdBlocks).forEach(function (id) { known['kubejs:' + id] = true })
 var badLoot = [], tiersSeen = [0, 0, 0, 0, 0, 0], relicCount = 0
 for (var lr = 0; lr < 3000; lr++) {
@@ -1760,7 +1760,19 @@ var chestMods = {}
 handlers.chestLoot({ modify: function (id, fn) { var pools = []; fn({ addPool: function (f) { var pool = { items: [], empty: 0, addItem: function (i) { var e = { id: i, weight: function (w) { e.w = w; return e } }; pool.items.push(e); return e }, addEmpty: function (w) { pool.empty = w } }; f(pool); pools.push(pool) } }); chestMods[id] = pools } })
 // KubeJS's chest event adds the chests/ folder itself (found on a real server: full ids matched nothing)
 var dung = chestMods['minecraft:simple_dungeon'], endc = chestMods['minecraft:end_city_treasure']
-check('dungeon chests get a 30% pack roll; end cities a box roll too', dung.length == 1 && dung[0].items[0].w == 300 && dung[0].empty == 700 && endc.length == 2 && endc[1].items[0].id == 'kubejs:booster_box')
+check('dungeon chests get a 30% pack roll and gear cache rolls; end cities a box roll too', dung.length == 3 && dung[0].items[0].w == 300 && dung[0].empty == 700 &&
+  dung[1].items[0].id == 'kubejs:gear_cache' && endc.length == 4 && endc[1].items[0].id == 'kubejs:booster_box')
+check('village weaponsmiths get gear caches too (KubeJS-style id)', !!chestMods['minecraft:village/village_weaponsmith'])
+// Sealed Gear Caches: the deeper you open one, the better the gear
+var cq = function (danger) { var t = {}, g = new java.util.Random(3); for (var i = 0; i < 5000; i++) { var q = global.FA_cacheQuality(function () { return g.nextDouble() }, danger); t[q] = (t[q] || 0) + 1 } return t }
+var safeQ = cq(0), deepQ = cq(40)
+check('gear caches: mostly Rare/Epic at spawn, far more Legendary/Mythic deep in the danger zones', (safeQ.rare || 0) > 3000 && (deepQ.legendary || 0) + (deepQ.mythic || 0) > 10 * ((safeQ.legendary || 0) + (safeQ.mythic || 0) + 1) / 10,
+  JSON.stringify(safeQ) + ' vs ' + JSON.stringify(deepQ))
+var cacher = makePlayer(server, 'cacher'), cacheSt = stack(1); cacheSt.id = 'kubejs:gear_cache'
+var opened = global.FA_openCacheFor(cacher, cacheSt)
+check('opening a cache gives one piece of relic gear and uses the cache', cacheSt.count == 0 && cacher.given.length == 1 && /^minecraft:(iron|diamond|netherite)_/.test(cacher.given[0].id), cacher.given.map(function (g) { return g.id }).join(','))
+var rareRelic = global.FA_makeRelic(Math.random, 'rare', 0)
+check('Rare relics are iron gear with 1-2 enchants', /^minecraft:iron_/.test(rareRelic.item) && Object.keys(rareRelic.enchants).length >= 1 && Object.keys(rareRelic.enchants).length <= 2, rareRelic.item)
 
 // ---------------- Artifacts ----------------
 print('\nartifacts')

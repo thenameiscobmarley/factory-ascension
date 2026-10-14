@@ -92,6 +92,9 @@ function faRelicStack(relic) {
   return stack
 }
 
+// For server scripts (Sealed Gear Caches)
+global.FA_relicStack = relic => faRelicStack(relic)
+
 // Big drops announce themselves: a glowing item, a beam of light, a sound, and for the best ones a title
 function faLootFx(killer, victim, tier, label) {
   let T = global.FA.loot.tiers[tier]

@@ -61,15 +61,52 @@ ItemEvents.rightClicked('kubejs:booster_box', event => {
   event.cancel()
 })
 
-// Vanilla chests: a pack (and in the best chests, a box) as an extra roll
+// Sealed Gear Cache: one piece of relic gear, better the more dangerous the place you open it
+const FA_RELIC_TEXT = { aqua: 'aqua', light_purple: 'lightPurple', gold: 'gold', red: 'red' }
+
+function faOpenCache(player, cache) {
+  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ())
+  let quality = global.FA_cacheQuality(Math.random, danger)
+  let relic = global.FA_makeRelic(Math.random, quality, danger)
+  let stack = global.FA_relicStack(relic)
+  let AR = global.FA.artifacts
+  let art = quality == 'mythic' && AR.enabled && Math.random() < AR.relicChance ? global.FA_makeArtifact(stack, Math.random, player.getServer()) : false
+  cache.shrink(1)
+  player.give(stack)
+  let label = art ? art.name + ', ' + art.title : relic.name
+  let color = FA_RELIC_TEXT[relic.color] || 'white'
+  player.tell(Text.gray('The seal breaks: ').append(Text[color](label)).append(Text.darkGray('  (' + quality + (danger > 0 ? ', danger ' + danger : '') + ')')))
+  let big = quality == 'legendary' || quality == 'mythic'
+  faSound(player, big ? 'minecraft:ui.toast.challenge_complete' : 'minecraft:block.chest.open', big ? 1 : 1.2)
+  if (big) {
+    let server = player.getServer()
+    let name = player.username
+    server.runCommandSilent('title ' + name + ' times 3 40 10')
+    server.runCommandSilent('title ' + name + ' subtitle ' + JSON.stringify({ text: label, color: relic.color }))
+    server.runCommandSilent('title ' + name + ' title ' + JSON.stringify({ text: quality.toUpperCase() + ' GEAR', color: relic.color, bold: true }))
+    if (quality == 'mythic') server.tell(Text.red(name + ' broke open a Mythic cache: ').append(Text.gold(label)))
+  }
+  return { quality: quality, stack: stack }
+}
+global.FA_openCacheFor = (player, cache) => faOpenCache(player, cache)
+
+ItemEvents.rightClicked('kubejs:gear_cache', event => {
+  faOpenCache(event.player, event.item)
+  event.cancel()
+})
+
+// Vanilla chests: packs, boxes and gear caches as extra rolls (each table modified once)
 ServerEvents.chestLootTables(event => {
-  let C = global.FA.packs.chests
-  Object.keys(C).forEach(table => {
-    let chances = C[table]
+  let pools = {}
+  let add = (table, item, chance) => { if (chance > 0) (pools[table] = pools[table] || []).push([item, chance]) }
+  let P = global.FA.packs.chests
+  Object.keys(P).forEach(t => { add(t, 'kubejs:enchantment_pack', P[t][0]); add(t, 'kubejs:booster_box', P[t][1]) })
+  let C = global.FA.caches.chests
+  Object.keys(C).forEach(t => { add(t, 'kubejs:gear_cache', C[t][0]); add(t, 'kubejs:gear_cache', C[t][1]) })
+  Object.keys(pools).forEach(table => {
     // KubeJS adds the chests/ folder itself: 'minecraft:chests/simple_dungeon' -> 'minecraft:simple_dungeon'
     event.modify(table.replace(':chests/', ':'), loot => {
-      ;[['kubejs:enchantment_pack', chances[0]], ['kubejs:booster_box', chances[1]]].forEach(e => {
-        if (!(e[1] > 0)) return
+      pools[table].forEach(e => {
         loot.addPool(pool => {
           pool.rolls = 1
           pool.addItem(e[0]).weight(Math.max(1, Math.round(e[1] * 1000)))
