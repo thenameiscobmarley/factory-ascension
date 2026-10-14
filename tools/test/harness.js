@@ -43,10 +43,15 @@ Compound.prototype = {
   putDouble: function (k, v) { this.d[k] = v },
   putBoolean: function (k, v) { this.d[k] = v },
   put: function (k, v) { this.d[k] = v },
-  getAllKeys: function () { return Object.keys(this.d) }
+  getAllKeys: function () { return javaList(Object.keys(this.d)) }
 }
 
 function PlayerClass() {}
+function LivingClass() {}
+function EnemyClass() {}
+function RaiderClass() {}
+function OrbClass() {}
+var MobType = { UNDEAD: 'undead', ARTHROPOD: 'arthropod', WATER: 'water', UNDEFINED: 'undefined' }
 function ItemEntityClass(level, x, y, z, stack) { this.s = stack; this.setDefaultPickUpDelay = function () {} }
 ItemEntityClass.prototype.getItem = function () { return this.s }
 var Java = {
@@ -54,8 +59,16 @@ var Java = {
     var classes = {
       'net.minecraft.world.entity.player.Player': PlayerClass,
       'net.minecraft.world.entity.item.ItemEntity': ItemEntityClass,
-      'net.minecraft.tags.DamageTypeTags': { BYPASSES_INVULNERABILITY: 'bypass' },
-      'net.minecraft.world.entity.ai.attributes.Attributes': { MOVEMENT_SPEED: 'movement_speed' },
+      'net.minecraft.tags.DamageTypeTags': { BYPASSES_INVULNERABILITY: 'bypass', IS_PROJECTILE: 'projectile', IS_FIRE: 'fire', IS_FALL: 'fall', IS_EXPLOSION: 'explosion' },
+      'net.minecraft.world.entity.ai.attributes.Attributes': { MOVEMENT_SPEED: 'movement_speed', ATTACK_SPEED: 'attack_speed', ATTACK_KNOCKBACK: 'attack_knockback', LUCK: 'luck' },
+      'net.minecraft.world.entity.LivingEntity': LivingClass,
+      'net.minecraft.world.entity.monster.Enemy': EnemyClass,
+      'net.minecraft.world.entity.raid.Raider': RaiderClass,
+      'net.minecraft.world.entity.MobType': MobType,
+      'net.minecraft.world.entity.ExperienceOrb': OrbClass,
+      'net.minecraft.world.effect.MobEffects': { MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
+      'net.minecraft.world.effect.MobEffectInstance': function (effect, ticks, amp) { this.effect = effect; this.ticks = ticks; this.amp = amp },
+      'net.minecraftforge.common.ForgeMod': { BLOCK_REACH: { get: function () { return 'block_reach' } }, ENTITY_REACH: { get: function () { return 'entity_reach' } }, STEP_HEIGHT_ADDITION: { get: function () { return 'step_height' } } },
       'net.minecraft.world.entity.ai.attributes.AttributeModifier': function (name, amount, op) {
         this.name = name; this.amount = amount; this.op = op
         this.getName = function () { return this.name }; this.getAmount = function () { return this.amount }
@@ -87,7 +100,7 @@ function stack(count, max, name) {
     getCount: function () { return this.count },
     getMaxStackSize: function () { return this.max },
     shrink: function (n) { this.count -= n },
-    copyWithCount: function (n) { var c = stack(n, this.max, this.name); c.tag = this.tag; return c },
+    copyWithCount: function (n) { var c = stack(n, this.max, this.name); c.tag = this.tag; c.id = this.id; return c },
     getTag: function () { return this.tag },
     getOrCreateTag: function () { if (!this.tag) this.tag = new Compound(); return this.tag },
     getHoverName: function () { return fakeText(this.name) }
@@ -102,9 +115,9 @@ function makeServer() {
 
 function makePlayer(server, uuid) {
   var p = new PlayerClass()
-  var speed = []
+  var attrs = {}
   p.main = stack(0); p.off = stack(0); p.armor = [stack(0), stack(0), stack(0), stack(0)]
-  p.health = 20; p.healed = 0; p.messages = []; p.bar = []; p.given = []; p.sneaking = false; p.speed = speed
+  p.health = 20; p.healed = 0; p.messages = []; p.bar = []; p.given = []; p.sneaking = false; p.attrs = attrs; p.effects = []
   p.getServer = function () { return server }
   p.getStringUUID = function () { return uuid }
   p.getScoreboardName = function () { return 'Tester' }
@@ -112,26 +125,61 @@ function makePlayer(server, uuid) {
   p.getMainHandItem = function () { return this.main }
   p.getOffhandItem = function () { return this.off }
   p.getAllSlots = function () { return javaList([this.main, this.off].concat(this.armor)) }
-  p.getAttribute = function () {
+  p.getAttribute = function (a) {
+    var list = attrs[a] = attrs[a] || []
     return {
-      getModifiers: function () { return javaList(speed.slice()) },
-      removeModifier: function (m) { var i = speed.indexOf(m); if (i >= 0) speed.splice(i, 1) },
-      addTransientModifier: function (m) { speed.push(m) }
+      getModifiers: function () { return javaList(list.slice()) },
+      removeModifier: function (m) { var i = list.indexOf(m); if (i >= 0) list.splice(i, 1) },
+      addTransientModifier: function (m) { list.push(m) }
     }
   }
-  p.isAlive = function () { return true }
+  livingBits(p, 20)
+  p.isShiftKeyDown = function () { return this.sneaking }
   p.heal = function (h) { this.healed += h }
-  p.hurtBy = []
-  p.hurt = function (src, amount) { this.hurtBy.push(amount); return true }
-  p.damageSources = function () { return { thorns: function (e) { return 'thorns' } } }
   p.displayClientMessage = function (t) { this.bar.push(t.s) }
   p.tell = function (t) { this.messages.push(t) }
   p.give = function (i) { this.given.push(i) }
   return p
 }
-function makeMob() {
-  return { hurtBy: [], isAlive: function () { return true }, hurt: function (s, a) { this.hurtBy.push(a); return true }, getAllSlots: function () { return javaList([]) } }
+// Shared living-entity behaviour for fake players and mobs
+var gameTime = 1000
+function livingBits(o, maxHealth) {
+  o.hp = maxHealth; o.maxHp = maxHealth; o.hurtBy = []; o.effects = o.effects || []; o.fire = 0
+  o.mobType = MobType.UNDEFINED; o.ground = true; o.wet = false; o.dim = 'minecraft:overworld'; o.boss = false; o.nearby = []
+  o.isAlive = function () { return true }
+  o.getHealth = function () { return this.hp }
+  o.getMaxHealth = function () { return this.maxHp }
+  o.hurt = function (src, amount) { this.hurtBy.push(amount); return true }
+  o.addEffect = function (e) { this.effects.push(e) }
+  o.setSecondsOnFire = function (s) { this.fire = s }
+  o.getMobType = function () { return this.mobType }
+  o.canChangeDimensions = function () { return !this.boss }
+  o.isInWaterOrRain = function () { return this.wet }
+  o.onGround = function () { return this.ground }
+  o.getStringUUID = o.getStringUUID || function () { return 'mob' }
+  o.displayClientMessage = o.displayClientMessage || function () {}
+  var self = o
+  o.level = function () {
+    return {
+      dimension: function () { return { location: function () { return self.dim } } },
+      getGameTime: function () { return gameTime },
+      isClientSide: function () { return false },
+      getEntitiesOfClass: function (cls, box) { var l = self.nearby.filter(function (e) { return e instanceof cls }); return { size: function () { return l.length }, get: function (i) { return l[i] } } }
+    }
+  }
+  o.getBoundingBox = function () { return { inflate: function () { return 'box' } } }
+  o.getX = o.getY = o.getZ = function () { return 0 }
+  o.damageSources = function () { return { thorns: function () { return 'thorns' }, playerAttack: function () { return 'playerAttack' } } }
+  o.getAllSlots = o.getAllSlots || function () { return javaList([]) }
+  return o
 }
+function makeMob(type) {
+  var m = new (type || EnemyClass)()
+  return livingBits(m, 20)
+}
+EnemyClass.prototype = Object.create(LivingClass.prototype)
+RaiderClass.prototype = Object.create(EnemyClass.prototype)
+PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
@@ -148,7 +196,9 @@ var created = []
 var builder = {}
 ;['displayName', 'rarity', 'glow', 'maxStackSize'].forEach(function (m) { builder[m] = function () { return builder } })
 handlers.registry.forEach(function (fn) { fn({ create: function (id) { created.push(id); return builder } }) })
-check('items registered (4 core + blank + 9 tomes + 3 clusters)', created.length == 17, created.length)
+var enchantCount = Object.keys(global.FA.enchants).length
+check('59 enchants (9 original + 50 new)', enchantCount == 59, enchantCount)
+check('items registered (4 core + blank + tomes + 3 clusters)', created.length == 8 + enchantCount, created.length)
 var File = java.io.File
 var missing = created.filter(function (id) { return !new File('kubejs/assets/kubejs/textures/item/' + id + '.png').exists() })
 check('every item has a texture', missing.length == 0, missing.join(','))
@@ -259,77 +309,203 @@ print('  sample: ' + p.messages[2].s)
 check('command registered', handlers.commands.length == 1)
 
 // ---------------- Effects ----------------
-print('\neffects')
+print('\ndamage')
 var hurt = handlers.forge['LivingHurtEvent']
-function hurtEvent(attacker, victim, amount, bypass) {
+function src(attacker, opts) {
+  opts = opts || {}
   return {
+    getEntity: function () { return attacker },
+    is: function (tag) { return tag == 'bypass' ? !!opts.bypass : opts.tags ? opts.tags.indexOf(tag) >= 0 : false },
+    getMsgId: function () { return opts.msg || 'player' }
+  }
+}
+function hit(attacker, victim, amount, opts) {
+  var ev = {
     amount: amount,
-    getSource: function () { return { getEntity: function () { return attacker }, is: function () { return !!bypass } } },
+    getSource: function () { return src(attacker, opts) },
     getEntity: function () { return victim },
     getAmount: function () { return this.amount },
     setAmount: function (a) { this.amount = a }
   }
+  hurt(ev)
+  return ev.amount
 }
-var fighter = makePlayer(server, 'f')
-var blade = gear('Blade'); faSetLevel(blade, 'sharpness', 100); faSetLevel(blade, 'lifesteal', 10)
-var plate = gear('Plate'); faSetLevel(plate, 'protection', 3000); faSetLevel(plate, 'vitality', 50); faSetLevel(plate, 'retribution', 4)
-fighter.main = blade; fighter.armor[1] = plate
+function hero(levels, uuid) {
+  var h = makePlayer(server, uuid || 'hero')
+  var g = gear('Hero Gear')
+  Object.keys(levels).forEach(function (id) { faSetLevel(g, id, levels[id]) })
+  h.armor[1] = g
+  return h
+}
 var mob = makeMob()
 
-var e1 = hurtEvent(fighter, mob, 10); hurt(e1)
-check('Sharpness 100 = x11 damage', near(e1.amount, 110), e1.amount)
-check('Lifesteal 10 heals 10% of damage dealt', near(fighter.healed, 11), fighter.healed)
-var e2 = hurtEvent(mob, fighter, 100); hurt(e2)
-var expected = 100 / (1 + 0.04 * 3000) * 20 / (20 + 100)
-check('Protection 3000 + Vitality 50 stack', near(e2.amount, expected), e2.amount + ' vs ' + expected)
-check('Retribution reflects 20% of the raw hit', near(mob.hurtBy[0], 20), mob.hurtBy[0])
-var e3 = hurtEvent(mob, fighter, 100, true); hurt(e3)
-check('/kill and void ignore defenses', e3.amount == 100)
-var e4 = hurtEvent(mob, mob, 10); hurt(e4)
-check('mob vs mob untouched', e4.amount == 10)
-// Two players with Retribution must not loop forever
-var twin = makePlayer(server, 't'); twin.armor[1] = plate
-twin.hurt = function (src, a) { hurt(hurtEvent(fighter, twin, a)); return true }
-fighter.hurt = function (src, a) { hurt(hurtEvent(twin, fighter, a)); return true }
-hurt(hurtEvent(twin, fighter, 10))
-check('Retribution between two players does not recurse forever', true)
+check('Sharpness 100 = x11', near(hit(hero({ sharpness: 100 }), mob, 10), 110))
+var zombie = makeMob(); zombie.mobType = MobType.UNDEAD
+check('Smite 4 = x2 vs undead only', near(hit(hero({ smite: 4 }), zombie, 10), 20) && hit(hero({ smite: 4 }), mob, 10) == 10)
+var spider = makeMob(); spider.mobType = MobType.ARTHROPOD
+check('Bane 4 = x2 vs arthropods', near(hit(hero({ bane: 4 }), spider, 10), 20))
+var boss = makeMob(); boss.boss = true; boss.maxHp = boss.hp = 300
+check('Giant Slayer 10 = x2.5 vs bosses', near(hit(hero({ giant_slayer: 10 }), boss, 10), 25))
+var piglin = makeMob(); piglin.dim = 'minecraft:the_nether'
+check('Hellbane in the Nether', near(hit(hero({ hellbane: 5 }), piglin, 10), 20))
+check('Raidbreaker vs raiders', near(hit(hero({ raidbreaker: 4 }), makeMob(RaiderClass), 10), 20))
+var drowned = makeMob(); drowned.wet = true
+check('Impaling vs wet targets', near(hit(hero({ impaling: 4 }), drowned, 10), 20))
+var flyer = makeMob(); flyer.ground = false
+check('Skyhunter vs airborne', near(hit(hero({ skyhunter: 5 }), flyer, 10), 20))
+check('First Strike vs full health', near(hit(hero({ first_strike: 10 }), makeMob(), 10), 40))
+var hurtMob = makeMob(); hurtMob.hp = 5
+check('Executioner vs low health', near(hit(hero({ executioner: 10 }), hurtMob, 1), 4))
+var lowHero = hero({ berserk: 10 }); lowHero.hp = 5
+check('Berserk while under 50%', near(hit(lowHero, makeMob(), 10), 40) && hit(hero({ berserk: 10 }), makeMob(), 10) == 10)
+check('Power with projectiles only', near(hit(hero({ power: 10 }), mob, 10, { tags: ['projectile'] }), 25) && hit(hero({ power: 10 }), mob, 10) == 10)
+var sneaky = hero({ assassin: 10 }); sneaky.sneaking = true
+check('Assassin while sneaking', near(hit(sneaky, mob, 10), 40))
+var realRandom = Math.random
+Math.random = function () { return 0 }
+check('Critical Edge crits for x3', near(hit(hero({ critical: 1 }), mob, 10), 30))
+Math.random = function () { return 0.999 }
+check('Critical Edge can miss', hit(hero({ critical: 1 }), mob, 10) == 10)
+Math.random = realRandom
+var weak = makeMob(); weak.hp = 10; weak.maxHp = 100
+check('Reaper 20 kills a non-boss left under 20%', hit(hero({ reaper: 20 }), weak, 1) >= 11)
+var weakBoss = makeMob(); weakBoss.boss = true; weakBoss.hp = 10; weakBoss.maxHp = 100
+check('Reaper never executes bosses', hit(hero({ reaper: 20 }), weakBoss, 1) == 1)
+var target = makeMob(), side1 = makeMob(), side2 = makeMob(), cow = makeMob(LivingClass)
+target.nearby = [target, side1, side2, cow]
+hit(hero({ cleave: 10 }), target, 10)
+check('Cleave hits nearby hostiles for 50%', near(side1.hurtBy[0], 5) && near(side2.hurtBy[0], 5))
+check('Cleave spares non-hostile mobs', cow.hurtBy.length == 0)
 
-print('\nplunder')
+print('\non hit')
+var vamp = hero({ lifesteal: 10, second_wind: 4 })
+hit(vamp, makeMob(), 10)
+check('Lifesteal 10% + Second Wind 2 heal together', near(vamp.healed, 3), vamp.healed)
+var victim = makeMob()
+hit(hero({ frostbite: 11, venom: 21, fire_aspect: 2 }), victim, 1)
+var slow = victim.effects.filter(function (e) { return e.effect == 'slowness' })[0]
+check('Frostbite 11 = Slowness 3 for 3s', slow && slow.amp == 2 && slow.ticks == 60, slow && slow.amp)
+check('Venom 21 = Poison 3', victim.effects.some(function (e) { return e.effect == 'poison' && e.amp == 2 }))
+check('Fire Aspect 2 = 8s on fire', victim.fire == 8)
+var cap = makeMob()
+hit(hero({ skyward: 100000 }), cap, 1)
+check('effect amplifiers cap at 127', cap.effects[0].amp == 127)
+var runner2 = hero({ adrenaline: 1000 })
+hit(runner2, makeMob(), 1)
+check('Adrenaline gives Speed, max amplifier 4', runner2.effects[0].effect == 'speed' && runner2.effects[0].amp == 4)
+
+print('\ndefense')
+var tank = hero({ protection: 3000, vitality: 50 })
+check('Protection 3000 + Vitality 50 stack', near(hit(mob, tank, 100), 100 / 121 * 20 / 120))
+check('/kill and void ignore defenses', hit(mob, tank, 100, { bypass: true }) == 100)
+check('Fire Ward only vs fire', near(hit(mob, hero({ fire_ward: 10 }), 10, { tags: ['fire'] }), 5) && hit(mob, hero({ fire_ward: 10 }), 10) == 10)
+check('Featherweight vs falls', near(hit(null, hero({ featherweight: 10 }), 10, { tags: ['fall'] }), 5))
+check('Blast Ward vs explosions', near(hit(null, hero({ blast_ward: 10 }), 10, { tags: ['explosion'] }), 5))
+check('Arrow Ward vs projectiles', near(hit(mob, hero({ arrow_ward: 10 }), 10, { tags: ['projectile'] }), 5))
+check('Spellward vs magic', near(hit(null, hero({ spellward: 10 }), 10, { msg: 'indirectMagic' }), 5))
+check('Wither Ward vs wither', near(hit(null, hero({ wither_ward: 10 }), 10, { msg: 'wither' }), 5))
+check('Bulwark vs melee', near(hit(mob, hero({ bulwark: 20 }), 10, { msg: 'mob' }), 5))
+var spiky = hero({ retribution: 4 }), brute = makeMob()
+hit(brute, spiky, 100)
+check('Retribution reflects 20% of the raw hit', near(brute.hurtBy[0], 20))
+var twinA = hero({ retribution: 4 }, 'a'), twinB = hero({ retribution: 4 }, 'b')
+twinA.hurt = function (s, a) { hit(twinB, twinA, a); return true }
+twinB.hurt = function (s, a) { hit(twinA, twinB, a); return true }
+hit(twinA, twinB, 10)
+check('Retribution between two players does not loop forever', true)
+var lucky1 = hero({ undying: 1 }, 'u1')
+lucky1.hp = 5
+check('Undying turns a killing blow into 1 health left', hit(mob, lucky1, 50) == 4)
+check('Undying then needs to recharge', hit(mob, lucky1, 50) == 50)
+gameTime += 300 * 20
+check('Undying recharges after 300s at level 1', hit(mob, lucky1, 50) == 4)
+var dodge = handlers.forge['LivingAttackEvent']
+function attack(victim2, bypass) {
+  var ev = { c: false, getSource: function () { return src(mob, { bypass: bypass }) }, getEntity: function () { return victim2 },
+    isCanceled: function () { return this.c }, setCanceled: function (v) { this.c = v } }
+  dodge(ev)
+  return ev.c
+}
+Math.random = function () { return 0.5 }
+check('Evasion 1000 dodges (chance capped at 75%)', attack(hero({ evasion: 1000 })) && global.FA_describe('evasion', 1000000) == '75% dodge chance')
+check('Evasion never dodges /kill', !attack(hero({ evasion: 1000 }), true))
+Math.random = function () { return 0.8 }
+check('Evasion 75% can still be hit', !attack(hero({ evasion: 1000000 })))
+Math.random = realRandom
+
+print('\nkills')
+var death = handlers.forge['LivingDeathEvent']
+var eater = hero({ soul_eater: 5 })
+death({ getSource: function () { return src(eater) } })
+check('Soul Eater heals 5 per kill', eater.healed == 5)
+var xpHook = handlers.forge['LivingExperienceDropEvent']
+var xpEv = { xp: 10, getAttackingPlayer: function () { return hero({ wisdom: 10 }) }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
+xpHook(xpEv)
+check('Wisdom 10 doubles XP', xpEv.xp == 20)
 var dropsHook = handlers.forge['LivingDropsEvent']
-function dropEvent(attacker, victim, stacks) {
+function dropEvent(attacker, victim2, stacks) {
   var ents = stacks.map(function (s) {
     return { s: s, getItem: function () { return this.s }, setItem: function (n) { this.s = n },
       level: function () { return null }, getX: function () { return 0 }, getY: function () { return 0 }, getZ: function () { return 0 } }
   })
   var list = javaList(ents)
-  return { list: list, getEntity: function () { return victim }, getSource: function () { return { getEntity: function () { return attacker } } }, getDrops: function () { return list } }
+  return { list: list, getEntity: function () { return victim2 }, getSource: function () { return src(attacker) }, getDrops: function () { return list } }
 }
 function totalCount(ev) { var t = 0; ev.list.arr.forEach(function (ie) { t += ie.getItem().count }); return t }
-var looter = makePlayer(server, 'l'); var charm = gear('Charm'); faSetLevel(charm, 'plunder', 20); looter.off = charm
-var d1 = dropEvent(looter, mob, [stack(3)]); dropsHook(d1)
+Item.of = function (id, n) { var st = stack(n || 1); st.id = id; return st }
+var d1 = dropEvent(hero({ plunder: 20 }), makeMob(), [stack(3)]); dropsHook(d1)
 check('Plunder 20 doubles drops', totalCount(d1) == 6, totalCount(d1))
-var d2 = dropEvent(looter, mob, [stack(1, 1)]); dropsHook(d2)
-check('unstackables become extra entities', d2.list.arr.length == 2, d2.list.arr.length)
-faSetLevel(charm, 'plunder', 100000)
-var d3 = dropEvent(looter, mob, [stack(1, 1)]); dropsHook(d3)
+var d2 = dropEvent(hero({ plunder: 20 }), makeMob(), [stack(1, 1)]); dropsHook(d2)
+check('unstackables become extra entities', d2.list.arr.length == 2)
+var d3 = dropEvent(hero({ plunder: 100000 }), makeMob(), [stack(1, 1)]); dropsHook(d3)
 check('extra stacks capped at 8', d3.list.arr.length == 9, d3.list.arr.length)
-var d4 = dropEvent(looter, makePlayer(server, 'v'), [stack(64)]); dropsHook(d4)
+var d4 = dropEvent(hero({ plunder: 20 }), makePlayer(server, 'v'), [stack(64)]); dropsHook(d4)
 check('player death drops untouched', totalCount(d4) == 64 && d4.list.arr.length == 1)
+var d5 = dropEvent(hero({ midas: 50 }), makeMob(), []); dropsHook(d5)
+check('Midas 50 drops 10 gold nuggets even with no other drops', d5.list.arr.length == 1 && d5.list.arr[0].s.count == 10 && d5.list.arr[0].s.id == 'minecraft:gold_nugget')
 
-print('\nswiftness + excavation')
+print('\nattributes')
 var equip = handlers.forge['LivingEquipmentChangeEvent']
-var runner = makePlayer(server, 'r'); var boots = gear('Boots'); faSetLevel(boots, 'swiftness', 30); runner.armor[3] = boots
-equip({ getEntity: function () { return runner } })
-check('Swiftness 30 = +30% speed', runner.speed.length == 1 && near(runner.speed[0].amount, 0.3))
-equip({ getEntity: function () { return runner } })
-check('no duplicate speed modifiers', runner.speed.length == 1)
-faSetLevel(boots, 'swiftness', 500)
-equip({ getEntity: function () { return runner } })
-check('speed capped at +50%', runner.speed.length == 1 && near(runner.speed[0].amount, 0.5))
-runner.armor[3] = stack(0)
-equip({ getEntity: function () { return runner } })
-check('removing the boots removes the bonus', runner.speed.length == 0)
-var digger = makePlayer(server, 'd'); var pick = gear('Pick'); faSetLevel(pick, 'excavation', 4); digger.main = pick
+var walker = hero({ swiftness: 30, reach: 4, stride: 100, frenzy: 5, lucky: 7, knockback: 2 })
+equip({ getEntity: function () { return walker } })
+function attr(pl, a) { var l = pl.attrs[a] || []; return l.length == 1 ? l[0].amount : l.length }
+check('Swiftness 30 = +30% speed', near(attr(walker, 'movement_speed'), 0.3))
+check('Reach 4 = +2 block and entity reach', attr(walker, 'block_reach') == 2 && attr(walker, 'entity_reach') == 2)
+check('Stride capped at 3', attr(walker, 'step_height') == 3)
+check('Frenzy 5 = +50% attack speed', near(attr(walker, 'attack_speed'), 0.5))
+check('Lucky 7 = +7 luck', attr(walker, 'luck') == 7)
+check('Knockback 2 = +1 knockback', attr(walker, 'attack_knockback') == 1)
+equip({ getEntity: function () { return walker } })
+check('no duplicate modifiers', walker.attrs.movement_speed.length == 1)
+walker.armor[1] = stack(0)
+equip({ getEntity: function () { return walker } })
+check('removing the gear removes every bonus', ['movement_speed', 'block_reach', 'step_height', 'luck'].every(function (a) { return walker.attrs[a].length == 0 }))
+
+print('\nevery second')
+var tick = handlers.forge['PlayerTickEvent']
+var camper = hero({ renewal: 8, night_sight: 1, industrious: 3, restoration: 5, magnetism: 3 })
+camper.hp = 10
+var worn = gear('Worn Pick'); worn.damage = 20
+worn.isDamageableItem = function () { return true }; worn.isDamaged = function () { return this.damage > 0 }
+worn.getDamageValue = function () { return this.damage }; worn.setDamageValue = function (d) { this.damage = d }
+camper.main = worn
+;[stack(0), stack(0), stack(0)].concat([camper.off]).forEach(function (s) { s.isDamageableItem = function () { return false } })
+camper.armor.forEach(function (s) { s.isDamageableItem = s.isDamageableItem || function () { return false } })
+var loose = new ItemEntityClass(); loose.hasPickUpDelay = function () { return false }; loose.teleportTo = function () { this.moved = true }
+var thrown = new ItemEntityClass(); thrown.hasPickUpDelay = function () { return true }; thrown.teleportTo = function () { this.moved = true }
+camper.nearby = [loose, thrown]
+camper.tickCount = 40; camper.getX = camper.getY = camper.getZ = function () { return 0 }
+tick({ phase: 'END', player: camper })
+check('Renewal 8 heals 2 per second', camper.healed == 2)
+check('Night Sight keeps night vision (20s, no flicker)', camper.effects.some(function (e) { return e.effect == 'night_vision' && e.ticks == 400 }))
+check('Industrious capped at its max level', camper.effects.some(function (e) { return e.effect == 'haste' && e.amp == 2 }))
+check('Restoration 5 repairs 5 durability', worn.damage == 15)
+check('Magnetism pulls loose items, not ones you just threw', loose.moved && !thrown.moved)
+camper.tickCount = 41; camper.healed = 0
+tick({ phase: 'END', player: camper })
+check('only runs once a second', camper.healed == 0)
+
+var digger = hero({ excavation: 4 })
 var bs = { speed: 8, getEntity: function () { return digger }, getNewSpeed: function () { return this.speed }, setNewSpeed: function (s) { this.speed = s } }
 handlers.forge['BreakSpeed'](bs)
 check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
@@ -338,19 +514,22 @@ check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
 print('\ntooltips')
 var advanced = null, simple = 0
 handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, addAdvanced: function (ing, f) { advanced = f } }) })
-check('tooltips registered for cores, tomes and clusters', simple == 3 + 1 + 9 + 4, simple)
+check('tooltips for cores, blank tome, every tome and clusters', simple == 3 + 1 + enchantCount + 4, simple)
 var lines = { arr: ['Netherite Chestplate', 'When on body:'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(chest, false, lines)
 check('enchants show right under the item name', /Ascended Protection 3,000/.test(lines.arr[1]), lines.arr.join(' | '))
-print('  sample: ' + lines.arr[1])
 var plain = { arr: ['Stick'], add: function () { throw 'should not add' } }
 advanced(stack(1), false, plain)
 check('items without enchants are untouched', plain.arr.length == 1)
 
-print('\nformat')
-check('numbers', global.FA_num(1234) == '1,234' && global.FA_num(2.5e9) == '2.50B' && global.FA_num(1e40).indexOf('e+') > 0,
-  [global.FA_num(1234), global.FA_num(2.5e9), global.FA_num(1e40)].join(' '))
-Object.keys(E).forEach(function (id) { print('  ' + E[id].name + ' 3000: ' + global.FA_describe(id, 3000)) })
+print('\ndescriptions')
+var blank = Object.keys(E).filter(function (id) { var d = global.FA_describe(id, 1); return !d || /undefined|NaN/.test(d + global.FA_describe(id, 3000)) })
+check('every enchant has a description at levels 1 and 3000', blank.length == 0, blank.join(','))
+check('numbers', global.FA_num(1234) == '1,234' && global.FA_num(2.5e9) == '2.50B' && global.FA_num(1e40).indexOf('e+') > 0)
+Object.keys(E).forEach(function (id) {
+  var top = E[id].maxLevel || 3000
+  print('  ' + E[id].name + ' ' + top + ': ' + global.FA_describe(id, top))
+})
 
 print('\n' + (failures ? failures + ' FAILED' : 'all checks passed'))
 if (failures) java.lang.System.exit(1)

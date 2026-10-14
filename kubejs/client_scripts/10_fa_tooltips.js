@@ -1,8 +1,17 @@
 // Factory Ascension - tooltips.
 
-let FA_COLORS = {
-  sharpness: 'red', protection: 'aqua', vitality: 'green', lifesteal: 'darkRed', plunder: 'yellow',
-  swiftness: 'white', retribution: 'gold', excavation: 'blue', eternal: 'lightPurple'
+// Tooltip color for each kind of enchant
+let FA_TYPE_COLORS = {
+  damage: 'red', critical: 'red', reaper: 'darkRed', cleave: 'red',
+  lifesteal: 'darkRed', hit_effect: 'lightPurple', self_effect: 'lightPurple', ignite: 'gold', hit_heal: 'green',
+  plunder: 'yellow', kill_heal: 'green', xp: 'yellow', drop: 'yellow',
+  resist: 'aqua', vitality: 'green', retribution: 'gold', dodge: 'aqua', undying: 'gold',
+  regen: 'green', passive: 'green', magnet: 'blue', repair: 'blue',
+  attribute: 'white', mining: 'blue', eternal: 'lightPurple'
+}
+
+function faColor(id) {
+  return Text[FA_TYPE_COLORS[global.FA.enchants[id].type] || 'gold']
 }
 
 ItemEvents.tooltip(event => {
@@ -15,8 +24,9 @@ ItemEvents.tooltip(event => {
     Object.keys(global.FA.enchants).forEach(id => {
       let level = data.getInt(id)
       if (level <= 0) return
-      let name = global.FA.enchants[id].name + (global.FA.enchants[id].maxLevel == 1 ? '' : ' ' + global.FA_num(level))
-      text.add(line++, Text[FA_COLORS[id] || 'gold'](name).append(Text.darkGray('  ' + global.FA_describe(id, level))))
+      let e = global.FA.enchants[id]
+      let name = e.name + (e.maxLevel == 1 ? '' : ' ' + global.FA_num(level))
+      text.add(line++, faColor(id)(name).append(Text.darkGray('  ' + global.FA_describe(id, level))))
     })
   })
 
@@ -32,9 +42,11 @@ ItemEvents.tooltip(event => {
   Object.keys(global.FA.enchants).forEach(id => {
     let e = global.FA.enchants[id]
     event.add('kubejs:tome_' + id, [
-      Text[FA_COLORS[id] || 'gold']('Level 1: ' + global.FA_describe(id, 1)),
+      faColor(id)('Level 1: ' + global.FA_describe(id, 1)),
       Text.gray('Hold gear in your other hand and right-click to unlock'),
-      Text.darkGray(e.maxLevel == 1 ? 'One-time enchant' : 'Then upgrade it with Essence: /ascension (no level cap)')
+      Text.darkGray(e.maxLevel == 1 ? 'One-time enchant'
+        : e.maxLevel ? 'Then upgrade it with Essence: /ascension (max level ' + e.maxLevel + ')'
+          : 'Then upgrade it with Essence: /ascension (no level cap)')
     ])
   })
 

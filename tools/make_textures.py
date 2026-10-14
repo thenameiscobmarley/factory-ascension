@@ -3,9 +3,11 @@
 
 Run from the repo root:  python3 tools/make_textures.py
 """
+import colorsys
 import math
 import os
 import random
+import re
 import struct
 import zlib
 
@@ -153,17 +155,33 @@ def book(cover, gem_color):
     return px
 
 
-TOMES = {
-    "sharpness": ((150, 30, 35), (255, 90, 90)),
-    "protection": ((30, 90, 150), (120, 220, 255)),
-    "vitality": ((30, 120, 50), (120, 255, 120)),
-    "lifesteal": ((90, 10, 20), (220, 30, 50)),
-    "plunder": ((150, 120, 20), (255, 230, 80)),
-    "swiftness": ((140, 150, 160), (240, 250, 255)),
-    "retribution": ((150, 80, 20), (255, 170, 60)),
-    "excavation": ((40, 50, 140), (110, 140, 255)),
-    "eternal": ((80, 30, 120), (230, 140, 255)),
+CONFIG = os.path.join(os.path.dirname(__file__), "..", "kubejs", "startup_scripts", "00_fa_config.js")
+
+# Cover hue per enchant type, so tomes of the same kind look related
+TYPE_HUES = {
+    "damage": 0.0, "critical": 0.97, "reaper": 0.93, "cleave": 0.03,
+    "lifesteal": 0.98, "hit_effect": 0.80, "self_effect": 0.75, "ignite": 0.07, "hit_heal": 0.30,
+    "plunder": 0.13, "kill_heal": 0.35, "xp": 0.20, "drop": 0.15,
+    "resist": 0.55, "vitality": 0.33, "retribution": 0.08, "dodge": 0.50, "undying": 0.11,
+    "regen": 0.38, "passive": 0.42, "magnet": 0.62, "repair": 0.65,
+    "attribute": 0.58, "mining": 0.66, "eternal": 0.78,
 }
+
+
+def tome_colors():
+    """(id -> (cover, gem)) for every enchant in the config, varied a little per enchant."""
+    text = open(CONFIG).read()
+    out = {}
+    for m in re.finditer(r"^\s{4}(\w+):\s*\{ name: '[^']*', type: '(\w+)'", text, re.M):
+        name, type_ = m.group(1), m.group(2)
+        jitter = (zlib.crc32(name.encode()) % 1000) / 1000.0
+        hue = (TYPE_HUES.get(type_, 0.5) + (jitter - 0.5) * 0.08) % 1.0
+        val = 0.42 + jitter * 0.2
+        cover = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue, 0.75, val))
+        gem_col = tuple(int(c * 255) for c in colorsys.hsv_to_rgb((hue + 0.5) % 1.0 if type_ == "eternal" else hue, 0.5, 1.0))
+        out[name] = (cover, gem_col)
+    return out
+
 
 
 def main():
@@ -182,7 +200,10 @@ def main():
                                                   [(150, 200, 255), (170, 170, 190), (120, 255, 120), (210, 140, 255)], 3), (10, 8, 14, 255)),
     }
     textures["blank_ascension_tome"] = outline(book((105, 70, 45), (190, 120, 255)), edge)
-    for name, (cover, gem_color) in TOMES.items():
+    tomes = tome_colors()
+    if len(tomes) < 9:
+        raise SystemExit('could not read enchants from ' + CONFIG)
+    for name, (cover, gem_color) in tomes.items():
         textures["tome_" + name] = outline(book(cover, gem_color), edge)
     for name, px in textures.items():
         png(os.path.join(OUT, name + ".png"), px)
