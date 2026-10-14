@@ -10,14 +10,47 @@
 const FA_ITEM_TAG = 'FactoryAscension'
 const FA_MENU_STEPS = [1, 10, 100, 1000]
 
+const FA_MAX_ESSENCE = 1e300
+const FA_MAX_LEVEL = 2147483647
+
 // ---- Essence bank ----
+// The bank lives in the world's KubeJS data. A backup copy rides in the player's own file
+// (Forge's PlayerPersisted tag, which survives death), and is only used if the world copy is missing,
+// e.g. when the KubeJS data file was lost or damaged. Bad values (NaN, negative, infinite) read as 0.
+
+function faCleanEssence(value) {
+  return typeof value == 'number' && isFinite(value) && value > 0 ? Math.min(value, FA_MAX_ESSENCE) : 0
+}
+
+function faBackup(player) {
+  let data = player.getPersistentData()
+  if (!data.contains('PlayerPersisted')) data.put('PlayerPersisted', data.getCompound('PlayerPersisted'))
+  return data.getCompound('PlayerPersisted')
+}
 
 function faGetEssence(player) {
-  return player.getServer().persistentData.getDouble('fa_essence_' + player.getStringUUID())
+  let key = 'fa_essence_' + player.getStringUUID()
+  let world = player.getServer().persistentData
+  if (!world.contains(key)) {
+    let backup = faBackup(player)
+    if (!backup.contains('fa_essence')) return 0
+    let restored = faCleanEssence(backup.getDouble('fa_essence'))
+    world.putDouble(key, restored)
+    console.warn('[Factory Ascension] restored ' + player.getScoreboardName() + "'s Essence (" + restored + ') from their player file')
+    return restored
+  }
+  let raw = world.getDouble(key)
+  let clean = faCleanEssence(raw)
+  if (clean !== raw && raw !== 0) console.warn('[Factory Ascension] ' + player.getScoreboardName() + ' had a bad Essence value (' + raw + '), reset to ' + clean)
+  return clean
 }
 
 function faSetEssence(player, value) {
-  player.getServer().persistentData.putDouble('fa_essence_' + player.getStringUUID(), Math.max(0, value))
+  let clean = faCleanEssence(value)
+  player.getServer().persistentData.putDouble('fa_essence_' + player.getStringUUID(), clean)
+  let backup = faBackup(player)
+  backup.putDouble('fa_essence', clean)
+  player.getPersistentData().put('PlayerPersisted', backup)
 }
 
 // ---- Gear ----
@@ -36,12 +69,15 @@ function faTarget(player) {
   return null
 }
 
+// Levels outside 0..max (only possible from hand-edited NBT) read as 0
 function faGetLevel(stack, id) {
   let tag = stack.getTag()
-  return tag && tag.contains(FA_ITEM_TAG) ? tag.getCompound(FA_ITEM_TAG).getInt(id) : 0
+  let level = tag && tag.contains(FA_ITEM_TAG) ? tag.getCompound(FA_ITEM_TAG).getInt(id) : 0
+  return level > 0 && level <= FA_MAX_LEVEL ? level : 0
 }
 
 function faSetLevel(stack, id, level) {
+  if (!(level >= 0 && level <= FA_MAX_LEVEL && level % 1 == 0)) throw 'bad level ' + level
   let tag = stack.getOrCreateTag()
   let data = tag.getCompound(FA_ITEM_TAG)
   data.putInt(id, level)
@@ -51,7 +87,27 @@ function faSetLevel(stack, id, level) {
 
 function faMaxLevel(id) {
   let max = global.FA.enchants[id].maxLevel
-  return max ? max : 2147483647
+  return max ? Math.min(max, FA_MAX_LEVEL) : FA_MAX_LEVEL
+}
+
+// All-or-nothing: write the new level, then the new Essence. If either write fails, put the
+// item and the bank back exactly as they were, so a failure can never give free levels or eat Essence.
+function faCommit(player, gear, id, oldLevel, newLevel, oldEssence, newEssence) {
+  try {
+    faSetLevel(gear, id, newLevel)
+    faSetEssence(player, newEssence)
+    return true
+  } catch (err) {
+    try {
+      faSetLevel(gear, id, oldLevel)
+      faSetEssence(player, oldEssence)
+    } catch (err2) {
+      console.error('[Factory Ascension] rollback failed: ' + err2)
+    }
+    console.error('[Factory Ascension] ' + id + ' change on ' + player.getScoreboardName() + "'s item failed and was undone: " + err)
+    player.tell(Text.red('Something went wrong, nothing was changed. (See the server log.)'))
+    return false
+  }
 }
 
 // ---- Feedback ----
@@ -132,7 +188,7 @@ function faShowDanger(player) {
 
 function faAbsorb(player, stack, id) {
   let count = player.isShiftKeyDown() ? stack.getCount() : 1
-  if (count <= 0) return
+  if (stack.isEmpty() || count <= 0) return
   stack.shrink(count)
   try {
     let gained = count * global.FA.essenceValues[id]
@@ -165,8 +221,8 @@ function faUnlock(player, tome, id, gear) {
     return
   }
 
-  faSetEssence(player, essence - cost)
-  faSetLevel(gear, id, 1)
+  if (!faCommit(player, gear, id, 0, 1, essence, essence - cost)) return
+  // The tome is only used up once the unlock has fully gone through
   tome.shrink(1)
   faSound(player, 'minecraft:block.enchantment_table.use', 1)
   player.tell(Text.gold(name + ' unlocked on ').append(gear.getHoverName()).append(Text.gold('! '))
@@ -205,8 +261,7 @@ function faUpgrade(player, id, amount) {
     return 0
   }
 
-  faSetEssence(player, essence - spent)
-  faSetLevel(gear, id, level)
+  if (!faCommit(player, gear, id, level - added, level, essence, essence - spent)) return 0
   faSound(player, 'minecraft:block.enchantment_table.use', 1.4)
   player.tell(Text.green('+' + global.FA_num(added) + ' ' + name + ' -> ' + global.FA_num(level) + '  ')
     .append(Text.gray('(' + global.FA_describe(id, level) + ', spent ' + global.FA_num(spent) + ' Essence)')))

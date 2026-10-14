@@ -57,7 +57,9 @@ function faLevels(entity) {
     let keys = data.getAllKeys().iterator()
     while (keys.hasNext()) {
       let id = String(keys.next())
-      levels[id] = (levels[id] || 0) + data.getInt(id)
+      let value = data.getInt(id)
+      // Ignore broken values (only possible from hand-edited NBT) and cap totals, so nothing overflows
+      if (value > 0) levels[id] = Math.min(2000000000, (levels[id] || 0) + value)
     }
   }
   return levels
@@ -514,7 +516,9 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     while (it.hasNext()) {
       let itemEntity = it.next()
       let stack = itemEntity.getItem()
-      if (mult <= 1 || stack.isEmpty()) continue
+      // Only plain stackable drops are multiplied. Gear and anything with NBT (named, enchanted, or an
+      // item the mob picked up) is never copied, so loot bonuses can't duplicate a player's items.
+      if (mult <= 1 || stack.isEmpty() || stack.getMaxStackSize() <= 1 || stack.hasTag()) continue
       let total = faRoll(stack.getCount() * mult)
       let max = stack.getMaxStackSize()
       itemEntity.setItem(stack.copyWithCount(Math.min(total, max)))

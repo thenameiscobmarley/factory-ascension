@@ -318,3 +318,97 @@ global.FA_cost = (level, id) => {
   let mult = e && e.mythic ? global.FA.mythicCostMultiplier : 1
   return Math.ceil(global.FA.costBase * Math.pow(level + 1, global.FA.costPower) * mult)
 }
+
+// ---- Config check ----
+// Runs at startup. A typo or bad number switches that one thing off (with a log line) instead of
+// crashing the game or writing bad data into items and worlds.
+
+global.FA_TYPES = {
+  // type: fields that must be numbers (perLevel etc.)
+  damage: ['perLevel'], resist: ['perLevel'], critical: ['critMultiplier'], reaper: ['perLevel', 'cap'], cleave: ['perLevel', 'radius'],
+  lifesteal: ['perLevel'], hit_effect: ['seconds', 'ampEvery'], self_effect: ['seconds', 'ampEvery'], ignite: ['perLevel'],
+  hit_heal: ['perLevel'], plunder: ['perLevel'], kill_heal: ['perLevel'], xp: ['perLevel'], drop: ['perLevel'],
+  vitality: ['perLevel'], retribution: ['perLevel'], dodge: ['cap'], undying: ['cooldown', 'perLevel', 'minCooldown'],
+  regen: ['perLevel'], passive: [], magnet: ['perLevel', 'base', 'cap'], repair: ['perLevel'], attribute: ['perLevel'],
+  mining: ['perLevel'], eternal: [], flight: [], chain_lightning: ['perLevel', 'radius'], gravity_well: ['perLevel', 'base', 'cap'],
+  death_nova: ['perLevel'], time_stop: [], phoenix: ['cooldown', 'perLevel', 'minCooldown'], projectile_teleport: [],
+  souls: ['perLevel'], overkill: ['perLevel', 'radius'], rampage: ['perLevel', 'maxStacks', 'seconds'], vein: ['perLevel', 'cap'],
+  aura: ['perLevel'], heads: ['perLevel'], slam: ['perLevel']
+}
+let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
+let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
+
+global.FA_validate = cfg => {
+  let problems = []
+  let okNum = (v, min) => typeof v == 'number' && isFinite(v) && v >= min
+  let need = (v, path, min) => {
+    if (okNum(v, min || 0)) return true
+    problems.push(path + ' must be a number >= ' + (min || 0) + ' (got ' + v + ')')
+    return false
+  }
+
+  Object.keys(cfg.enchants).forEach(id => {
+    let e = cfg.enchants[id]
+    let ok = /^[a-z0-9_]+$/.test(id) && typeof e.name == 'string' && e.name.length > 0
+    if (!ok) problems.push('enchant "' + id + '" needs a lowercase id and a name')
+    let fields = global.FA_TYPES[e.type]
+    if (!fields) {
+      problems.push('enchant "' + id + '" has unknown type "' + e.type + '"')
+      ok = false
+    } else {
+      fields.forEach(f => { if (!need(e[f], 'enchants.' + id + '.' + f, 0)) ok = false })
+    }
+    ;['cap', 'radius', 'seconds', 'maxAmp', 'cooldown', 'minCooldown', 'base', 'maxStacks'].forEach(f => {
+      if (e[f] !== undefined && !need(e[f], 'enchants.' + id + '.' + f, 0)) ok = false
+    })
+    if (e.ampEvery !== undefined && !need(e.ampEvery, 'enchants.' + id + '.ampEvery', 1)) ok = false
+    if (e.maxLevel !== undefined && (!need(e.maxLevel, 'enchants.' + id + '.maxLevel', 1) || e.maxLevel % 1 != 0)) ok = false
+    if (e.type == 'damage' && FA_WHEN[e.when] === undefined) { problems.push('enchants.' + id + '.when "' + e.when + '" is unknown'); ok = false }
+    if (e.type == 'resist' && FA_VS.indexOf(e.vs) < 0) { problems.push('enchants.' + id + '.vs "' + e.vs + '" is unknown'); ok = false }
+    if (e.type == 'attribute' && !(e.attrs && e.attrs.length && e.attrs.every(a => FA_ATTRS.indexOf(a) >= 0))) {
+      problems.push('enchants.' + id + '.attrs must list known attributes: ' + FA_ATTRS.join(', '))
+      ok = false
+    }
+    if (e.type == 'vein' && e.blocks != 'ores' && e.blocks != 'logs') { problems.push('enchants.' + id + ".blocks must be 'ores' or 'logs'"); ok = false }
+    if (e.type == 'drop' && !/^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(String(e.item))) { problems.push('enchants.' + id + '.item is not an item id'); ok = false }
+    if (['hit_effect', 'self_effect', 'passive'].indexOf(e.type) >= 0 && e.effect === undefined) { problems.push('enchants.' + id + '.effect is missing'); ok = false }
+    if (e.effect !== undefined && !/^[A-Z_]+$/.test(String(e.effect))) { problems.push('enchants.' + id + '.effect must be a MobEffects field like NIGHT_VISION'); ok = false }
+    if (!ok) {
+      delete cfg.enchants[id]
+      problems.push('enchant "' + id + '" was switched off')
+    }
+  })
+
+  // Essence must follow the 9:1 compression, or unpacking cores would create Essence from nothing
+  let ev = cfg.essenceValues
+  let core = ev['kubejs:ascension_core']
+  if (!okNum(core, 0.000001) || ev['kubejs:dense_ascension_core'] != 9 * core || ev['kubejs:ascension_singularity'] != 81 * core) {
+    problems.push('essenceValues must be 1 : 9 : 81 (core : dense : singularity), reset to 1 / 9 / 81')
+    cfg.essenceValues = { 'kubejs:ascension_core': 1, 'kubejs:dense_ascension_core': 9, 'kubejs:ascension_singularity': 81 }
+  }
+  if (!okNum(cfg.costBase, 0.000001)) { problems.push('costBase reset to 0.05'); cfg.costBase = 0.05 }
+  if (!okNum(cfg.costPower, 0)) { problems.push('costPower reset to 1'); cfg.costPower = 1 }
+  if (!okNum(cfg.mythicCostMultiplier, 1)) { problems.push('mythicCostMultiplier reset to 5'); cfg.mythicCostMultiplier = 5 }
+  ;['maxExtraDropStacks', 'maxCleaveTargets', 'maxUpgradesPerCommand'].forEach(f => {
+    if (!okNum(cfg[f], 1)) { problems.push(f + ' reset to 8'); cfg[f] = 8 }
+  })
+
+  let d = cfg.danger
+  let dangerOk = ['safeRadius', 'netherScale', 'netherBonus', 'endBonus', 'healthPerLevel', 'damagePerLevel', 'lootPerLevel',
+    'xpPerLevel', 'eliteChancePerLevel', 'eliteChanceCap', 'maxLevel'].every(f => need(d[f], 'danger.' + f, 0)) &&
+    need(d.blocksPerLevel, 'danger.blocksPerLevel', 1) && need(d.eliteHealth, 'danger.eliteHealth', 1) &&
+    need(d.eliteDamage, 'danger.eliteDamage', 0) && need(d.eliteLoot, 'danger.eliteLoot', 0) &&
+    d.zones && d.zones.length > 0 && d.zones[0].from == 0
+  if (!dangerOk && d.enabled) {
+    problems.push('danger settings are broken, so danger scaling was switched off')
+    d.enabled = false
+  }
+  let f = cfg.fragments
+  if (!['eliteChance', 'eliteChancePerLevel', 'eliteChanceCap', 'normalChancePerLevel', 'normalChanceCap'].every(k => okNum(f[k], 0) && f[k] <= 1)) {
+    problems.push('fragment chances must be between 0 and 1, reset to defaults')
+    cfg.fragments = { eliteChance: 0.15, eliteChancePerLevel: 0.005, eliteChanceCap: 0.75, normalChancePerLevel: 0.002, normalChanceCap: 0.05 }
+  }
+  return problems
+}
+
+global.FA_validate(global.FA).forEach(p => console.error('[Factory Ascension] config: ' + p))

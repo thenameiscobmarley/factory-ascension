@@ -14,7 +14,9 @@ function near(a, b) { return Math.abs(a - b) < 1e-6 * Math.max(1, Math.abs(b)) }
 // ---------------- Fakes ----------------
 var handlers = { registry: [], recipes: [], rightClicked: {}, commands: [], tooltip: [], forge: {} }
 var global = {}
-var console = { info: function (m) { print('  [info] ' + m) }, error: function (m) { print('  [error] ' + m) } }
+var logged = []
+var console = { info: function (m) { print('  [info] ' + m) }, warn: function (m) { logged.push(m) }, error: function (m) { logged.push(m); if (!quiet) print('  [error] ' + m) } }
+var quiet = false
 
 function fakeText(s) {
   return {
@@ -110,6 +112,7 @@ function stack(count, max, name) {
     shrink: function (n) { this.count -= n },
     copyWithCount: function (n) { var c = stack(n, this.max, this.name); c.tag = this.tag; c.id = this.id; return c },
     getTag: function () { return this.tag },
+    hasTag: function () { return !!this.tag },
     getOrCreateTag: function () { if (!this.tag) this.tag = new Compound(); return this.tag },
     getHoverName: function () { return fakeText(this.name) }
   }
@@ -127,6 +130,8 @@ function makePlayer(server, uuid) {
   p.main = stack(0); p.off = stack(0); p.armor = [stack(0), stack(0), stack(0), stack(0)]
   p.health = 20; p.healed = 0; p.messages = []; p.bar = []; p.given = []; p.sneaking = false; p.attrs = attrs; p.effects = []
   p.getServer = function () { return server }
+  p.pdata = new Compound()
+  p.getPersistentData = function () { return this.pdata }
   p.getStringUUID = function () { return uuid }
   p.getScoreboardName = function () { return 'Tester' }
   p.isShiftKeyDown = function () { return this.sneaking }
@@ -487,8 +492,11 @@ Item.of = function (id, n) { var st = stack(n || 1); st.id = id; return st }
 var d1 = dropEvent(hero({ plunder: 20 }), makeMob(), [stack(3)]); dropsHook(d1)
 check('Plunder 20 doubles drops', totalCount(d1) == 6, totalCount(d1))
 var d2 = dropEvent(hero({ plunder: 20 }), makeMob(), [stack(1, 1)]); dropsHook(d2)
-check('unstackables become extra entities', d2.list.arr.length == 2)
-var d3 = dropEvent(hero({ plunder: 100000 }), makeMob(), [stack(1, 1)]); dropsHook(d3)
+check('gear drops are never duplicated', d2.list.arr.length == 1 && d2.list.arr[0].s.count == 1)
+var tagged = stack(5); tagged.tag = new Compound()
+var dt = dropEvent(hero({ plunder: 20 }), makeMob(), [tagged]); dropsHook(dt)
+check('items with NBT are never duplicated', totalCount(dt) == 5 && dt.list.arr.length == 1)
+var d3 = dropEvent(hero({ plunder: 100000 }), makeMob(), [stack(64)]); dropsHook(d3)
 check('extra stacks capped at 8', d3.list.arr.length == 9, d3.list.arr.length)
 var d4 = dropEvent(hero({ plunder: 20 }), makePlayer(server, 'v'), [stack(64)]); dropsHook(d4)
 check('player death drops untouched', totalCount(d4) == 64 && d4.list.arr.length == 1)
@@ -743,6 +751,146 @@ var slammer = hero({ gravity_slam: 2 }, 'slam'), sl1 = makeMob(); slammer.nearby
 var fall = { mult: 1, getEntity: function () { return slammer }, getDistance: function () { return 10 }, setDamageMultiplier: function (m) { this.mult = m } }
 handlers.forge['LivingFallEvent'](fall)
 check('Gravity Slam: no fall damage, 10 blocks x level 2 = 20 damage around you', fall.mult == 0 && sl1.hurtBy[0] == 20)
+
+// ---------------- Safety ----------------
+print('\nsafety: config')
+check('shipped config has no problems', global.FA_validate(JSON.parse(JSON.stringify(global.FA))).length == 0,
+  global.FA_validate(JSON.parse(JSON.stringify(global.FA))).join('; '))
+var bad = JSON.parse(JSON.stringify(global.FA))
+bad.enchants.typo = { name: 'Typo', type: 'damgae', perLevel: 1 }
+bad.enchants.nan = { name: 'NaN', type: 'damage', when: 'always', perLevel: NaN }
+bad.enchants.neg = { name: 'Neg', type: 'resist', vs: 'all', perLevel: -1 }
+bad.enchants.badwhen = { name: 'W', type: 'damage', when: 'tuesdays', perLevel: 1 }
+bad.enchants.noeffect = { name: 'E', type: 'passive' }
+bad.enchants.badattr = { name: 'A', type: 'attribute', attrs: ['jump'], perLevel: 1 }
+bad.enchants.frac = { name: 'F', type: 'eternal', maxLevel: 1.5 }
+bad.essenceValues['kubejs:dense_ascension_core'] = 10
+bad.danger.blocksPerLevel = 0
+bad.fragments.eliteChance = 7
+var problems = global.FA_validate(bad)
+check('broken enchants are switched off, good ones kept', ['typo', 'nan', 'neg', 'badwhen', 'noeffect', 'badattr', 'frac'].every(function (id) { return !bad.enchants[id] }) &&
+  Object.keys(bad.enchants).length == enchantCount, Object.keys(bad.enchants).length)
+check('Essence values that break 1:9:81 are reset (no Essence from unpacking)', bad.essenceValues['kubejs:dense_ascension_core'] == 9)
+check('broken danger settings switch danger off instead of crashing', bad.danger.enabled === false)
+check('fragment chances over 100% are reset', bad.fragments.eliteChance == 0.15)
+check('every problem is reported', problems.length >= 11, problems.length)
+
+print('\nsafety: Essence storage')
+var saver = makePlayer(server, 'saver')
+faSetEssence(saver, 500)
+server.persistentData.remove('fa_essence_saver')
+check('lost world data is restored from the player file backup', faGetEssence(saver) == 500 && server.persistentData.getDouble('fa_essence_saver') == 500)
+server.persistentData.putDouble('fa_essence_saver', NaN)
+check('NaN Essence reads as 0', faGetEssence(saver) === 0)
+server.persistentData.putDouble('fa_essence_saver', -50)
+check('negative Essence reads as 0', faGetEssence(saver) === 0)
+server.persistentData.putDouble('fa_essence_saver', Infinity)
+check('infinite Essence reads as 0', faGetEssence(saver) === 0)
+faSetEssence(saver, 1e400)
+check('Essence never stores Infinity or NaN', faGetEssence(saver) === 0 && isFinite(server.persistentData.getDouble('fa_essence_saver')))
+var hacked = gear('Hacked'); hacked.getOrCreateTag().put('FactoryAscension', new Compound()); hacked.tag.d.FactoryAscension.putInt('sharpness', -500)
+check('negative levels from edited NBT read as 0', faGetLevel(hacked, 'sharpness') == 0)
+var hackedHero = makePlayer(server, 'hh'); hackedHero.main = hacked
+check('...and never weaken or break combat', hit(hackedHero, makeMob(), 10) == 10)
+
+print('\nsafety: transactions')
+var tx = makePlayer(server, 'tx')
+faSetEssence(tx, 100)
+var cursed = gear('Cursed'); var txTome = stack(1)
+cursed.getOrCreateTag = function () { throw 'item vanished' }
+tx.main = txTome; tx.off = cursed
+quiet = true
+handlers.rightClicked['kubejs:tome_sharpness']({ player: tx, item: txTome, hand: 'MAIN_HAND', cancel: function () {} })
+quiet = false
+check('a failed unlock keeps the tome and the Essence', txTome.count == 1 && faGetEssence(tx) == 100)
+var good = gear('Good'); faSetLevel(good, 'sharpness', 5); tx.main = good
+var realPut = server.persistentData.putDouble
+server.persistentData.putDouble = function (k, v) { if (k == 'fa_essence_tx' && v < 100) throw 'disk full'; realPut.call(this, k, v) }
+quiet = true
+faUpgrade(tx, 'sharpness', 10)
+quiet = false
+server.persistentData.putDouble = realPut
+check('a failed upgrade is rolled back (no free levels)', faGetLevel(good, 'sharpness') == 5 && faGetEssence(tx) == 100, faGetLevel(good, 'sharpness') + ' / ' + faGetEssence(tx))
+var maxed = gear('Maxed'); faSetLevel(maxed, 'sharpness', 2147483646); tx.main = maxed
+faSetEssence(tx, 1e300)
+faUpgrade(tx, 'sharpness', 100000)
+check('levels stop at the int limit instead of overflowing', faGetLevel(maxed, 'sharpness') == 2147483647)
+var threw = false
+try { faSetLevel(maxed, 'sharpness', 2147483648) } catch (e) { threw = true }
+check('writing an out-of-range level is refused', threw && faGetLevel(maxed, 'sharpness') == 2147483647)
+var stackOf2 = stack(2, 1); tx.main = stackOf2
+check('only single items can be upgraded', faUpgrade(tx, 'sharpness', 1) == 0)
+var onlyTags = gear('Clean'); tx.main = onlyTags; faSetEssence(tx, 1000)
+var t2 = stack(1); tx.off = t2; tx.main = onlyTags
+handlers.rightClicked['kubejs:tome_eternal']({ player: tx, item: t2, hand: 'OFF_HAND', cancel: function () {} })
+faUpgrade(tx, 'eternal', 1)
+check('only the FactoryAscension and Unbreakable tags are ever written to items',
+  Object.keys(onlyTags.tag.d).every(function (k) { return k == 'FactoryAscension' || k == 'Unbreakable' }), Object.keys(onlyTags.tag.d).join(','))
+
+print('\nsafety: no duplication (fuzz)')
+// A seeded random mix of absorbing, unlocking, upgrading and failed attempts. Afterwards every bit of
+// Essence must be accounted for: absorbed = still in the bank + exactly what the levels on items cost.
+var seed = 12345
+function rnd(n) { seed = (seed * 1103515245 + 12345) % 2147483648; return Math.floor(seed / 2147483648 * n) }
+var fz = makePlayer(server, 'fuzz')
+var fzGear = [gear('A'), gear('B'), gear('C'), gear('D')]
+var ids = Object.keys(E)
+var absorbed = 0, tomesUsed = 0, tomesMade = 0
+for (var step = 0; step < 3000; step++) {
+  var op = rnd(10)
+  if (op < 3) {
+    var cid = Object.keys(global.FA.essenceValues)[rnd(3)]
+    var cstack = stack(1 + rnd(64))
+    fz.sneaking = rnd(2) == 1
+    var before2 = cstack.count
+    handlers.rightClicked[cid]({ player: fz, item: cstack, cancel: function () {} })
+    absorbed += (before2 - cstack.count) * global.FA.essenceValues[cid]
+  } else if (op < 6) {
+    var eid = ids[rnd(ids.length)]
+    var tm = stack(1 + rnd(3)); tomesMade += tm.count
+    fz.main = tm; fz.off = fzGear[rnd(4)]
+    var tb = tm.count
+    handlers.rightClicked['kubejs:tome_' + eid]({ player: fz, item: tm, hand: 'MAIN_HAND', cancel: function () {} })
+    tomesUsed += tb - tm.count
+  } else {
+    fz.main = fzGear[rnd(4)]; fz.off = stack(0)
+    faUpgrade(fz, ids[rnd(ids.length)], [1, 10, 100, 1000, 100000][rnd(5)])
+  }
+  if (faGetEssence(fz) < 0) break
+}
+var spentOnItems = 0, unlocked = 0
+fzGear.forEach(function (g) {
+  ids.forEach(function (id) {
+    var lv = faGetLevel(g, id)
+    if (lv > 0) unlocked++
+    for (var k2 = 0; k2 < lv; k2++) spentOnItems += global.FA_cost(k2, id)
+  })
+})
+print('  info absorbed ' + absorbed + ', bank ' + faGetEssence(fz) + ', on items ' + spentOnItems + ', unlocks ' + unlocked)
+check('Essence is conserved: absorbed = bank + cost of every level on items', near(absorbed, faGetEssence(fz) + spentOnItems), absorbed + ' vs ' + (faGetEssence(fz) + spentOnItems))
+check('exactly one tome used per unlock', tomesUsed == unlocked, tomesUsed + ' vs ' + unlocked)
+check('Essence never went negative', faGetEssence(fz) >= 0)
+
+print('\nsafety: recipes and hooks')
+var outputs = {}
+recipes.forEach(function (r) {
+  var ins = (r.json.ingredients || []).map(function (i) { return i.item }).concat(r.json.ingredient ? [r.json.ingredient.item] : [])
+  ;(r.json.results || []).forEach(function (o) { if (ins.indexOf(o.item) >= 0 && o.item != 'kubejs:incomplete_ascension_core') outputs[r.rid] = o.item })
+})
+check('no recipe gives back its own input (no duplication loops)', Object.keys(outputs).length == 0, JSON.stringify(outputs))
+var core9 = byId('dense_ascension_core').json.ingredients.length, dense9 = byId('ascension_singularity').json.ingredients.length
+check('compression recipes match Essence values (9 cores = 1 dense, 9 dense = 1 singularity)', core9 == 9 && dense9 == 9)
+var boom = makeMob(); boom.hurt = function () { throw 'mob exploded' }
+var victim3 = makeMob(); victim3.nearby = [boom]
+quiet = true
+hit(hero({ cleave: 5 }), victim3, 10)
+quiet = false
+var nextHit = makeMob(), victim4 = makeMob(); victim4.nearby = [nextHit]
+hit(hero({ cleave: 5 }), victim4, 10)
+check('a crash inside a secondary hit never leaves enchants switched off', nextHit.hurtBy.length == 1)
+var reload = makeMob(); reload.pdata.putInt('fa_danger', 7)
+spawn(reload, 60000, { fromDisk: true })
+check('reloaded mobs keep their saved danger level', reload.pdata.getInt('fa_danger') == 7)
 
 print('\n' + (failures ? failures + ' FAILED' : 'all checks passed'))
 if (failures) java.lang.System.exit(1)

@@ -113,21 +113,34 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 
 ## Safety
 
-- Essence is saved per player in the world's KubeJS data. Enchant levels live on the item.
+**No duplication**
+- Loot bonuses (Plunder, danger zones) only multiply plain stackable drops. Gear and anything with NBT,
+  like an enchanted sword a zombie picked up, is never copied.
+- Upgrades are all-or-nothing: the item and the Essence bank change together, or neither changes.
+  A tome is only used up after its unlock fully succeeds. If absorbing cores fails, the cores come back.
+- Core values must follow the 9 : 1 compression (1 : 9 : 81 Essence), so unpacking can never create Essence.
+- A fuzz test runs 3,000 random absorbs, unlocks and upgrades and checks that every bit of Essence is
+  accounted for: absorbed = bank + exactly what the levels on items cost.
+
+**No corruption**
+- Essence is saved in the world's KubeJS data, with a backup in the player's own file that survives death.
+  If the world copy is ever lost, the backup restores it.
+- Bad values (NaN, negative, infinite, out-of-range levels from hand-edited NBT) read as 0 and are never written.
+- Only two tags are ever written to items: `FactoryAscension` and `Unbreakable` (from Eternal).
+- Stat bonuses are temporary modifiers that are re-applied on login, so removing the scripts leaves no broken attributes.
+- A config check runs at startup. A typo or bad number switches that one enchant or feature off,
+  with a log line, instead of crashing or writing bad data.
+
+**No runaway effects**
 - `/kill` and the void still kill you, whatever your Protection, and still kill scaled mobs too.
-- A mob's danger level is saved on the mob, so it never changes or rolls again after a reload.
-- Player death drops are never multiplied. Extra loot per kill is capped so Plunder can't lag the server.
-- Cleave and Retribution damage can't trigger more enchants, so there are no chain reactions or infinite loops.
-- Cleave only hits hostile mobs, never players, pets or villagers. Reaper never executes bosses.
-- Evasion maxes out at 75%, and effect amplifiers stop at 128, so nothing breaks vanilla limits.
-- Thunderlord's lightning is visual only: no fires, no charged creepers, no hurting yourself.
-- Mythic area effects (Meteor, Radiance, Gravity Slam, Phoenix) only hit hostile mobs, and their damage never triggers more enchants, so Meteor kills can't chain-explode a whole farm.
+- Cleave, Retribution, Meteor, Radiance, Gravity Slam and Phoenix damage can't trigger more enchants,
+  so there are no chain reactions or infinite loops. Area effects only hit hostile mobs.
+- Reaper never executes bosses. Evasion maxes out at 75%. Effect amplifiers stop at 128.
+- Extra loot per kill is capped so high levels can't lag the server.
+- Thunderlord's lightning is visual only: no fires, no charged creepers.
 - Wings remembers it gave you flight, so taking it off removes flight again, even after a restart. Creative flight is never touched.
-- Vein Miner and Timber break blocks the same way you do (tool, Fortune, durability), stop if the tool breaks, and have a block limit.
-- If absorbing cores fails, the items are given back. A tome is only used up when the unlock succeeds.
-- Only single unstackable items (tools, weapons, armor) can be enchanted, never a stack.
-- Recipes that use other mods only load when those mods are installed.
-- A broken hook logs one error and switches itself off instead of spamming the log.
+- Vein Miner and Timber break blocks the way you do (tool, Fortune, durability, claim protection), stop if the tool breaks, and have a block limit.
+- A broken hook logs one error and steps aside instead of spamming the log.
 
 ## Commands
 
@@ -141,7 +154,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 150 checks: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 177 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
