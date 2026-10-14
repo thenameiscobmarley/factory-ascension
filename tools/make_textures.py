@@ -14,6 +14,8 @@ import re
 import struct
 import zlib
 
+import tome_art
+
 OUT = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "textures", "item")
 N = 16
 
@@ -111,7 +113,8 @@ def emboss(px, strength):
 
 def hd_item(base, edge, path):
     seed = _seed(path)
-    px = emboss(scale2x(base), 1.1)
+    # 16x16 sprites are doubled with Scale2x; tomes are already drawn at 32x32 (tome_art.py)
+    px = emboss(scale2x(base) if len(base) == N else base, 1.1)
     n = len(px)
     opaque = lambda x, y: 0 <= x < n and 0 <= y < n and px[y][x][3] > 0
     out = [row[:] for row in px]
@@ -523,21 +526,21 @@ def tome_colors():
         name, type_ = m.group(1), m.group(2)
         if "ultimate: true" in m.group(3):
             # Ultimate: black cover, crimson-gold gem (book() adds the gold trim)
-            out[name] = ((14, 8, 10), tuple(int(c * 255) for c in colorsys.hsv_to_rgb((zlib.crc32(name.encode()) % 100) / 100.0 * 0.12, 0.8, 1.0)), True)
+            out[name] = ((14, 8, 10), tuple(int(c * 255) for c in colorsys.hsv_to_rgb((zlib.crc32(name.encode()) % 100) / 100.0 * 0.12, 0.8, 1.0)), 'ultimate')
             continue
         if "mythic: true" in m.group(3):
             # Mythic: near-black cover, bright gem, gold trim (see book())
             hue = TYPE_HUES.get(type_, 0.5)
             cover = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue, 0.6, 0.18))
             gem_col = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue, 0.65, 1.0))
-            out[name] = (cover, gem_col, True)
+            out[name] = (cover, gem_col, 'mythic')
             continue
         jitter = (zlib.crc32(name.encode()) % 1000) / 1000.0
         hue = (TYPE_HUES.get(type_, 0.5) + (jitter - 0.5) * 0.08) % 1.0
         val = 0.42 + jitter * 0.2
         cover = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue, 0.75, val))
         gem_col = tuple(int(c * 255) for c in colorsys.hsv_to_rgb((hue + 0.5) % 1.0 if type_ == "eternal" else hue, 0.5, 1.0))
-        out[name] = (cover, gem_col, False)
+        out[name] = (cover, gem_col, 'ascended')
     return out
 
 
@@ -761,18 +764,36 @@ def main():
         "exotic_mineral_cluster": outline(cluster((60, 55, 70), (25, 22, 30),
                                                   [(150, 200, 255), (170, 170, 190), (120, 255, 120), (210, 140, 255)], 3), (10, 8, 14, 255)),
     }
-    textures["blank_ascension_tome"] = outline(book((105, 70, 45), (190, 120, 255)), edge)
+    # Tomes: drawn at 32x32 by tome_art.py, every one a different design
+    tome32 = lambda px: Outlined(px, px, edge)
+    textures["blank_ascension_tome"] = tome32(tome_art.blank_tome())
     tomes = tome_colors()
     if len(tomes) < 9:
         raise SystemExit('could not read enchants from ' + CONFIG)
-    for name, (cover, gem_color, mythic) in tomes.items():
-        textures["tome_" + name] = outline(book(cover, gem_color, mythic), edge)
-    # Fusion tomes: a split cover, one half in each parent's colors
+    masks = {}
+    for name in tomes:
+        m = tuple(tuple(r) for r in tome_art.emblem_mask(name, 14))
+        if m in masks:
+            raise SystemExit('emblems for %s and %s are identical' % (masks[m], name))
+        masks[m] = name
+    missing = [n for n in tomes if n not in tome_art.EMBLEMS]
+    if missing:
+        print('no designed emblem (using a rune) for: ' + ', '.join(missing))
+    for name, (cover, gem_color, kind) in tomes.items():
+        textures["tome_" + name] = tome32(tome_art.tome(name, cover, gem_color, kind))
+    # Fusion tomes: split cover, each half in a parent's color with its emblem
     for fid, a, b in fusions():
-        textures["tome_" + fid] = outline(fusion_book(tomes[a], tomes[b]), edge)
+        textures["tome_" + fid] = tome32(tome_art.fusion_tome(a, b, tomes[a], tomes[b]))
+    seen = {}
+    for name, px in textures.items():
+        if name.startswith("tome_"):
+            key = tuple(tuple(r) for r in px)
+            if key in seen:
+                raise SystemExit('tome textures %s and %s are identical' % (seen[key], name))
+            seen[key] = name
     textures["mythic_fragment"] = outline(fragment(), (30, 8, 40, 255))
     textures["ascended_soul"] = outline(soul(), (10, 20, 40, 255))
-    textures["chaos_tome"] = outline(chaos_book(), edge)
+    textures["chaos_tome"] = Outlined(tome_art.chaos_tome(), tome_art.chaos_tome(), edge)
     gems = gem_colors()
     if len(gems) < 6:
         raise SystemExit('could not read gem colors from ' + CONFIG)

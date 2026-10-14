@@ -335,6 +335,14 @@ function pngSize(path) { var d = java.nio.file.Files.readAllBytes(new File(path)
 var staleTex = created.map(function (id) { return 'kubejs/assets/kubejs/textures/item/' + id + '.png' }).concat(createdBlocks.map(function (b) { return 'kubejs/assets/kubejs/textures/block/' + b + '.png' }))
   .filter(function (f) { return new File(f).exists() && pngSize(f) != '32x32' })
 check('every item and block texture is 32x32 (none skipped by tools/make_textures.py)', staleTex.length == 0, staleTex.slice(0, 5).join(', '))
+// Every tome has its own design (tools/tome_art.py): no two tome textures may be the same picture
+var tomeHashes = {}, sameTomes = []
+created.filter(function (id) { return id.indexOf('tome_') == 0 }).forEach(function (id) {
+  var md = java.security.MessageDigest.getInstance('MD5')
+  var h = String(new java.math.BigInteger(1, md.digest(java.nio.file.Files.readAllBytes(new File('kubejs/assets/kubejs/textures/item/' + id + '.png').toPath()))).toString(16))
+  if (tomeHashes[h]) sameTomes.push(tomeHashes[h] + ' = ' + id); else tomeHashes[h] = id
+})
+check('all ' + enchantCount + ' enchant tomes have a unique design', sameTomes.length == 0 && Object.keys(tomeHashes).length == enchantCount, sameTomes.slice(0, 3).join(', '))
 
 // ---------------- Recipes ----------------
 print('\nrecipes')

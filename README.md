@@ -294,6 +294,11 @@ Far-out mobs are tougher, but drop more.
 The enchants show in the item's tooltip right under its name, with what they do, e.g.
 `Ascended Sharpness 101  x11.10 damage`.
 
+Every one of the 286 enchant tomes has its own cover: each base enchant has an emblem that shows what it does
+(a sword for Sharpness, a spider for Bane, an hourglass for Chronos...), Mythic tomes get a gold frame and a glow,
+Ultimates a black-and-crimson double frame with a ribbon, and Fusion tomes split the cover between both parents'
+colors and emblems. The emblems are in `tools/tome_art.py`.
+
 Every item the pack adds has a flavor line, and **Hold Shift** for details: where it comes from, its exact recipe,
 and what it's for. Tomes also show what the enchant does at levels 10, 100 and 1,000 and the Essence it takes to get there.
 
@@ -360,7 +365,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 331 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 332 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
