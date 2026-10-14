@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+"""Generate the 16x16 item textures for Factory Ascension (stdlib only).
+
+Run from the repo root:  python3 tools/make_textures.py
+"""
+import math
+import os
+import random
+import struct
+import zlib
+
+OUT = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "textures", "item")
+N = 16
+
+
+def png(path, px):
+    raw = b"".join(b"\x00" + bytes(c for p in row for c in p) for row in px)
+
+    def chunk(tag, data):
+        return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+
+    with open(path, "wb") as f:
+        f.write(b"\x89PNG\r\n\x1a\n")
+        f.write(chunk(b"IHDR", struct.pack(">IIBBBBB", N, N, 8, 6, 0, 0, 0)))
+        f.write(chunk(b"IDAT", zlib.compress(raw, 9)))
+        f.write(chunk(b"IEND", b""))
+
+
+def blank():
+    return [[(0, 0, 0, 0) for _ in range(N)] for _ in range(N)]
+
+
+def lerp(a, b, t):
+    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(len(a)))
+
+
+def outline(px, color):
+    """Dark 1px outline around every opaque pixel, like vanilla items."""
+    out = [row[:] for row in px]
+    for y in range(N):
+        for x in range(N):
+            if px[y][x][3]:
+                continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < N and 0 <= ny < N and px[ny][nx][3] and px[ny][nx] != color:
+                    out[y][x] = color
+                    break
+    return out
+
+
+def gem(radius, top, bottom, shine, dim=1.0):
+    """Diamond-shaped gem with a vertical gradient and a highlight."""
+    px = blank()
+    c = 7.5
+    for y in range(N):
+        for x in range(N):
+            d = abs(x - c) + abs(y - c)
+            if d <= radius:
+                t = (y - (c - radius)) / (2 * radius)
+                col = lerp(top, bottom, max(0.0, min(1.0, t)))
+                # Facet: left half a bit darker
+                if x < c:
+                    col = lerp(col, (0, 0, 0), 0.18)
+                # Core glow
+                if d <= radius * 0.35:
+                    col = lerp(col, shine, 0.65)
+                col = tuple(int(v * dim) for v in col)
+                px[y][x] = col + (255,)
+    # Highlight pixels on the upper-left facet
+    for x, y in ((6, 4), (5, 5), (6, 5)):
+        if px[y][x][3]:
+            px[y][x] = shine + (255,)
+    return px
+
+
+def ring(px, radius, color):
+    for a in range(0, 360, 4):
+        x = int(round(7.5 + radius * math.cos(math.radians(a))))
+        y = int(round(7.5 + radius * math.sin(math.radians(a))))
+        if 0 <= x < N and 0 <= y < N and not px[y][x][3]:
+            px[y][x] = color + (255,)
+    return px
+
+
+def singularity():
+    px = blank()
+    for y in range(N):
+        for x in range(N):
+            dx, dy = x - 7.5, y - 7.5
+            r = math.hypot(dx, dy)
+            if r > 6.6:
+                continue
+            ang = math.atan2(dy, dx)
+            swirl = (math.sin(ang * 3 + r * 1.3) + 1) / 2
+            base = lerp((20, 6, 34), (90, 30, 140), 1 - r / 6.6)
+            col = lerp(base, (255, 196, 64), swirl ** 4 * 0.9)
+            if r < 1.6:
+                col = (255, 244, 210)
+            px[y][x] = col + (255,)
+    return px
+
+
+def cluster(rock_light, rock_dark, specks, seed):
+    rnd = random.Random(seed)
+    px = blank()
+    for y in range(N):
+        for x in range(N):
+            dx, dy = (x - 7.5) / 6.4, (y - 8.0) / 5.6
+            wobble = 0.12 * math.sin(x * 1.7 + seed) + 0.1 * math.cos(y * 2.1 + seed)
+            if dx * dx + dy * dy <= 1 + wobble:
+                t = (y + x * 0.5) / (N * 1.5)
+                col = lerp(rock_light, rock_dark, t)
+                if rnd.random() < 0.18:
+                    col = lerp(col, (0, 0, 0), 0.2)
+                px[y][x] = col + (255,)
+    filled = [(x, y) for y in range(N) for x in range(N) if px[y][x][3]]
+    rnd.shuffle(filled)
+    for i, (x, y) in enumerate(filled[: len(specks) * 4]):
+        color = specks[i % len(specks)]
+        px[y][x] = color + (255,)
+        # Small sparkle next to some specks
+        if i % 3 == 0 and x + 1 < N and px[y][x + 1][3]:
+            px[y][x + 1] = lerp(color, (255, 255, 255), 0.5) + (255,)
+    return px
+
+
+def main():
+    os.makedirs(OUT, exist_ok=True)
+    edge = (24, 10, 36, 255)
+    textures = {
+        "ascension_core": outline(gem(5.5, (190, 120, 255), (110, 40, 190), (255, 230, 140)), edge),
+        "dense_ascension_core": outline(ring(gem(5.0, (255, 170, 230), (150, 40, 170), (255, 245, 180)), 7.0, (255, 196, 64)), edge),
+        "ascension_singularity": outline(singularity(), (8, 2, 14, 255)),
+        "incomplete_ascension_core": outline(gem(5.5, (150, 140, 160), (80, 70, 95), (200, 180, 150), 0.85), (20, 18, 24, 255)),
+        "common_mineral_cluster": outline(cluster((150, 150, 150), (85, 85, 90),
+                                                  [(216, 175, 147), (230, 120, 70), (120, 200, 190), (250, 215, 80)], 1), (30, 30, 34, 255)),
+        "gem_mineral_cluster": outline(cluster((110, 110, 120), (55, 55, 65),
+                                               [(220, 30, 30), (40, 80, 220), (110, 240, 230), (40, 210, 90)], 2), (20, 20, 26, 255)),
+        "exotic_mineral_cluster": outline(cluster((60, 55, 70), (25, 22, 30),
+                                                  [(150, 200, 255), (170, 170, 190), (120, 255, 120), (210, 140, 255)], 3), (10, 8, 14, 255)),
+    }
+    for name, px in textures.items():
+        png(os.path.join(OUT, name + ".png"), px)
+        print("wrote", name + ".png")
+
+
+if __name__ == "__main__":
+    main()
