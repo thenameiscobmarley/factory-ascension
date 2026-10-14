@@ -1,3 +1,4 @@
+// priority: 900
 // Factory Ascension - items. Textures live in kubejs/assets/kubejs/textures/item/.
 
 StartupEvents.registry('item', event => {

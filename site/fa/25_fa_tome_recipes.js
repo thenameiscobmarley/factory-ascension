@@ -1,3 +1,4 @@
+// priority: 750
 // Factory Ascension - tome recipes.
 // Blank tome: a deployer presses an Ascension Core into a book.
 // Enchant tomes: blank tome + a themed catalyst in a heated mixer.

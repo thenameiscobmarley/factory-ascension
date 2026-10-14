@@ -1,3 +1,4 @@
+// priority: 900
 // Factory Ascension - Essence bank, tomes and the /ascension upgrade menu.
 //
 //   1. Absorb Ascension Cores -> Essence bank (saved per player in the world's KubeJS data)
@@ -29,25 +30,25 @@ function faBackup(player) {
 }
 
 function faGetEssence(player) {
-  let key = 'fa_essence_' + player.getStringUUID()
+  let key = 'fa_essence_' + player.stringUuid
   let world = player.getServer().persistentData
   if (!world.contains(key)) {
     let backup = faBackup(player)
     if (!backup.contains('fa_essence')) return 0
     let restored = faCleanEssence(backup.getDouble('fa_essence'))
     world.putDouble(key, restored)
-    console.warn('[Factory Ascension] restored ' + player.getScoreboardName() + "'s Essence (" + restored + ') from their player file')
+    console.warn('[Factory Ascension] restored ' + player.username + "'s Essence (" + restored + ') from their player file')
     return restored
   }
   let raw = world.getDouble(key)
   let clean = faCleanEssence(raw)
-  if (clean !== raw && raw !== 0) console.warn('[Factory Ascension] ' + player.getScoreboardName() + ' had a bad Essence value (' + raw + '), reset to ' + clean)
+  if (clean !== raw && raw !== 0) console.warn('[Factory Ascension] ' + player.username + ' had a bad Essence value (' + raw + '), reset to ' + clean)
   return clean
 }
 
 function faSetEssence(player, value) {
   let clean = faCleanEssence(value)
-  player.getServer().persistentData.putDouble('fa_essence_' + player.getStringUUID(), clean)
+  player.getServer().persistentData.putDouble('fa_essence_' + player.stringUuid, clean)
   let backup = faBackup(player)
   backup.putDouble('fa_essence', clean)
   player.getPersistentData().put('PlayerPersisted', backup)
@@ -56,8 +57,9 @@ function faSetEssence(player, value) {
 // ---- Gear ----
 
 // Gear = any single, unstackable item (tools, weapons, armor, shields, Tinkers tools, ...)
+// (Empty slots come back as undefined in KubeJS, so check that first)
 function faIsGear(stack) {
-  return !stack.isEmpty() && stack.getMaxStackSize() == 1 && stack.getCount() == 1
+  return !!stack && !stack.isEmpty() && stack.getMaxStackSize() == 1 && stack.getCount() == 1
 }
 
 // The item being enchanted: the main hand if it holds gear, otherwise the off hand
@@ -71,7 +73,7 @@ function faTarget(player) {
 
 // Levels outside 0..max (only possible from hand-edited NBT) read as 0
 function faGetLevel(stack, id) {
-  let tag = stack.getTag()
+  let tag = stack.nbt
   let level = tag && tag.contains(FA_ITEM_TAG) ? tag.getCompound(FA_ITEM_TAG).getInt(id) : 0
   return level > 0 && level <= FA_MAX_LEVEL ? level : 0
 }
@@ -104,7 +106,7 @@ function faCommit(player, gear, id, oldLevel, newLevel, oldEssence, newEssence) 
     } catch (err2) {
       console.error('[Factory Ascension] rollback failed: ' + err2)
     }
-    console.error('[Factory Ascension] ' + id + ' change on ' + player.getScoreboardName() + "'s item failed and was undone: " + err)
+    console.error('[Factory Ascension] ' + id + ' change on ' + player.username + "'s item failed and was undone: " + err)
     player.tell(Text.red('Something went wrong, nothing was changed. (See the server log.)'))
     return false
   }
@@ -116,7 +118,7 @@ function faCommit(player, gear, id, oldLevel, newLevel, oldEssence, newEssence) 
 const FA_RARITY_TEXT = { gray: 'gray', aqua: 'aqua', light_purple: 'lightPurple', gold: 'gold', red: 'red' }
 
 function faRolledSlots(stack) {
-  let tag = stack.getTag()
+  let tag = stack.nbt
   if (!tag || !tag.contains(FA_ITEM_TAG)) return []
   let data = tag.getCompound(FA_ITEM_TAG)
   if (!data.contains('rolled')) return []
@@ -163,7 +165,7 @@ function faCommitRolled(player, gear, slot, oldSeed, oldLevel, newSeed, newLevel
     } catch (err2) {
       console.error('[Factory Ascension] rollback failed: ' + err2)
     }
-    console.error('[Factory Ascension] rolled enchant change on ' + player.getScoreboardName() + "'s item failed and was undone: " + err)
+    console.error('[Factory Ascension] rolled enchant change on ' + player.username + "'s item failed and was undone: " + err)
     player.tell(Text.red('Something went wrong, nothing was changed. (See the server log.)'))
     return false
   }
@@ -181,8 +183,8 @@ function faGemsOf(stack) { return typeof faGems == 'function' ? faGems(stack) : 
 // ---- Feedback ----
 
 function faSound(player, sound, pitch) {
-  player.getServer().runCommandSilent('execute at ' + player.getScoreboardName() +
-    ' run playsound ' + sound + ' player ' + player.getScoreboardName() + ' ~ ~ ~ 1 ' + pitch)
+  player.getServer().runCommandSilent('execute at ' + player.username +
+    ' run playsound ' + sound + ' player ' + player.username + ' ~ ~ ~ 1 ' + pitch)
 }
 
 function faButton(label, command, hover) {
@@ -241,7 +243,7 @@ function faShowMenu(player) {
     roll.affixes.forEach(def => player.tell(Text.darkGray('     ' + global.FA_describeDef(def, r.level))))
   })
 
-  let souls = gear.getTag() ? gear.getTag().getCompound(FA_ITEM_TAG).getInt('souls') : 0
+  let souls = gear.nbt ? gear.nbt.getCompound(FA_ITEM_TAG).getInt('souls') : 0
   if (souls > 0) player.tell(Text.lightPurple(' Souls: ' + global.FA_num(souls)))
   faGemsOf(gear).forEach(g => {
     let G = global.FA.gems
@@ -259,7 +261,7 @@ function faShowDanger(player) {
     player.tell(Text.gray('Danger scaling is turned off.'))
     return 1
   }
-  let danger = global.FA_dangerLevel(player.level(), player.getX(), player.getZ())
+  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ())
   let zone = global.FA_zone(danger)
   let m = global.FA_dangerMult(danger, false)
   let elite = Math.min(d.eliteChanceCap, d.eliteChancePerLevel * danger)
@@ -395,7 +397,7 @@ function faChaosRoll(player, tome, gear) {
 
   let roll = global.FA_rollEnchant(seed)
   let R = global.FA.chaos.rarities[roll.rarity]
-  let name = player.getScoreboardName()
+  let name = player.username
   let server = player.getServer()
   server.runCommandSilent('title ' + name + ' times 5 50 15')
   server.runCommandSilent('title ' + name + ' subtitle ' + JSON.stringify({ text: roll.name, color: R.color }))

@@ -1,3 +1,4 @@
+// priority: 500
 // Factory Ascension - hordes and loot drops in the danger zones.
 // Uses helpers from 20_fa_enchant_effects.js and the tick scheduler from 40_fa_ultimates.js (same startup scope).
 // What can drop, and how often, is all in the config (loot, horde); the shared generator is global.FA_rollLoot.
@@ -7,7 +8,7 @@
 // is joining the world isn't safe), in clear space beside it. Extras never bring their own extras or become bosses.
 
 function faHostilesNear(mob, radius) {
-  let found = mob.level().getEntitiesOfClass($FALiving, mob.getBoundingBox().inflate(radius))
+  let found = mob.level.getEntitiesOfClass($FALiving, mob.getBoundingBox().inflate(radius))
   let n = 0
   for (let i = 0; i < found.size(); i++) if (found.get(i) instanceof $FAEnemy) n++
   return n
@@ -15,18 +16,19 @@ function faHostilesNear(mob, radius) {
 
 function faSpawnHorde(mob, count) {
   let H = global.FA.horde
-  let level = mob.level()
+  let level = mob.level
   for (let i = 0; i < count; i++) {
-    let extra = mob.getType().create(level)
-    if (!extra) return
-    extra.getPersistentData().putBoolean('fa_horde', true)
     // A few tries for a clear spot; give up on this one rather than spawn it inside a wall
     for (let attempt = 0; attempt < 4; attempt++) {
-      extra.moveTo(mob.getX() + (Math.random() * 2 - 1) * H.radius, mob.getY(), mob.getZ() + (Math.random() * 2 - 1) * H.radius, Math.random() * 360, 0)
-      if (level.noCollision(extra)) {
-        level.addFreshEntity(extra)
-        break
-      }
+      let x = mob.getX() + (Math.random() * 2 - 1) * H.radius
+      let z = mob.getZ() + (Math.random() * 2 - 1) * H.radius
+      if (!faClear(level, x, mob.getY(), z)) continue
+      let extra = level.createEntity(mob.type)
+      if (!extra) return
+      extra.getPersistentData().putBoolean('fa_horde', true)
+      extra.setPositionAndRotation(x, mob.getY(), z, Math.random() * 360, 0)
+      level.addFreshEntity(extra)
+      break
     }
   }
 }
@@ -98,16 +100,16 @@ function faLootFx(killer, victim, tier, label) {
   let x = victim.getX().toFixed(1)
   let y = victim.getY()
   let z = victim.getZ().toFixed(1)
-  let dim = 'execute in ' + victim.level().dimension().location() + ' run '
+  let dim = 'execute in ' + victim.level.dimension + ' run '
   for (let h = 0; h < 6; h++) server.runCommandSilent(dim + 'particle minecraft:end_rod ' + x + ' ' + (y + h * 1.5).toFixed(1) + ' ' + z + ' 0.05 0.6 0.05 0 12 force')
   server.runCommandSilent(dim + 'playsound ' + (tier >= 4 ? 'minecraft:ui.toast.challenge_complete' : 'minecraft:entity.player.levelup') + ' player @a ' + x + ' ' + y + ' ' + z + ' 1.5 ' + (tier >= 5 ? 0.6 : 1))
   if (tier >= 4) {
-    let name = killer.getScoreboardName()
+    let name = killer.username
     server.runCommandSilent('title ' + name + ' times 5 50 15')
     server.runCommandSilent('title ' + name + ' subtitle ' + JSON.stringify({ text: label, color: T.color }))
     server.runCommandSilent('title ' + name + ' title ' + JSON.stringify({ text: T.name.toUpperCase() + ' DROP', color: T.color, bold: true }))
   }
-  if (tier >= 5) server.tell(Text.red(killer.getScoreboardName() + ' found a Mythic drop: ').append(Text.gold(label)))
+  if (tier >= 5) server.tell(Text.red(killer.username + ' found a Mythic drop: ').append(Text.gold(label)))
 }
 
 ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', event => {
@@ -115,7 +117,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     let L = global.FA.loot
     if (!L.enabled) return
     let victim = event.getEntity()
-    let killer = event.getSource().getEntity()
+    let killer = event.getSource().actual
     if (!(killer instanceof $FAPlayer) || victim instanceof $FAPlayer) return
     let danger = faDanger(victim)
     if (!danger) return
@@ -146,9 +148,9 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
       }
       made.forEach(stack => {
         if (stacks++ >= 12) return   // never flood the ground
-        let e = new $FAItemEntity(victim.level(), victim.getX(), victim.getY() + 0.5, victim.getZ(), stack)
+        let e = new $FAItemEntity(victim.level, victim.getX(), victim.getY() + 0.5, victim.getZ(), stack)
         e.setDefaultPickUpDelay()
-        if (roll.tier >= 2) e.setGlowingTag(true)
+        if (roll.tier >= 2) e.glowing = true
         drops.add(e)
       })
       faLootFx(killer, victim, roll.tier, label)

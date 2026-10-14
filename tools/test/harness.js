@@ -33,6 +33,8 @@ var Text = {}
 var KNOWN_ITEMS = { 'mekanism:raw_osmium': 1, 'mekanism:raw_lead': 1, 'mekanism:raw_tin': 1, 'mekanism:raw_uranium': 1, 'tfmg:steel_ingot': 1, 'tfmg:raw_nickel': 1 }
 var Item = { of: function (id, n) { return { id: id, count: n || 1, isEmpty: function () { return !KNOWN_ITEMS[id] } } } }
 var Ingredient = { all: 'ALL' }
+// KubeJS's Fluid.of: what scripts must pass to fluid handlers (a Forge FluidStack arrives empty in KubeJS)
+var Fluid = { of: function (id, amount) { return { fluid: id, amount: amount, getAmount: function () { return this.amount } } } }
 var Platform = { isLoaded: function (m) { return m == 'tfmg' || m == 'mekanism' } }
 
 function Compound() { this.d = {} }
@@ -61,7 +63,7 @@ function OrbClass() {}
 var MobType = { UNDEAD: 'undead', ARTHROPOD: 'arthropod', WATER: 'water', UNDEFINED: 'undefined' }
 function ItemEntityClass(level, x, y, z, stack) { this.s = stack; this.setDefaultPickUpDelay = function () {} }
 ItemEntityClass.prototype.getItem = function () { return this.s }
-ItemEntityClass.prototype.setGlowingTag = function (g) { this.glowing = g }
+var modIds = 0
 var Java = {
   loadClass: function (n) {
     var classes = {
@@ -77,7 +79,7 @@ var Java = {
       'net.minecraft.world.effect.MobEffects': { MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', BLINDNESS: 'blindness', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
       'net.minecraft.world.effect.MobEffectInstance': function (effect, ticks, amp) { this.effect = effect; this.ticks = ticks; this.amp = amp },
       'net.minecraft.world.entity.EntityType': {
-        LIGHTNING_BOLT: { create: function () { return { moveTo: function () {}, setVisualOnly: function (v) { this.visual = v } } } },
+        LIGHTNING_BOLT: { create: function () { return { setPosition: function () {}, setVisualOnly: function (v) { this.visual = v } } } },
         getKey: function (type) { return type.id }
       },
       'net.minecraft.tags.BlockTags': { LOGS: 'logs' },
@@ -89,14 +91,12 @@ var Java = {
       'net.minecraft.core.BlockPos': FakePos,
       'net.minecraftforge.common.capabilities.ForgeCapabilities': { ITEM_HANDLER: 'items', FLUID_HANDLER: 'fluids' },
       'net.minecraft.core.Direction': { UP: 'up', DOWN: 'down' },
-      'net.minecraftforge.fluids.FluidStack': function (fluid, amount) { this.fluid = fluid; this.amount = amount; this.getAmount = function () { return this.amount } },
       'net.minecraftforge.fluids.capability.IFluidHandler$FluidAction': { SIMULATE: 'sim', EXECUTE: 'exec' },
-      'net.minecraft.core.registries.BuiltInRegistries': { FLUID: { get: function () { return 'liquid_essence' } }, BLOCK: { getKey: function (b) { return b } } },
       'net.minecraft.resources.ResourceLocation': function (ns, path) { this.s = ns + ':' + path },
       'net.minecraftforge.common.ForgeMod': { BLOCK_REACH: { get: function () { return 'block_reach' } }, ENTITY_REACH: { get: function () { return 'entity_reach' } }, STEP_HEIGHT_ADDITION: { get: function () { return 'step_height' } } },
       'net.minecraft.world.entity.ai.attributes.AttributeModifier': function (name, amount, op) {
-        this.name = name; this.amount = amount; this.op = op
-        this.getName = function () { return this.name }; this.getAmount = function () { return this.amount }
+        this.name = name; this.amount = amount; this.op = op; this.id = 'uuid-' + (++modIds)
+        this.getName = function () { return this.name }; this.getAmount = function () { return this.amount }; this.getId = function () { return this.id }
       },
       'net.minecraft.world.entity.ai.attributes.AttributeModifier$Operation': { ADDITION: 'add', MULTIPLY_BASE: 'mul_base' }
     }
@@ -154,9 +154,8 @@ function stack(count, max, name) {
     getMaxStackSize: function () { return this.max },
     shrink: function (n) { this.count -= n },
     copyWithCount: function (n) { var c = stack(n, this.max, this.name); c.tag = this.tag; c.id = this.id; return c },
-    getTag: function () { return this.tag },
-    setTag: function (t) { this.tag = t },
-    hasTag: function () { return !!this.tag },
+    get nbt() { return this.tag },
+    set nbt(t) { this.tag = t },
     getOrCreateTag: function () { if (!this.tag) this.tag = new Compound(); return this.tag },
     getHoverName: function () { var t = fakeText(this.name); t.getString = function () { return this.s }; return t }
   }
@@ -176,8 +175,8 @@ function makePlayer(server, uuid) {
   p.getServer = function () { return server }
   p.pdata = new Compound()
   p.getPersistentData = function () { return this.pdata }
-  p.getStringUUID = function () { return uuid }
-  p.getScoreboardName = function () { return 'Tester' }
+  p.stringUuid = uuid
+  p.username = 'Tester'
   p.isShiftKeyDown = function () { return this.sneaking }
   p.getMainHandItem = function () { return this.main }
   p.getOffhandItem = function () { return this.off }
@@ -186,7 +185,7 @@ function makePlayer(server, uuid) {
     var list = attrs[a] = attrs[a] || []
     return {
       getModifiers: function () { return javaList(list.slice()) },
-      removeModifier: function (m) { var i = list.indexOf(m); if (i >= 0) list.splice(i, 1) },
+      removeModifier: function (id) { for (var i = list.length - 1; i >= 0; i--) if (list[i].id === id) list.splice(i, 1) },
       addTransientModifier: function (m) { list.push(m) }
     }
   }
@@ -200,11 +199,6 @@ function makePlayer(server, uuid) {
   p.creative = false
   p.isCreative = function () { return this.creative }
   p.isSpectator = function () { return false }
-  // Both teleportTo(x, y, z) and teleportTo(level, x, y, z, yaw, pitch)
-  p.teleportTo = function (a, b, c, d, e, f) {
-    if (typeof a == 'object') { this.x = b; this.y = c; this.z = d; this.yaw = e; this.pitch = f; this.teleports = (this.teleports || 0) + 1; this.teleported = [b, c, d] }
-    else this.teleported = [a, b, c]
-  }
   p.fallDistance = 5
   p.displayClientMessage = function (t) { this.bar.push(t.s) }
   p.tell = function (t) { this.messages.push(t) }
@@ -222,13 +216,12 @@ function livingBits(o, maxHealth) {
   o.getPersistentData = function () { return this.pdata }
   o.setCustomName = function (n) { this.customName = n.s }
   o.setCustomNameVisible = function (v) { this.nameVisible = v }
-  o.typeId = 'minecraft:zombie'
-  o.getType = function () { var self2 = this; return { id: self2.typeId, getDescription: function () { return fakeText('Zombie') }, create: function () { var m = makeMob(); spawnedMinions.push(m); return m } } }
+  // KubeJS: e.type is the id string
+  o.type = o.type || 'minecraft:zombie'
   o.getServer = o.getServer || function () { return server }
-  o.clearFire = function () { this.fire = 0 }
-  o.setDeltaMovement = function (x, y, z) { this.motion = [x, y, z] }
+  o.extinguish = function () { this.fire = 0 }
+  o.setMotion = function (x, y, z) { this.motion = [x, y, z] }
   o.isRemoved = function () { return !!this.removed }
-  o.moveTo = function (x, y, z) { this.x = x; this.z = z }
   o.getDisplayName = function () { return fakeText(this.customName || 'Zombie') }
   o.setPersistenceRequired = function () { this.persistent = true }
   o.mobType = MobType.UNDEFINED; o.ground = true; o.wet = false; o.dim = 'minecraft:overworld'; o.boss = false; o.nearby = []
@@ -236,7 +229,7 @@ function livingBits(o, maxHealth) {
   o.getHealth = function () { return this.hp }
   o.setHealth = function (h) { this.hp = h }
   o.getMaxHealth = function () { return this.maxHp }
-  o.hurt = function (src, amount) { this.hurtBy.push(amount); return true }
+  o.attack = function (src, amount) { this.hurtBy.push(amount); return true }
   o.addEffect = function (e) { this.effects.push(e) }
   o.setSecondsOnFire = function (s) { this.fire = s }
   o.getMobType = function () { return this.mobType }
@@ -244,24 +237,28 @@ function livingBits(o, maxHealth) {
   o.isInWaterOrRain = function () { return this.wet }
   o.onGround = function () { return this.ground }
   // Every entity has its own id, like the game
-  if (!o.getStringUUID) { var myId = 'mob-' + (++mobIds); o.getStringUUID = function () { return myId } }
+  if (o.stringUuid === undefined) o.stringUuid = 'mob-' + (++mobIds)
   o.displayClientMessage = o.displayClientMessage || function () {}
   var self = o
-  // The same world object every call, like the game
-  o.level = function () {
-    return self._lvl || (self._lvl = {
-      dimension: function () { return { location: function () { return self.dim } } },
-      getGameTime: function () { return gameTime },
-      noCollision: function () { return true },
+  // KubeJS: entity.level and level.dimension are properties; time comes from the server's tick count
+  o.level = {
+      get dimension() { return self.dim },
+      getServer: function () { return { getTickCount: function () { return gameTime } } },
+      getBlockState: function () { return { isAir: function () { return true } } },
+      createEntity: function (t) { var m = makeMob(); m.type = t; spawnedMinions.push(m); return m },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
       isClientSide: function () { return false },
       addFreshEntity: function (e) { bolts.push(e) },
       getEntitiesOfClass: function (cls, box) { var l = self.nearby.filter(function (e) { return e instanceof cls }); return { size: function () { return l.length }, get: function (i) { return l[i] } } }
-    })
   }
   o.getBoundingBox = function () { return { inflate: function () { return 'box' } } }
   o.getX = function () { return this.x }; o.getZ = function () { return this.z }; o.getY = function () { return this.y !== undefined ? this.y : 64 }
-  o.getYRot = function () { return this.yaw || 0 }; o.getXRot = function () { return this.pitch || 0 }
+  if (o.yaw === undefined) o.yaw = 0
+  if (o.pitch === undefined) o.pitch = 0
+  o.age = o.age || 0
+  // KubeJS position setters (moveTo/teleportTo are ambiguous in KubeJS, so scripts never use them)
+  o.setPosition = function (x, y, z) { this.x = x; this.y = y; this.z = z; this.teleported = [x, y, z] }
+  o.setPositionAndRotation = function (x, y, z, yaw, pitch) { this.x = x; this.y = y; this.z = z; this.yaw = yaw; this.pitch = pitch; this.teleports = (this.teleports || 0) + 1; this.teleported = [x, y, z] }
   o.damageSources = function () { return { thorns: function () { return 'thorns' }, playerAttack: function () { return 'playerAttack' } } }
   o.getAllSlots = o.getAllSlots || function () { return javaList([]) }
   return o
@@ -426,10 +423,10 @@ var hurt = handlers.forge['LivingHurtEvent']
 function src(attacker, opts) {
   opts = opts || {}
   return {
-    getEntity: function () { return attacker },
+    actual: attacker,
+    immediate: opts.direct !== undefined ? opts.direct : attacker,
     is: function (tag) { return tag == 'bypass' ? !!opts.bypass : opts.tags ? opts.tags.indexOf(tag) >= 0 : false },
-    getMsgId: function () { return opts.msg || 'player' },
-    getDirectEntity: function () { return opts.direct !== undefined ? opts.direct : attacker }
+    getType: function () { return opts.msg || 'player' }
   }
 }
 function hit(attacker, victim, amount, opts) {
@@ -607,17 +604,17 @@ worn.getDamageValue = function () { return this.damage }; worn.setDamageValue = 
 camper.main = worn
 ;[stack(0), stack(0), stack(0)].concat([camper.off]).forEach(function (s) { s.isDamageableItem = function () { return false } })
 camper.armor.forEach(function (s) { s.isDamageableItem = s.isDamageableItem || function () { return false } })
-var loose = new ItemEntityClass(); loose.hasPickUpDelay = function () { return false }; loose.teleportTo = function () { this.moved = true }
-var thrown = new ItemEntityClass(); thrown.hasPickUpDelay = function () { return true }; thrown.teleportTo = function () { this.moved = true }
+var loose = new ItemEntityClass(); loose.hasPickUpDelay = function () { return false }; loose.setPosition = function () { this.moved = true }
+var thrown = new ItemEntityClass(); thrown.hasPickUpDelay = function () { return true }; thrown.setPosition = function () { this.moved = true }
 camper.nearby = [loose, thrown]
-camper.tickCount = 40
+camper.age = 40
 tick({ phase: 'END', player: camper })
 check('Renewal 8 heals 2 per second', camper.healed == 2)
 check('Night Sight keeps night vision (20s, no flicker)', camper.effects.some(function (e) { return e.effect == 'night_vision' && e.ticks == 400 }))
 check('Industrious capped at its max level', camper.effects.some(function (e) { return e.effect == 'haste' && e.amp == 2 }))
 check('Restoration 5 repairs 5 durability', worn.damage == 15)
 check('Magnetism pulls loose items, not ones you just threw', loose.moved && !thrown.moved)
-camper.tickCount = 41; camper.healed = 0
+camper.age = 41; camper.healed = 0
 tick({ phase: 'END', player: camper })
 check('only runs once a second', camper.healed == 0)
 
@@ -656,7 +653,7 @@ function spawn(mob2, x, opts) {
   opts = opts || {}
   mob2.x = x
   if (opts.dim) mob2.dim = opts.dim
-  join({ loadedFromDisk: function () { return !!opts.fromDisk }, getEntity: function () { return mob2 }, getLevel: function () { return mob2.level() } })
+  join({ loadedFromDisk: function () { return !!opts.fromDisk }, getEntity: function () { return mob2 }, getLevel: function () { return mob2.level } })
   return mob2
 }
 Math.random = function () { return 0.5 }
@@ -687,7 +684,7 @@ xpHook(xpEv2)
 check('danger 10 triples XP', xpEv2.xp == 30)
 
 var explorer = makePlayer(server, 'explorer')
-explorer.tickCount = 20
+explorer.age = 20
 server.commands = []
 tick({ phase: 'END', player: explorer })
 explorer.x = 6000
@@ -707,7 +704,7 @@ faShowDanger(explorer)
 check('/ascension danger explains the area', explorer.messages.length == 4 && /Dread Reaches/.test(explorer.messages[0].s), explorer.messages.map(function (t) { return t.s }).join(' | '))
 print('  sample: ' + explorer.messages.map(function (t) { return t.s }).join(' |'))
 var zones = [0, 1000, 3500, 6000, 11000, 21000, 41000, 100000].map(function (x) {
-  var lvl = global.FA_dangerLevel(explorer.level(), x, 0)
+  var lvl = global.FA_dangerLevel(explorer.level, x, 0)
   return x + 'b: ' + global.FA_zone(lvl).name + ' (' + lvl + ', mobs x' + global.FA_dangerMult(lvl, false).health.toFixed(1) + ')'
 })
 print('  ' + zones.join('\n  '))
@@ -720,13 +717,13 @@ check('Mythic tomes need 4 fragments, superheated', wingsTome.heatRequirement ==
 check('Mythic levels cost 5x', global.FA_cost(100, 'thunderlord') == Math.ceil(0.05 * 101 * 5) && global.FA_cost(100, 'sharpness') == Math.ceil(0.05 * 101))
 
 var flyer2 = hero({ wings: 2 }, 'flyer')
-flyer2.tickCount = 20
+flyer2.age = 20
 tick({ phase: 'END', player: flyer2 })
 check('Wings grants flight at x1.5 speed', flyer2.abilities.mayfly && near(flyer2.abilities.speed, 0.075))
 flyer2.armor[1] = stack(0)
 tick({ phase: 'END', player: flyer2 })
 check('taking Wings off takes flight away', !flyer2.abilities.mayfly && flyer2.abilities.speed == 0.05)
-var builder2 = hero({ wings: 1 }, 'builder'); builder2.tickCount = 20; builder2.creative = true
+var builder2 = hero({ wings: 1 }, 'builder'); builder2.age = 20; builder2.creative = true
 tick({ phase: 'END', player: builder2 })
 builder2.armor[1] = stack(0)
 tick({ phase: 'END', player: builder2 })
@@ -790,9 +787,10 @@ check('Rampage stacks wear off after 5 seconds', hit(berserker, makeMob(), 10) =
 
 // Vein Miner: a 3x3x3 cube of iron ore
 var oreBlock = { name: 'iron_ore' }, stone = { name: 'stone' }
-function state(block) { return { getBlock: function () { return block }, is: function (tag) { return tag == 'ores' ? block === oreBlock : tag == 'logs' ? block.log : false } } }
+// KubeJS block container: level.getBlock(pos) with .id and .hasTag(tagId)
+function state(block) { return { id: 'minecraft:' + block.name, hasTag: function (tag) { return tag == 'forge:ores' ? block === oreBlock : tag == 'minecraft:logs' ? !!block.log : false } } }
 function bpos(x, y, z) { return { getX: function () { return x }, getY: function () { return y }, getZ: function () { return z }, offset: function (a, b, c) { return bpos(x + a, y + b, z + c) } } }
-var world = { getBlockState: function (p2) { var inCube = Math.abs(p2.getX()) <= 1 && Math.abs(p2.getY()) <= 1 && Math.abs(p2.getZ()) <= 1; return state(inCube ? oreBlock : stone) } }
+var world = { getBlock: function (p2) { var inCube = Math.abs(p2.getX()) <= 1 && Math.abs(p2.getY()) <= 1 && Math.abs(p2.getZ()) <= 1; return state(inCube ? oreBlock : stone) } }
 var minerPick = gear('Pick'); faSetLevel(minerPick, 'vein_miner', 2)
 var miner = makePlayer(server, 'miner'); miner.main = minerPick
 miner.gameMode = { broken: 0, destroyBlock: function () { this.broken++; return true } }
@@ -808,7 +806,7 @@ brk(breakEv(miner))
 check('sneaking mines just one block', miner.gameMode.broken == 0)
 
 var shiny = hero({ radiance: 5 }, 'radiance'), r1 = makeMob(), r2 = makeMob()
-shiny.nearby = [r1, r2]; shiny.tickCount = 20
+shiny.nearby = [r1, r2]; shiny.age = 20
 tick({ phase: 'END', player: shiny })
 check('Radiance burns nearby enemies each second', r1.hurtBy[0] == 10 && r2.hurtBy[0] == 10)
 
@@ -1107,22 +1105,22 @@ print('\naltar')
 function makeDepot(item) { var slots = [item]; return { slots: slots, getSlots: function () { return slots.length }, getStackInSlot: function (i) { return slots[i] },
   extractItem: function (i, n, sim) { var it = slots[i]; if (!sim) slots[i] = stack(0); return it },
   insertItem: function (i, it, sim) { if (!slots[i].isEmpty()) return it; if (!sim) slots[i] = it; return stack(0) } } }
-function makeTank(mb, fluid) { return { mb: mb, fluid: fluid || 'liquid_essence', drained: 0,
+function makeTank(mb, fluid) { return { mb: mb, fluid: fluid || 'kubejs:liquid_essence', drained: 0,
   drain: function (want, action) { var n = want.fluid == this.fluid ? Math.min(want.amount, this.mb) : 0; if (action == 'exec') { this.mb -= n; this.drained += n } return { getAmount: function () { return n } } } } }
 function capOf(h) { return { resolve: function () { return { orElse: function () { return h } } } } }
 var altarGear = gear('Altar Sword'); faSetLevel(altarGear, 'sharpness', 5); faSetLevel(altarGear, 'protection', 50)
 var depot = makeDepot(altarGear), tank = makeTank(100000)
 var altarPos = new FakePos(10, 64, 10), blocks = { '10,64,10': 'kubejs:ascension_altar' }
 var world2 = {
-  dimension: function () { return { location: function () { return 'minecraft:overworld' } } },
+  dimension: 'minecraft:overworld',
   isLoaded: function () { return true },
-  getBlockState: function (p2) { var b = blocks[p2.x + ',' + p2.y + ',' + p2.z] || 'minecraft:air'; return { getBlock: function () { return b } } },
+  getBlock: function (p2) { return { id: blocks[p2.x + ',' + p2.y + ',' + p2.z] || 'minecraft:air' } },
   getBlockEntity: function (p2) { return p2.y == 65 ? { getCapability: function () { return capOf(depot) } } : p2.y == 63 ? { getCapability: function () { return capOf(tank) } } : null },
   addFreshEntity: function () {}, getServer: function () { return server }
 }
 server.getTickCount = function () { return 40 }
 server.getAllLevels = function () { return [world2] }
-server.getPlayerList = function () { return { getPlayers: function () { return [] }, getPlayerCount: function () { return 0 } } }
+server.getPlayerList = function () { return { getPlayers: function () { var a = []; a.size = function () { return 0 }; return a }, getPlayerCount: function () { return 0 } } }
 var placer = makePlayer(server, 'placer')
 handlers.placed['kubejs:ascension_altar']({ server: server, level: world2, block: { pos: altarPos }, player: placer, cancel: function () {} })
 check('placing an altar registers it with its owner', server.persistentData.getCompound('fa_altars').getString('minecraft:overworld|10|64|10') == 'placer')
@@ -1185,12 +1183,12 @@ var moveReports = []
 ultIds.forEach(function (ultId) {
   var A = arena(ultId, 5)
   var dealt = hit(A.hero, A.target, 10)   // the triggering hit
-  var started = !!faCombos[A.hero.getStringUUID()]
+  var started = !!faCombos[A.hero.stringUuid]
   ticks(200)
   var dmg = A.target.hurtBy.length + A.others.reduce(function (n, m) { return n + m.hurtBy.length }, 0)
   var home = A.hero.x == 100 && A.hero.y == 70 && A.hero.z == 100 && A.hero.yaw == 33
   moveReports.push(global.FA.enchants[ultId].name + ': ' + dmg + ' hits' + (A.hero.teleports ? ', ' + A.hero.teleports + ' teleports' : ''))
-  check(global.FA.enchants[ultId].name + ' plays out, lands hits and leaves you back home', started && dmg > 0 && home && !faCombos[A.hero.getStringUUID()],
+  check(global.FA.enchants[ultId].name + ' plays out, lands hits and leaves you back home', started && dmg > 0 && home && !faCombos[A.hero.stringUuid],
     'started ' + started + ' hits ' + dmg + ' at ' + [A.hero.x, A.hero.y, A.hero.z, A.hero.yaw].join(','))
 })
 print('  ' + moveReports.join(' | '))
@@ -1215,25 +1213,25 @@ handlers.forge['LivingFallEvent'](fallEv)
 check('...and take no fall damage from the combo', fallEv.mult == 0)
 W.target.hp = 0; W.target.isAlive = function () { return false }
 ticks(200)
-check('if the target dies mid-combo, it still finishes and brings you home', W.hero.x == 100 && W.hero.z == 100 && !faCombos[W.hero.getStringUUID()])
+check('if the target dies mid-combo, it still finishes and brings you home', W.hero.x == 100 && W.hero.z == 100 && !faCombos[W.hero.stringUuid])
 
 var L2 = arena('thunder_waltz', 1)
 hit(L2.hero, L2.target, 10); ticks(6)
 handlers.forge['PlayerLoggedOutEvent']({ getEntity: function () { return L2.hero } })
-check('logging out mid-combo puts you back first', L2.hero.x == 100 && L2.hero.z == 100 && !faCombos[L2.hero.getStringUUID()])
+check('logging out mid-combo puts you back first', L2.hero.x == 100 && L2.hero.z == 100 && !faCombos[L2.hero.stringUuid])
 ticks(200)
 
 var C2 = arena('blade_storm', 1)
 hit(C2.hero, C2.target, 10); ticks(200)
 var before2 = C2.target.hurtBy.length
 hit(C2.hero, C2.target, 10)
-check('Ultimates have a cooldown', !faCombos[C2.hero.getStringUUID()])
+check('Ultimates have a cooldown', !faCombos[C2.hero.stringUuid])
 var N2 = arena('blade_storm', 1); N2.hero.sneaking = false
 hit(N2.hero, N2.target, 10)
-check('only a sneaking hit unleashes it', !faCombos[N2.hero.getStringUUID()])
+check('only a sneaking hit unleashes it', !faCombos[N2.hero.stringUuid])
 var P2 = arena('blade_storm', 1)
 hit(P2.hero, P2.target, 10, { direct: makeMob(), tags: ['projectile'] })
-check('arrows never trigger it (melee only)', !faCombos[P2.hero.getStringUUID()])
+check('arrows never trigger it (melee only)', !faCombos[P2.hero.stringUuid])
 check('Ultimate power: level 5 = 2x, cooldown drops a second per level (min 5s)', near(global.FA_ultPower({ power: 1, perLevel: 0.25 }, 5), 2) &&
   global.FA_ultCooldown({ cooldown: 40 }, 100) == 5)
 check('Ultimate tomes need 2 Ascended Souls + 4 Mythic Fragments', byId('tome_thunder_waltz').json.ingredients.filter(function (i) { return i.item == 'kubejs:ascended_soul' }).length == 2 &&
@@ -1312,7 +1310,7 @@ var extras = bolts.slice(addedBefore).filter(function (e) { return e.pdata && e.
 var expectExtras = Math.min(global.FA.horde.maxExtra, Math.floor(global.FA.horde.extraPerLevel * hdanger) + (0.4 < (global.FA.horde.extraPerLevel * hdanger) % 1 ? 1 : 0))
 check('danger ' + hdanger + ' spawns come with a horde of ' + expectExtras, extras.length == expectExtras, extras.length + ' vs ' + expectExtras)
 var chainBefore = bolts.length
-extras.forEach(function (e) { join({ loadedFromDisk: function () { return false }, getEntity: function () { return e }, getLevel: function () { return e.level() } }) })
+extras.forEach(function (e) { join({ loadedFromDisk: function () { return false }, getEntity: function () { return e }, getLevel: function () { return e.level } }) })
 ticks(2)
 check('horde mobs never bring hordes of their own', bolts.length == chainBefore)
 var crowded = makeMob(); crowded.x = 30000
@@ -1369,9 +1367,9 @@ function makeChest(slots) { var arr = []; for (var i = 0; i < slots; i++) arr.pu
 var chest = makeChest(2), ctank = makeTank(70500)
 var condPos = new FakePos(20, 64, 20), cblocks = { '20,64,20': 'kubejs:essence_condenser' }
 var world3 = {
-  dimension: function () { return { location: function () { return 'minecraft:overworld' } } },
+  dimension: 'minecraft:overworld',
   isLoaded: function () { return true },
-  getBlockState: function (p2) { var b = cblocks[p2.x + ',' + p2.y + ',' + p2.z] || 'minecraft:air'; return { getBlock: function () { return b } } },
+  getBlock: function (p2) { return { id: cblocks[p2.x + ',' + p2.y + ',' + p2.z] || 'minecraft:air' } },
   getBlockEntity: function (p2) { return p2.y == 65 ? { getCapability: function () { return capOf(chest) } } : p2.y == 63 ? { getCapability: function () { return capOf(ctank) } } : null },
   addFreshEntity: function (e) { condDrops.push(e) }, getServer: function () { return server }
 }
@@ -1423,9 +1421,9 @@ check('bosses shrug off Slowness', !bossMob.effects.some(function (e) { return e
 var fan = makePlayer(server, 'fan'); fan.x = 30002; bossMob.nearby = [fan]
 fan.isCreative = function () { return false }
 var tickBoss = handlers.forge['ServerTickEvent']
-var bossServer = makeServer(); bossServer.getPlayerList = function () { return { getPlayers: function () { return [] }, getPlayerCount: function () { return 0 } } }
+var bossServer = makeServer(); bossServer.getPlayerList = function () { return { getPlayers: function () { var a = []; a.size = function () { return 0 }; return a }, getPlayerCount: function () { return 0 } } }
 faLastSecond = 0; tickBoss({ phase: 'END', getServer: function () { return bossServer } })
-var tracked = faBosses[bossMob.getStringUUID()]
+var tracked = faBosses[bossMob.stringUuid]
 check('a boss bar shows to nearby players', tracked && tracked.bar.players.indexOf(fan) >= 0)
 check('the boss slams nearby players away', fan.motion && fan.motion[0] > 0)
 bossMob.hp = 12; spawnedMinions = []
@@ -1435,7 +1433,7 @@ var bossDrops = dropEvent(plainHero, bossMob, []); dropsHook(bossDrops)
 check('killing it drops Chaos Tomes, fragments and cores', ['kubejs:chaos_tome', 'kubejs:mythic_fragment', 'kubejs:dense_ascension_core'].every(function (id) { return bossDrops.list.arr.some(function (ie) { return ie.s.id == id }) }))
 bossMob.removed = true
 faLastSecond = 0; tickBoss({ phase: 'END', getServer: function () { return bossServer } })
-check('dead bosses take their bar with them', !faBosses[bossMob.getStringUUID()] && tracked.bar.players.length == 0)
+check('dead bosses take their bar with them', !faBosses[bossMob.stringUuid] && tracked.bar.players.length == 0)
 
 print('\nwebsite gear math vs the game')
 load('site/calc.js')
@@ -1525,6 +1523,33 @@ function scanNull(v, path, depth) {
 }
 Object.keys(global).forEach(function (k) { scanNull(global[k], 'global.' + k, 0) })
 check('after every test, nothing reachable from global holds null', nullPaths.length == 0, nullPaths.slice(0, 5).join(', '))
+
+// ---------------- KubeJS-real method names ----------------
+// KubeJS hides or renames many vanilla methods (found on a real server). A script using one of these only fails
+// in game, never here, so they're banned outright. Comments are skipped.
+print('\nkubejs names')
+var banned = [
+  [/getStringUUID\(/, 'stringUuid'], [/getScoreboardName\(/, 'username'], [/\.(getTag|setTag)\(|\.hasTag\(\)/, 'stack.nbt'],
+  [/\.level\(\)/, '.level'], [/getGameTime\(/, 'faNow()'], [/\.dimension\(\)/, 'String(level.dimension)'],
+  [/get[XY]Rot\(/, 'yaw / pitch'], [/clearFire\(/, 'extinguish()'], [/\.hurt\(/, 'attack(src, amount)'],
+  [/getMsgId\(/, 'source.getType()'], [/getDirectEntity\(/, 'source.immediate'], [/setDeltaMovement\(/, 'setMotion'],
+  [/\.moveTo\(/, 'setPosition'], [/\.teleportTo\(/, 'setPositionAndRotation'], [/setGlowingTag\(/, 'glowing = true'],
+  [/tickCount/, 'age'], [/noCollision\(/, 'faClear()'], [/new \$?\w*FluidStack\(/, "Fluid.of(id, mb)"],
+  [/getType\(\)\.(getDescription|create)\(/, 'getDisplayName / level.createEntity(e.type)'], [/BLOCK\.getKey\(/, 'level.getBlock(pos).id'],
+  [/state\.is\(/, 'getBlock(pos).hasTag(id)'], [/source\.getEntity\(\)|getSource\(\)\.getEntity\(\)/, 'source.actual']
+]
+var badNames = []
+;['startup_scripts', 'server_scripts', 'client_scripts'].forEach(function (dir) {
+  var files = new java.io.File('kubejs/' + dir).listFiles()
+  for (var i = 0; i < files.length; i++) {
+    var text = String(new java.lang.String(java.nio.file.Files.readAllBytes(files[i].toPath()), 'UTF-8'))
+    text.split('\n').forEach(function (line, n) {
+      var code = line.replace(/\/\/.*$/, '')
+      banned.forEach(function (b) { if (b[0].test(code)) badNames.push(files[i].getName() + ':' + (n + 1) + ' (use ' + b[1] + ')') })
+    })
+  }
+})
+check('no script uses a method KubeJS hides or renames', badNames.length == 0, badNames.slice(0, 6).join(', '))
 
 print('\n' + (failures ? failures + ' FAILED' : 'all checks passed'))
 if (failures) java.lang.System.exit(1)

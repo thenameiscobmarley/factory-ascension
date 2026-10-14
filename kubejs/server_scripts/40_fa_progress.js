@@ -1,3 +1,4 @@
+// priority: 600
 // Factory Ascension - milestones, Prestige (Rebirth), gems and Liquid Essence buckets.
 // Uses the helpers from 10_fa_ascension.js (same server script scope).
 
@@ -21,14 +22,14 @@ function faStatBump(server, uuid, stat, amount, mode) {
 
 function faCheckMilestones(player) {
   let server = player.getServer()
-  let uuid = player.getStringUUID()
+  let uuid = player.stringUuid
   global.FA.milestones.forEach(m => {
     let key = 'fa_ms_' + m.id + '_' + uuid
     if (server.persistentData.getBoolean(key) || faStatGet(server, uuid, m.stat) < m.goal) return
     // Mark it done first, so a crash while handing out rewards can never pay it twice
     server.persistentData.putBoolean(key, true)
     m.reward.forEach(r => player.give(Item.of(r[0], r[1])))
-    let name = player.getScoreboardName()
+    let name = player.username
     server.runCommandSilent('title ' + name + ' times 5 50 15')
     server.runCommandSilent('title ' + name + ' subtitle ' + JSON.stringify({ text: m.name, color: 'gold' }))
     server.runCommandSilent('title ' + name + ' title ' + JSON.stringify({ text: 'MILESTONE', color: 'yellow', bold: true }))
@@ -40,7 +41,7 @@ function faCheckMilestones(player) {
 // One entry point for every stat change (startup hooks call it through global.FA_onStat)
 function faStatRecord(player, stat, amount, mode) {
   try {
-    faStatBump(player.getServer(), player.getStringUUID(), stat, amount, mode || 'add')
+    faStatBump(player.getServer(), player.stringUuid, stat, amount, mode || 'add')
     faCheckMilestones(player)
   } catch (err) {
     console.error('[Factory Ascension] stat ' + stat + ' failed: ' + err)
@@ -50,7 +51,7 @@ global.FA_onStat = faStatRecord
 
 function faShowMilestones(player) {
   let server = player.getServer()
-  let uuid = player.getStringUUID()
+  let uuid = player.stringUuid
   let done = 0
   player.tell(Text.gold('Milestones').bold(true))
   global.FA.milestones.forEach(m => {
@@ -85,7 +86,7 @@ function faTotalLevels(stack) {
 }
 
 function faStars(stack) {
-  let tag = stack.getTag()
+  let tag = stack.nbt
   let stars = tag && tag.contains(FA_ITEM_TAG) ? tag.getCompound(FA_ITEM_TAG).getInt('stars') : 0
   return stars > 0 && stars <= 1000000 ? stars : 0
 }
@@ -115,7 +116,7 @@ function faRebirth(player, confirmed) {
   }
 
   // Snapshot so it can be undone exactly if anything fails
-  let before = gear.getTag().copy()
+  let before = gear.nbt.copy()
   try {
     Object.keys(global.FA.enchants).forEach(id => { if (faGetLevel(gear, id) > 0) faSetLevel(gear, id, 1) })
     faRolledSlots(gear).forEach(r => faSetRolled(gear, r.slot, r.seed, 1))
@@ -124,7 +125,7 @@ function faRebirth(player, confirmed) {
     data.putInt('stars', stars + 1)
     tag.put(FA_ITEM_TAG, data)
   } catch (err) {
-    gear.setTag(before)
+    gear.nbt = before
     console.error('[Factory Ascension] Rebirth failed and was undone: ' + err)
     player.tell(Text.red('Something went wrong, nothing was changed. (See the server log.)'))
     return 0
@@ -138,7 +139,7 @@ function faRebirth(player, confirmed) {
 // ---- Gems ----
 
 function faGems(stack) {
-  let tag = stack.getTag()
+  let tag = stack.nbt
   if (!tag || !tag.contains(FA_ITEM_TAG)) return []
   let data = tag.getCompound(FA_ITEM_TAG)
   if (!data.contains('gems')) return []
@@ -170,7 +171,7 @@ function faSocket(player, gemStack, type, tier, gear) {
     player.displayClientMessage(Text.yellow('All ' + G.sockets + ' sockets are full. Sneak + right-click to replace the newest gem (it will be destroyed).'), true)
     return
   }
-  let before = gear.getTag() ? gear.getTag().copy() : null
+  let before = gear.nbt ? gear.nbt.copy() : null
   try {
     let tag = gear.getOrCreateTag()
     let data = tag.getCompound(FA_ITEM_TAG)
@@ -182,7 +183,7 @@ function faSocket(player, gemStack, type, tier, gear) {
     data.put('gems', all)
     tag.put(FA_ITEM_TAG, data)
   } catch (err) {
-    gear.setTag(before)
+    gear.nbt = before
     console.error('[Factory Ascension] socketing failed and was undone: ' + err)
     return
   }

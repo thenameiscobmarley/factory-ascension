@@ -341,7 +341,7 @@
 
   // ---------- danger journey ----------
   const D = FA.danger;
-  const overworld = { dimension: () => ({ location: () => "minecraft:overworld" }), getSharedSpawnPos: () => ({ getX: () => 0, getZ: () => 0 }) };
+  const overworld = { dimension: "minecraft:overworld", getSharedSpawnPos: () => ({ getX: () => 0, getZ: () => 0 }) };
   const ZONE_HEX = { green: "#5fd47a", yellow: "#f3d34a", gold: "#ffb84d", red: "#ff5a3d", dark_red: "#d42a2a", dark_purple: "#a64df0", dark_gray: "#9a9a9a" };
   const MAX_DIST = 100000;
   const distAt = p => MAX_DIST * Math.pow(p, 3);          // slow start, so every zone gets screen time

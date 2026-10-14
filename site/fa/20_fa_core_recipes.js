@@ -1,3 +1,4 @@
+// priority: 800
 // Factory Ascension - Ascension Core recipes.
 // Every step runs through Create machines, so the factory (not a crafting table) makes your power.
 

@@ -1,3 +1,4 @@
+// priority: 900
 // Factory Ascension - tooltips.
 
 // Tooltip color for each kind of enchant
@@ -22,7 +23,7 @@ function faColor(id) {
 ItemEvents.tooltip(event => {
   // Ascended enchants on any item, listed right under its name like vanilla enchants
   event.addAdvanced(Ingredient.all, (item, advanced, text) => {
-    let tag = item.getTag()
+    let tag = item.nbt
     if (!tag || !tag.contains('FactoryAscension')) return
     let data = tag.getCompound('FactoryAscension')
     let line = 1

@@ -1,3 +1,4 @@
+// priority: 1000
 // Factory Ascension - settings.
 // This is a startup script: after editing, fully restart the game (/reload is not enough).
 
@@ -702,7 +703,7 @@ global.FA_describeDef = (e, level) => {
 global.FA_dangerLevel = (level, x, z) => {
   let d = global.FA.danger
   if (!d.enabled) return 0
-  let dim = String(level.dimension().location())
+  let dim = String(level.dimension)
   let dist
   let bonus = 0
   if (dim == 'minecraft:overworld') {

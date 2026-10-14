@@ -1,3 +1,4 @@
+// priority: 800
 // Factory Ascension - JEI.
 // Every item, block and the Liquid Essence fluid this pack adds shows up in JEI on its own, and every recipe
 // shows under its machine's tab (Create's mixer, press, crusher, deployer, assembly line, crafting table).

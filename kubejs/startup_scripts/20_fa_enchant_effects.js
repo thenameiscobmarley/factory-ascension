@@ -1,3 +1,4 @@
+// priority: 800
 // Factory Ascension - what the Ascended enchants do.
 // Enchant levels live in each item's NBT under "FactoryAscension", e.g. {sharpness: 3000}.
 // A player's level in an enchant = the total across both hands and all armor.
@@ -21,6 +22,30 @@ const $FAForgeMod = Java.loadClass('net.minecraftforge.common.ForgeMod')
 const $FAEntityType = Java.loadClass('net.minecraft.world.entity.EntityType')
 const $FABlockTags = Java.loadClass('net.minecraft.tags.BlockTags')
 const $FAForgeBlockTags = Java.loadClass('net.minecraftforge.common.Tags$Blocks')
+const $FABlockPos = Java.loadClass('net.minecraft.core.BlockPos')
+
+// ---- KubeJS naming notes (checked on a live 1.20.1 server with KubeJS 2001.6.5) ----
+// KubeJS renames or hides some Minecraft methods, so these scripts use: e.stringUuid, p.username, stack.nbt,
+// e.level (a property), String(level.dimension), e.yaw / e.pitch, e.extinguish(), e.attack(source, amount),
+// e.setMotion(), e.setPosition() / setPositionAndRotation() (moveTo/teleportTo are ambiguous), e.glowing = true,
+// e.age, String(e.type), level.createEntity(type), source.actual / source.immediate / source.getType(),
+// server.getTickCount() for time, and removeModifier(uuid). Empty item slots come back as undefined.
+
+// An empty slot is undefined in KubeJS (or an empty stack); both count as empty
+function faEmpty(stack) {
+  return !stack || stack.isEmpty()
+}
+
+// Server ticks since start: the clock for every cooldown and timer
+function faNow(entity) {
+  return entity.level.getServer().getTickCount()
+}
+
+// True if an entity of normal size could stand at x, y, z (air at feet and head)
+function faClear(level, x, y, z) {
+  let fx = Math.floor(x), fy = Math.floor(y), fz = Math.floor(z)
+  return level.getBlockState(new $FABlockPos(fx, fy, fz)).isAir() && level.getBlockState(new $FABlockPos(fx, fy + 1, fz)).isAir()
+}
 
 const FA_TAG = 'FactoryAscension'
 const FA_MAX_FLOAT = 3.0e38
@@ -112,7 +137,8 @@ function faLevels(entity) {
   let pieces = {}
   let it = entity.getAllSlots().iterator()
   while (it.hasNext()) {
-    let tag = it.next().getTag()
+    let slot = it.next()
+    let tag = faEmpty(slot) ? null : slot.nbt
     if (!tag || !tag.contains(FA_TAG)) continue
     let own = faItemLevels(tag.getCompound(FA_TAG))
     Object.keys(own).forEach(id => {
@@ -193,7 +219,7 @@ function faStat(player, stat, amount, mode) {
 
 // Living hostile mobs around an entity, up to max. Never players, pets or villagers.
 function faEnemiesNear(center, radius, exclude, max) {
-  let found = center.level().getEntitiesOfClass($FALiving, center.getBoundingBox().inflate(radius))
+  let found = center.level.getEntitiesOfClass($FALiving, center.getBoundingBox().inflate(radius))
   let out = []
   for (let i = 0; i < found.size() && out.length < max; i++) {
     let e = found.get(i)
@@ -208,25 +234,25 @@ function faFx(entity, particle, count, sound, pitch) {
   let server = entity.getServer()
   if (!server) return
   let pos = entity.getX().toFixed(2) + ' ' + (entity.getY() + 1).toFixed(2) + ' ' + entity.getZ().toFixed(2)
-  let dim = 'execute in ' + entity.level().dimension().location() + ' run '
+  let dim = 'execute in ' + entity.level.dimension + ' run '
   server.runCommandSilent(dim + 'particle ' + particle + ' ' + pos + ' 0.6 0.6 0.6 0.2 ' + count + ' normal')
   if (sound) server.runCommandSilent(dim + 'playsound ' + sound + ' hostile @a ' + pos + ' 1 ' + (pitch || 1))
 }
 
 // Lightning that only looks and sounds like lightning: no fire, no damage, no charged creepers
 function faBolt(target) {
-  let bolt = $FAEntityType.LIGHTNING_BOLT.create(target.level())
+  let bolt = $FAEntityType.LIGHTNING_BOLT.create(target.level)
   if (!bolt) return
-  bolt.moveTo(target.getX(), target.getY(), target.getZ())
+  bolt.setPosition(target.getX(), target.getY(), target.getZ())
   bolt.setVisualOnly(true)
-  target.level().addFreshEntity(bolt)
+  target.level.addFreshEntity(bolt)
 }
 
 // Rampage kill-streak stacks, per player: {stacks, until (game time)}
 let faRampage = {}
 function faRampageStacks(player) {
-  let r = faRampage[player.getStringUUID()]
-  return r && player.level().getGameTime() <= r.until ? r.stacks : 0
+  let r = faRampage[player.stringUuid]
+  return r && faNow(player) <= r.until ? r.stacks : 0
 }
 
 // Heads for Headhunter, by mob id
@@ -255,7 +281,7 @@ function faWhen(when, source, attacker, target) {
     case 'undead': return target.getMobType() == $FAMobType.UNDEAD
     case 'arthropod': return target.getMobType() == $FAMobType.ARTHROPOD
     case 'boss': return faIsBoss(target)
-    case 'nether': return String(target.level().dimension().location()) == 'minecraft:the_nether'
+    case 'nether': return String(target.level.dimension) == 'minecraft:the_nether'
     case 'raider': return target instanceof $FARaider
     case 'wet': return target.getMobType() == $FAMobType.WATER || target.isInWaterOrRain()
     case 'airborne': return !target.onGround()
@@ -269,7 +295,7 @@ function faWhen(when, source, attacker, target) {
 }
 
 function faResists(vs, source) {
-  let id = String(source.getMsgId())
+  let id = String(source.getType())
   switch (vs) {
     case 'all': return true
     case 'fire': return source.is($FADamageTypeTags.IS_FIRE)
@@ -300,7 +326,7 @@ let faChronosReady = {}
 function faSecondaryHit(target, source, amount) {
   faSecondary = true
   try {
-    target.hurt(source, Math.min(amount, FA_MAX_FLOAT))
+    target.attack(source, Math.min(amount, FA_MAX_FLOAT))
   } finally {
     faSecondary = false
   }
@@ -326,7 +352,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
   if (faSecondary) return
   try {
     let source = event.getSource()
-    let attacker = source.getEntity() // the owner for arrows and other projectiles
+    let attacker = source.actual // the owner for arrows and other projectiles
     let victim = event.getEntity()
     let amount = event.getAmount()
     let A = faLevels(attacker)
@@ -387,8 +413,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
       faIds('undying').forEach(id => {
         let level = V[id] || 0
         if (level <= 0 || scaled < victim.getHealth()) return
-        let uuid = victim.getStringUUID()
-        let now = victim.level().getGameTime()
+        let uuid = victim.stringUuid
+        let now = faNow(victim)
         if (faUndyingReady[uuid] && now < faUndyingReady[uuid]) return
         faUndyingReady[uuid] = now + Math.round(global.FA_undyingCooldown(faE(id), level) * 20)
         scaled = Math.max(0, victim.getHealth() - 1)
@@ -399,13 +425,13 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
       faIds('phoenix').forEach(id => {
         let level = V[id] || 0
         if (level <= 0 || scaled < victim.getHealth()) return
-        let uuid = victim.getStringUUID()
-        let now = victim.level().getGameTime()
+        let uuid = victim.stringUuid
+        let now = faNow(victim)
         if (faPhoenixReady[uuid] && now < faPhoenixReady[uuid]) return
         faPhoenixReady[uuid] = now + Math.round(global.FA_phoenixCooldown(faE(id), level) * 20)
         scaled = 0
         victim.setHealth(victim.getMaxHealth())
-        victim.clearFire()
+        victim.extinguish()
         faEnemiesNear(victim, 6, null, 32).forEach(m => {
           m.setSecondsOnFire(10)
           faSecondaryHit(m, victim.damageSources().playerAttack(victim), 10 * level)
@@ -423,8 +449,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
       faIds('time_stop').forEach(id => {
         let level = V[id] || 0
         if (level <= 0) return
-        let uuid = victim.getStringUUID()
-        let now = victim.level().getGameTime()
+        let uuid = victim.stringUuid
+        let now = faNow(victim)
         if (faChronosReady[uuid] && now < faChronosReady[uuid]) return
         let c = global.FA_chronos(level)
         faChronosReady[uuid] = now + c.cooldown * 20
@@ -488,7 +514,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
           let dy = victim.getY() - m.getY()
           let dz = victim.getZ() - m.getZ()
           let len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1
-          m.setDeltaMovement(dx / len * pull, Math.max(0.1, dy / len * pull), dz / len * pull)
+          m.setMotion(dx / len * pull, Math.max(0.1, dy / len * pull), dz / len * pull)
           m.hurtMarked = true
         })
       })
@@ -501,7 +527,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
       })
       faIds('projectile_teleport').forEach(id => {
         if ((A[id] || 0) <= 0 || !source.is($FADamageTypeTags.IS_PROJECTILE)) return
-        attacker.teleportTo(victim.getX(), victim.getY(), victim.getZ())
+        attacker.setPosition(victim.getX(), victim.getY(), victim.getZ())
         attacker.fallDistance = 0
         faFx(attacker, 'minecraft:portal', 60, 'minecraft:entity.enderman.teleport', 1)
       })
@@ -523,7 +549,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
 
 ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDeathEvent', event => {
   try {
-    let killer = event.getSource().getEntity()
+    let killer = event.getSource().actual
     if (!(killer instanceof $FAPlayer) || !killer.isAlive()) return
     let levels = faLevels(killer)
     let victim = event.getEntity()
@@ -535,7 +561,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDeathEvent', e
     faIds('rampage').forEach(id => {
       if ((levels[id] || 0) <= 0) return
       let stacks = Math.min(faE(id).maxStacks, faRampageStacks(killer) + 1)
-      faRampage[killer.getStringUUID()] = { stacks: stacks, until: killer.level().getGameTime() + faE(id).seconds * 20 }
+      faRampage[killer.stringUuid] = { stacks: stacks, until: faNow(killer) + faE(id).seconds * 20 }
       killer.displayClientMessage(Text.red('Rampage x' + stacks), true)
     })
 
@@ -543,7 +569,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDeathEvent', e
     faIds('souls').forEach(id => {
       let it = killer.getAllSlots().iterator()
       while (it.hasNext()) {
-        let tag = it.next().getTag()
+        let slot = it.next()
+        let tag = faEmpty(slot) ? null : slot.nbt
         if (!tag || !tag.contains(FA_TAG)) continue
         let data = tag.getCompound(FA_TAG)
         if (data.getInt(id) <= 0) continue
@@ -591,7 +618,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
   try {
     // Never touch a player's death drops
     if (event.getEntity() instanceof $FAPlayer) return
-    let levels = faLevels(event.getSource().getEntity())
+    let levels = faLevels(event.getSource().actual)
     let danger = faDanger(event.getEntity())
     if (Object.keys(levels).length == 0 && !danger && !faEvent('goldenHour')) return
 
@@ -603,7 +630,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
       let max = stack.getMaxStackSize()
       while (total > 0 && budget > 0) {
         let n = Math.min(total, max)
-        let extra = new $FAItemEntity(spawnAt.level(), spawnAt.getX(), spawnAt.getY(), spawnAt.getZ(), stack.copyWithCount(n))
+        let extra = new $FAItemEntity(spawnAt.level, spawnAt.getX(), spawnAt.getY(), spawnAt.getZ(), stack.copyWithCount(n))
         extra.setDefaultPickUpDelay()
         extras.push(extra)
         total -= n
@@ -612,7 +639,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     }
 
     // Mythic Fragments: only from danger-zone mobs killed by a player, and never multiplied
-    let killer = event.getSource().getEntity()
+    let killer = event.getSource().actual
     let byPlayer = killer instanceof $FAPlayer
     if (danger && byPlayer) {
       let chance = global.FA_fragmentChance(danger.level, danger.elite)
@@ -625,11 +652,11 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
       global.FA.bosses.drops.forEach(d => addStacks(Item.of(d[0]), d[1] + Math.floor(Math.random() * (d[2] - d[1] + 1))))
       faStat(killer, 'bosses_killed', 1)
       let server = killer.getServer()
-      if (server) server.tell(Text.gold(killer.getScoreboardName()).append(Text.yellow(' slew ').append(event.getEntity().getDisplayName())).append(Text.yellow('!')))
+      if (server) server.tell(Text.gold(killer.username).append(Text.yellow(' slew ').append(event.getEntity().getDisplayName())).append(Text.yellow('!')))
     }
     faIds('heads').forEach(id => {
       let level = levels[id] || 0
-      let head = FA_HEADS[String($FAEntityType.getKey(event.getEntity().getType()))]
+      let head = FA_HEADS[String(event.getEntity().type)]
       if (level > 0 && head && Math.random() < Math.min(1, faE(id).perLevel * level)) addStacks(Item.of(head), 1)
     })
 
@@ -642,9 +669,10 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     while (it.hasNext()) {
       let itemEntity = it.next()
       let stack = itemEntity.getItem()
+      if (faEmpty(stack)) continue
       // Only plain stackable drops are multiplied. Gear and anything with NBT (named, enchanted, or an
       // item the mob picked up) is never copied, so loot bonuses can't duplicate a player's items.
-      if (mult <= 1 || stack.isEmpty() || stack.getMaxStackSize() <= 1 || stack.hasTag()) continue
+      if (mult <= 1 || stack.isEmpty() || stack.getMaxStackSize() <= 1 || stack.nbt != null) continue   // hasTag() is hidden in KubeJS: check nbt
       let total = faRoll(stack.getCount() * mult)
       let max = stack.getMaxStackSize()
       itemEntity.setItem(stack.copyWithCount(Math.min(total, max)))
@@ -692,7 +720,7 @@ function faSetModifier(player, attribute, name, amount, operation) {
   }
   // Skip the work when nothing changed (equipment events fire a lot)
   if (old.length == 1 && old[0].getAmount() == amount) return
-  old.forEach(mod => instance.removeModifier(mod))
+  old.forEach(mod => instance.removeModifier(mod.getId()))   // by UUID: removeModifier(modifier) is ambiguous in KubeJS
   if (amount > 0) instance.addTransientModifier(new $FAModifier(name, amount, operation))
 }
 
@@ -745,7 +773,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
 
     if (Math.random() < Math.min(d.eliteChanceCap, d.eliteChancePerLevel * danger)) {
       data.putBoolean('fa_elite', true)
-      mob.setCustomName(Text.red('\u2620 Elite ').append(mob.getType().getDescription()).append(Text.gray(' \u00b7 Lv ' + danger)))
+      mob.setCustomName(Text.red('\u2620 Elite ').append(mob.getDisplayName()).append(Text.gray(' \u00b7 Lv ' + danger)))
       mob.setCustomNameVisible(true)
     }
   } catch (err) {
@@ -760,8 +788,8 @@ let faLastDanger = {}
 let FA_TEXT_COLORS = { green: 'green', yellow: 'yellow', gold: 'gold', red: 'red', dark_red: 'darkRed', dark_purple: 'darkPurple', dark_gray: 'gray' }
 
 function faDangerNotice(player) {
-  let uuid = player.getStringUUID()
-  let danger = global.FA_dangerLevel(player.level(), player.getX(), player.getZ())
+  let uuid = player.stringUuid
+  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ())
   let last = faLastDanger[uuid]
   faLastDanger[uuid] = danger
   if (danger > 0) faStat(player, 'max_danger', danger, 'max')
@@ -770,7 +798,7 @@ function faDangerNotice(player) {
   let zone = global.FA_zone(danger)
   let m = global.FA_dangerMult(danger, false)
   let server = player.getServer()
-  let name = player.getScoreboardName()
+  let name = player.username
 
   if (zone !== global.FA_zone(last)) {
     let deeper = danger > last
@@ -819,7 +847,7 @@ function faFlight(player, levels) {
 ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$PlayerTickEvent', event => {
   try {
     let player = event.player
-    if (String(event.phase) != 'END' || player.level().isClientSide() || player.tickCount % 20 != 0 || !player.isAlive()) return
+    if (String(event.phase) != 'END' || player.level.isClientSide() || player.age % 20 != 0 || !player.isAlive()) return
     try {
       faDangerNotice(player)
     } catch (err) {
@@ -861,12 +889,12 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$PlayerTickEvent', event 
       let e = faE(id)
       let box = player.getBoundingBox().inflate(Math.min(e.cap, e.base + e.perLevel * level))
       ;[$FAItemEntity, $FAOrb].forEach(cls => {
-        let found = player.level().getEntitiesOfClass(cls, box)
+        let found = player.level.getEntitiesOfClass(cls, box)
         for (let i = 0; i < found.size() && i < 256; i++) {
           let ent = found.get(i)
           // Items you just threw still have a pickup delay, so they aren't sucked straight back
           if (ent instanceof $FAItemEntity && ent.hasPickUpDelay()) continue
-          ent.teleportTo(player.getX(), player.getY(), player.getZ())
+          ent.setPosition(player.getX(), player.getY(), player.getZ())
         }
       })
     })
@@ -877,7 +905,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$PlayerTickEvent', event 
       let it = player.getAllSlots().iterator()
       while (it.hasNext()) {
         let stack = it.next()
-        if (stack.isDamageableItem() && stack.isDamaged()) {
+        if (!faEmpty(stack) && stack.isDamageableItem() && stack.isDamaged()) {
           stack.setDamageValue(Math.max(0, stack.getDamageValue() - Math.min(repair, 2000000000)))
         }
       }
@@ -906,7 +934,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.player.PlayerEvent$BreakSpe
 ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingFallEvent', event => {
   try {
     let player = event.getEntity()
-    if (!(player instanceof $FAPlayer) || player.level().isClientSide()) return
+    if (!(player instanceof $FAPlayer) || player.level.isClientSide()) return
     let levels = faLevels(player)
     faIds('slam').forEach(id => {
       let level = levels[id] || 0
@@ -938,11 +966,14 @@ ForgeEvents.onEvent('net.minecraftforge.event.level.BlockEvent$BreakEvent', even
       if (level <= 0) return
       let e = faE(id)
       let ores = e.blocks == 'ores'
-      if (!state.is(ores ? $FAForgeBlockTags.ORES : $FABlockTags.LOGS)) return
-      // Ores: only the same block (so deepslate and stone ores stay separate). Logs: any log.
-      let matches = other => ores ? other.getBlock() === state.getBlock() : other.is($FABlockTags.LOGS)
-
       let world = event.getLevel()
+      let startBlock = world.getBlock(event.getPos())
+      // KubeJS block containers: .id and .hasTag (state.is(tag) is ambiguous in KubeJS)
+      if (!startBlock.hasTag(ores ? 'forge:ores' : 'minecraft:logs')) return
+      let startId = String(startBlock.id)
+      // Ores: only the same block (so deepslate and stone ores stay separate). Logs: any log.
+      let matches = pos => { let b = world.getBlock(pos); return ores ? String(b.id) == startId : b.hasTag('minecraft:logs') }
+
       let start = event.getPos()
       let limit = Math.min(e.cap, e.perLevel * level)
       let key = p => p.getX() + ',' + p.getY() + ',' + p.getZ()
@@ -960,9 +991,9 @@ ForgeEvents.onEvent('net.minecraftforge.event.level.BlockEvent$BreakEvent', even
                 let next = pos.offset(dx, dy, dz)
                 if (seen[key(next)]) continue
                 seen[key(next)] = true
-                if (!matches(world.getBlockState(next))) continue
+                if (!matches(next)) continue
                 // Stop if the tool broke
-                if (player.getMainHandItem().isEmpty()) return
+                if (faEmpty(player.getMainHandItem())) return
                 // Breaks like the player did: uses the tool, Fortune, durability and drops
                 player.gameMode.destroyBlock(next)
                 broken++

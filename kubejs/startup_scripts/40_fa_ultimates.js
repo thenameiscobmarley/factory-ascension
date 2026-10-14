@@ -1,3 +1,4 @@
+// priority: 600
 // Factory Ascension - Ultimates: cinematic combo moves.
 //
 // Sneak + hit an enemy (a direct melee hit) with an Ultimate equipped and it plays out over the next second or
@@ -15,6 +16,8 @@ let faTick = 0
 let faQueue = []
 let faCombos = {}      // player uuid -> combo
 let faUltReady = {}    // player uuid + ult id -> tick it's ready again
+// For /ascension selftest: its fake player has a fixed UUID, so a second run would still be on cooldown
+global.FA_clearUltCooldowns = uuid => Object.keys(faUltReady).forEach(k => { if (k.indexOf(uuid + '|') == 0) delete faUltReady[k] })
 
 // ---- Tick scheduler ----
 
@@ -43,7 +46,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$ServerTickEvent', event 
 // ---- Shared steps ----
 
 function faInCombo(entity) {
-  return entity instanceof $FAPlayer && !!faCombos[entity.getStringUUID()]
+  return entity instanceof $FAPlayer && !!faCombos[entity.stringUuid]
 }
 
 // Yaw/pitch that look from one point to another (Minecraft: yaw 0 = south, pitch up is negative)
@@ -64,7 +67,7 @@ function faAim(c) {
 function faBlink(c, x, y, z) {
   let t = faAim(c)
   let look = faLook(x, y + 1.6, z, t.x, t.y + 1, t.z)
-  c.player.teleportTo(c.level, x, y, z, look.yaw, look.pitch)
+  c.player.setPositionAndRotation(x, y, z, look.yaw, look.pitch)   // teleportTo is ambiguous in KubeJS
   c.player.fallDistance = 0
   c.moved = true
 }
@@ -73,7 +76,7 @@ function faFxAt(c, x, y, z, particle, count, spread, speed, sound, pitch) {
   let server = c.player.getServer()
   if (!server) return
   let pos = x.toFixed(2) + ' ' + y.toFixed(2) + ' ' + z.toFixed(2)
-  let dim = 'execute in ' + c.level.dimension().location() + ' run '
+  let dim = 'execute in ' + c.level.dimension + ' run '
   if (particle) server.runCommandSilent(dim + 'particle ' + particle + ' ' + pos + ' ' + spread + ' ' + spread + ' ' + spread + ' ' + speed + ' ' + count + ' force')
   if (sound) server.runCommandSilent(dim + 'playsound ' + sound + ' player @a ' + pos + ' 1.5 ' + (pitch || 1))
 }
@@ -81,7 +84,7 @@ function faFxAt(c, x, y, z, particle, count, spread, speed, sound, pitch) {
 function faBoltAt(c, x, y, z) {
   let bolt = $FAEntityType.LIGHTNING_BOLT.create(c.level)
   if (!bolt) return
-  bolt.moveTo(x, y, z)
+  bolt.setPosition(x, y, z)
   bolt.setVisualOnly(true)   // looks and sounds real, but no fire, no damage, no charged creepers
   c.level.addFreshEntity(bolt)
 }
@@ -165,7 +168,7 @@ let FA_MOVES = {
 
   heaven_splitter: c => [
     [1, c => {
-      if (!faIsBoss(c.target)) { c.target.setDeltaMovement(0, 2.2, 0); c.target.hurtMarked = true }
+      if (!faIsBoss(c.target)) { c.target.setMotion(0, 2.2, 0); c.target.hurtMarked = true }
       let t = faAim(c)
       faFxAt(c, t.x, t.y, t.z, 'minecraft:cloud', 40, 0.6, 0.1, 'minecraft:entity.player.attack.knockback', 0.6)
     }],
@@ -175,7 +178,7 @@ let FA_MOVES = {
       faFxAt(c, t.x, t.y + 2, t.z, 'minecraft:crit', 40, 1, 0.3, 'minecraft:entity.player.attack.strong', 0.8)
     }],
     [4, c => {
-      if (!faIsBoss(c.target)) { c.target.setDeltaMovement(0, -3.5, 0); c.target.hurtMarked = true }
+      if (!faIsBoss(c.target)) { c.target.setMotion(0, -3.5, 0); c.target.hurtMarked = true }
       faUltHit(c, c.target, 1)
     }],
     [6, c => {
@@ -217,7 +220,7 @@ let FA_MOVES = {
           let dx = t.x - m.getX()
           let dz = t.z - m.getZ()
           let d = Math.sqrt(dx * dx + dz * dz) || 1
-          m.setDeltaMovement(dx / d * 1.2, 0.1, dz / d * 1.2)
+          m.setMotion(dx / d * 1.2, 0.1, dz / d * 1.2)
           m.hurtMarked = true
         })
         faFxAt(c, t.x, t.y + 1, t.z, 'minecraft:reverse_portal', 80, 3, 0.4, i == 0 ? 'minecraft:entity.enderman.teleport' : null, 0.5)
@@ -409,9 +412,9 @@ function faEndCombo(c) {
   if (faCombos[uuid] !== c) return
   delete faCombos[uuid]
   try {
-    // Moves that teleported you put you back exactly where you started (even across dimensions)
-    if (c.moved && c.player.isAlive() && !c.player.isRemoved()) {
-      c.player.teleportTo(c.originLevel, c.origin.x, c.origin.y, c.origin.z, c.origin.yaw, c.origin.pitch)
+    // Moves that teleported you put you back exactly where you started (same dimension; a combo aborts on a change)
+    if (c.moved && c.player.isAlive() && !c.player.isRemoved() && c.player.level === c.originLevel) {
+      c.player.setPositionAndRotation(c.origin.x, c.origin.y, c.origin.z, c.origin.yaw, c.origin.pitch)
       c.player.fallDistance = 0
       faFxAt(c, c.origin.x, c.origin.y + 1, c.origin.z, 'minecraft:portal', 30, 0.5, 0.2, 'minecraft:entity.enderman.teleport', 1.4)
     }
@@ -422,10 +425,10 @@ function faEndCombo(c) {
 
 function faStartCombo(player, target, id, level, baseDamage) {
   let e = faE(id)
-  let uuid = player.getStringUUID()
+  let uuid = player.stringUuid
   let c = {
-    uuid: uuid, id: id, player: player, target: target, level: player.level(), originLevel: player.level(), moved: false,
-    origin: { x: player.getX(), y: player.getY(), z: player.getZ(), yaw: player.getYRot(), pitch: player.getXRot() },
+    uuid: uuid, id: id, player: player, target: target, level: player.level, originLevel: player.level, moved: false,
+    origin: { x: player.getX(), y: player.getY(), z: player.getZ(), yaw: player.yaw, pitch: player.pitch },
     dmg: Math.min(baseDamage * global.FA_ultPower(e, level), 3.0e38),
     tx: target.getX(), ty: target.getY(), tz: target.getZ()
   }
@@ -434,7 +437,7 @@ function faStartCombo(player, target, id, level, baseDamage) {
 
   let server = player.getServer()
   if (server) {
-    let name = player.getScoreboardName()
+    let name = player.username
     server.runCommandSilent('title ' + name + ' times 2 25 8')
     server.runCommandSilent('title ' + name + ' title ""')
     server.runCommandSilent('title ' + name + ' subtitle ' + JSON.stringify({ text: e.name.toUpperCase(), color: 'gold', bold: true }))
@@ -447,7 +450,7 @@ function faStartCombo(player, target, id, level, baseDamage) {
     faLater(at, () => {
       if (faCombos[uuid] !== c) return
       // Abort cleanly if the player is gone, dead, or somewhere else
-      if (!c.player.isAlive() || c.player.isRemoved() || c.player.level() !== c.level) return faEndCombo(c)
+      if (!c.player.isAlive() || c.player.isRemoved() || c.player.level !== c.level) return faEndCombo(c)
       s[1](c)
     })
   })
@@ -460,15 +463,15 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
   if (faSecondary) return
   try {
     let source = event.getSource()
-    let player = source.getEntity()
+    let player = source.actual
     let target = event.getEntity()
-    if (!(player instanceof $FAPlayer) || source.getDirectEntity() !== player || !player.isShiftKeyDown()) return
-    if (!(target instanceof $FALiving) || target instanceof $FAPlayer || faCombos[player.getStringUUID()]) return
+    if (!(player instanceof $FAPlayer) || source.immediate !== player || !player.isShiftKeyDown()) return
+    if (!(target instanceof $FALiving) || target instanceof $FAPlayer || faCombos[player.stringUuid]) return
     let levels = faLevels(player)
     let best = null
     faIds('ultimate').forEach(id => {
       let level = levels[id] || 0
-      if (level <= 0 || (faUltReady[player.getStringUUID() + '|' + id] || 0) > faTick) return
+      if (level <= 0 || (faUltReady[player.stringUuid + '|' + id] || 0) > faTick) return
       if (!best || level > best.level) best = { id: id, level: level }
     })
     if (best) faStartCombo(player, target, best.id, best.level, event.getAmount())
@@ -496,7 +499,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingFallEvent', ev
 // Logging out mid-combo: put the player back first, so they don't log in floating over a monster
 ForgeEvents.onEvent('net.minecraftforge.event.entity.player.PlayerEvent$PlayerLoggedOutEvent', event => {
   try {
-    let c = faCombos[event.getEntity().getStringUUID()]
+    let c = faCombos[event.getEntity().stringUuid]
     if (c) faEndCombo(c)
   } catch (err) {
     faWarnOnce('ultimate logout', err)

@@ -1,3 +1,4 @@
+// priority: 700
 // Factory Ascension - renewable ore line.
 // Cobblestone generators + Create drills give endless cobblestone, gravel and blackstone.
 // These recipes turn them into every ore the pack needs, so materials come from
