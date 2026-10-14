@@ -76,6 +76,9 @@ StartupEvents.registry('item', event => {
   // A piece of relic gear, sealed; its quality depends on the danger where it's opened (config: caches)
   event.create('gear_cache').displayName('Sealed Gear Cache').rarity('rare')
 
+  // Attachments: add-ons for gear (config: attachments)
+  global.FA.attachments.list.forEach(at => event.create('attachment_' + at.id).displayName(at.name).rarity('uncommon').maxStackSize(16))
+
   // Rerolls a piece of gear's condition, keeping the better grade (config: condition)
   event.create('polishing_cloth').displayName('Polishing Cloth').rarity('uncommon')
 

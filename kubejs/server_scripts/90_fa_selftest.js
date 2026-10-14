@@ -18,6 +18,7 @@ const $STHand = Java.loadClass('net.minecraft.world.InteractionHand')
 const $STEffects = Java.loadClass('net.minecraft.world.effect.MobEffects')
 const $STHit = Java.loadClass('net.minecraft.world.phys.BlockHitResult')
 const $STCompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
+const $STSlot = Java.loadClass('net.minecraft.world.entity.EquipmentSlot')
 const $STVec = Java.loadClass('net.minecraft.world.phys.Vec3')
 
 let faSelftestBusy = false
@@ -395,6 +396,33 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     for (let i = 0; i < inv.getContainerSize(); i++) if (global.FA_isArtifact(inv.getItem(i))) back = true
     check('a Soulbound Artifact comes back intact after death', n == 1 && back)
     player.getInventory().clearContent()
+    player.setItemInHand('main_hand', sword)
+  })
+
+  // ---- Attachments: attach with a real click, and a Headlamp really lights the world ----
+  attempt('attachments', () => {
+    let blade = Item.of('minecraft:iron_sword')
+    player.setItemInHand('main_hand', Item.of('kubejs:attachment_chainsaw'))
+    player.setItemInHand('off_hand', blade)
+    player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+    let on = global.FA_attachIds(player.getOffhandItem())
+    check('a Chainsaw attaches to a sword (real click)', on.length == 1 && on[0] == 'chainsaw', on.join(','))
+    let helm = Item.of('minecraft:iron_helmet')
+    player.setItemInHand('main_hand', Item.of('kubejs:attachment_headlamp'))
+    player.setItemInHand('off_hand', helm)
+    player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+    player.setItemSlot($STSlot.HEAD, player.getOffhandItem())
+    player.setItemInHand('off_hand', Item.of('minecraft:air'))
+    player.setItemInHand('main_hand', Item.of('minecraft:air'))
+    player.setPositionAndRotation(X - 6, Y, Z - 14, 0, 0)
+    global.FA_attachmentTick(player, 4)
+    let lightPos = new $STBlockPos(X - 6, Y + 1, Z - 14)
+    let lit = String(level.getBlock(lightPos).id) == 'minecraft:light' ? level.getBlockState(lightPos).getLightEmission() : 0
+    global.FA_clearLamp(player)
+    let cleared = String(level.getBlock(lightPos).id) == 'minecraft:air'
+    check('a Headlamp places a real light block at your head (light ' + lit + ') and cleans it up', lit == 15 && cleared, lit + ' / ' + cleared)
+    player.setItemSlot($STSlot.HEAD, Item.of('minecraft:air'))
+    player.setPositionAndRotation(X, Y, Z, 0, 0)
     player.setItemInHand('main_hand', sword)
   })
 

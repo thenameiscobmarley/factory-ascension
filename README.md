@@ -333,6 +333,34 @@ last is always Rare or better.
 A **Booster Box** holds 12 packs. Packs turn up in dungeon, mineshaft, temple, shipwreck, stronghold, nether fortress,
 bastion, mansion, ancient city and end city chests, and in danger-zone loot. Boxes only in the best chests and Epic+ loot.
 
+## Attachments: a light on your helmet, a chainsaw on your sword
+
+Craft an attachment, hold it with the gear in your other hand and right-click. Every piece of gear has **2 slots**, and
+`/ascension` lists them with a **[Detach]** button that gives the attachment back. Armor attachments work while worn;
+weapon, bow and tool ones while held.
+
+| Gear | Attachment | Does | Recipe (crafting grid) |
+|---|---|---|---|
+| Helmet | Headlamp | a real light that follows you around (light 15) | iron, torch, glass pane, copper |
+| Helmet | Rebreather | breathe underwater | iron, glass pane, 2 kelp |
+| Helmet | Thermal Visor | enemies within 24 blocks glow through walls | glass pane, redstone, spider eye, Ascendite nugget |
+| Chestplate | Jetpack | sneak in mid-air to fly up, glide down otherwise | 2 Ascendite ingots, 2 gunpowder, blaze rod |
+| Chestplate | Armor Plating | +4 armor | 3 iron, 2 Ascendite ingots |
+| Chestplate | Spike Plating | attackers take 25% of their hit back | 2 iron, 2 cactus |
+| Leggings | Knee Pads | half fall damage | 2 leather, wool, iron |
+| Leggings | Hydraulics | walk straight up full blocks | 2 pistons, Ascendite ingot |
+| Boots | Rocket Boots | +25% speed | 2 Ascendite ingots, gunpowder, firework rocket |
+| Boots | Spring Coils | Jump Boost II | 2 iron, 2 slime balls |
+| Weapon | Chainsaw | +30% damage, rips into enemies next to the target | 2 iron, Ascendite ingot, chain, Create cogwheel |
+| Weapon | Taser | 15% chance to stun for a second | 2 copper, 2 redstone, Ascendite nugget |
+| Weapon | Flamethrower Nozzle | sets targets on fire for 5s | flint and steel, copper, blaze rod |
+| Weapon | Serrated Edge | targets bleed (Wither) for 3s | 3 flint, iron |
+| Bow / crossbow | Scope | +25% arrow damage | spyglass, glass pane, iron |
+| Pickaxe / shovel / hoe | Drill Bit | Haste II while held | 3 iron, diamond, Create cogwheel |
+| Pickaxe / shovel / hoe | Mining Lamp | a light that follows you while held | 2 torches, iron, glass pane |
+
+Everything is in the `attachments` section of the config.
+
 ## Selling: turn loot into Essence
 
 Hold something and type `/ascension sell` (or click **[Sell held item]** in `/ascension`). You get a quote for the whole
@@ -549,6 +577,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/home` | Everyone | Teleport home. Not while in combat (10s after hitting or being hit), 30s cooldown |
 | `/ascension awaken` | Everyone | Awaken the held gear into an Artifact (what the menu button runs) |
 | `/ascension sell` | Everyone | Quote the held stack, then sell it for Cores or Liquid Essence |
+| `/ascension detach <slot>` | Everyone | Take an attachment off the held gear (what the [Detach] button runs) |
 | `/ascension milestones` | Everyone | Milestone progress |
 | `/ascension rebirth` | Everyone | Rebirth the held item (asks to confirm) |
 | `/ascension event` | Everyone | The current world event |
@@ -557,12 +586,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 49 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 51 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 429 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 446 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

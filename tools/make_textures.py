@@ -751,6 +751,9 @@ def ascendite_textures(textures):
             textures[tier + "_" + kind] = Outlined(px, px, (10, 12, 20, 255))
         px = gear_art.with_palette(palette, gear_art.ingot)
         textures[tier + "_ingot"] = Outlined(px, px, (10, 12, 20, 255))
+    for name, draw in gear_art.ATTACHMENTS.items():
+        px = draw()
+        textures["attachment_" + name] = Outlined(px, px, (10, 12, 20, 255))
     for name, draw in gear_art.HAMMERS.items():
         px = draw()
         textures[name] = Outlined(px, px, (10, 12, 20, 255))

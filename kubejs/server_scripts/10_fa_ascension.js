@@ -298,6 +298,13 @@ function faShowMenu(player) {
     let G = global.FA.gems
     player.tell(Text.aqua(' \u25c6 ' + G.tiers[g.tier - 1].name + ' ' + G.types[g.type].name).append(Text.darkGray('  +' + global.FA_gemLevels(g.tier) + ' ' + global.FA.enchants[G.types[g.type].enchant].name)))
   })
+  // Attachments, with a button to take each one off
+  let attach = gear.nbt ? gear.nbt.getCompound(FA_ITEM_TAG).getCompound('attach') : null
+  if (attach) attach.getAllKeys().forEach(k => {
+    let id = String(attach.getString(k))
+    player.tell(Text.gray(' \u2699 ' + global.FA_attachmentText(id) + ' ').append(Text.gold('[Detach]').clickRunCommand('/ascension detach ' + k)
+      .hover(Text.gray('Take it off and get the attachment back'))))
+  })
   if (any) player.tell(Text.darkGray(' Rebirth at ' + global.FA_num(global.FA_rebirthNeed(starCount)) + ' total levels: ').append(faButton('Rebirth', '/ascension rebirth', 'Reset to level 1 for a permanent star')))
   let AW = global.FA.artifacts
   if (any && AW.enabled && !global.FA_isArtifact(gear)) {

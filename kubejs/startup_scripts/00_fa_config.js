@@ -740,6 +740,51 @@ global.FA = {
       armor: { durabilityMultiplier: 80, protection: [5, 8, 10, 5], toughness: 6, knockbackResistance: 0.25, enchantability: 25 } }
   },
 
+  // ---- Attachments: craftable add-ons for gear (a light on your helmet, a chainsaw on your sword...) ----
+  // Hold an attachment with the gear in your other hand and right-click. Each piece of gear has `slots` slots;
+  // /ascension shows them with a [Detach] button. fits: helmet, chest, legs, boots, weapon, bow or tool (pickaxe,
+  // shovel, hoe). power: the number the effect uses. recipe: shapeless crafting ingredients.
+  attachments: {
+    enabled: true,
+    slots: 2,
+    list: [
+      { id: 'headlamp', name: 'Headlamp', fits: 'helmet', power: 15, text: 'lights up the area around you (light {p})',
+        recipe: ['minecraft:iron_ingot', 'minecraft:torch', 'minecraft:glass_pane', 'minecraft:copper_ingot'] },
+      { id: 'rebreather', name: 'Rebreather', fits: 'helmet', power: 1, text: 'breathe underwater',
+        recipe: ['minecraft:iron_ingot', 'minecraft:glass_pane', 'minecraft:kelp', 'minecraft:kelp'] },
+      { id: 'thermal_visor', name: 'Thermal Visor', fits: 'helmet', power: 24, text: 'enemies within {p} blocks glow through walls',
+        recipe: ['minecraft:glass_pane', 'minecraft:redstone', 'minecraft:spider_eye', 'kubejs:ascendite_nugget'] },
+      { id: 'jetpack', name: 'Jetpack', fits: 'chest', power: 2, text: 'sneak in mid-air to fly up, glide down otherwise',
+        recipe: ['kubejs:ascendite_ingot', 'kubejs:ascendite_ingot', 'minecraft:gunpowder', 'minecraft:gunpowder', 'minecraft:blaze_rod'] },
+      { id: 'armor_plating', name: 'Armor Plating', fits: 'chest', power: 4, text: '+{p} armor',
+        recipe: ['minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:iron_ingot', 'kubejs:ascendite_ingot', 'kubejs:ascendite_ingot'] },
+      { id: 'spike_plating', name: 'Spike Plating', fits: 'chest', power: 25, text: 'attackers take {p}% of their hit back',
+        recipe: ['minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:cactus', 'minecraft:cactus'] },
+      { id: 'knee_pads', name: 'Knee Pads', fits: 'legs', power: 50, text: '-{p}% fall damage',
+        recipe: ['minecraft:leather', 'minecraft:leather', 'minecraft:white_wool', 'minecraft:iron_ingot'] },
+      { id: 'hydraulics', name: 'Hydraulics', fits: 'legs', power: 1, text: 'walk straight up full blocks',
+        recipe: ['minecraft:piston', 'minecraft:piston', 'kubejs:ascendite_ingot'] },
+      { id: 'rocket_boots', name: 'Rocket Boots', fits: 'boots', power: 25, text: '+{p}% movement speed',
+        recipe: ['kubejs:ascendite_ingot', 'kubejs:ascendite_ingot', 'minecraft:gunpowder', 'minecraft:firework_rocket'] },
+      { id: 'spring_coils', name: 'Spring Coils', fits: 'boots', power: 2, text: 'Jump Boost {p}',
+        recipe: ['minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:slime_ball', 'minecraft:slime_ball'] },
+      { id: 'chainsaw', name: 'Chainsaw', fits: 'weapon', power: 30, text: '+{p}% damage, and it rips through enemies next to the target',
+        recipe: ['minecraft:iron_ingot', 'minecraft:iron_ingot', 'kubejs:ascendite_ingot', 'minecraft:chain', 'create:cogwheel'] },
+      { id: 'taser', name: 'Taser', fits: 'weapon', power: 15, text: '{p}% chance to stun the target for a second',
+        recipe: ['minecraft:copper_ingot', 'minecraft:copper_ingot', 'minecraft:redstone', 'minecraft:redstone', 'kubejs:ascendite_nugget'] },
+      { id: 'flamethrower', name: 'Flamethrower Nozzle', fits: 'weapon', power: 5, text: 'sets targets on fire for {p}s',
+        recipe: ['minecraft:flint_and_steel', 'minecraft:copper_ingot', 'minecraft:blaze_rod'] },
+      { id: 'serrated_edge', name: 'Serrated Edge', fits: 'weapon', power: 3, text: 'targets bleed (Wither) for {p}s',
+        recipe: ['minecraft:flint', 'minecraft:flint', 'minecraft:flint', 'minecraft:iron_ingot'] },
+      { id: 'scope', name: 'Scope', fits: 'bow', power: 25, text: '+{p}% arrow damage',
+        recipe: ['minecraft:spyglass', 'minecraft:glass_pane', 'minecraft:iron_ingot'] },
+      { id: 'drill_bit', name: 'Drill Bit', fits: 'tool', power: 2, text: 'Haste {p} while you hold it',
+        recipe: ['minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:diamond', 'create:cogwheel'] },
+      { id: 'mining_lamp', name: 'Mining Lamp', fits: 'tool', power: 15, text: 'lights up the area around you while held (light {p})',
+        recipe: ['minecraft:torch', 'minecraft:torch', 'minecraft:iron_ingot', 'minecraft:glass_pane'] }
+    ]
+  },
+
   // ---- Selling: /ascension sell turns the item in your hand into Ascension Cores or Liquid Essence ----
   // Values are in Essence (1 Essence = 1 Ascension Core; a Liquid Essence bucket = 10).
   sell: {
@@ -1380,6 +1425,13 @@ global.FA_rollArtifact = (rnd, kind) => {
     color: A.colors[ci], aura: A.auras[ci % A.auras.length], quirks: quirks, seed: Math.floor(rnd() * 2147483647)
   }
 }
+
+// "Headlamp: lights up the area around you (light 15)"
+global.FA_attachmentText = id => {
+  let a = global.FA.attachments.list.filter(x => x.id == id)[0]
+  return a ? a.name + ': ' + a.text.replace('{p}', String(a.power)) : id
+}
+global.FA_attachmentDef = id => global.FA.attachments.list.filter(x => x.id == id)[0]
 
 // "Echo Strike: 23% chance a hit lands twice"
 global.FA_quirkText = (id, power) => {

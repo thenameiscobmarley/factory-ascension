@@ -68,21 +68,24 @@ var MobType = { UNDEAD: 'undead', ARTHROPOD: 'arthropod', WATER: 'water', UNDEFI
 function ItemEntityClass(level, x, y, z, stack) { this.s = stack; this.setDefaultPickUpDelay = function () {} }
 ItemEntityClass.prototype.getItem = function () { return this.s }
 var modIds = 0
-function FakeArmorItem() {}
+var fakeBlocks = {}, lastBlockProps = null
+function FakeArmorItem(slot) { this.slot = slot || 'CHEST' }
+FakeArmorItem.prototype.getEquipmentSlot = function () { return this.slot }
 function FakeDiggerItem() {}
+function FakeBowItem() {}
 var Java = {
   loadClass: function (n) {
     var classes = {
       'net.minecraft.world.entity.player.Player': PlayerClass,
       'net.minecraft.world.entity.item.ItemEntity': ItemEntityClass,
       'net.minecraft.tags.DamageTypeTags': { BYPASSES_INVULNERABILITY: 'bypass', IS_PROJECTILE: 'projectile', IS_FIRE: 'fire', IS_FALL: 'fall', IS_EXPLOSION: 'explosion' },
-      'net.minecraft.world.entity.ai.attributes.Attributes': { MAX_HEALTH: 'max_health', MOVEMENT_SPEED: 'movement_speed', ATTACK_SPEED: 'attack_speed', ATTACK_KNOCKBACK: 'attack_knockback', LUCK: 'luck' },
+      'net.minecraft.world.entity.ai.attributes.Attributes': { ARMOR: 'armor', MAX_HEALTH: 'max_health', MOVEMENT_SPEED: 'movement_speed', ATTACK_SPEED: 'attack_speed', ATTACK_KNOCKBACK: 'attack_knockback', LUCK: 'luck' },
       'net.minecraft.world.entity.LivingEntity': LivingClass,
       'net.minecraft.world.entity.monster.Enemy': EnemyClass,
       'net.minecraft.world.entity.raid.Raider': RaiderClass,
       'net.minecraft.world.entity.MobType': MobType,
       'net.minecraft.world.entity.ExperienceOrb': OrbClass,
-      'net.minecraft.world.effect.MobEffects': { GLOWING: 'glowing', MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', BLINDNESS: 'blindness', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
+      'net.minecraft.world.effect.MobEffects': { SLOW_FALLING: 'slow_falling', GLOWING: 'glowing', MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', BLINDNESS: 'blindness', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
       'net.minecraft.world.effect.MobEffectInstance': function (effect, ticks, amp) { this.effect = effect; this.ticks = ticks; this.amp = amp },
       'net.minecraft.world.entity.EntityType': {
         LIGHTNING_BOLT: { create: function () { return { setPosition: function () {}, setVisualOnly: function (v) { this.visual = v } } } },
@@ -97,6 +100,7 @@ var Java = {
       'net.minecraft.core.BlockPos': FakePos,
       'net.minecraft.world.item.ArmorItem': FakeArmorItem,
       'net.minecraft.world.item.DiggerItem': FakeDiggerItem,
+      'net.minecraft.world.item.ProjectileWeaponItem': FakeBowItem,
       'net.minecraft.world.item.AxeItem': function FakeAxeItem() {},
       'net.minecraft.nbt.CompoundTag': Compound,
       'net.minecraft.world.item.ItemStack': { of: function (t) { var st = stack(1, 1); st.id = t.d.id; st.tag = t.d.tag || null; st.restored = true; return st } },
@@ -280,6 +284,7 @@ function livingBits(o, maxHealth) {
       createEntity: function (t) { var m = makeMob(); m.type = t; spawnedMinions.push(m); return m },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
       getDayTime: function () { return self.dayTime || 1000 },
+      getBlock: function (pos) { var k = pos.x + ',' + pos.y + ',' + pos.z; var w = fakeBlocks; return { get id() { return w[k] || 'minecraft:air' }, set: function (id, props) { if (id == 'minecraft:air') delete w[k]; else w[k] = id; lastBlockProps = props } } },
       isClientSide: function () { return false },
       addFreshEntity: function (e) { bolts.push(e) },
       getEntitiesOfClass: function (cls, box) { var l = self.nearby.filter(function (e) { return e instanceof cls }); return { size: function () { return l.length }, get: function (i) { return l[i] } } }
@@ -306,8 +311,8 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js',
-  'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js',
+  'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
@@ -369,7 +374,7 @@ check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount =
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear))', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length, created.length)
 check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
   return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
@@ -539,7 +544,7 @@ var clicks = []
 p.messages.forEach(function (t) { clicks = clicks.concat(t.clicks || []) })
 check('menu has clickable upgrade buttons', clicks.indexOf('/ascension upgrade protection 100') >= 0, clicks.join(','))
 print('  sample: ' + p.messages[2].s)
-check('commands registered (/ascension, /home, /sethome, /ascension sell)', handlers.commands.length == 3)
+check('commands registered (/ascension, /home, /sethome, /ascension sell, /ascension detach)', handlers.commands.length == 4)
 
 // ---------------- Effects ----------------
 print('\ndamage')
@@ -1840,6 +1845,79 @@ check('...but not gear with too few levels', faAwaken(awakener) == 0 && !global.
 var artTip = { arr: ['Sword'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(big2, false, artTip)
 check('the tooltip shows ARTIFACT, 1 of 1, its serial, quirks and lore', /ARTIFACT\s+1 of 1/.test(artTip.arr[1]) && artTip.arr.some(function (l) { return /^\u25c8 /.test(l) }), artTip.arr.slice(0, 4).join(' | '))
+
+// ---------------- Attachments ----------------
+print('\nattachments')
+function gearOf(kind) {
+  var st = stack(1, 1, kind); st.id = 'test:' + kind; st.maxDamage = 500
+  if (kind == 'helmet') st.getItem = function () { return new FakeArmorItem('HEAD') }
+  if (kind == 'chest') st.getItem = function () { return new FakeArmorItem('CHEST') }
+  if (kind == 'legs') st.getItem = function () { return new FakeArmorItem('LEGS') }
+  if (kind == 'bow') st.getItem = function () { return new FakeBowItem() }
+  return st
+}
+function attachItem(id) { var st = stack(3); st.id = 'kubejs:attachment_' + id; return st }
+var tinker = makePlayer(server, 'tinker'), sword9 = gearOf('weapon'), saw = attachItem('chainsaw')
+tinker.main = saw; tinker.off = sword9
+handlers.rightClicked['kubejs:attachment_chainsaw']({ player: tinker, item: saw, hand: 'MAIN_HAND', cancel: function () {} })
+check('a Chainsaw attaches to a sword (right-click, sword in the other hand)', global.FA_attachIds(sword9).join() == 'chainsaw' && saw.count == 2)
+var lamp = attachItem('headlamp'); tinker.main = lamp
+handlers.rightClicked['kubejs:attachment_headlamp']({ player: tinker, item: lamp, hand: 'MAIN_HAND', cancel: function () {} })
+check('a Headlamp won\'t go on a sword', global.FA_attachIds(sword9).length == 1 && lamp.count == 3)
+tinker.main = saw
+handlers.rightClicked['kubejs:attachment_chainsaw']({ player: tinker, item: saw, hand: 'MAIN_HAND', cancel: function () {} })
+check('no doubling up the same attachment', global.FA_attachIds(sword9).length == 1 && saw.count == 2)
+var tz = attachItem('taser'), fl = attachItem('flamethrower'); tinker.main = tz
+handlers.rightClicked['kubejs:attachment_taser']({ player: tinker, item: tz, hand: 'MAIN_HAND', cancel: function () {} })
+tinker.main = fl
+handlers.rightClicked['kubejs:attachment_flamethrower']({ player: tinker, item: fl, hand: 'MAIN_HAND', cancel: function () {} })
+check(global.FA.attachments.slots + ' slots per item: a third attachment is refused', global.FA_attachIds(sword9).length == 2 && fl.count == 3)
+// Chainsaw in combat
+var sawer = makePlayer(server, 'sawer'), cs = gearOf('weapon'); faSetLevel(cs, 'sharpness', 0)
+var tg = cs.getOrCreateTag(), dd = tg.getCompound('FactoryAscension'), at1 = new Compound(); at1.putString('0', 'chainsaw'); dd.put('attach', at1); tg.put('FactoryAscension', dd)
+sawer.main = cs
+var near1 = makeMob(), victimA = makeMob(); victimA.nearby = [near1]
+check('Chainsaw: +30% damage and it rips into enemies next to the target', near(hit(sawer, victimA, 10), 13) && near1.hurtBy.length == 1, near1.hurtBy.join())
+sawer.off = cs; sawer.main = stack(0)
+check('a weapon attachment only works from the main hand', hit(sawer, makeMob(), 10) == 10)
+// Armor attachments
+function wearWith(kind, id) { var g = gearOf(kind); var t = g.getOrCreateTag(), d = t.getCompound('FactoryAscension'), a = new Compound(); a.putString('0', id); d.put('attach', a); t.put('FactoryAscension', d); return g }
+var padded = makePlayer(server, 'padded'); padded.armor = [wearWith('legs', 'knee_pads')]
+check('Knee Pads: half fall damage', hit(null, padded, 10, { tags: ['fall'] }) == 5)
+var spiky = makePlayer(server, 'spiky'), brute = makeMob(); spiky.armor = [wearWith('chest', 'spike_plating')]
+hit(brute, spiky, 20)
+check('Spike Plating: attackers take 25% back', brute.hurtBy[0] == 5, brute.hurtBy.join())
+var sniper = makePlayer(server, 'sniper'), bowG = gearOf('bow'); var bt = bowG.getOrCreateTag(), bd = bt.getCompound('FactoryAscension'), ba = new Compound(); ba.putString('0', 'scope'); bd.put('attach', ba); bt.put('FactoryAscension', bd)
+sniper.main = bowG
+check('Scope: +25% arrow damage, but not on melee hits', near(hit(sniper, makeMob(), 10, { tags: ['projectile'], direct: makeMob() }), 12.5) && hit(sniper, makeMob(), 10) == 10)
+// Headlamp places a light block that follows you, and cleans up
+var miner3 = makePlayer(server, 'miner3'); miner3.armor = [wearWith('helmet', 'headlamp')]
+miner3.x = 5.5; miner3.y = 64; miner3.z = 5.5; miner3.age = 4; fakeBlocks = {}
+tick({ phase: 'END', player: miner3 })
+check('Headlamp: a light block appears at your head', fakeBlocks['5,65,5'] == 'minecraft:light' && lastBlockProps.level == '15', JSON.stringify(fakeBlocks))
+miner3.x = 9.5; miner3.age = 8
+tick({ phase: 'END', player: miner3 })
+check('...moves with you and leaves no light behind', fakeBlocks['9,65,5'] == 'minecraft:light' && !fakeBlocks['5,65,5'], JSON.stringify(fakeBlocks))
+fakeBlocks['9,66,5'] = 'minecraft:stone'; miner3.y = 65; miner3.age = 12
+tick({ phase: 'END', player: miner3 })
+check('...and never replaces a real block', fakeBlocks['9,66,5'] == 'minecraft:stone')
+miner3.armor = []; miner3.y = 64; miner3.age = 16
+tick({ phase: 'END', player: miner3 })
+check('taking the helmet off removes the light', Object.keys(fakeBlocks).filter(function (k) { return fakeBlocks[k] == 'minecraft:light' }).length == 0, JSON.stringify(fakeBlocks))
+// Jetpack
+var flyer3 = makePlayer(server, 'flyer3'); flyer3.armor = [wearWith('chest', 'jetpack')]; flyer3.ground = false; flyer3.sneaking = true; flyer3.age = 1
+tick({ phase: 'END', player: flyer3 })
+check('Jetpack: sneak in mid-air to rise (Levitation)', flyer3.effects.some(function (e) { return e.effect == $FAEffects.LEVITATION }))
+// Menu
+var fixer = makePlayer(server, 'fixer'); fixer.main = sword9; fixer.messages = []
+faShowMenu(fixer)
+var dclicks = []
+fixer.messages.forEach(function (t) { dclicks = dclicks.concat(t.clicks || []) })
+check('/ascension lists attachments with [Detach]', dclicks.indexOf('/ascension detach 0') >= 0 && dclicks.indexOf('/ascension detach 1') >= 0, dclicks.join(','))
+fixer.given = []
+faDetach(fixer, 0)
+check('[Detach] takes it off and gives the attachment back', global.FA_attachIds(sword9).join() == 'taser' && fixer.given[0].id == 'kubejs:attachment_chainsaw')
+check('every attachment has a recipe', global.FA.attachments.list.every(function (a) { return recipes.some(function (r) { return r.rid == 'kubejs:factory_ascension/attachment_' + a.id }) }))
 
 // ---------------- Selling ----------------
 print('\nselling')

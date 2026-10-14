@@ -51,6 +51,11 @@ ItemEvents.tooltip(event => {
       if (a.getInt('kills') > 0) text.add(line++, Text.darkGray('  Kills: ' + global.FA_num(a.getInt('kills'))))
       text.add(line++, Text.darkPurple(String(a.getString('lore'))).italic(true))
     }
+    // Attachments
+    if (data.contains('attach')) {
+      let at = data.getCompound('attach')
+      at.getAllKeys().forEach(k => text.add(line++, Text.gold('\u2699 ' + global.FA_attachmentText(String(at.getString(k))))))
+    }
     // A holo card pulled from a pack
     if (data.contains('card')) text.add(line++, Text.lightPurple('\u2726 HOLO \u00b7 ' + data.getString('card')).bold(true))
     // Condition grade, right under the name
@@ -350,6 +355,14 @@ ItemEvents.tooltip(event => {
     Text.gray('Tier: ').append(Text.aqua('between iron and diamond')).append(Text.darkGray('  ' + T.uses + ' durability, ' + (T.level >= 2 ? 'mines diamonds' : 'mines iron'))),
     made('Ascendite Ingots + Sticks, like iron tools. Repair with Ascendite Ingots in an anvil.'),
     tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
+  // Attachments
+  let fitsText = { helmet: 'Helmets', chest: 'Chestplates', legs: 'Leggings', boots: 'Boots', weapon: 'Weapons (swords, axes...)', bow: 'Bows and crossbows', tool: 'Pickaxes, shovels and hoes' }
+  FA.attachments.list.forEach(at => details('kubejs:attachment_' + at.id, 'Some assembly required.', () => [
+    Text.gray('Fits: ').append(Text.white(fitsText[at.fits])).append(Text.gray('  \u2192  ')).append(Text.gold(at.text.replace('{p}', String(at.power)))),
+    Text.gray('Use: ').append(Text.white('hold the gear in your other hand and right-click this')),
+    tip('Up to ' + FA.attachments.slots + ' attachments per item. Take one off with [Detach] in /ascension.'),
+    made(itemList(at.recipe) + ' (crafting grid)')]))
+
   // Card packs
   let PK = FA.packs
   details('kubejs:enchantment_pack', 'Sealed in shimmering foil. What\'s inside?', () => [

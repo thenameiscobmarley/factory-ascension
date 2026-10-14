@@ -7,6 +7,7 @@ every material shades itself, lit from the top-left like the rest of the pack's 
 import math
 
 from tome_art import add, cut, arc, circ, ell, poly, raster, rect, seg
+from tome_art import flame as flame_shape
 
 S = 32
 
@@ -26,6 +27,11 @@ MATERIALS = {
     'iron': ((240, 240, 244), (172, 174, 182), (88, 90, 100)),
     'wood': ((176, 128, 80), (122, 86, 50), (70, 48, 28)),
     'cloth': ((255, 255, 255), (222, 226, 236), (150, 156, 176)),
+    'fire': ((255, 244, 170), (255, 146, 30), (190, 44, 10)),
+    'glass': ((236, 252, 255), (164, 214, 236), (84, 126, 156)),
+    'red': ((255, 170, 170), (226, 44, 44), (112, 12, 12)),
+    'rubber': ((96, 96, 104), (52, 52, 60), (20, 20, 26)),
+    'iron': ((240, 240, 244), (172, 174, 182), (88, 90, 100)),
 }
 
 
@@ -298,6 +304,49 @@ def gear_cache():
         ('teal', add(circ(0.5, 0.56, 0.09))),
         ('gem', add(circ(0.5, 0.56, 0.04))),
     ])
+
+
+# ---- Attachment icons ----
+def _att(layers):
+    return lambda: draw(layers)
+
+
+def _spikes():
+    out = []
+    for k in range(4):
+        x = 0.2 + k * 0.2
+        out += add(poly([(x - 0.07, 0.36), (x + 0.07, 0.36), (x, 0.12)]))
+    return out
+
+
+ATTACHMENTS = {
+    'headlamp': _att([('rubber', add(arc(0.5, 0.62, 0.38, 180, 360, 0.12))), ('steel', add(circ(0.5, 0.36, 0.17))),
+                      ('glass', add(circ(0.5, 0.36, 0.11))), ('fire', add(poly([(0.42, 0.12), (0.58, 0.12), (0.7, 0.0), (0.3, 0.0)])))]),
+    'rebreather': _att([('rubber', add(ell(0.5, 0.5, 0.3, 0.26))), ('glass', add(circ(0.38, 0.44, 0.09), circ(0.62, 0.44, 0.09))),
+                        ('steel', add(rect(0.42, 0.6, 0.58, 0.8))), ('teal', add(arc(0.74, 0.74, 0.18, 0, 140, 0.07)))]),
+    'thermal_visor': _att([('rubber', add(rect(0.08, 0.42, 0.92, 0.56))), ('steel', add(circ(0.32, 0.5, 0.16), circ(0.68, 0.5, 0.16))),
+                           ('red', add(circ(0.32, 0.5, 0.1), circ(0.68, 0.5, 0.1)))]),
+    'jetpack': _att([('steel', add(rect(0.2, 0.14, 0.44, 0.7), rect(0.56, 0.14, 0.8, 0.7))), ('gold', add(rect(0.2, 0.34, 0.8, 0.4))),
+                     ('fire', add(poly([(0.22, 0.72), (0.42, 0.72), (0.32, 0.96)]), poly([(0.58, 0.72), (0.78, 0.72), (0.68, 0.96)])))]),
+    'armor_plating': _att([('steel', add(rect(0.14, 0.14, 0.86, 0.86))), ('gold', add(circ(0.24, 0.24, 0.05), circ(0.76, 0.24, 0.05), circ(0.24, 0.76, 0.05), circ(0.76, 0.76, 0.05))),
+                           ('steel_dk', add(rect(0.3, 0.46, 0.7, 0.54)))]),
+    'spike_plating': _att([('steel', add(rect(0.1, 0.36, 0.9, 0.86))), ('iron', _spikes()), ('gold', add(circ(0.5, 0.6, 0.07)))]),
+    'knee_pads': _att([('rubber', add(ell(0.5, 0.52, 0.32, 0.36))), ('steel', add(ell(0.5, 0.48, 0.2, 0.22))), ('teal', add(seg(0.36, 0.48, 0.64, 0.48, 0.04)))]),
+    'hydraulics': _att([('steel', add(rect(0.34, 0.08, 0.66, 0.5))), ('iron', add(rect(0.42, 0.5, 0.58, 0.9))), ('gold', add(rect(0.28, 0.46, 0.72, 0.54), rect(0.3, 0.86, 0.7, 0.94)))]),
+    'rocket_boots': _att([('steel', add(rect(0.26, 0.14, 0.56, 0.6), poly([(0.26, 0.5), (0.84, 0.56), (0.84, 0.74), (0.26, 0.74)]))),
+                          ('fire', add(poly([(0.3, 0.76), (0.56, 0.76), (0.43, 0.98)]))), ('gold', add(rect(0.26, 0.14, 0.56, 0.22)))]),
+    'spring_coils': _att([('iron', add(*[seg(0.3, 0.16 + k * 0.14, 0.7, 0.24 + k * 0.14, 0.07) for k in range(5)])), ('steel', add(rect(0.24, 0.84, 0.76, 0.92), rect(0.24, 0.08, 0.76, 0.16)))]),
+    'chainsaw': _att([('steel', add(poly([(0.08, 0.6), (0.2, 0.4), (0.92, 0.4), (0.92, 0.6)]))), ('iron', add(*[poly([(0.24 + k * 0.12, 0.4), (0.32 + k * 0.12, 0.4), (0.28 + k * 0.12, 0.3)]) for k in range(6)])),
+                      ('red', add(rect(0.08, 0.6, 0.36, 0.86))), ('gold', add(circ(0.22, 0.73, 0.06)))]),
+    'taser': _att([('rubber', add(rect(0.2, 0.42, 0.8, 0.86))), ('gold', add(rect(0.3, 0.2, 0.38, 0.42), rect(0.62, 0.2, 0.7, 0.42))), ('teal', add(seg(0.34, 0.18, 0.66, 0.18, 0.05), seg(0.5, 0.04, 0.5, 0.18, 0.04)))]),
+    'flamethrower': _att([('steel', add(rect(0.08, 0.44, 0.6, 0.64))), ('iron', add(poly([(0.6, 0.4), (0.74, 0.34), (0.74, 0.74), (0.6, 0.68)]))), ('fire', flame_shape(0.86, 0.54, 0.4))]),
+    'serrated_edge': _att([('iron', add(poly([(0.1, 0.62), (0.9, 0.3), (0.9, 0.5)]))), ('iron', add(*[poly([(0.2 + k * 0.14, 0.62 - k * 0.06), (0.27 + k * 0.14, 0.74 - k * 0.06), (0.34 + k * 0.14, 0.56 - k * 0.06)]) for k in range(5)])),
+                           ('steel', add(rect(0.06, 0.6, 0.18, 0.7)))]),
+    'scope': _att([('steel', add(rect(0.12, 0.38, 0.88, 0.56))), ('glass', add(circ(0.86, 0.47, 0.1))), ('gold', add(rect(0.3, 0.34, 0.36, 0.6), rect(0.6, 0.34, 0.66, 0.6))), ('steel_dk', add(rect(0.42, 0.56, 0.52, 0.78)))]),
+    'drill_bit': _att([('iron', add(poly([(0.3, 0.16), (0.7, 0.16), (0.5, 0.94)]))), ('steel', add(*[seg(0.34 + k * 0.03, 0.26 + k * 0.16, 0.66 - k * 0.03, 0.34 + k * 0.16, 0.04) for k in range(4)])),
+                       ('gold', add(rect(0.28, 0.06, 0.72, 0.16)))]),
+    'mining_lamp': _att([('steel', add(rect(0.3, 0.2, 0.7, 0.8))), ('glass', add(rect(0.36, 0.3, 0.64, 0.7))), ('fire', add(ell(0.5, 0.52, 0.08, 0.12))), ('steel', add(arc(0.5, 0.2, 0.14, 180, 360, 0.05)))]),
+}
 
 
 HAMMERS = {'rock_hammer': rock_hammer, 'ascendite_rock_hammer': ascendite_rock_hammer, 'polishing_cloth': polishing_cloth,
