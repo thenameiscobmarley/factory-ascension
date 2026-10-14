@@ -376,9 +376,11 @@ itself; it only counts once it's on gear.
 The enchants show in the item's tooltip right under its name, with what they do, e.g.
 `Ascended Sharpness 101  x11.10 damage`.
 
-Every item the pack adds is **3D**: `tools/make_item_models.py` builds a model from each texture, so in your hand, on the
-ground and in item frames items have real thickness, with gems, emblems, gold trim and glowing channels raised off the
-surface. (In inventory slots they still look like normal icons.)
+Every item the pack adds is **3D**: `tools/make_item_models.py` builds a relief model from each texture, so in your hand,
+on the ground and in item frames the whole item is thick with beveled rims, its surface follows the texture (light parts
+raised, dark parts grooved: leather wraps, metal plates, page edges, meat and bone), and gems, emblems, gold trim and
+glowing channels sit highest. (In inventory slots they still look like normal icons.) Worn armor can't change shape
+without a Java mod, so its texture is sculpted instead: beveled trim, brushed metal, rivets and set gems.
 
 Every one of the 286 enchant tomes has its own cover: each base enchant has an emblem that shows what it does
 (a sword for Sharpness, a spider for Bane, an hourglass for Chronos...), Mythic tomes get a gold frame and a glow,

@@ -20,8 +20,9 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 TEX = os.path.join(ROOT, "kubejs", "assets", "kubejs", "textures", "item")
 OUT = os.path.join(ROOT, "kubejs", "assets", "kubejs", "models", "item")
 
-# Half-thickness in model units (16 units = one block; vanilla items are 1 unit thick = 0.5 each side)
-EDGE, BODY, RAISED = 0.75, 0.75, 1.4
+# Model units: 16 = one block. Vanilla items are 1 unit thick; these are 1.5 to 2.75.
+BACK = 1.0                          # the flat back sits this far behind the middle
+EDGE, BODY, RAISED = 0.5, 1.0, 1.75  # front height above the middle (BODY gets -0.25..+0.5 of surface relief)
 MIN_FEATURE = 4
 # Items held like tools (angled in hand)
 HANDHELD = {"ascendite_sword", "ascendite_pickaxe", "ascendite_axe", "ascendite_shovel", "ascendite_hoe",
@@ -63,29 +64,44 @@ def lum(c):
 
 
 def depth_map(px):
-    """Half-thickness per pixel (0 = transparent)."""
+    """Front height per pixel above the flat back (0 = transparent), in model units.
+    The whole item is thick; rims are beveled lower; the surface follows the texture (light = raised,
+    dark = grooved, in quarter steps), and features (gems, emblems, trim, glow) sit highest."""
     n = len(px)
     on = lambda x, y: 0 <= x < n and 0 <= y < n and px[y][x][3] > 0
+    sat = lambda c: (max(c[:3]) - min(c[:3])) / 255.0
     depth = [[0.0] * n for _ in range(n)]
+    feature = [[False] * n for _ in range(n)]
     for y in range(n):
         for x in range(n):
             if not on(x, y):
                 continue
-            if not all(on(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
-                depth[y][x] = EDGE
-                continue
-            # Raised when clearly brighter or more colorful than its neighborhood (gems, emblems, trim, glow)
             near = [px[y + dy][x + dx] for dy in range(-2, 3) for dx in range(-2, 3) if on(x + dx, y + dy)]
             avg = sum(lum(c) for c in near) / len(near)
-            sat = lambda c: (max(c[:3]) - min(c[:3])) / 255.0
             avg_sat = sum(sat(c) for c in near) / len(near)
-            raised = lum(px[y][x]) - avg > 0.1 or sat(px[y][x]) - avg_sat > 0.2
-            depth[y][x] = RAISED if raised else BODY
-    # Small raised specks are texture grain, not features: islands under MIN_FEATURE pixels drop back to the body
+            diff = lum(px[y][x]) - avg
+            feature[y][x] = diff > 0.1 or sat(px[y][x]) - avg_sat > 0.2
+            relief = 0.5 if diff > 0.14 else 0.25 if diff > 0.05 else -0.25 if diff < -0.08 else 0.0
+            depth[y][x] = BODY + relief
+    # Smooth the relief (most common height in each 3x3) so it reads as surface, not noise
+    smooth = [row[:] for row in depth]
+    for y in range(n):
+        for x in range(n):
+            if not on(x, y):
+                continue
+            counts = {}
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    if on(x + dx, y + dy):
+                        d = depth[y + dy][x + dx]
+                        counts[d] = counts.get(d, 0) + 1
+            smooth[y][x] = max(counts, key=lambda d: (counts[d], d == depth[y][x]))
+    depth = smooth
+    # Features: islands of MIN_FEATURE+ pixels rise above everything
     seen = [[False] * n for _ in range(n)]
     for y in range(n):
         for x in range(n):
-            if depth[y][x] != RAISED or seen[y][x]:
+            if not feature[y][x] or seen[y][x]:
                 continue
             island, todo = [], [(x, y)]
             seen[y][x] = True
@@ -94,12 +110,17 @@ def depth_map(px):
                 island.append((cx, cy))
                 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                     nx, ny = cx + dx, cy + dy
-                    if 0 <= nx < n and 0 <= ny < n and not seen[ny][nx] and depth[ny][nx] == RAISED:
+                    if 0 <= nx < n and 0 <= ny < n and not seen[ny][nx] and feature[ny][nx]:
                         seen[ny][nx] = True
                         todo.append((nx, ny))
-            if len(island) < MIN_FEATURE:
+            if len(island) >= MIN_FEATURE:
                 for cx, cy in island:
-                    depth[cy][cx] = BODY
+                    depth[cy][cx] = RAISED
+    # Beveled rim: outline pixels sit lower than the body
+    for y in range(n):
+        for x in range(n):
+            if on(x, y) and not all(on(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                depth[y][x] = EDGE
     return depth
 
 
@@ -148,7 +169,7 @@ def model(name, px):
         if any(dget(x1, y) < d for y in range(y0, y1)):
             faces["east"] = {"uv": [(x1 - 1) * s, y0 * s, x1 * s, y1 * s], "texture": tex}
         elements.append({
-            "from": [round(x0 * s, 4), round(16 - y1 * s, 4), round(8 - d, 4)],
+            "from": [round(x0 * s, 4), round(16 - y1 * s, 4), 8 - BACK],
             "to": [round(x1 * s, 4), round(16 - y0 * s, 4), round(8 + d, 4)],
             "faces": faces,
         })

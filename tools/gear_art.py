@@ -245,27 +245,46 @@ class _Sheet:
             self.px[y][x] = tuple(c[:3]) + (255,)
 
     def plate(self, x0, y0, w, h, mat='steel'):
-        """Gradient plate with a lit top-left edge and a shadowed bottom-right edge."""
+        """Sculpted plate: gradient, beveled edges (lit top-left, shadowed bottom-right, two pixels deep),
+        brushed-metal streaks, and rivets in the corners of bigger plates."""
+        import random
+        rnd = random.Random(x0 * 131 + y0 * 17 + w)
+        streak = [rnd.uniform(-0.05, 0.05) for _ in range(h)]
         for y in range(y0, y0 + h):
             for x in range(x0, x0 + w):
-                t = 0.3 + 0.35 * ((x - x0) / max(1, w) + (y - y0) / max(1, h)) / 2
-                if x == x0 or y == y0:
-                    t -= 0.15
-                if x == x0 + w - 1 or y == y0 + h - 1:
-                    t += 0.15
+                t = 0.3 + 0.35 * ((x - x0) / max(1, w) + (y - y0) / max(1, h)) / 2 + streak[y - y0] + rnd.uniform(-0.025, 0.025)
+                dl, dt, dr, db = x - x0, y - y0, x0 + w - 1 - x, y0 + h - 1 - y
+                if min(dl, dt) == 0:
+                    t -= 0.2
+                elif min(dl, dt) == 1 and w > 4 and h > 4:
+                    t -= 0.08
+                if min(dr, db) == 0:
+                    t += 0.22
+                elif min(dr, db) == 1 and w > 4 and h > 4:
+                    t += 0.08
                 self.put(x, y, _shade(mat, t))
+        if mat in ('steel', 'steel_dk') and w >= 12 and h >= 12:
+            for rx, ry in ((x0 + 2, y0 + 2), (x0 + w - 3, y0 + 2), (x0 + 2, y0 + h - 3), (x0 + w - 3, y0 + h - 3)):
+                self.put(rx, ry, _shade('gold', 0.2))
+                self.put(rx + 1, ry + 1, _shade('gold', 0.75))
 
     def trim(self, x0, y0, w, h, sides='tblr', mat='gold'):
+        """Beveled trim: a bright outer line and, on big enough faces, a darker inner line, so it reads as a raised rim."""
+        inner = w > 6 and h > 6
         for x in range(x0, x0 + w):
             if 't' in sides:
-                self.put(x, y0, _shade(mat, 0.25))
+                self.put(x, y0, _shade(mat, 0.15))
+                if inner:
+                    self.put(x, y0 + 1, _mix(self.px[y0 + 1][x][:3], (0, 0, 0), 0.35))
             if 'b' in sides:
-                self.put(x, y0 + h - 1, _shade(mat, 0.6))
+                self.put(x, y0 + h - 1, _shade(mat, 0.65))
         for y in range(y0, y0 + h):
             if 'l' in sides:
-                self.put(x0, y, _shade(mat, 0.35))
+                self.put(x0, y, _shade(mat, 0.3))
+                if inner and y0 < y < y0 + h - 1:
+                    self.put(x0 + 1, y, _mix(self.px[y][x0 + 1][:3], (0, 0, 0), 0.3))
             if 'r' in sides:
-                self.put(x0 + w - 1, y, _shade(mat, 0.55))
+                self.put(x0 + w - 1, y, _shade(mat, 0.6))
 
     def line(self, x0, y0, x1, y1, mat='teal', glow=True):
         n = max(abs(x1 - x0), abs(y1 - y0), 1)
@@ -279,10 +298,15 @@ class _Sheet:
             self.put(x, y, _shade(mat, 0.3))
 
     def gem(self, cx, cy, r=2):
+        """Faceted gem in a gold setting: dark setting ring, lit top facets, deep bottom facets, a glint."""
+        for y in range(cy - r - 1, cy + r + 1):
+            for x in range(cx - r - 1, cx + r + 1):
+                if abs(x - cx + 0.5) + abs(y - cy + 0.5) <= r + 1.2:
+                    self.put(x, y, _shade('gold', 0.55))
         for y in range(cy - r, cy + r):
             for x in range(cx - r, cx + r):
                 if abs(x - cx + 0.5) + abs(y - cy + 0.5) <= r + 0.2:
-                    self.put(x, y, _shade('gem', 0.25 + 0.15 * ((x - cx) + (y - cy))))
+                    self.put(x, y, _shade('gem', 0.15 if y < cy else 0.7 if x >= cx else 0.45))
         self.put(cx - 1, cy - 1, (255, 255, 255))
 
 
