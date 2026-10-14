@@ -15,6 +15,14 @@ let FA_TYPE_COLORS = {
 }
 
 let FA_TIP_RARITY = { gray: 'gray', aqua: 'aqua', light_purple: 'lightPurple', gold: 'gold', red: 'red' }
+let FA_GRADE_COLORS = { dark_gray: 'darkGray', gray: 'gray', white: 'white', green: 'green', aqua: 'aqua', gold: 'gold' }
+const $FATipArmor = Java.loadClass('net.minecraft.world.item.ArmorItem')
+
+// "+12% damage" / "-3% damage taken" from a multiplier
+function faPct(mult, what) {
+  let p = Math.round((mult - 1) * 1000) / 10
+  return (p > 0 ? '+' : '') + p + '% ' + what
+}
 
 function faColor(id) {
   return Text[FA_TYPE_COLORS[global.FA.enchants[id].type] || 'gold']
@@ -30,6 +38,18 @@ ItemEvents.tooltip(event => {
     let relic = data.getInt('relic')
     if (relic > 0) text.add(line++, relic == 2 ? Text.red('\u2739 MYTHIC RELIC').bold(true) : Text.gold('\u2605 LEGENDARY RELIC').bold(true))
     let stars = data.getInt('stars')
+    // Condition grade, right under the name
+    if (data.contains('condition') && global.FA.condition.enabled) {
+      let gi = data.getInt('condition') - 1
+      let G = global.FA.condition.grades
+      if (gi >= 0 && gi < G.length) {
+        let g = G[gi]
+        let armor = item.getItem() instanceof $FATipArmor
+        let effect = armor ? (g.defense == 1 ? 'no bonus' : faPct(g.defense, 'damage taken')) : (g.damage == 1 ? 'no bonus' : faPct(g.damage, 'damage'))
+        text.add(line++, Text[FA_GRADE_COLORS[g.color] || 'white']((gi == G.length - 1 ? '\u2726 ' : '\u25c6 ') + g.name)
+          .append(Text.darkGray('  ' + effect)))
+      }
+    }
     if (stars > 0) text.add(line++, Text.yellow('\u2605'.repeat(Math.min(stars, 10)) + (stars > 10 ? ' x' + stars : '') + '  ')
       .append(Text.darkGray('levels count x' + global.FA_starMult(stars).toFixed(2))))
     Object.keys(global.FA.enchants).forEach(id => {
@@ -314,6 +334,13 @@ ItemEvents.tooltip(event => {
     Text.gray('Tier: ').append(Text.aqua('between iron and diamond')).append(Text.darkGray('  ' + T.uses + ' durability, ' + (T.level >= 2 ? 'mines diamonds' : 'mines iron'))),
     made('Ascendite Ingots + Sticks, like iron tools. Repair with Ascendite Ingots in an anvil.'),
     tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
+  // Polishing Cloth
+  details('kubejs:polishing_cloth', 'A little elbow grease goes a long way.', () => [
+    Text.gray('Use: ').append(Text.white('hold gear in your other hand and right-click the cloth')),
+    tip('Rerolls the gear\'s condition and keeps whichever grade is better'),
+    tip('Grades: ' + FA.condition.grades.map(g => g.name + ' ' + g.weight + '%').join(', ')),
+    made('White Wool + 2 Ascendite Nuggets + Slime Ball (makes 2)')])
+
   // Rock Hammers
   let HM = FA.hammer
   let rockNames = Object.keys(HM.rocks).map(faItemName).join(', ')

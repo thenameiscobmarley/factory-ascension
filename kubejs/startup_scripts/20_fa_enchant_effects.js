@@ -150,6 +150,71 @@ function faLevels(entity) {
   return levels
 }
 
+// ---- Condition: a wear grade per piece of gear (config: condition) ----
+
+// The stack's grade index, or -1 if it hasn't rolled one
+function faCondition(stack) {
+  if (faEmpty(stack)) return -1
+  let tag = stack.nbt
+  if (!tag || !tag.contains(FA_TAG)) return -1
+  let data = tag.getCompound(FA_TAG)
+  return data.contains('condition') ? data.getInt('condition') - 1 : -1
+}
+
+function faSetCondition(stack, grade) {
+  let tag = stack.getOrCreateTag()
+  let data = tag.getCompound(FA_TAG)
+  data.putInt('condition', grade + 1)
+  tag.put(FA_TAG, data)
+}
+
+// Gear = one per stack and it wears down (tools, weapons, armor from any mod)
+function faWearable(stack) {
+  return !faEmpty(stack) && stack.getMaxStackSize() == 1 && stack.getMaxDamage() > 0
+}
+
+// Rolls a grade for gear that doesn't have one yet; a fresh roll also uses up some durability. Returns the grade.
+global.FA_assignCondition = (stack, rnd) => {
+  if (!global.FA.condition.enabled || !faWearable(stack)) return -1
+  let have = faCondition(stack)
+  if (have >= 0) return have
+  let grade = global.FA_rollCondition(rnd || Math.random)
+  faSetCondition(stack, grade)
+  let wear = Math.floor(stack.getMaxDamage() * global.FA.condition.grades[grade].wear)
+  if (wear > 0 && stack.getDamageValue() < wear) stack.setDamageValue(wear)
+  return grade
+}
+global.FA_conditionOf = stack => faCondition(stack)
+global.FA_setCondition = (stack, grade) => faSetCondition(stack, grade)
+
+// Everything you hold or wear gets its grade the first time (crafted gear already has one)
+global.FA_conditionCheck = player => {
+  if (!global.FA.condition.enabled) return
+  let it = player.getAllSlots().iterator()
+  while (it.hasNext()) global.FA_assignCondition(it.next(), Math.random)
+}
+
+// x damage dealt: the main-hand item's grade
+function faConditionDamage(attacker) {
+  if (!global.FA.condition.enabled || !(attacker instanceof $FAPlayer)) return 1
+  let g = faCondition(attacker.getMainHandItem())
+  return g >= 0 ? global.FA.condition.grades[g].damage : 1
+}
+
+// x damage taken: every armor piece's grade (getAllSlots lists both hands first, then the armor)
+function faConditionDefense(victim) {
+  if (!global.FA.condition.enabled || !(victim instanceof $FAPlayer)) return 1
+  let mult = 1, i = 0
+  let it = victim.getAllSlots().iterator()
+  while (it.hasNext()) {
+    let slot = it.next()
+    if (i++ < 2) continue
+    let g = faCondition(slot)
+    if (g >= 0) mult *= global.FA.condition.grades[g].defense
+  }
+  return mult
+}
+
 // Gear sets: 2 or 4 equipped pieces with the set's enchant boost it and can add other enchants
 function faApplySets(levels, pieces) {
   global.FA.sets.forEach(set => {
@@ -379,6 +444,9 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
       if (stacks > 0) scaled *= 1 + faE(id).perLevel * level * stacks
     })
 
+    // ---- Condition: a Mint sword hits harder than a Battle-Scarred one ----
+    scaled *= faConditionDamage(attacker)
+
     // ---- Danger: far-out mobs hit harder and take longer to kill ----
     let bypass = source.is($FADamageTypeTags.BYPASSES_INVULNERABILITY)
     let attackerDanger = faDanger(attacker)
@@ -388,6 +456,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
 
     // ---- Victim's defenses (/kill and the void ignore them, so nobody gets stuck immortal) ----
     if (!bypass) {
+      scaled *= faConditionDefense(victim)
       faIds('resist').forEach(id => {
         let level = V[id] || 0
         if (level > 0 && faResists(faE(id).vs, source)) scaled /= 1 + faE(id).perLevel * level
@@ -867,6 +936,11 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$PlayerTickEvent', event 
       faDangerNotice(player)
     } catch (err) {
       faWarnOnce('danger zones', err)
+    }
+    try {
+      global.FA_conditionCheck(player)
+    } catch (err) {
+      faWarnOnce('gear condition', err)
     }
     let levels = faLevels(player)
     try {

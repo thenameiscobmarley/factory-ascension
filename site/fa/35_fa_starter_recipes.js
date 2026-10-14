@@ -93,6 +93,10 @@ ServerEvents.recipes(event => {
     }).id(id('starter_steel'))
   }
 
+  // Polishing Cloth: rerolls a piece of gear's condition, keeping the better grade
+  event.shapeless(Item.of('kubejs:polishing_cloth', 2), ['minecraft:white_wool', 'kubejs:ascendite_nugget', 'kubejs:ascendite_nugget', 'minecraft:slime_ball'])
+    .id(id('polishing_cloth'))
+
   // ---- More ways to make Ascension Cores (none need sequenced assembly) ----
   // By hand, from day one
   event.shaped('kubejs:ascension_core', ['RIR', 'IQI', 'RIR'], { R: 'minecraft:redstone', I: I, Q: 'minecraft:lapis_lazuli' })

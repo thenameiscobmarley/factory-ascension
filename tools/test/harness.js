@@ -91,6 +91,7 @@ var Java = {
       'net.minecraft.world.BossEvent$BossBarOverlay': { NOTCHED_10: 'n10' },
       'net.minecraft.world.level.levelgen.Heightmap$Types': { MOTION_BLOCKING: 'mb' },
       'net.minecraft.core.BlockPos': FakePos,
+      'net.minecraft.world.item.ArmorItem': function FakeArmorItem() {},
       'net.minecraftforge.common.capabilities.ForgeCapabilities': { ITEM_HANDLER: 'items', FLUID_HANDLER: 'fluids' },
       'net.minecraft.core.Direction': { UP: 'up', DOWN: 'down' },
       'net.minecraftforge.fluids.capability.IFluidHandler$FluidAction': { SIMULATE: 'sim', EXECUTE: 'exec' },
@@ -134,6 +135,7 @@ var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.plac
 var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn },
   tags: function (type, fn) { (handlers.tags[type] = handlers.tags[type] || []).push(fn) }, highPriorityData: function (fn) { handlers.data.push(fn) } }
 var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) },
+  crafted: function (fn) { handlers.crafted = fn },
   toolTierRegistry: function (fn) { handlers.toolTiers.push(fn) }, armorTierRegistry: function (fn) { handlers.armorTiers.push(fn) } }
 // Several scripts can hook the same Forge event: keep them all and call each in turn
 var ForgeEvents = { onEvent: function (cls, fn) {
@@ -286,7 +288,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
   'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
-  'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js',
+  'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
   load('kubejs/' + f)
@@ -341,7 +343,7 @@ check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount =
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 2, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 3, created.length)
 check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
   return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
@@ -1689,6 +1691,56 @@ popped = []; blockSet = null
 handlers.blockClick({ player: miner2, item: hammer2, block: { id: 'minecraft:stone', set: function (b) { blockSet = b }, popItem: function () {} }, level: miner2.level, cancel: function () {} })
 check('non-rock blocks are left alone', blockSet === null)
 Math.random = realRandom
+
+// ---------------- Gear condition ----------------
+print('\ncondition')
+var CG = global.FA.condition.grades
+var tally = CG.map(function () { return 0 })
+for (var r = 0; r < 20000; r++) tally[global.FA_rollCondition(Math.random)]++
+check('grades roll at their weights (20,000 rolls)', CG.every(function (g, i) { return Math.abs(tally[i] / 200 - g.weight) < 1.5 }), tally.join(' / '))
+function blade(max) { var b = stack(1, 1, 'Diamond Sword'); b.id = 'minecraft:diamond_sword'; b.maxDamage = max; return b }
+var scarred = blade(1000)
+global.FA_assignCondition(scarred, function () { return 0 })
+check('a Battle-Scarred roll comes 30% worn', global.FA_conditionOf(scarred) == 0 && scarred.damage == 300, scarred.damage)
+var again = global.FA_assignCondition(scarred, function () { return 0.999 })
+check('a grade is rolled only once', again == 0 && global.FA_conditionOf(scarred) == 0)
+var stackable = stack(16); stackable.id = 'minecraft:cobblestone'
+check('stackable items never get a grade', global.FA_assignCondition(stackable, Math.random) == -1 && !stackable.tag)
+var fighter = makePlayer(server, 'fighter'), dummy = makeMob()
+var mint = blade(1000); global.FA_setCondition(mint, 4)
+fighter.main = mint
+check('Mint Condition: x1.12 damage', near(hit(fighter, dummy, 10), 11.2), hit(fighter, dummy, 10))
+fighter.main = scarred
+check('Battle-Scarred: x0.85 damage', near(hit(fighter, dummy, 10), 8.5), hit(fighter, dummy, 10))
+var tank2 = makePlayer(server, 'armored'), plate = blade(500), plate2 = blade(500)
+global.FA_setCondition(plate, 5); global.FA_setCondition(plate2, 5)
+tank2.armor = [plate, plate2]
+check('armor grades stack: two Pristine pieces take x0.94 x0.94 damage', near(hit(dummy, tank2, 10), 10 * 0.94 * 0.94), hit(dummy, tank2, 10))
+tank2.armor = []; tank2.main = plate
+check('a graded item in your hand is not armor', hit(dummy, tank2, 10) == 10)
+var crafted2 = blade(800)
+handlers.crafted({ item: crafted2, player: fighter })
+check('crafting gear rolls its grade right away', global.FA_conditionOf(crafted2) >= 0)
+var holder = makePlayer(server, 'holder'), held = blade(300)
+holder.main = held
+global.FA_conditionCheck(holder)
+check('gear gets a grade the first time it\'s held (loot, trades, Create-crafted)', global.FA_conditionOf(held) >= 0)
+// Polishing keeps the better grade
+var polisher = makePlayer(server, 'polisher'), dull = blade(500), cloth = stack(4); cloth.id = 'kubejs:polishing_cloth'
+global.FA_setCondition(dull, 1)
+polisher.main = cloth; polisher.off = dull
+Math.random = function () { return 0.01 }   // rolls Battle-Scarred: worse, so it's kept
+handlers.rightClicked['kubejs:polishing_cloth']({ player: polisher, item: cloth, hand: 'MAIN_HAND', cancel: function () {} })
+var keptWorse = global.FA_conditionOf(dull) == 1 && cloth.count == 3
+Math.random = function () { return 0.995 }  // rolls Pristine
+handlers.rightClicked['kubejs:polishing_cloth']({ player: polisher, item: cloth, hand: 'MAIN_HAND', cancel: function () {} })
+check('a Polishing Cloth rerolls and keeps the better grade (a worse roll changes nothing)', keptWorse && global.FA_conditionOf(dull) == 5 && cloth.count == 2, global.FA_conditionOf(dull))
+handlers.rightClicked['kubejs:polishing_cloth']({ player: polisher, item: cloth, hand: 'MAIN_HAND', cancel: function () {} })
+check('Pristine can\'t be polished further (the cloth is kept)', cloth.count == 2)
+Math.random = realRandom
+var gradeTip = { arr: ['Diamond Sword'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
+advanced(mint, false, gradeTip)
+check('the grade shows right under the name with its effect', /Mint Condition\s+\+12% damage/.test(gradeTip.arr[1]), gradeTip.arr.join(' | '))
 
 // ---------------- KubeJS's `global` ----------------
 // In KubeJS `global` is a Java map, and reading a key that holds null crashes the game (a real crash, from the

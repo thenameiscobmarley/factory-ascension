@@ -254,6 +254,25 @@ The tools and armor are gunmetal steel with glowing teal energy channels, gold g
 and leather-wrapped grips with gold bands. Worn armor matches: a gold-trimmed helm with a glowing eye slit, gem and nose guard,
 gold pauldrons, a teal V into the chest gem, a belt with a gem buckle, gold knee plates and capped boots with a glowing sole.
 
+## Gear condition: Battle-Scarred to Pristine
+
+Every tool, weapon and piece of armor (from any mod) rolls a **condition grade** once: when it's crafted, or the first
+time you hold or wear it (so loot, villager trades and Create-crafted gear get one too). It shows in color right under
+the item's name.
+
+| Grade | Chance | Weapon damage | Armor (per piece) | Starts worn |
+|---|---|---|---|---|
+| Battle-Scarred | 10% | -15% | +4% damage taken | 30% of durability used |
+| Well-Worn | 20% | -7% | +2% damage taken | 15% |
+| Field-Tested | 35% | normal | normal | 5% |
+| Minimal Wear | 24% | +6% | -1.5% damage taken | none |
+| Mint Condition | 10% | +12% | -3% damage taken | none |
+| ✦ Pristine | 1% | +25% | -6% damage taken | none |
+
+A **Polishing Cloth** (white wool + 2 Ascendite nuggets + slime ball, makes 2) rerolls the grade of the gear in your
+other hand and keeps whichever is better, so you can work your way up to Pristine. Everything is in the `condition`
+section of the config.
+
 ## Rock Hammers: smash rock into ore
 
 Craft a **Rock Hammer** (5 iron ingots + 2 sticks, 250 uses) or an **Ascendite Rock Hammer** (5 Ascendite ingots, 1,200 uses,
@@ -413,12 +432,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension event` | Everyone | The current world event |
 | `/ascension event start <name>` / `stop` | Ops | Start or stop a world event |
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
-| `/ascension selftest` | Ops / console | Runs 30 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 33 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 345 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 358 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

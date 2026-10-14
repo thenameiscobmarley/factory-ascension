@@ -151,6 +151,41 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     check('Sharpness 100 turns a 1-damage hit into about 10 after armor', z.getHealth() < 11 && z.getHealth() > 8.5, z.getHealth())
   })
 
+  // ---- Gear condition: graded when held, Mint hits harder, a Polishing Cloth rerolls (real clicks) ----
+  attempt('condition', () => {
+    let blade = Item.of('minecraft:iron_sword')
+    player.setItemInHand('main_hand', blade)
+    global.FA_conditionCheck(player)
+    let grade = global.FA_conditionOf(player.getMainHandItem())
+    check('gear gets a condition grade when held (' + (grade >= 0 ? global.FA.condition.grades[grade].name : 'none') + ')', grade >= 0, grade)
+    // Same swing, two zombies: one with a plain sword, one with a Mint Condition sword
+    let swing = held => {
+      player.setItemInHand('main_hand', held)
+      let z = spawn('minecraft:zombie', X + 2, Y, Z + 3)
+      ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => z.getPersistentData().remove(k))
+      z.setHealth(20)
+      z.invulnerableTime = 0
+      z.attack(player.damageSources().playerAttack(player), 4)
+      return 20 - z.getHealth()
+    }
+    let plain = swing(Item.of('minecraft:stick'))
+    let minted = Item.of('minecraft:iron_sword')
+    global.FA_setCondition(minted, 4)
+    let mintHit = swing(minted)
+    check('a Mint Condition weapon hits 12% harder', Math.abs(mintHit / plain - global.FA.condition.grades[4].damage) < 0.02, plain.toFixed(2) + ' vs ' + mintHit.toFixed(2))
+    let worn = Item.of('minecraft:iron_sword')
+    global.FA_setCondition(worn, 0)
+    player.setItemInHand('main_hand', Item.of('kubejs:polishing_cloth', 64))
+    player.setItemInHand('off_hand', worn)
+    for (let i = 0; i < 40 && global.FA_conditionOf(player.getOffhandItem()) == 0; i++) {
+      player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+    }
+    let after = global.FA_conditionOf(player.getOffhandItem())
+    check('a Polishing Cloth (right-click) improves a Battle-Scarred sword', after > 0 && player.getMainHandItem().getCount() < 64, after)
+    player.setItemInHand('off_hand', Item.of('minecraft:air'))
+    player.setItemInHand('main_hand', sword)
+  })
+
   // ---- 4. Danger tagging ----
   attempt('danger', () => {
     let danger = global.FA_dangerLevel(level, X, Z)

@@ -643,6 +643,22 @@ global.FA = {
     }
   },
 
+  // ---- Condition: every piece of gear rolls a wear grade, like weapon skins ----
+  // Rolled once: when it's crafted, or the first time it's held or worn (so loot, trades and Create-crafted gear get one).
+  // damage: x damage dealt with it in your main hand; defense: x damage taken, per armor piece wearing it;
+  // wear: how much of its durability is already used when it's rolled. A Polishing Cloth rerolls it, keeping the better grade.
+  condition: {
+    enabled: true,
+    grades: [
+      { name: 'Battle-Scarred', weight: 10, damage: 0.85, defense: 1.04, wear: 0.3, color: 'dark_gray' },
+      { name: 'Well-Worn', weight: 20, damage: 0.93, defense: 1.02, wear: 0.15, color: 'gray' },
+      { name: 'Field-Tested', weight: 35, damage: 1.0, defense: 1.0, wear: 0.05, color: 'white' },
+      { name: 'Minimal Wear', weight: 24, damage: 1.06, defense: 0.985, wear: 0, color: 'green' },
+      { name: 'Mint Condition', weight: 10, damage: 1.12, defense: 0.97, wear: 0, color: 'aqua' },
+      { name: 'Pristine', weight: 1, damage: 1.25, defense: 0.94, wear: 0, color: 'gold' }
+    ]
+  },
+
   // ---- Safety limits (not power caps) ----
   maxExtraDropStacks: 8,       // most extra item stacks one kill can spawn, so loot enchants can't lag the server
   maxCleaveTargets: 16,
@@ -1112,6 +1128,19 @@ let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, 
 let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
 let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
 
+// A random condition grade (index into condition.grades), by weight
+global.FA_rollCondition = rnd => {
+  let G = global.FA.condition.grades
+  let total = 0
+  G.forEach(g => { total += g.weight })
+  let r = rnd() * total
+  for (let i = 0; i < G.length; i++) {
+    r -= G[i].weight
+    if (r < 0) return i
+  }
+  return G.length - 1
+}
+
 // One smash of a rock with a hammer: [[item, count]] (rnd: a 0..1 random function). Shared by the game and tests.
 global.FA_smash = (rnd, rock, hammerId) => {
   let H = global.FA.hammer
@@ -1299,6 +1328,12 @@ global.FA_validate = cfg => {
       okNum(fd.hunger, 0) && okNum(fd.saturation, 0) && effectOk(fd.effect)))) {
     problems.push('mobFood settings are broken, mob food drops were switched off')
     mf.enabled = false
+  }
+  let cond = cfg.condition
+  if (cond && cond.enabled && !(cond.grades && cond.grades.length > 0 && cond.grades.every(g => typeof g.name == 'string' && okNum(g.weight, 0) &&
+    okNum(g.damage, 0) && okNum(g.defense, 0) && okNum(g.wear, 0) && g.wear < 1))) {
+    problems.push('condition settings are broken, gear conditions were switched off')
+    cond.enabled = false
   }
   let hm = cfg.hammer
   let idOk = id => /^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(id)

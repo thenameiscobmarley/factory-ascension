@@ -25,6 +25,7 @@ MATERIALS = {
     'grip': ((150, 104, 70), (96, 60, 40), (50, 30, 20)),
     'iron': ((240, 240, 244), (172, 174, 182), (88, 90, 100)),
     'wood': ((176, 128, 80), (122, 86, 50), (70, 48, 28)),
+    'cloth': ((255, 255, 255), (222, 226, 236), (150, 156, 176)),
 }
 
 
@@ -215,7 +216,18 @@ def ascendite_rock_hammer():
     ])
 
 
-HAMMERS = {'rock_hammer': rock_hammer, 'ascendite_rock_hammer': ascendite_rock_hammer}
+def polishing_cloth():
+    """A folded cloth with a teal hem and a couple of sparkles."""
+    from tome_art import star_pts
+    return draw([
+        ('cloth', add(poly([(0.14, 0.38), (0.62, 0.2), (0.88, 0.5), (0.4, 0.74)]))),
+        ('cloth', add(poly([(0.14, 0.38), (0.4, 0.74), (0.38, 0.88), (0.1, 0.52)]))),
+        ('teal', add(seg(0.4, 0.74, 0.88, 0.5, 0.035), seg(0.38, 0.86, 0.4, 0.74, 0.03))),
+        ('gold', add(poly(star_pts(0.78, 0.18, 0.14, 0.05, 4)), poly(star_pts(0.22, 0.2, 0.08, 0.03, 4)))),
+    ])
+
+
+HAMMERS = {'rock_hammer': rock_hammer, 'ascendite_rock_hammer': ascendite_rock_hammer, 'polishing_cloth': polishing_cloth}
 
 ICONS = {'sword': sword, 'pickaxe': pickaxe, 'axe': axe, 'shovel': shovel, 'hoe': hoe,
          'helmet': helmet, 'chestplate': chestplate, 'leggings': leggings, 'boots': boots}

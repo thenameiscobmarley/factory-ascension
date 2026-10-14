@@ -64,6 +64,9 @@ StartupEvents.registry('item', event => {
     })
   })
 
+  // Rerolls a piece of gear's condition, keeping the better grade (config: condition)
+  event.create('polishing_cloth').displayName('Polishing Cloth').rarity('uncommon')
+
   // Rock Hammers: smash rock into gravel, nuggets and ore (config: hammer)
   event.create('rock_hammer').displayName('Rock Hammer').maxDamage(global.FA.hammer.tools['kubejs:rock_hammer'].uses)
   event.create('ascendite_rock_hammer').displayName('Ascendite Rock Hammer').rarity('uncommon')
