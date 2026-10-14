@@ -83,10 +83,11 @@ function faShowMenu(player) {
     if (level <= 0) return
     any = true
 
-    let line = Text.gold(' ' + global.FA.enchants[id].name + ' ' + global.FA_num(level) + ' ')
+    let e = global.FA.enchants[id]
+    let line = (e.mythic ? Text.lightPurple(' \u2726 ') : Text.gold(' ')).append(Text.gold(e.name + ' ' + global.FA_num(level) + ' '))
       .append(Text.gray(global.FA_describe(id, level) + ' '))
     if (level < faMaxLevel(id)) {
-      let cost = global.FA_cost(level)
+      let cost = global.FA_cost(level, id)
       FA_MENU_STEPS.forEach(step => {
         line = line.append(faButton('+' + step, '/ascension upgrade ' + id + ' ' + step,
           'Add ' + step + ' level' + (step > 1 ? 's' : '') + ' (next costs ' + global.FA_num(cost) + ' Essence)')).append(Text.gray(' '))
@@ -99,6 +100,8 @@ function faShowMenu(player) {
     player.tell(line)
   })
 
+  let souls = gear.getTag() ? gear.getTag().getCompound(FA_ITEM_TAG).getInt('souls') : 0
+  if (souls > 0) player.tell(Text.lightPurple(' Souls: ' + global.FA_num(souls)))
   if (!any) player.tell(Text.gray(' No Ascended enchants yet. Hold a Tome in your other hand and right-click it.'))
   return 1
 }
@@ -155,7 +158,7 @@ function faUnlock(player, tome, id, gear) {
     player.displayClientMessage(Text.yellow('That already has ' + name + '. Hold it and type /ascension to upgrade it.'), true)
     return
   }
-  let cost = global.FA_cost(0)
+  let cost = global.FA_cost(0, id)
   let essence = faGetEssence(player)
   if (essence < cost) {
     player.displayClientMessage(Text.red('Unlocking needs ' + global.FA_num(cost) + ' Essence. Absorb some Ascension Cores first.'), true)
@@ -188,7 +191,7 @@ function faUpgrade(player, id, amount) {
   let added = 0
   let spent = 0
   while (added < amount && level < max) {
-    let cost = global.FA_cost(level)
+    let cost = global.FA_cost(level, id)
     if (essence - spent < cost) break
     spent += cost
     level++
@@ -198,7 +201,7 @@ function faUpgrade(player, id, amount) {
   if (added == 0) {
     player.tell(level >= max
       ? Text.yellow(name + ' is already at its max level.')
-      : Text.red('Not enough Essence: the next level costs ' + global.FA_num(global.FA_cost(level)) + '.'))
+      : Text.red('Not enough Essence: the next level costs ' + global.FA_num(global.FA_cost(level, id)) + '.'))
     return 0
   }
 

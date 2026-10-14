@@ -1,6 +1,7 @@
 // Factory Ascension - tome recipes.
 // Blank tome: a deployer presses an Ascension Core into a book.
 // Enchant tomes: blank tome + a themed catalyst in a heated mixer.
+// Mythic tomes: also 4 Mythic Fragments, superheated.
 // Every tome has at least one catalyst no other tome uses, so the mixer never mixes them up.
 
 ServerEvents.recipes(event => {
@@ -75,7 +76,23 @@ ServerEvents.recipes(event => {
     frenzy: ['minecraft:clock'],
     lucky: ['minecraft:rabbit_foot'],
     excavation: ['create:mechanical_drill', 'minecraft:redstone_block'],
-    eternal: ['minecraft:netherite_ingot', 'create:precision_mechanism']
+    eternal: ['minecraft:netherite_ingot', 'create:precision_mechanism'],
+    // Mythic (plus 4 Mythic Fragments each, superheated)
+    wings: ['minecraft:elytra'],
+    thunderlord: ['minecraft:lightning_rod'],
+    black_hole: ['minecraft:end_crystal'],
+    meteor: ['create:blaze_cake'],
+    chronos: ['minecraft:amethyst_block'],
+    phoenix: ['minecraft:respawn_anchor'],
+    voidwalker: ['minecraft:popped_chorus_fruit', 'minecraft:popped_chorus_fruit'],
+    soul_harvest: ['minecraft:soul_campfire'],
+    overkill: ['minecraft:netherite_sword'],
+    rampage: ['minecraft:nether_wart_block'],
+    vein_miner: ['minecraft:diamond_pickaxe'],
+    timber: ['create:mechanical_saw'],
+    radiance: ['minecraft:beacon'],
+    headhunter: ['minecraft:skeleton_skull'],
+    gravity_slam: ['minecraft:crying_obsidian']
   }
 
   Object.keys(global.FA.enchants).forEach(id => {
@@ -84,11 +101,13 @@ ServerEvents.recipes(event => {
       console.error('[Factory Ascension] no tome recipe for enchant "' + id + '"')
       return
     }
+    let mythic = global.FA.enchants[id].mythic
+    if (mythic) items = items.concat(['kubejs:mythic_fragment', 'kubejs:mythic_fragment', 'kubejs:mythic_fragment', 'kubejs:mythic_fragment'])
     event.custom({
       type: 'create:mixing',
       ingredients: [{ item: 'kubejs:blank_ascension_tome' }].concat(items.map(i => ({ item: i }))),
       results: [{ item: 'kubejs:tome_' + id }],
-      heatRequirement: 'heated'
+      heatRequirement: mythic ? 'superheated' : 'heated'
     }).id('kubejs:factory_ascension/tome_' + id)
   })
 })

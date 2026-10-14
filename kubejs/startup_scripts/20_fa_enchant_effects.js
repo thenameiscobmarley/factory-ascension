@@ -18,6 +18,9 @@ const $FAAttributes = Java.loadClass('net.minecraft.world.entity.ai.attributes.A
 const $FAModifier = Java.loadClass('net.minecraft.world.entity.ai.attributes.AttributeModifier')
 const $FAOperation = Java.loadClass('net.minecraft.world.entity.ai.attributes.AttributeModifier$Operation')
 const $FAForgeMod = Java.loadClass('net.minecraftforge.common.ForgeMod')
+const $FAEntityType = Java.loadClass('net.minecraft.world.entity.EntityType')
+const $FABlockTags = Java.loadClass('net.minecraft.tags.BlockTags')
+const $FAForgeBlockTags = Java.loadClass('net.minecraftforge.common.Tags$Blocks')
 
 const FA_TAG = 'FactoryAscension'
 const FA_MAX_FLOAT = 3.0e38
@@ -69,7 +72,58 @@ function faDanger(entity) {
   if (!entity || !(entity instanceof $FALiving) || entity instanceof $FAPlayer) return null
   let data = entity.getPersistentData()
   if (!data.contains('fa_danger')) return null
-  return global.FA_dangerMult(data.getInt('fa_danger'), data.getBoolean('fa_elite'))
+  let level = data.getInt('fa_danger')
+  let elite = data.getBoolean('fa_elite')
+  let mult = global.FA_dangerMult(level, elite)
+  mult.level = level
+  mult.elite = elite
+  return mult
+}
+
+// Living hostile mobs around an entity, up to max. Never players, pets or villagers.
+function faEnemiesNear(center, radius, exclude, max) {
+  let found = center.level().getEntitiesOfClass($FALiving, center.getBoundingBox().inflate(radius))
+  let out = []
+  for (let i = 0; i < found.size() && out.length < max; i++) {
+    let e = found.get(i)
+    if (e === center || (exclude && exclude.indexOf(e) >= 0) || !(e instanceof $FAEnemy) || !e.isAlive()) continue
+    out.push(e)
+  }
+  return out
+}
+
+// Particles + sound at an entity, for everyone nearby to see
+function faFx(entity, particle, count, sound, pitch) {
+  let server = entity.getServer()
+  if (!server) return
+  let pos = entity.getX().toFixed(2) + ' ' + (entity.getY() + 1).toFixed(2) + ' ' + entity.getZ().toFixed(2)
+  let dim = 'execute in ' + entity.level().dimension().location() + ' run '
+  server.runCommandSilent(dim + 'particle ' + particle + ' ' + pos + ' 0.6 0.6 0.6 0.2 ' + count + ' normal')
+  if (sound) server.runCommandSilent(dim + 'playsound ' + sound + ' hostile @a ' + pos + ' 1 ' + (pitch || 1))
+}
+
+// Lightning that only looks and sounds like lightning: no fire, no damage, no charged creepers
+function faBolt(target) {
+  let bolt = $FAEntityType.LIGHTNING_BOLT.create(target.level())
+  if (!bolt) return
+  bolt.moveTo(target.getX(), target.getY(), target.getZ())
+  bolt.setVisualOnly(true)
+  target.level().addFreshEntity(bolt)
+}
+
+// Rampage kill-streak stacks, per player: {stacks, until (game time)}
+let faRampage = {}
+function faRampageStacks(player) {
+  let r = faRampage[player.getStringUUID()]
+  return r && player.level().getGameTime() <= r.until ? r.stacks : 0
+}
+
+// Heads for Headhunter, by mob id
+let FA_HEADS = {
+  'minecraft:zombie': 'minecraft:zombie_head', 'minecraft:husk': 'minecraft:zombie_head', 'minecraft:drowned': 'minecraft:zombie_head',
+  'minecraft:skeleton': 'minecraft:skeleton_skull', 'minecraft:stray': 'minecraft:skeleton_skull',
+  'minecraft:creeper': 'minecraft:creeper_head', 'minecraft:wither_skeleton': 'minecraft:wither_skeleton_skull',
+  'minecraft:piglin': 'minecraft:piglin_head', 'minecraft:piglin_brute': 'minecraft:piglin_head'
 }
 
 // ---- Conditions ----
@@ -124,6 +178,8 @@ function faEffect(e, ticks, amp) {
 // more enchants (no chain reactions, no infinite reflect loops)
 let faSecondary = false
 let faUndyingReady = {}
+let faPhoenixReady = {}
+let faChronosReady = {}
 
 function faSecondaryHit(target, source, amount) {
   faSecondary = true
@@ -170,6 +226,16 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
       let level = A[id] || 0
       if (level > 0 && Math.random() < global.FA_chance(level)) scaled *= faE(id).critMultiplier
     })
+    // Soul Harvest: souls are stored on the item and summed with the rest of the levels
+    faIds('souls').forEach(id => {
+      let level = A[id] || 0
+      if (level > 0 && A.souls > 0) scaled *= 1 + faE(id).perLevel * level * A.souls
+    })
+    faIds('rampage').forEach(id => {
+      let level = A[id] || 0
+      let stacks = level > 0 ? faRampageStacks(attacker) : 0
+      if (stacks > 0) scaled *= 1 + faE(id).perLevel * level * stacks
+    })
 
     // ---- Danger: far-out mobs hit harder and take longer to kill ----
     let bypass = source.is($FADamageTypeTags.BYPASSES_INVULNERABILITY)
@@ -212,10 +278,49 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
         scaled = Math.max(0, victim.getHealth() - 1)
         victim.displayClientMessage(Text.gold('Undying saved you!'), true)
       })
+
+      // Phoenix: if it's still a killing blow, revive at full health in a firestorm
+      faIds('phoenix').forEach(id => {
+        let level = V[id] || 0
+        if (level <= 0 || scaled < victim.getHealth()) return
+        let uuid = victim.getStringUUID()
+        let now = victim.level().getGameTime()
+        if (faPhoenixReady[uuid] && now < faPhoenixReady[uuid]) return
+        faPhoenixReady[uuid] = now + Math.round(global.FA_phoenixCooldown(faE(id), level) * 20)
+        scaled = 0
+        victim.setHealth(victim.getMaxHealth())
+        victim.clearFire()
+        faEnemiesNear(victim, 6, null, 32).forEach(m => {
+          m.setSecondsOnFire(10)
+          faSecondaryHit(m, victim.damageSources().playerAttack(victim), 10 * level)
+        })
+        faFx(victim, 'minecraft:flame', 200, 'minecraft:item.totem.use', 1)
+        victim.displayClientMessage(Text.gold('Rise from the ashes!'), true)
+      })
     }
 
     scaled = Math.min(scaled, FA_MAX_FLOAT)
     if (scaled != amount) event.setAmount(scaled)
+
+    // ---- Chronos: getting hit freezes every enemy around you ----
+    if (!bypass && attacker instanceof $FALiving && attacker !== victim) {
+      faIds('time_stop').forEach(id => {
+        let level = V[id] || 0
+        if (level <= 0) return
+        let uuid = victim.getStringUUID()
+        let now = victim.level().getGameTime()
+        if (faChronosReady[uuid] && now < faChronosReady[uuid]) return
+        let c = global.FA_chronos(level)
+        faChronosReady[uuid] = now + c.cooldown * 20
+        let ticks = Math.round(c.seconds * 20)
+        faEnemiesNear(victim, c.radius, null, 64).forEach(m => {
+          m.addEffect(new $FAEffectInstance($FAEffects.MOVEMENT_SLOWDOWN, ticks, 127, false, false))
+          m.addEffect(new $FAEffectInstance($FAEffects.WEAKNESS, ticks, 127, false, false))
+        })
+        faFx(victim, 'minecraft:reverse_portal', 150, 'minecraft:block.beacon.deactivate', 0.5)
+        victim.displayClientMessage(Text.aqua('Time stops.'), true)
+      })
+    }
 
     // ---- Attacker's on-hit effects ----
     if (attacker instanceof $FAPlayer && attacker !== victim && attacker.isAlive()) {
@@ -237,19 +342,52 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
         if (level > 0) victim.setSecondsOnFire(Math.min(1000000, Math.ceil(faE(id).perLevel * level)))
       })
 
+      let playerHit = attacker.damageSources().playerAttack(attacker)
       faIds('cleave').forEach(id => {
         let level = A[id] || 0
         if (level <= 0) return
+        faEnemiesNear(victim, faE(id).radius, [attacker], global.FA.maxCleaveTargets)
+          .forEach(m => faSecondaryHit(m, playerHit, scaled * faE(id).perLevel * level))
+      })
+
+      // ---- Mythic on-hit ----
+      faIds('chain_lightning').forEach(id => {
+        let level = A[id] || 0
+        if (level <= 0 || Math.random() >= global.FA_chainChance(level)) return
+        let chained = faEnemiesNear(victim, faE(id).radius, [attacker], global.FA_chainTargets(level))
+        let damage = scaled * (0.5 + faE(id).perLevel * level)
+        faBolt(victim)
+        chained.forEach((m, i) => {
+          if (i < 3) faBolt(m)
+          faSecondaryHit(m, playerHit, damage)
+        })
+      })
+      faIds('gravity_well').forEach(id => {
+        let level = A[id] || 0
+        if (level <= 0) return
         let e = faE(id)
-        let nearby = victim.level().getEntitiesOfClass($FALiving, victim.getBoundingBox().inflate(e.radius))
-        let hits = 0
-        for (let i = 0; i < nearby.size() && hits < global.FA.maxCleaveTargets; i++) {
-          let other = nearby.get(i)
-          // Only hostile mobs: never players, pets or villagers
-          if (other === victim || other === attacker || !(other instanceof $FAEnemy) || !other.isAlive()) continue
-          faSecondaryHit(other, attacker.damageSources().playerAttack(attacker), scaled * e.perLevel * level)
-          hits++
-        }
+        let pull = Math.min(2, 0.4 + 0.05 * level)
+        faEnemiesNear(victim, Math.min(e.cap, e.base + e.perLevel * level), [attacker], 64).forEach(m => {
+          let dx = victim.getX() - m.getX()
+          let dy = victim.getY() - m.getY()
+          let dz = victim.getZ() - m.getZ()
+          let len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1
+          m.setDeltaMovement(dx / len * pull, Math.max(0.1, dy / len * pull), dz / len * pull)
+          m.hurtMarked = true
+        })
+      })
+      faIds('overkill').forEach(id => {
+        let level = A[id] || 0
+        let excess = scaled - victim.getHealth()
+        if (level <= 0 || excess <= 0) return
+        let next = faEnemiesNear(victim, faE(id).radius, [attacker], 1)
+        if (next.length) faSecondaryHit(next[0], playerHit, excess * Math.min(1, 0.5 + faE(id).perLevel * level))
+      })
+      faIds('projectile_teleport').forEach(id => {
+        if ((A[id] || 0) <= 0 || !source.is($FADamageTypeTags.IS_PROJECTILE)) return
+        attacker.teleportTo(victim.getX(), victim.getY(), victim.getZ())
+        attacker.fallDistance = 0
+        faFx(attacker, 'minecraft:portal', 60, 'minecraft:entity.enderman.teleport', 1)
       })
     }
 
@@ -272,11 +410,45 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDeathEvent', e
     let killer = event.getSource().getEntity()
     if (!(killer instanceof $FAPlayer) || !killer.isAlive()) return
     let levels = faLevels(killer)
+    let victim = event.getEntity()
     let heal = 0
     faIds('kill_heal').forEach(id => { heal += faE(id).perLevel * (levels[id] || 0) })
     if (heal > 0) killer.heal(Math.min(heal, FA_MAX_FLOAT))
+
+    // Rampage: each kill within the window adds a stack
+    faIds('rampage').forEach(id => {
+      if ((levels[id] || 0) <= 0) return
+      let stacks = Math.min(faE(id).maxStacks, faRampageStacks(killer) + 1)
+      faRampage[killer.getStringUUID()] = { stacks: stacks, until: killer.level().getGameTime() + faE(id).seconds * 20 }
+      killer.displayClientMessage(Text.red('Rampage x' + stacks), true)
+    })
+
+    // Soul Harvest: every equipped item with it stores one more soul
+    faIds('souls').forEach(id => {
+      let it = killer.getAllSlots().iterator()
+      while (it.hasNext()) {
+        let tag = it.next().getTag()
+        if (!tag || !tag.contains(FA_TAG)) continue
+        let data = tag.getCompound(FA_TAG)
+        if (data.getInt(id) <= 0) continue
+        data.putInt('souls', Math.min(2000000000, data.getInt('souls') + 1))
+        tag.put(FA_TAG, data)
+      }
+    })
+
+    // Meteor: the victim explodes into everything around it (but explosions don't chain)
+    if (!faSecondary) {
+      faIds('death_nova').forEach(id => {
+        let level = levels[id] || 0
+        if (level <= 0) return
+        let damage = victim.getMaxHealth() * (0.5 + faE(id).perLevel * level)
+        faFx(victim, 'minecraft:explosion_emitter', 1, 'minecraft:entity.generic.explode', 0.8)
+        faEnemiesNear(victim, Math.min(12, 3 + level / 10), [killer], 32)
+          .forEach(m => faSecondaryHit(m, killer.damageSources().playerAttack(killer), damage))
+      })
+    }
   } catch (err) {
-    faWarnOnce('soul eater', err)
+    faWarnOnce('kills', err)
   }
 })
 
@@ -310,7 +482,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     let budget = global.FA.maxExtraDropStacks
     let drops = event.getDrops()
     let extras = []
-    let spawnAt = null
+    let spawnAt = event.getEntity()
     let addStacks = (stack, total) => {
       let max = stack.getMaxStackSize()
       while (total > 0 && budget > 0) {
@@ -323,6 +495,17 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
       }
     }
 
+    // Mythic Fragments: only from danger-zone mobs killed by a player, and never multiplied
+    let killer = event.getSource().getEntity()
+    if (danger && killer instanceof $FAPlayer && Math.random() < global.FA_fragmentChance(danger.level, danger.elite)) {
+      addStacks(Item.of('kubejs:mythic_fragment'), 1)
+    }
+    faIds('heads').forEach(id => {
+      let level = levels[id] || 0
+      let head = FA_HEADS[String($FAEntityType.getKey(event.getEntity().getType()))]
+      if (level > 0 && head && Math.random() < Math.min(1, faE(id).perLevel * level)) addStacks(Item.of(head), 1)
+    })
+
     // Plunder and danger: multiply what dropped
     let mult = 1
     faIds('plunder').forEach(id => { mult += faE(id).perLevel * (levels[id] || 0) })
@@ -330,7 +513,6 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     let it = drops.iterator()
     while (it.hasNext()) {
       let itemEntity = it.next()
-      spawnAt = itemEntity
       let stack = itemEntity.getItem()
       if (mult <= 1 || stack.isEmpty()) continue
       let total = faRoll(stack.getCount() * mult)
@@ -345,7 +527,6 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
       if (level <= 0) return
       let count = faRoll(faE(id).perLevel * level)
       if (count <= 0) return
-      if (!spawnAt) spawnAt = event.getEntity()
       addStacks(Item.of(faE(id).item), count)
     })
 
@@ -467,6 +648,32 @@ function faDangerNotice(player) {
   }
 }
 
+// Wings: creative-style flight while equipped. The grant is remembered on the player,
+// so flight is taken away again when the gear comes off, even after a restart.
+function faFlight(player, levels) {
+  let level = 0
+  faIds('flight').forEach(id => { level = Math.max(level, Math.min(faE(id).maxLevel, levels[id] || 0)) })
+  let data = player.getPersistentData()
+  let abilities = player.getAbilities()
+  if (level > 0) {
+    let speed = 0.05 * (1 + 0.5 * (level - 1))
+    if (!abilities.mayfly || Math.abs(abilities.getFlyingSpeed() - speed) > 0.0001) {
+      abilities.mayfly = true
+      abilities.setFlyingSpeed(speed)
+      player.onUpdateAbilities()
+    }
+    data.putBoolean('fa_wings', true)
+  } else if (data.getBoolean('fa_wings')) {
+    data.remove('fa_wings')
+    if (!player.isCreative() && !player.isSpectator()) {
+      abilities.mayfly = false
+      abilities.flying = false
+    }
+    abilities.setFlyingSpeed(0.05)
+    player.onUpdateAbilities()
+  }
+}
+
 // ---- Every second: danger zones, Renewal, passive effects, Magnetism, Restoration ----
 
 ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$PlayerTickEvent', event => {
@@ -479,7 +686,20 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$PlayerTickEvent', event 
       faWarnOnce('danger zones', err)
     }
     let levels = faLevels(player)
+    try {
+      faFlight(player, levels)
+    } catch (err) {
+      faWarnOnce('wings', err)
+    }
     if (Object.keys(levels).length == 0) return
+
+    // Radiance: hurts every enemy around you each second
+    faIds('aura').forEach(id => {
+      let level = levels[id] || 0
+      if (level <= 0) return
+      let hit = player.damageSources().playerAttack(player)
+      faEnemiesNear(player, global.FA_auraRadius(level), null, 32).forEach(m => faSecondaryHit(m, hit, faE(id).perLevel * level))
+    })
 
     let regen = 0
     faIds('regen').forEach(id => { regen += faE(id).perLevel * (levels[id] || 0) })
@@ -538,5 +758,84 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.player.PlayerEvent$BreakSpe
     if (mult > 1) event.setNewSpeed(Math.min(event.getNewSpeed() * mult, FA_MAX_FLOAT))
   } catch (err) {
     faWarnOnce('mining', err)
+  }
+})
+
+// ---- Gravity Slam: landing hurts everything around you instead of you ----
+
+ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingFallEvent', event => {
+  try {
+    let player = event.getEntity()
+    if (!(player instanceof $FAPlayer) || player.level().isClientSide()) return
+    let levels = faLevels(player)
+    faIds('slam').forEach(id => {
+      let level = levels[id] || 0
+      if (level <= 0) return
+      let dist = event.getDistance()
+      event.setDamageMultiplier(0)
+      if (dist < 3) return
+      faFx(player, 'minecraft:explosion', 20, 'minecraft:entity.generic.explode', 1.4)
+      let hit = player.damageSources().playerAttack(player)
+      faEnemiesNear(player, Math.min(16, 3 + dist / 2), null, 32).forEach(m => faSecondaryHit(m, hit, dist * faE(id).perLevel * level))
+    })
+  } catch (err) {
+    faWarnOnce('gravity slam', err)
+  }
+})
+
+// ---- Vein Miner / Timber: break a whole vein or tree at once (sneak to break just one) ----
+
+let faVeinBusy = false
+ForgeEvents.onEvent('net.minecraftforge.event.level.BlockEvent$BreakEvent', event => {
+  if (faVeinBusy) return
+  try {
+    let player = event.getPlayer()
+    if (!(player instanceof $FAPlayer) || player.isShiftKeyDown()) return
+    let state = event.getState()
+    let levels = faLevels(player)
+    faIds('vein').forEach(id => {
+      let level = levels[id] || 0
+      if (level <= 0) return
+      let e = faE(id)
+      let ores = e.blocks == 'ores'
+      if (!state.is(ores ? $FAForgeBlockTags.ORES : $FABlockTags.LOGS)) return
+      // Ores: only the same block (so deepslate and stone ores stay separate). Logs: any log.
+      let matches = other => ores ? other.getBlock() === state.getBlock() : other.is($FABlockTags.LOGS)
+
+      let world = event.getLevel()
+      let start = event.getPos()
+      let limit = Math.min(e.cap, e.perLevel * level)
+      let key = p => p.getX() + ',' + p.getY() + ',' + p.getZ()
+      let seen = {}
+      seen[key(start)] = true
+      let queue = [start]
+      let broken = 0
+      faVeinBusy = true
+      try {
+        while (queue.length && broken < limit) {
+          let pos = queue.shift()
+          for (let dx = -1; dx <= 1 && broken < limit; dx++) {
+            for (let dy = -1; dy <= 1 && broken < limit; dy++) {
+              for (let dz = -1; dz <= 1 && broken < limit; dz++) {
+                let next = pos.offset(dx, dy, dz)
+                if (seen[key(next)]) continue
+                seen[key(next)] = true
+                if (!matches(world.getBlockState(next))) continue
+                // Stop if the tool broke
+                if (player.getMainHandItem().isEmpty()) return
+                // Breaks like the player did: uses the tool, Fortune, durability and drops
+                player.gameMode.destroyBlock(next)
+                broken++
+                queue.push(next)
+              }
+            }
+          }
+        }
+      } finally {
+        faVeinBusy = false
+      }
+    })
+  } catch (err) {
+    faWarnOnce('vein miner', err)
   }
 })

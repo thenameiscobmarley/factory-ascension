@@ -19,7 +19,7 @@ cobble generators -> mineral clusters -> ores -> diamonds, rose quartz, steel
 
 ## Ascended enchants
 
-**59 enchants**, separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
+**74 enchants** (59 Ascended + 15 Mythic), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
 factory can pay for. They count from **every equipped item**, both hands and all armor, so any enchant
 works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md](docs/ENCHANTS.md)**.
 
@@ -31,6 +31,31 @@ works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md]
 | Defense | Ascended Protection, Vitality (hidden health, no extra hearts), Fire / Blast / Arrow / Wither Ward, Featherweight, Spellward, Bulwark, Retribution, Evasion, Undying |
 | Passive | Renewal, Night Sight, Gills, Fireproof, Industrious, Leaping, Sustenance, Magnetism, Restoration |
 | Movement & utility | Swiftness, Reach, Stride, Frenzy, Lucky, Excavation, Eternal |
+| **✦ Mythic** | Wings, Thunderlord, Black Hole, Meteor, Chronos, Phoenix, Voidwalker, Soul Harvest, Overkill, Rampage, Vein Miner, Timber, Radiance, Headhunter, Gravity Slam |
+
+### ✦ Mythic enchants
+
+The rare, crazy tier. Mythic tomes need **Mythic Fragments**, which only drop from mobs out in the
+danger zones, mostly from Elites. So the factory makes you strong, and exploring makes you strange.
+
+| Mythic | What it does |
+|---|---|
+| Wings | Creative-style flight while equipped (up to x2 flight speed) |
+| Thunderlord | Lightning chains from your target to up to 16 nearby enemies |
+| Black Hole | Hits pull every enemy around into your target |
+| Meteor | Kills explode, hurting everything nearby for a share of the victim's max health |
+| Chronos | Getting hit freezes every enemy around you for a few seconds |
+| Phoenix | A killing blow revives you at full health in a firestorm instead (with a cooldown) |
+| Voidwalker | Your arrows teleport you to whatever they hit |
+| Soul Harvest | Every kill stores a soul on the weapon, and each soul adds damage. It grows forever |
+| Overkill | Damage past what kills a mob jumps to the next enemy |
+| Rampage | Each kill in a streak adds a big damage boost (up to 10 stacks) |
+| Vein Miner / Timber | Break a whole ore vein or tree at once (sneak to break one block) |
+| Radiance | Every enemy around you burns each second |
+| Headhunter | Mobs drop their heads |
+| Gravity Slam | No fall damage. Landing smashes everything nearby, harder the farther you fell |
+
+Mythic levels cost 5x the Essence. Fragment drop rates are in [docs/ENCHANTS.md](docs/ENCHANTS.md#mythic).
 
 A few at level 3000: Ascended Sharpness x301 damage, Ascended Protection -99.2% damage taken,
 Vitality +6,000 hidden health, Plunder x151 loot, Excavation x751 mining speed.
@@ -95,6 +120,10 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 - Cleave and Retribution damage can't trigger more enchants, so there are no chain reactions or infinite loops.
 - Cleave only hits hostile mobs, never players, pets or villagers. Reaper never executes bosses.
 - Evasion maxes out at 75%, and effect amplifiers stop at 128, so nothing breaks vanilla limits.
+- Thunderlord's lightning is visual only: no fires, no charged creepers, no hurting yourself.
+- Mythic area effects (Meteor, Radiance, Gravity Slam, Phoenix) only hit hostile mobs, and their damage never triggers more enchants, so Meteor kills can't chain-explode a whole farm.
+- Wings remembers it gave you flight, so taking it off removes flight again, even after a restart. Creative flight is never touched.
+- Vein Miner and Timber break blocks the same way you do (tool, Fortune, durability), stop if the tool breaks, and have a block limit.
 - If absorbing cores fails, the items are given back. A tome is only used up when the unlock succeeds.
 - Only single unstackable items (tools, weapons, armor) can be enchanted, never a stack.
 - Recipes that use other mods only load when those mods are installed.
@@ -112,7 +141,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 119 checks: recipes, Essence, tomes, upgrades, every enchant type, loot, danger zones and tooltips:
+KubeJS API and runs 150 checks: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

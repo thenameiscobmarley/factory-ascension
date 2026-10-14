@@ -42,6 +42,7 @@ Compound.prototype = {
   putInt: function (k, v) { this.d[k] = v | 0 },
   putDouble: function (k, v) { this.d[k] = v },
   putBoolean: function (k, v) { this.d[k] = v },
+  remove: function (k) { delete this.d[k] },
   getBoolean: function (k) { return !!this.d[k] },
   put: function (k, v) { this.d[k] = v },
   getAllKeys: function () { return javaList(Object.keys(this.d)) }
@@ -69,6 +70,12 @@ var Java = {
       'net.minecraft.world.entity.ExperienceOrb': OrbClass,
       'net.minecraft.world.effect.MobEffects': { MOVEMENT_SLOWDOWN: 'slowness', WEAKNESS: 'weakness', WITHER: 'wither', POISON: 'poison', LEVITATION: 'levitation', MOVEMENT_SPEED: 'speed', NIGHT_VISION: 'night_vision', WATER_BREATHING: 'water_breathing', FIRE_RESISTANCE: 'fire_resistance', DIG_SPEED: 'haste', JUMP: 'jump', SATURATION: 'saturation' },
       'net.minecraft.world.effect.MobEffectInstance': function (effect, ticks, amp) { this.effect = effect; this.ticks = ticks; this.amp = amp },
+      'net.minecraft.world.entity.EntityType': {
+        LIGHTNING_BOLT: { create: function () { return { moveTo: function () {}, setVisualOnly: function (v) { this.visual = v } } } },
+        getKey: function (type) { return type.id }
+      },
+      'net.minecraft.tags.BlockTags': { LOGS: 'logs' },
+      'net.minecraftforge.common.Tags$Blocks': { ORES: 'ores' },
       'net.minecraftforge.common.ForgeMod': { BLOCK_REACH: { get: function () { return 'block_reach' } }, ENTITY_REACH: { get: function () { return 'entity_reach' } }, STEP_HEIGHT_ADDITION: { get: function () { return 'step_height' } } },
       'net.minecraft.world.entity.ai.attributes.AttributeModifier': function (name, amount, op) {
         this.name = name; this.amount = amount; this.op = op
@@ -137,6 +144,15 @@ function makePlayer(server, uuid) {
   livingBits(p, 20)
   p.isShiftKeyDown = function () { return this.sneaking }
   p.heal = function (h) { this.healed += h }
+  p.abilities = { mayfly: false, flying: false, speed: 0.05, getFlyingSpeed: function () { return this.speed }, setFlyingSpeed: function (v) { this.speed = v } }
+  p.abilityUpdates = 0
+  p.getAbilities = function () { return this.abilities }
+  p.onUpdateAbilities = function () { this.abilityUpdates++ }
+  p.creative = false
+  p.isCreative = function () { return this.creative }
+  p.isSpectator = function () { return false }
+  p.teleportTo = function (x, y, z) { this.teleported = [x, y, z] }
+  p.fallDistance = 5
   p.displayClientMessage = function (t) { this.bar.push(t.s) }
   p.tell = function (t) { this.messages.push(t) }
   p.give = function (i) { this.given.push(i) }
@@ -144,16 +160,22 @@ function makePlayer(server, uuid) {
 }
 // Shared living-entity behaviour for fake players and mobs
 var gameTime = 1000
+var bolts = []
 function livingBits(o, maxHealth) {
   o.hp = maxHealth; o.maxHp = maxHealth; o.hurtBy = []; o.effects = o.effects || []; o.fire = 0
   o.pdata = new Compound(); o.x = 0; o.z = 0
   o.getPersistentData = function () { return this.pdata }
   o.setCustomName = function (n) { this.customName = n.s }
   o.setCustomNameVisible = function (v) { this.nameVisible = v }
-  o.getType = function () { return { getDescription: function () { return fakeText('Zombie') } } }
+  o.typeId = 'minecraft:zombie'
+  o.getType = function () { var self2 = this; return { id: self2.typeId, getDescription: function () { return fakeText('Zombie') } } }
+  o.getServer = o.getServer || function () { return server }
+  o.clearFire = function () { this.fire = 0 }
+  o.setDeltaMovement = function (x, y, z) { this.motion = [x, y, z] }
   o.mobType = MobType.UNDEFINED; o.ground = true; o.wet = false; o.dim = 'minecraft:overworld'; o.boss = false; o.nearby = []
   o.isAlive = function () { return true }
   o.getHealth = function () { return this.hp }
+  o.setHealth = function (h) { this.hp = h }
   o.getMaxHealth = function () { return this.maxHp }
   o.hurt = function (src, amount) { this.hurtBy.push(amount); return true }
   o.addEffect = function (e) { this.effects.push(e) }
@@ -171,6 +193,7 @@ function livingBits(o, maxHealth) {
       getGameTime: function () { return gameTime },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
       isClientSide: function () { return false },
+      addFreshEntity: function (e) { bolts.push(e) },
       getEntitiesOfClass: function (cls, box) { var l = self.nearby.filter(function (e) { return e instanceof cls }); return { size: function () { return l.length }, get: function (i) { return l[i] } } }
     }
   }
@@ -204,8 +227,9 @@ var builder = {}
 ;['displayName', 'rarity', 'glow', 'maxStackSize'].forEach(function (m) { builder[m] = function () { return builder } })
 handlers.registry.forEach(function (fn) { fn({ create: function (id) { created.push(id); return builder } }) })
 var enchantCount = Object.keys(global.FA.enchants).length
-check('59 enchants (9 original + 50 new)', enchantCount == 59, enchantCount)
-check('items registered (4 core + blank + tomes + 3 clusters)', created.length == 8 + enchantCount, created.length)
+var mythics = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].mythic })
+check('74 enchants (59 + 15 Mythic)', enchantCount == 74 && mythics.length == 15, enchantCount + ' / ' + mythics.length)
+check('items registered (4 core + blank + tomes + fragment + 3 clusters)', created.length == 9 + enchantCount, created.length)
 var File = java.io.File
 var missing = created.filter(function (id) { return !new File('kubejs/assets/kubejs/textures/item/' + id + '.png').exists() })
 check('every item has a texture', missing.length == 0, missing.join(','))
@@ -443,7 +467,7 @@ Math.random = realRandom
 print('\nkills')
 var death = handlers.forge['LivingDeathEvent']
 var eater = hero({ soul_eater: 5 })
-death({ getSource: function () { return src(eater) } })
+death({ getSource: function () { return src(eater) }, getEntity: function () { return makeMob() } })
 check('Soul Eater heals 5 per kill', eater.healed == 5)
 var xpHook = handlers.forge['LivingExperienceDropEvent']
 var xpEv = { xp: 10, getEntity: function () { return makeMob() }, getAttackingPlayer: function () { return hero({ wisdom: 10 }) }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
@@ -521,7 +545,7 @@ check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
 print('\ntooltips')
 var advanced = null, simple = 0
 handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, addAdvanced: function (ing, f) { advanced = f } }) })
-check('tooltips for cores, blank tome, every tome and clusters', simple == 3 + 1 + enchantCount + 4, simple)
+check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == 3 + 1 + enchantCount + 1 + 4, simple)
 var lines = { arr: ['Netherite Chestplate', 'When on body:'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(chest, false, lines)
 check('enchants show right under the item name', /Ascended Protection 3,000/.test(lines.arr[1]), lines.arr.join(' | '))
@@ -600,6 +624,125 @@ var zones = [0, 1000, 3500, 6000, 11000, 21000, 41000, 100000].map(function (x) 
   return x + 'b: ' + global.FA_zone(lvl).name + ' (' + lvl + ', mobs x' + global.FA_dangerMult(lvl, false).health.toFixed(1) + ')'
 })
 print('  ' + zones.join('\n  '))
+
+// ---------------- Mythic ----------------
+print('\nmythic')
+var wingsTome = byId('tome_wings').json
+check('Mythic tomes need 4 fragments, superheated', wingsTome.heatRequirement == 'superheated' &&
+  wingsTome.ingredients.filter(function (i) { return i.item == 'kubejs:mythic_fragment' }).length == 4)
+check('Mythic levels cost 5x', global.FA_cost(100, 'thunderlord') == Math.ceil(0.05 * 101 * 5) && global.FA_cost(100, 'sharpness') == Math.ceil(0.05 * 101))
+
+var flyer2 = hero({ wings: 2 }, 'flyer')
+flyer2.tickCount = 20
+tick({ phase: 'END', player: flyer2 })
+check('Wings grants flight at x1.5 speed', flyer2.abilities.mayfly && near(flyer2.abilities.speed, 0.075))
+flyer2.armor[1] = stack(0)
+tick({ phase: 'END', player: flyer2 })
+check('taking Wings off takes flight away', !flyer2.abilities.mayfly && flyer2.abilities.speed == 0.05)
+var builder2 = hero({ wings: 1 }, 'builder'); builder2.tickCount = 20; builder2.creative = true
+tick({ phase: 'END', player: builder2 })
+builder2.armor[1] = stack(0)
+tick({ phase: 'END', player: builder2 })
+check('creative players keep their own flight', builder2.abilities.mayfly)
+
+Math.random = function () { return 0 }
+var storm = makeMob(), s1 = makeMob(), s2 = makeMob()
+storm.nearby = [storm, s1, s2]
+bolts = []
+hit(hero({ thunderlord: 10 }), storm, 10)
+check('Thunderlord chains to nearby enemies', near(s1.hurtBy[0], 10 * 0.7) && near(s2.hurtBy[0], 7))
+check('lightning is visual only', bolts.length == 3 && bolts.every(function (b) { return b.visual }))
+Math.random = realRandom
+
+var well = makeMob(), pulled = makeMob()
+pulled.x = 10; well.nearby = [pulled]
+hit(hero({ black_hole: 10 }), well, 1)
+check('Black Hole pulls enemies toward the target', pulled.motion && pulled.motion[0] < 0 && pulled.hurtMarked)
+
+var boomer = makeMob(), b1 = makeMob(); boomer.nearby = [b1]; boomer.maxHp = 40
+death({ getSource: function () { return src(hero({ meteor: 5 })) }, getEntity: function () { return boomer } })
+check('Meteor: kills explode for 100% of max health at level 5', near(b1.hurtBy[0], 40), b1.hurtBy[0])
+
+var timeLord = hero({ chronos: 2 }, 'chronos'), frozen = makeMob()
+timeLord.nearby = [frozen]
+hit(makeMob(), timeLord, 1)
+check('Chronos freezes enemies when you get hit', frozen.effects.some(function (e) { return e.effect == 'slowness' && e.amp == 127 }))
+frozen.effects = []
+hit(makeMob(), timeLord, 1)
+check('Chronos has a cooldown', frozen.effects.length == 0)
+
+var bird = hero({ phoenix: 1 }, 'phoenix'); bird.hp = 5
+check('Phoenix cancels a killing blow', hit(makeMob(), bird, 100) == 0 && bird.hp == bird.maxHp)
+bird.hp = 5
+check('Phoenix then needs 600s to recharge', hit(makeMob(), bird, 100) == 100)
+var both = hero({ undying: 1, phoenix: 1 }, 'both'); both.hp = 5
+hit(makeMob(), both, 100)
+check('Undying goes first and saves Phoenix for later', both.hp == 5)
+
+var archer = hero({ voidwalker: 1 }), mark = makeMob(); mark.x = 40
+hit(archer, mark, 1, { tags: ['projectile'] })
+check('Voidwalker arrows teleport you to the target', archer.teleported && archer.teleported[0] == 40 && archer.fallDistance == 0)
+var melee = hero({ voidwalker: 1 }); hit(melee, mark, 1)
+check('Voidwalker ignores melee', !melee.teleported)
+
+var reaperBlade = gear('Soul Blade'); faSetLevel(reaperBlade, 'soul_harvest', 10)
+var harvester = makePlayer(server, 'harvester'); harvester.main = reaperBlade
+for (var k = 0; k < 100; k++) death({ getSource: function () { return src(harvester) }, getEntity: function () { return makeMob() } })
+check('Soul Harvest stores a soul per kill on the item', reaperBlade.tag.d.FactoryAscension.d.souls == 100)
+check('100 souls at level 10 = x2 damage', near(hit(harvester, makeMob(), 10), 20))
+
+var over = makeMob(), nextUp = makeMob(); over.hp = 5; over.nearby = [nextUp]
+hit(hero({ overkill: 10 }), over, 25)
+check('Overkill: 100% of the excess jumps to the next enemy at level 10', near(nextUp.hurtBy[0], 20), nextUp.hurtBy[0])
+
+var berserker = hero({ rampage: 10 }, 'rampage')
+for (var r = 0; r < 3; r++) death({ getSource: function () { return src(berserker) }, getEntity: function () { return makeMob() } })
+check('Rampage: 3 kills = x4 damage at level 10', near(hit(berserker, makeMob(), 10), 40))
+gameTime += 200
+check('Rampage stacks wear off after 5 seconds', hit(berserker, makeMob(), 10) == 10)
+
+// Vein Miner: a 3x3x3 cube of iron ore
+var oreBlock = { name: 'iron_ore' }, stone = { name: 'stone' }
+function state(block) { return { getBlock: function () { return block }, is: function (tag) { return tag == 'ores' ? block === oreBlock : tag == 'logs' ? block.log : false } } }
+function bpos(x, y, z) { return { getX: function () { return x }, getY: function () { return y }, getZ: function () { return z }, offset: function (a, b, c) { return bpos(x + a, y + b, z + c) } } }
+var world = { getBlockState: function (p2) { var inCube = Math.abs(p2.getX()) <= 1 && Math.abs(p2.getY()) <= 1 && Math.abs(p2.getZ()) <= 1; return state(inCube ? oreBlock : stone) } }
+var minerPick = gear('Pick'); faSetLevel(minerPick, 'vein_miner', 2)
+var miner = makePlayer(server, 'miner'); miner.main = minerPick
+miner.gameMode = { broken: 0, destroyBlock: function () { this.broken++; return true } }
+var brk = handlers.forge['BreakEvent']
+function breakEv(pl) { return { getPlayer: function () { return pl }, getState: function () { return state(oreBlock) }, getLevel: function () { return world }, getPos: function () { return bpos(0, 0, 0) } } }
+brk(breakEv(miner))
+check('Vein Miner 2 breaks up to 16 connected ores', miner.gameMode.broken == 16, miner.gameMode.broken)
+faSetLevel(minerPick, 'vein_miner', 100); miner.gameMode.broken = 0
+brk(breakEv(miner))
+check('...and stops at the edge of the vein', miner.gameMode.broken == 26, miner.gameMode.broken)
+miner.gameMode.broken = 0; miner.sneaking = true
+brk(breakEv(miner))
+check('sneaking mines just one block', miner.gameMode.broken == 0)
+
+var shiny = hero({ radiance: 5 }, 'radiance'), r1 = makeMob(), r2 = makeMob()
+shiny.nearby = [r1, r2]; shiny.tickCount = 20
+tick({ phase: 'END', player: shiny })
+check('Radiance burns nearby enemies each second', r1.hurtBy[0] == 10 && r2.hurtBy[0] == 10)
+
+Math.random = function () { return 0 }
+var dh = dropEvent(hero({ headhunter: 1 }), makeMob(), []); dropsHook(dh)
+check('Headhunter drops zombie heads', dh.list.arr.some(function (ie) { return ie.s.id == 'minecraft:zombie_head' }))
+var eliteMob = makeMob(); eliteMob.pdata.putInt('fa_danger', 20); eliteMob.pdata.putBoolean('fa_elite', true)
+var df = dropEvent(plainHero, eliteMob, []); dropsHook(df)
+check('Elites drop Mythic Fragments', df.list.arr.some(function (ie) { return ie.s.id == 'kubejs:mythic_fragment' }))
+var dn = dropEvent(makeMob(), eliteMob, []); dropsHook(dn)
+check('no fragments unless a player made the kill', !dn.list.arr.some(function (ie) { return ie.s.id == 'kubejs:mythic_fragment' }))
+var dsafe = dropEvent(plainHero, makeMob(), []); dropsHook(dsafe)
+check('no fragments from safe-zone mobs', dsafe.list.arr.length == 0)
+Math.random = realRandom
+check('fragment odds: Elite at danger 20 = 25%, normal mob at danger 20 = 4%',
+  near(global.FA_fragmentChance(20, true), 0.25) && near(global.FA_fragmentChance(20, false), 0.04))
+
+var slammer = hero({ gravity_slam: 2 }, 'slam'), sl1 = makeMob(); slammer.nearby = [sl1]
+var fall = { mult: 1, getEntity: function () { return slammer }, getDistance: function () { return 10 }, setDamageMultiplier: function (m) { this.mult = m } }
+handlers.forge['LivingFallEvent'](fall)
+check('Gravity Slam: no fall damage, 10 blocks x level 2 = 20 damage around you', fall.mult == 0 && sl1.hurtBy[0] == 20)
 
 print('\n' + (failures ? failures + ' FAILED' : 'all checks passed'))
 if (failures) java.lang.System.exit(1)

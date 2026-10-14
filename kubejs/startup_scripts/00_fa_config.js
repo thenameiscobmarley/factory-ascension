@@ -15,6 +15,7 @@ global.FA = {
   // Defaults: levels 1-20 cost 1 each, level 3000 costs 151, all the way to 3000 is about 226K Essence.
   costBase: 0.05,
   costPower: 1,
+  mythicCostMultiplier: 5,     // Mythic enchants cost 5x as much per level
 
   // ---- Ascended enchants ----
   // No level cap unless maxLevel is set. Enchants count from every equipped item (both hands
@@ -97,7 +98,34 @@ global.FA = {
     frenzy:       { name: 'Frenzy', type: 'attribute', attrs: ['attack_speed'], percent: true, perLevel: 0.1, cap: 10, label: 'attack speed' },
     lucky:        { name: 'Lucky', type: 'attribute', attrs: ['luck'], perLevel: 1, label: 'luck' },
     excavation:   { name: 'Excavation', type: 'mining', perLevel: 0.25 },
-    eternal:      { name: 'Eternal', type: 'eternal', maxLevel: 1 }
+    eternal:      { name: 'Eternal', type: 'eternal', maxLevel: 1 },
+
+    // ---- Mythic: rare and crazy ----
+    // Mythic tomes need Mythic Fragments, which only drop from mobs out in the danger zones (mostly Elites).
+    wings:        { name: 'Wings', type: 'flight', mythic: true, maxLevel: 3 },                           // creative-style flight
+    thunderlord:  { name: 'Thunderlord', type: 'chain_lightning', mythic: true, perLevel: 0.02, radius: 8 },
+    black_hole:   { name: 'Black Hole', type: 'gravity_well', mythic: true, perLevel: 1, base: 4, cap: 24 },
+    meteor:       { name: 'Meteor', type: 'death_nova', mythic: true, perLevel: 0.1 },
+    chronos:      { name: 'Chronos', type: 'time_stop', mythic: true },
+    phoenix:      { name: 'Phoenix', type: 'phoenix', mythic: true, cooldown: 600, perLevel: 0.2, minCooldown: 30 },
+    voidwalker:   { name: 'Voidwalker', type: 'projectile_teleport', mythic: true, maxLevel: 1 },
+    soul_harvest: { name: 'Soul Harvest', type: 'souls', mythic: true, perLevel: 0.001 },               // per soul stored on the item
+    overkill:     { name: 'Overkill', type: 'overkill', mythic: true, perLevel: 0.05, radius: 6 },
+    rampage:      { name: 'Rampage', type: 'rampage', mythic: true, perLevel: 0.1, maxStacks: 10, seconds: 5 },
+    vein_miner:   { name: 'Vein Miner', type: 'vein', mythic: true, blocks: 'ores', perLevel: 8, cap: 256 },
+    timber:       { name: 'Timber', type: 'vein', mythic: true, blocks: 'logs', perLevel: 32, cap: 512 },
+    radiance:     { name: 'Radiance', type: 'aura', mythic: true, perLevel: 2 },
+    headhunter:   { name: 'Headhunter', type: 'heads', mythic: true, perLevel: 0.01 },
+    gravity_slam: { name: 'Gravity Slam', type: 'slam', mythic: true, perLevel: 1 }
+  },
+
+  // ---- Mythic Fragments: drop from danger-zone mobs, needed for Mythic tomes ----
+  fragments: {
+    eliteChance: 0.15,          // Elites: 15% + 0.5% per danger level, max 75%
+    eliteChancePerLevel: 0.005,
+    eliteChanceCap: 0.75,
+    normalChancePerLevel: 0.002, // other danger-zone mobs: 0.2% per danger level, max 5%
+    normalChanceCap: 0.05
   },
 
   // ---- Danger: the farther from spawn, the nastier the mobs (and the better the loot) ----
@@ -204,6 +232,24 @@ global.FA_describe = (id, level) => {
     }
     case 'mining': return x(1 + e.perLevel * level) + ' mining speed'
     case 'eternal': return 'never breaks'
+    case 'flight': return 'fly like in creative' + (level > 1 ? ', x' + (1 + 0.5 * (level - 1)) + ' flight speed' : '')
+    case 'chain_lightning': return pct(global.FA_chainChance(level)) + ' chance: lightning chains to ' + global.FA_chainTargets(level) +
+      (global.FA_chainTargets(level) == 1 ? ' enemy' : ' enemies') + ' for ' + pct(0.5 + e.perLevel * level) + ' of the hit'
+    case 'gravity_well': return 'pulls enemies within ' + Math.min(e.cap, e.base + e.perLevel * level) + ' blocks into your target'
+    case 'death_nova': return 'kills explode for ' + pct(0.5 + e.perLevel * level) + " of the victim's max health"
+    case 'time_stop': {
+      let c = global.FA_chronos(level)
+      return 'when hit: freezes enemies within ' + c.radius + ' blocks for ' + c.seconds + 's (every ' + c.cooldown + 's)'
+    }
+    case 'phoenix': return 'on death: revive at full health in a firestorm (every ' + Math.round(global.FA_phoenixCooldown(e, level)) + 's)'
+    case 'projectile_teleport': return 'your arrows teleport you to what they hit'
+    case 'souls': return '+' + pct(e.perLevel * level) + ' damage per soul (kills grow the weapon forever)'
+    case 'overkill': return pct(Math.min(1, 0.5 + e.perLevel * level)) + ' of excess damage jumps to the next enemy'
+    case 'rampage': return '+' + pct(e.perLevel * level) + ' damage per kill in a streak (up to ' + e.maxStacks + ')'
+    case 'vein': return 'mines up to ' + num(Math.min(e.cap, e.perLevel * level)) + ' connected ' + e.blocks + ' at once (sneak for one)'
+    case 'aura': return 'burns enemies within ' + global.FA_auraRadius(level) + ' blocks for ' + num(e.perLevel * level) + ' damage/s'
+    case 'heads': return pct(Math.min(1, e.perLevel * level)) + ' chance to drop mob heads'
+    case 'slam': return 'landing smashes nearby enemies for ' + num(e.perLevel * level) + ' damage per block fallen, no fall damage'
   }
   return ''
 }
@@ -253,5 +299,22 @@ global.FA_dangerMult = (danger, elite) => {
   }
 }
 
-// Essence cost to go from level L to L+1
-global.FA_cost = level => Math.ceil(global.FA.costBase * Math.pow(level + 1, global.FA.costPower))
+// ---- Mythic helpers (shared by the effects and the descriptions) ----
+global.FA_chainChance = level => Math.min(1, 0.1 + 0.01 * level)
+global.FA_chainTargets = level => Math.min(16, 1 + Math.floor(level / 5))
+global.FA_auraRadius = level => Math.min(16, 3 + Math.floor(level / 10))
+global.FA_chronos = level => ({ radius: Math.min(32, 8 + level), seconds: Math.min(10, 2 + 0.5 * level), cooldown: Math.max(5, 30 - level) })
+global.FA_phoenixCooldown = (e, level) => Math.max(e.minCooldown, e.cooldown / (1 + e.perLevel * (level - 1)))
+global.FA_fragmentChance = (danger, elite) => {
+  let f = global.FA.fragments
+  if (danger <= 0) return 0
+  return elite ? Math.min(f.eliteChanceCap, f.eliteChance + f.eliteChancePerLevel * danger)
+    : Math.min(f.normalChanceCap, f.normalChancePerLevel * danger)
+}
+
+// Essence cost to go from level L to L+1 (Mythic enchants cost more)
+global.FA_cost = (level, id) => {
+  let e = id ? global.FA.enchants[id] : null
+  let mult = e && e.mythic ? global.FA.mythicCostMultiplier : 1
+  return Math.ceil(global.FA.costBase * Math.pow(level + 1, global.FA.costPower) * mult)
+}

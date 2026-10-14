@@ -127,8 +127,8 @@ def cluster(rock_light, rock_dark, specks, seed):
     return px
 
 
-def book(cover, gem_color):
-    """Closed book: colored cover, cream page edge, gem on the front."""
+def book(cover, gem_color, mythic=False):
+    """Closed book: colored cover, cream page edge, gem on the front. Mythic: gold trim + bigger gem."""
     px = blank()
     dark = lerp(cover, (0, 0, 0), 0.45)
     light = lerp(cover, (255, 255, 255), 0.25)
@@ -152,6 +152,28 @@ def book(cover, gem_color):
     for x, y in ((8, 6), (7, 7), (8, 7), (9, 7), (8, 8)):
         px[y][x] = gem_color + (255,)
     px[6][8] = lerp(gem_color, (255, 255, 255), 0.6) + (255,)
+    if mythic:
+        gold = (240, 200, 80, 255)
+        for x in range(5, 12):
+            px[2][x] = gold
+        for y in range(2, 13):
+            px[y][11] = gold
+        for x, y in ((8, 5), (6, 7), (10, 7), (8, 9)):
+            px[y][x] = lerp(gem_color, (0, 0, 0), 0.25) + (255,)
+    return px
+
+
+def fragment():
+    """Jagged glowing shard."""
+    px = blank()
+    shape = [(7, 2), (8, 2), (6, 3), (7, 3), (8, 3), (6, 4), (7, 4), (8, 4), (9, 4), (5, 5), (6, 5), (7, 5), (8, 5), (9, 5),
+             (5, 6), (6, 6), (7, 6), (8, 6), (9, 6), (10, 6), (6, 7), (7, 7), (8, 7), (9, 7), (10, 7), (6, 8), (7, 8), (8, 8), (9, 8),
+             (7, 9), (8, 9), (9, 9), (7, 10), (8, 10), (8, 11), (7, 12), (8, 12)]
+    for x, y in shape:
+        t = y / 13
+        px[y][x] = lerp((255, 220, 120), (170, 60, 255), t) + (255,)
+    for x, y in ((7, 3), (6, 5), (7, 6)):
+        px[y][x] = (255, 255, 235, 255)
     return px
 
 
@@ -165,6 +187,10 @@ TYPE_HUES = {
     "resist": 0.55, "vitality": 0.33, "retribution": 0.08, "dodge": 0.50, "undying": 0.11,
     "regen": 0.38, "passive": 0.42, "magnet": 0.62, "repair": 0.65,
     "attribute": 0.58, "mining": 0.66, "eternal": 0.78,
+    # Mythic types: the gem color (covers are dark)
+    "flight": 0.55, "chain_lightning": 0.16, "gravity_well": 0.76, "death_nova": 0.05, "time_stop": 0.50,
+    "phoenix": 0.08, "projectile_teleport": 0.82, "souls": 0.47, "overkill": 0.98, "rampage": 0.0,
+    "vein": 0.30, "aura": 0.14, "heads": 0.33, "slam": 0.62,
 }
 
 
@@ -172,14 +198,21 @@ def tome_colors():
     """(id -> (cover, gem)) for every enchant in the config, varied a little per enchant."""
     text = open(CONFIG).read()
     out = {}
-    for m in re.finditer(r"^\s{4}(\w+):\s*\{ name: '[^']*', type: '(\w+)'", text, re.M):
+    for m in re.finditer(r"^\s{4}(\w+):\s*\{ name: '[^']*', type: '(\w+)'(.*)$", text, re.M):
         name, type_ = m.group(1), m.group(2)
+        if "mythic: true" in m.group(3):
+            # Mythic: near-black cover, bright gem, gold trim (see book())
+            hue = TYPE_HUES.get(type_, 0.5)
+            cover = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue, 0.6, 0.18))
+            gem_col = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue, 0.65, 1.0))
+            out[name] = (cover, gem_col, True)
+            continue
         jitter = (zlib.crc32(name.encode()) % 1000) / 1000.0
         hue = (TYPE_HUES.get(type_, 0.5) + (jitter - 0.5) * 0.08) % 1.0
         val = 0.42 + jitter * 0.2
         cover = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue, 0.75, val))
         gem_col = tuple(int(c * 255) for c in colorsys.hsv_to_rgb((hue + 0.5) % 1.0 if type_ == "eternal" else hue, 0.5, 1.0))
-        out[name] = (cover, gem_col)
+        out[name] = (cover, gem_col, False)
     return out
 
 
@@ -203,8 +236,9 @@ def main():
     tomes = tome_colors()
     if len(tomes) < 9:
         raise SystemExit('could not read enchants from ' + CONFIG)
-    for name, (cover, gem_color) in tomes.items():
-        textures["tome_" + name] = outline(book(cover, gem_color), edge)
+    for name, (cover, gem_color, mythic) in tomes.items():
+        textures["tome_" + name] = outline(book(cover, gem_color, mythic), edge)
+    textures["mythic_fragment"] = outline(fragment(), (30, 8, 40, 255))
     for name, px in textures.items():
         png(os.path.join(OUT, name + ".png"), px)
         print("wrote", name + ".png")

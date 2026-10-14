@@ -12,8 +12,12 @@ StartupEvents.registry('item', event => {
   // Tomes: each one unlocks an Ascended enchant on one piece of gear
   event.create('blank_ascension_tome').displayName('Blank Ascension Tome').rarity('uncommon')
   Object.keys(global.FA.enchants).forEach(id => {
-    event.create('tome_' + id).displayName('Tome of ' + global.FA.enchants[id].name).rarity('epic').glow(true)
+    let e = global.FA.enchants[id]
+    event.create('tome_' + id).displayName((e.mythic ? 'Mythic Tome of ' : 'Tome of ') + e.name).rarity('epic').glow(true)
   })
+
+  // Dropped by mobs out in the danger zones, needed for Mythic tomes
+  event.create('mythic_fragment').displayName('Mythic Fragment').rarity('epic').glow(true)
 
   // Renewable ore line: made from cobble-gen blocks, crushed into ores
   event.create('common_mineral_cluster').displayName('Common Mineral Cluster')

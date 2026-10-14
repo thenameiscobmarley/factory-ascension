@@ -7,7 +7,9 @@ let FA_TYPE_COLORS = {
   plunder: 'yellow', kill_heal: 'green', xp: 'yellow', drop: 'yellow',
   resist: 'aqua', vitality: 'green', retribution: 'gold', dodge: 'aqua', undying: 'gold',
   regen: 'green', passive: 'green', magnet: 'blue', repair: 'blue',
-  attribute: 'white', mining: 'blue', eternal: 'lightPurple'
+  attribute: 'white', mining: 'blue', eternal: 'lightPurple',
+  flight: 'gold', chain_lightning: 'gold', gravity_well: 'gold', death_nova: 'gold', time_stop: 'gold', phoenix: 'gold',
+  projectile_teleport: 'gold', souls: 'gold', overkill: 'gold', rampage: 'gold', vein: 'gold', aura: 'gold', heads: 'gold', slam: 'gold'
 }
 
 function faColor(id) {
@@ -26,8 +28,11 @@ ItemEvents.tooltip(event => {
       if (level <= 0) return
       let e = global.FA.enchants[id]
       let name = e.name + (e.maxLevel == 1 ? '' : ' ' + global.FA_num(level))
-      text.add(line++, faColor(id)(name).append(Text.darkGray('  ' + global.FA_describe(id, level))))
+      let label = e.mythic ? Text.lightPurple('\u2726 ').append(Text.gold(name)) : faColor(id)(name)
+      text.add(line++, label.append(Text.darkGray('  ' + global.FA_describe(id, level))))
     })
+    let souls = data.getInt('souls')
+    if (souls > 0) text.add(line++, Text.lightPurple('  Souls: ' + global.FA_num(souls)))
   })
 
   Object.keys(global.FA.essenceValues).forEach(id => {
@@ -42,6 +47,7 @@ ItemEvents.tooltip(event => {
   Object.keys(global.FA.enchants).forEach(id => {
     let e = global.FA.enchants[id]
     event.add('kubejs:tome_' + id, [
+      e.mythic ? Text.lightPurple('\u2726 MYTHIC').bold(true) : Text.darkGray('Ascended'),
       faColor(id)('Level 1: ' + global.FA_describe(id, 1)),
       Text.gray('Hold gear in your other hand and right-click to unlock'),
       Text.darkGray(e.maxLevel == 1 ? 'One-time enchant'
@@ -50,6 +56,10 @@ ItemEvents.tooltip(event => {
     ])
   })
 
+  event.add('kubejs:mythic_fragment', [
+    Text.lightPurple('Drops from mobs out in the danger zones, mostly Elites'),
+    Text.gray('4 of them + a catalyst make a Mythic tome (superheated mixer)')
+  ])
   event.add('kubejs:incomplete_ascension_core', Text.darkGray('Still on the assembly line'))
   event.add('kubejs:common_mineral_cluster', Text.gray('Crush for iron, copper, zinc and gold'))
   event.add('kubejs:gem_mineral_cluster', Text.gray('Crush for redstone, lapis, diamonds and emeralds'))
