@@ -175,6 +175,94 @@ global.FA = {
     ]
   },
 
+  // ---- Liquid Essence + Ascension Altar ----
+  // Cores melt into Liquid Essence in a heated mixer (1 core = 100 mB = 1 Essence, so nothing is gained or lost).
+  // An Ascension Altar with a Create Depot on top and a tank or basin of Liquid Essence below
+  // levels up the gear on the depot by itself: one level at a time, always the lowest enchant first.
+  altar: {
+    mbPerEssence: 100,
+    maxLevelsPerSecond: 20,    // per altar
+    maxAltars: 256             // most altars the server tracks
+  },
+
+  // ---- Prestige (Rebirth) ----
+  // Reset an item's enchant levels back to 1 for a permanent star: every level on it then counts
+  // x(1 + bonusPerStar * stars). Needs needLevels * (stars + 1) total levels on the item.
+  prestige: {
+    needLevels: 1000,
+    bonusPerStar: 0.25,
+    maxStars: 0                // 0 = no cap
+  },
+
+  // ---- Gear sets: wear several pieces with the same enchant for a bonus ----
+  // pieces = equipped items (hands + armor) that have the set's enchant.
+  sets: [
+    { name: 'Juggernaut', key: 'protection', 2: { mult: 1.25 }, 4: { mult: 1.5, add: { vitality: 100, bulwark: 50 } } },
+    { name: 'Berserker', key: 'sharpness', 2: { mult: 1.25 }, 4: { mult: 1.5, add: { critical: 50, lifesteal: 25 } } },
+    { name: 'Plunderer', key: 'plunder', 2: { mult: 1.25 }, 4: { mult: 1.5, add: { midas: 25, wisdom: 50 } } },
+    { name: 'Windwalker', key: 'swiftness', 2: { mult: 1.25 }, 4: { mult: 1.5, add: { evasion: 100, featherweight: 50 } } },
+    { name: 'Lifebinder', key: 'vitality', 2: { mult: 1.25 }, 4: { mult: 1.5, add: { renewal: 40, second_wind: 40 } } }
+  ],
+
+  // ---- Gems: socket into gear for extra enchant levels ----
+  // Made in the factory, then compacted 4 -> 1 into the next tier. Right-click a gem with gear in your
+  // other hand to socket it. Sneak on a full item to replace its newest gem (the old gem is destroyed).
+  gems: {
+    sockets: 3,
+    tiers: [{ name: 'Chipped', levels: 3 }, { name: 'Flawless', levels: 15 }, { name: 'Perfect', levels: 75 }],
+    types: {
+      bloodstone: { name: 'Bloodstone', enchant: 'sharpness', color: [200, 30, 40] },
+      sapphire: { name: 'Sapphire', enchant: 'protection', color: [40, 90, 230] },
+      garnet: { name: 'Garnet', enchant: 'vitality', color: [150, 20, 70] },
+      topaz: { name: 'Topaz', enchant: 'plunder', color: [240, 180, 40] },
+      opal: { name: 'Opal', enchant: 'swiftness', color: [190, 240, 255] },
+      onyx: { name: 'Onyx', enchant: 'excavation', color: [60, 60, 75] }
+    }
+  },
+
+  // ---- Milestones: factory goals with rewards (checked whenever a stat goes up) ----
+  milestones: [
+    { id: 'first_core', name: 'First Spark', stat: 'essence_absorbed', goal: 1, reward: [['kubejs:blank_ascension_tome', 2]] },
+    { id: 'essence_1k', name: 'Assembly Line', stat: 'essence_absorbed', goal: 1000, reward: [['kubejs:chaos_tome', 1]] },
+    { id: 'essence_100k', name: 'Megafactory', stat: 'essence_absorbed', goal: 100000, reward: [['kubejs:chaos_tome', 3], ['kubejs:mythic_fragment', 4]] },
+    { id: 'essence_10m', name: 'Planet Eater', stat: 'essence_absorbed', goal: 10000000, reward: [['kubejs:chaos_tome', 10], ['kubejs:mythic_fragment', 16]] },
+    { id: 'levels_100', name: 'Tinkerer', stat: 'levels_bought', goal: 100, reward: [['kubejs:gem_bloodstone_1', 1]] },
+    { id: 'levels_10k', name: 'Ascendant', stat: 'levels_bought', goal: 10000, reward: [['kubejs:gem_sapphire_2', 1]] },
+    { id: 'levels_1m', name: 'Beyond Measure', stat: 'levels_bought', goal: 1000000, reward: [['kubejs:gem_bloodstone_3', 1], ['kubejs:gem_sapphire_3', 1]] },
+    { id: 'unlocks_10', name: 'Collector', stat: 'unlocks', goal: 10, reward: [['kubejs:chaos_tome', 1]] },
+    { id: 'rolls_25', name: 'Gambler', stat: 'chaos_rolls', goal: 25, reward: [['kubejs:chaos_tome', 5]] },
+    { id: 'danger_10', name: 'Explorer', stat: 'max_danger', goal: 10, reward: [['kubejs:mythic_fragment', 2]] },
+    { id: 'danger_40', name: 'Nightmare Walker', stat: 'max_danger', goal: 40, reward: [['kubejs:mythic_fragment', 8]] },
+    { id: 'elites_50', name: 'Elite Hunter', stat: 'elites_killed', goal: 50, reward: [['kubejs:gem_topaz_2', 1]] },
+    { id: 'boss_1', name: 'Godslayer', stat: 'bosses_killed', goal: 1, reward: [['kubejs:chaos_tome', 3]] },
+    { id: 'rebirth_1', name: 'Born Again', stat: 'rebirths', goal: 1, reward: [['kubejs:gem_garnet_3', 1]] },
+    { id: 'gems_10', name: 'Jeweler', stat: 'gems_socketed', goal: 10, reward: [['kubejs:gem_opal_2', 1]] },
+    { id: 'altar_1k', name: 'Automation', stat: 'altar_levels', goal: 1000, reward: [['kubejs:gem_onyx_3', 1]] }
+  ],
+
+  // ---- World events: random server-wide events ----
+  events: {
+    enabled: true,
+    checkEveryMinutes: 1,
+    chancePerCheck: 0.05,      // about one event every 20 minutes
+    bloodMoon: { minutes: 6, dangerBonus: 10, fragmentMult: 2, nightOnly: true },
+    meteorShower: { minutes: 3, everySeconds: 15, radius: 30,
+      drops: [['minecraft:diamond', 30], ['minecraft:ancient_debris', 15], ['kubejs:gem_mineral_cluster', 30], ['kubejs:mythic_fragment', 4], ['kubejs:chaos_tome', 1]] },
+    goldenHour: { minutes: 5, lootMult: 2 }
+  },
+
+  // ---- Ascended bosses: rare huge versions of normal mobs, deep in the danger zones ----
+  bosses: {
+    enabled: true,
+    minDanger: 30,             // only this deep or deeper
+    chancePerSpawn: 0.002,     // per hostile spawn there
+    healthMult: 60,            // on top of the zone's own multiplier
+    damageMult: 3,
+    minionsPerPhase: 3,        // summoned at 66% and 33% health
+    titles: ['the Unending', 'the Ashborn', 'of the Void', 'the Devourer', 'the Hollow King', 'Worldbreaker'],
+    drops: [['kubejs:chaos_tome', 1, 3], ['kubejs:mythic_fragment', 3, 8], ['kubejs:dense_ascension_core', 2, 6]]
+  },
+
   // ---- Safety limits (not power caps) ----
   maxExtraDropStacks: 8,       // most extra item stacks one kill can spawn, so loot enchants can't lag the server
   maxCleaveTargets: 16,
@@ -447,6 +535,15 @@ global.FA_rollEnchant = seed => {
   return roll
 }
 
+// ---- Shared helpers for gems, sets and prestige ----
+
+// Item id for a gem: kubejs:gem_<type>_<tier 1..3>
+global.FA_gemId = (type, tier) => 'kubejs:gem_' + type + '_' + tier
+global.FA_gemLevels = tier => global.FA.gems.tiers[tier - 1].levels
+// Total levels an item needs before its next Rebirth
+global.FA_rebirthNeed = stars => global.FA.prestige.needLevels * (stars + 1)
+global.FA_starMult = stars => 1 + global.FA.prestige.bonusPerStar * stars
+
 // Essence cost for a rolled enchant from level L to L+1
 global.FA_rollCost = (level, rarity) => Math.ceil(global.FA_cost(level) * global.FA.chaos.rarities[rarity].costMult)
 
@@ -555,6 +652,53 @@ global.FA_validate = cfg => {
       { name: 'Legendary', weight: 6, power: 3.2, affixes: 3, costMult: 4, color: 'gold' },
       { name: 'Mythic', weight: 1, power: 5, affixes: 3, costMult: 8, color: 'red' }
     ] }
+  }
+  // New systems: each one switches itself off if its settings are broken
+  let a = cfg.altar
+  if (!(a && okNum(a.mbPerEssence, 1) && okNum(a.maxLevelsPerSecond, 1) && okNum(a.maxAltars, 1))) {
+    problems.push('altar settings are broken, reset to defaults')
+    cfg.altar = { mbPerEssence: 100, maxLevelsPerSecond: 20, maxAltars: 256 }
+  }
+  let pr = cfg.prestige
+  if (!(pr && okNum(pr.needLevels, 1) && okNum(pr.bonusPerStar, 0) && okNum(pr.maxStars, 0))) {
+    problems.push('prestige settings are broken, reset to defaults')
+    cfg.prestige = { needLevels: 1000, bonusPerStar: 0.25, maxStars: 0 }
+  }
+  cfg.sets = (cfg.sets || []).filter(set => {
+    let ok = set && typeof set.name == 'string' && cfg.enchants[set.key] && [2, 4].every(n => !set[n] || (okNum(set[n].mult, 1) &&
+      Object.keys(set[n].add || {}).every(k => cfg.enchants[k] && okNum(set[n].add[k], 0))))
+    if (!ok) problems.push('set "' + (set && set.name) + '" is broken and was switched off')
+    return ok
+  })
+  let g = cfg.gems
+  if (!(g && okNum(g.sockets, 1) && g.sockets <= 6 && g.tiers && g.tiers.length == 3 && g.tiers.every(t => okNum(t.levels, 1)))) {
+    problems.push('gem settings are broken, gems were switched off')
+    cfg.gems = { sockets: 0, tiers: [{ name: 'Chipped', levels: 1 }, { name: 'Flawless', levels: 1 }, { name: 'Perfect', levels: 1 }], types: {} }
+  } else {
+    Object.keys(g.types).forEach(t => {
+      if (!/^[a-z]+$/.test(t) || !cfg.enchants[g.types[t].enchant]) { problems.push('gem "' + t + '" points at an unknown enchant and was removed'); delete g.types[t] }
+    })
+  }
+  cfg.milestones = (cfg.milestones || []).filter(m => {
+    let ok = m && /^[a-z0-9_]+$/.test(m.id) && typeof m.name == 'string' && typeof m.stat == 'string' && okNum(m.goal, 1) &&
+      (m.reward || []).every(r => /^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(String(r[0])) && okNum(r[1], 1) && r[1] <= 64)
+    if (!ok) problems.push('milestone "' + (m && m.id) + '" is broken and was switched off')
+    return ok
+  })
+  let wev = cfg.events
+  if (wev && wev.enabled && !(okNum(wev.checkEveryMinutes, 1) && okNum(wev.chancePerCheck, 0) && wev.chancePerCheck <= 1 &&
+    okNum(wev.bloodMoon.minutes, 1) && okNum(wev.bloodMoon.dangerBonus, 0) && okNum(wev.bloodMoon.fragmentMult, 1) &&
+    okNum(wev.meteorShower.minutes, 1) && okNum(wev.meteorShower.everySeconds, 1) && okNum(wev.meteorShower.radius, 1) && wev.meteorShower.drops.length > 0 &&
+    okNum(wev.goldenHour.minutes, 1) && okNum(wev.goldenHour.lootMult, 1))) {
+    problems.push('world event settings are broken, events were switched off')
+    wev.enabled = false
+  }
+  let b = cfg.bosses
+  if (b && b.enabled && !(okNum(b.minDanger, 0) && okNum(b.chancePerSpawn, 0) && b.chancePerSpawn <= 1 && okNum(b.healthMult, 1) &&
+    okNum(b.damageMult, 0) && okNum(b.minionsPerPhase, 0) && b.minionsPerPhase <= 10 && b.titles.length > 0 &&
+    b.drops.every(d => okNum(d[1], 0) && okNum(d[2], d[1]) && d[2] <= 64))) {
+    problems.push('boss settings are broken, Ascended bosses were switched off')
+    b.enabled = false
   }
   let f = cfg.fragments
   if (!['eliteChance', 'eliteChancePerLevel', 'eliteChanceCap', 'normalChancePerLevel', 'normalChanceCap'].every(k => okNum(f[k], 0) && f[k] <= 1)) {

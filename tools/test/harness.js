@@ -28,7 +28,7 @@ function fakeText(s) {
   }
 }
 var Text = {}
-;['gold', 'gray', 'darkGray', 'lightPurple', 'red', 'darkRed', 'green', 'aqua', 'yellow', 'white', 'blue', 'of'].forEach(function (c) { Text[c] = fakeText })
+;['gold', 'gray', 'darkGray', 'lightPurple', 'red', 'darkRed', 'green', 'aqua', 'yellow', 'white', 'blue', 'of', 'darkAqua', 'darkPurple', 'darkGreen', 'darkBlue'].forEach(function (c) { Text[c] = fakeText })
 
 var KNOWN_ITEMS = { 'mekanism:raw_osmium': 1, 'mekanism:raw_lead': 1, 'mekanism:raw_tin': 1, 'mekanism:raw_uranium': 1, 'tfmg:steel_ingot': 1, 'tfmg:raw_nickel': 1 }
 var Item = { of: function (id, n) { return { id: id, count: n || 1, isEmpty: function () { return !KNOWN_ITEMS[id] } } } }
@@ -44,6 +44,9 @@ Compound.prototype = {
   putInt: function (k, v) { this.d[k] = v | 0 },
   putDouble: function (k, v) { this.d[k] = v },
   putBoolean: function (k, v) { this.d[k] = v },
+  putString: function (k, v) { this.d[k] = String(v) },
+  getString: function (k) { return typeof this.d[k] == 'string' ? this.d[k] : '' },
+  copy: function () { var c = new Compound(); for (var k in this.d) c.d[k] = this.d[k] instanceof Compound ? this.d[k].copy() : this.d[k]; return c },
   remove: function (k) { delete this.d[k] },
   getBoolean: function (k) { return !!this.d[k] },
   put: function (k, v) { this.d[k] = v },
@@ -78,6 +81,17 @@ var Java = {
       },
       'net.minecraft.tags.BlockTags': { LOGS: 'logs' },
       'net.minecraftforge.common.Tags$Blocks': { ORES: 'ores' },
+      'net.minecraft.server.level.ServerBossEvent': FakeBossBar,
+      'net.minecraft.world.BossEvent$BossBarColor': { RED: 'red' },
+      'net.minecraft.world.BossEvent$BossBarOverlay': { NOTCHED_10: 'n10' },
+      'net.minecraft.world.level.levelgen.Heightmap$Types': { MOTION_BLOCKING: 'mb' },
+      'net.minecraft.core.BlockPos': FakePos,
+      'net.minecraftforge.common.capabilities.ForgeCapabilities': { ITEM_HANDLER: 'items', FLUID_HANDLER: 'fluids' },
+      'net.minecraft.core.Direction': { UP: 'up', DOWN: 'down' },
+      'net.minecraftforge.fluids.FluidStack': function (fluid, amount) { this.fluid = fluid; this.amount = amount; this.getAmount = function () { return this.amount } },
+      'net.minecraftforge.fluids.capability.IFluidHandler$FluidAction': { SIMULATE: 'sim', EXECUTE: 'exec' },
+      'net.minecraft.core.registries.BuiltInRegistries': { FLUID: { get: function () { return 'liquid_essence' } }, BLOCK: { getKey: function (b) { return b } } },
+      'net.minecraft.resources.ResourceLocation': function (ns, path) { this.s = ns + ':' + path },
       'net.minecraftforge.common.ForgeMod': { BLOCK_REACH: { get: function () { return 'block_reach' } }, ENTITY_REACH: { get: function () { return 'entity_reach' } }, STEP_HEIGHT_ADDITION: { get: function () { return 'step_height' } } },
       'net.minecraft.world.entity.ai.attributes.AttributeModifier': function (name, amount, op) {
         this.name = name; this.amount = amount; this.op = op
@@ -90,16 +104,39 @@ var Java = {
   }
 }
 
-var StartupEvents = { registry: function (type, fn) { handlers.registry.push(fn) } }
-var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) } }
+function FakeBossBar(name) {
+  this.players = []; this.progress = 1; this.name = name
+  this.setProgress = function (p) { this.progress = p }
+  this.addPlayer = function (p) { if (this.players.indexOf(p) < 0) this.players.push(p) }
+  this.removePlayer = function (p) { this.players = this.players.filter(function (x) { return x !== p }) }
+  this.removeAllPlayers = function () { this.players = [] }
+  var self = this
+  this.getPlayers = function () { return { toArray: function () { return self.players.slice() } } }
+}
+function FakePos(x, y, z) { this.x = x; this.y = y; this.z = z }
+FakePos.prototype = {
+  getX: function () { return this.x }, getY: function () { return this.y }, getZ: function () { return this.z },
+  above: function () { return new FakePos(this.x, this.y + 1, this.z) }, below: function () { return new FakePos(this.x, this.y - 1, this.z) },
+  offset: function (a, b, c) { return new FakePos(this.x + a, this.y + b, this.z + c) }
+}
+var StartupEvents = { registry: function (type, fn) { handlers.registry.push({ type: type, fn: fn }) } }
+var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
+var BlockEvents = { placed: function (id, fn) { handlers.placed = fn }, broken: function (id, fn) { handlers.broken = fn } }
+var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn } }
 var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) } }
-var ForgeEvents = { onEvent: function (cls, fn) { handlers.forge[cls.split(/[.$]/).pop()] = fn } }
+// Several scripts can hook the same Forge event: keep them all and call each in turn
+var ForgeEvents = { onEvent: function (cls, fn) {
+  var k = cls.split(/[.$]/).pop(), prev = handlers.forge[k]
+  handlers.forge[k] = prev ? function (e) { prev(e); fn(e) } : fn
+} }
 
 function javaList(arr) {
   return {
     arr: arr,
     iterator: function () { var i = 0, a = this.arr; return { hasNext: function () { return i < a.length }, next: function () { return a[i++] } } },
-    add: function (x) { this.arr.push(x) }
+    add: function (x) { this.arr.push(x) },
+    size: function () { return this.arr.length },
+    toArray: function () { return this.arr.slice() }
   }
 }
 
@@ -112,6 +149,7 @@ function stack(count, max, name) {
     shrink: function (n) { this.count -= n },
     copyWithCount: function (n) { var c = stack(n, this.max, this.name); c.tag = this.tag; c.id = this.id; return c },
     getTag: function () { return this.tag },
+    setTag: function (t) { this.tag = t },
     hasTag: function () { return !!this.tag },
     getOrCreateTag: function () { if (!this.tag) this.tag = new Compound(); return this.tag },
     getHoverName: function () { return fakeText(this.name) }
@@ -166,6 +204,7 @@ function makePlayer(server, uuid) {
 // Shared living-entity behaviour for fake players and mobs
 var gameTime = 1000
 var bolts = []
+var spawnedMinions = []
 function livingBits(o, maxHealth) {
   o.hp = maxHealth; o.maxHp = maxHealth; o.hurtBy = []; o.effects = o.effects || []; o.fire = 0
   o.pdata = new Compound(); o.x = 0; o.z = 0
@@ -173,10 +212,14 @@ function livingBits(o, maxHealth) {
   o.setCustomName = function (n) { this.customName = n.s }
   o.setCustomNameVisible = function (v) { this.nameVisible = v }
   o.typeId = 'minecraft:zombie'
-  o.getType = function () { var self2 = this; return { id: self2.typeId, getDescription: function () { return fakeText('Zombie') } } }
+  o.getType = function () { var self2 = this; return { id: self2.typeId, getDescription: function () { return fakeText('Zombie') }, create: function () { var m = makeMob(); spawnedMinions.push(m); return m } } }
   o.getServer = o.getServer || function () { return server }
   o.clearFire = function () { this.fire = 0 }
   o.setDeltaMovement = function (x, y, z) { this.motion = [x, y, z] }
+  o.isRemoved = function () { return !!this.removed }
+  o.moveTo = function (x, y, z) { this.x = x; this.z = z }
+  o.getDisplayName = function () { return fakeText(this.customName || 'Zombie') }
+  o.setPersistenceRequired = function () { this.persistent = true }
   o.mobType = MobType.UNDEFINED; o.ground = true; o.wet = false; o.dim = 'minecraft:overworld'; o.boss = false; o.nearby = []
   o.isAlive = function () { return true }
   o.getHealth = function () { return this.hp }
@@ -218,8 +261,10 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
+  'startup_scripts/30_fa_world.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
-  'server_scripts/30_fa_material_recipes.js', 'client_scripts/10_fa_tooltips.js'].forEach(function (f) {
+  'server_scripts/30_fa_material_recipes.js', 'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
+  'client_scripts/10_fa_tooltips.js'].forEach(function (f) {
   load('kubejs/' + f)
   print('loaded ' + f)
 })
@@ -227,14 +272,21 @@ var E = global.FA.enchants
 
 // ---------------- Items & textures ----------------
 print('\nitems')
-var created = []
+var created = [], createdBlocks = [], createdFluids = []
 var builder = {}
-;['displayName', 'rarity', 'glow', 'maxStackSize'].forEach(function (m) { builder[m] = function () { return builder } })
-handlers.registry.forEach(function (fn) { fn({ create: function (id) { created.push(id); return builder } }) })
+;['displayName', 'rarity', 'glow', 'maxStackSize', 'thinTexture', 'bucketColor', 'soundType', 'hardness', 'resistance', 'requiresTool',
+  'tagBlock', 'lightLevel', 'textureAll'].forEach(function (m) { builder[m] = function () { return builder } })
+handlers.registry.forEach(function (r) {
+  var list = r.type == 'item' ? created : r.type == 'block' ? createdBlocks : createdFluids
+  r.fn({ create: function (id) { list.push(id); return builder } })
+})
+check('Ascension Altar block and Liquid Essence fluid registered', createdBlocks.join() == 'ascension_altar' && createdFluids.join() == 'liquid_essence')
+check('the altar has a block texture', new java.io.File('kubejs/assets/kubejs/textures/block/ascension_altar.png').exists())
 var enchantCount = Object.keys(global.FA.enchants).length
 var mythics = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].mythic })
 check('74 enchants (59 + 15 Mythic)', enchantCount == 74 && mythics.length == 15, enchantCount + ' / ' + mythics.length)
-check('items registered (4 core + blank + tomes + chaos + fragment + 3 clusters)', created.length == 10 + enchantCount, created.length)
+var gemCount = Object.keys(global.FA.gems.types).length * 3
+check('items registered (4 core + blank + tomes + chaos + fragment + gems + 3 clusters)', created.length == 10 + enchantCount + gemCount, created.length)
 var File = java.io.File
 var missing = created.filter(function (id) { return !new File('kubejs/assets/kubejs/textures/item/' + id + '.png').exists() })
 check('every item has a texture', missing.length == 0, missing.join(','))
@@ -244,7 +296,8 @@ print('\nrecipes')
 var recipes = []
 var ev = {
   custom: function (j) { var r = { json: j, id: function (i) { r.rid = i; return r } }; recipes.push(r); return r },
-  shapeless: function (o, i) { var r = { json: { type: 'shapeless' }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r }
+  shapeless: function (o, i) { var r = { json: { type: 'shapeless' }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r },
+  shaped: function (o, p, k) { var r = { json: { type: 'shaped', out: o, key: k }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r }
 }
 handlers.recipes.forEach(function (fn) { fn(ev) })
 function byId(id) { return recipes.filter(function (r) { return r.rid == 'kubejs:factory_ascension/' + id })[0] }
@@ -258,11 +311,13 @@ check('crushing recipes have 1-4 results', recipes.filter(function (r) { return 
 var mixes = recipes.filter(function (r) { return r.json.type == 'create:mixing' })
 check('mixing recipes have <= 9 ingredients', mixes.every(function (r) { return r.json.ingredients.length <= 9 }))
 // No mixing recipe's items may be a subset of another's, or the basin could pick the wrong one
-function itemBag(r) { return r.json.ingredients.filter(function (i) { return i.item }).map(function (i) { return i.item }).sort() }
+// Fluids count too (as fluid:<id>), since the basin matches on both
+function itemBag(r) { return r.json.ingredients.map(function (i) { return i.item || 'fluid:' + i.fluid }).sort() }
+var basinRecipes = recipes.filter(function (r) { return r.json.type == 'create:mixing' || r.json.type == 'create:compacting' })
 function isSubset(a, b) { var c = b.slice(); return a.every(function (x) { var i = c.indexOf(x); if (i < 0) return false; c.splice(i, 1); return true }) }
 var clash = []
-mixes.forEach(function (a) { mixes.forEach(function (b) { if (a !== b && isSubset(itemBag(a), itemBag(b))) clash.push(a.rid + ' in ' + b.rid) }) })
-check('no mixing recipe is a subset of another', clash.length == 0, clash.join('; '))
+basinRecipes.forEach(function (a) { basinRecipes.forEach(function (b) { if (a !== b && a.json.type == b.json.type && isSubset(itemBag(a), itemBag(b))) clash.push(a.rid + ' in ' + b.rid) }) })
+check('no basin recipe (mixing or compacting) is a subset of another', clash.length == 0, clash.join('; '))
 
 // ---------------- Essence ----------------
 print('\nessence')
@@ -553,7 +608,7 @@ check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
 print('\ntooltips')
 var advanced = null, simple = 0
 handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, addAdvanced: function (ing, f) { advanced = f } }) })
-check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == 3 + 1 + enchantCount + 1 + 1 + 4, simple)
+check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == 3 + 1 + enchantCount + 1 + 1 + 4 + gemCount + 2, simple)
 var lines = { arr: ['Netherite Chestplate', 'When on body:'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(chest, false, lines)
 check('enchants show right under the item name', /Ascended Protection 3,000/.test(lines.arr[1]), lines.arr.join(' | '))
@@ -904,7 +959,7 @@ for (var sd = 1; sd <= 5000; sd++) {
   counts[rr.rarity]++
   var R0 = global.FA.chaos.rarities[rr.rarity]
   if (rr.affixes.length != R0.affixes) badRolls.push(sd + ': affix count')
-  var cfgCopy = JSON.parse(JSON.stringify(global.FA)); cfgCopy.enchants = {}
+  var cfgCopy = JSON.parse(JSON.stringify(global.FA)); cfgCopy.enchants = {}; cfgCopy.sets = []; cfgCopy.gems.types = {}
   rr.affixes.forEach(function (a, i) { cfgCopy.enchants['a' + i] = JSON.parse(JSON.stringify(a)) })
   var probs = global.FA_validate(cfgCopy)
   if (probs.length) badRolls.push(sd + ': ' + probs[0])
@@ -953,11 +1008,173 @@ var badThrow = false
 try { faSetRolled(rGear, 7, 1, 1) } catch (e) { badThrow = true }
 check('rolled slots outside 0-2 are refused', badThrow)
 
+// ---------------- New systems ----------------
+print('\nmilestones')
+var ms = makePlayer(server, 'ms')
+faStatRecord(ms, 'essence_absorbed', 1)
+check('first core pays the First Spark milestone', ms.given.length == 1 && ms.given[0].id == 'kubejs:blank_ascension_tome' && ms.given[0].count == 2)
+faStatRecord(ms, 'essence_absorbed', 1)
+check('a milestone never pays twice', ms.given.length == 1)
+faStatRecord(ms, 'max_danger', 12, 'max'); faStatRecord(ms, 'max_danger', 5, 'max')
+check("'max' stats keep the highest value", faStatGet(server, 'ms', 'max_danger') == 12 && ms.given.some(function (g) { return g.id == 'kubejs:mythic_fragment' }))
+faStatBump(server, 'ms', 'altar_levels', 2000, 'add')
+handlers.loggedIn.forEach(function (fn) { fn({ player: ms }) })
+check('stats earned while offline pay out at login', ms.given.some(function (g) { return g.id == 'kubejs:gem_onyx_3' }))
+ms.messages = []; faShowMilestones(ms)
+check('/ascension milestones lists every milestone', ms.messages.length == global.FA.milestones.length + 2)
+quiet = true
+faStatRecord(ms, 'essence_absorbed', NaN); faStatRecord(ms, 'essence_absorbed', -5)
+quiet = false
+check('bad stat amounts are ignored', faStatGet(server, 'ms', 'essence_absorbed') == 2)
+
+print('\nprestige')
+var reb = makePlayer(server, 'reb'), rebGear = gear('Old Sword')
+faSetLevel(rebGear, 'sharpness', 600); faSetLevel(rebGear, 'protection', 300); reb.main = rebGear
+check('Rebirth needs 1,000 total levels', faRebirth(reb, true) == 0 && faStars(rebGear) == 0)
+faSetLevel(rebGear, 'protection', 400)
+reb.messages = []
+faRebirth(reb, false)
+check('Rebirth asks for confirmation first', faStars(rebGear) == 0 && reb.messages.some(function (t) { return (t.clicks || []).indexOf('/ascension rebirth confirm') >= 0 }))
+faRebirth(reb, true)
+check('Rebirth resets levels to 1 and adds a star', faStars(rebGear) == 1 && faGetLevel(rebGear, 'sharpness') == 1 && faGetLevel(rebGear, 'protection') == 1)
+faSetLevel(rebGear, 'sharpness', 100)
+check('a 1-star item counts its levels x1.25', faLevels(reb).sharpness == 125)
+check('2 stars need 2,000 levels', global.FA_rebirthNeed(1) == 2000)
+
+print('\ngems')
+var jew = makePlayer(server, 'jew'), jewGear = gear('Gem Sword'), chip = stack(5)
+jew.main = chip; jew.off = jewGear
+handlers.rightClicked['kubejs:gem_bloodstone_1']({ player: jew, item: chip, hand: 'MAIN_HAND', cancel: function () {} })
+check('socketing a gem uses it up', chip.count == 4 && faGems(jewGear).length == 1)
+jew.main = jewGear; jew.off = stack(0)
+check('Chipped Bloodstone adds 3 Sharpness levels', faLevels(jew).sharpness == 3)
+jew.main = chip; jew.off = jewGear
+handlers.rightClicked['kubejs:gem_bloodstone_1']({ player: jew, item: chip, hand: 'MAIN_HAND', cancel: function () {} })
+handlers.rightClicked['kubejs:gem_bloodstone_1']({ player: jew, item: chip, hand: 'MAIN_HAND', cancel: function () {} })
+handlers.rightClicked['kubejs:gem_bloodstone_1']({ player: jew, item: chip, hand: 'MAIN_HAND', cancel: function () {} })
+check('only 3 sockets; a 4th gem is refused and kept', faGems(jewGear).length == 3 && chip.count == 2)
+var perfect = stack(1); jew.main = perfect; jew.sneaking = true
+handlers.rightClicked['kubejs:gem_sapphire_3']({ player: jew, item: perfect, hand: 'MAIN_HAND', cancel: function () {} })
+jew.sneaking = false
+check('sneak replaces the newest gem', faGems(jewGear).filter(function (g) { return g.type == 'sapphire' && g.tier == 3 }).length == 1 && faGems(jewGear).length == 3)
+jew.main = jewGear; jew.off = stack(0)
+check('gems stack with stars and sets like any level', faLevels(jew).protection == 75 && faLevels(jew).sharpness == 6)
+
+print('\nsets')
+var setHero = makePlayer(server, 'set')
+var p1 = gear('Helm'), p2 = gear('Chest'), p3 = gear('Legs'), p4 = gear('Boots')
+;[p1, p2, p3, p4].forEach(function (g) { faSetLevel(g, 'protection', 100) })
+setHero.armor = [p1, p2, stack(0), stack(0)]
+check('2-piece Juggernaut: Protection x1.25', faLevels(setHero).protection == 250)
+setHero.armor = [p1, p2, p3, p4]
+var four = faLevels(setHero)
+check('4-piece Juggernaut: x1.5 plus Vitality and Bulwark', four.protection == 600 && four.vitality == 100 && four.bulwark == 50)
+
+print('\nliquid essence')
+var drinker = makePlayer(server, 'drinker'), bucket = stack(1)
+handlers.rightClicked['kubejs:liquid_essence_bucket']({ player: drinker, item: bucket, cancel: function () {} })
+check('a plain right-click leaves the bucket alone (it places like a bucket)', bucket.count == 1 && faGetEssence(drinker) == 0)
+drinker.sneaking = true
+handlers.rightClicked['kubejs:liquid_essence_bucket']({ player: drinker, item: bucket, cancel: function () {} })
+check('sneak-drinking a bucket gives 10 Essence and the empty bucket back', bucket.count == 0 && faGetEssence(drinker) == 10 && drinker.given.some(function (g) { return g.id == 'minecraft:bucket' }))
+var melt = byId('melt_ascension_core').json
+check('melting is lossless: 1 core = 100 mB = 1 Essence = the bucket rate', melt.results[0].amount == global.FA.altar.mbPerEssence && 1000 / global.FA.altar.mbPerEssence == 10)
+
+print('\naltar')
+// A fake world: a depot above the altar, a tank below
+function makeDepot(item) { var slots = [item]; return { slots: slots, getSlots: function () { return slots.length }, getStackInSlot: function (i) { return slots[i] },
+  extractItem: function (i, n, sim) { var it = slots[i]; if (!sim) slots[i] = stack(0); return it },
+  insertItem: function (i, it, sim) { if (!slots[i].isEmpty()) return it; if (!sim) slots[i] = it; return stack(0) } } }
+function makeTank(mb, fluid) { return { mb: mb, fluid: fluid || 'liquid_essence', drained: 0,
+  drain: function (want, action) { var n = want.fluid == this.fluid ? Math.min(want.amount, this.mb) : 0; if (action == 'exec') { this.mb -= n; this.drained += n } return { getAmount: function () { return n } } } } }
+function capOf(h) { return { resolve: function () { return { orElse: function () { return h } } } } }
+var altarGear = gear('Altar Sword'); faSetLevel(altarGear, 'sharpness', 5); faSetLevel(altarGear, 'protection', 50)
+var depot = makeDepot(altarGear), tank = makeTank(100000)
+var altarPos = new FakePos(10, 64, 10), blocks = { '10,64,10': 'kubejs:ascension_altar' }
+var world2 = {
+  dimension: function () { return { location: function () { return 'minecraft:overworld' } } },
+  isLoaded: function () { return true },
+  getBlockState: function (p2) { var b = blocks[p2.x + ',' + p2.y + ',' + p2.z] || 'minecraft:air'; return { getBlock: function () { return b } } },
+  getBlockEntity: function (p2) { return p2.y == 65 ? { getCapability: function () { return capOf(depot) } } : p2.y == 63 ? { getCapability: function () { return capOf(tank) } } : null },
+  addFreshEntity: function () {}, getServer: function () { return server }
+}
+server.getTickCount = function () { return 40 }
+server.getAllLevels = function () { return [world2] }
+server.getPlayerList = function () { return { getPlayers: function () { return [] }, getPlayerCount: function () { return 0 } } }
+var placer = makePlayer(server, 'placer')
+handlers.placed({ server: server, level: world2, block: { pos: altarPos }, player: placer, cancel: function () {} })
+check('placing an altar registers it with its owner', server.persistentData.getCompound('fa_altars').getString('minecraft:overworld|10|64|10') == 'placer')
+handlers.tick({ server: server })
+var spentMb = 0
+for (var L3 = 5; L3 < 25; L3++) spentMb += global.FA_cost(L3, 'sharpness') * 100
+check('the altar levels the lowest enchant first, up to 20 levels a second', faGetLevel(depot.slots[0], 'sharpness') == 25 && faGetLevel(depot.slots[0], 'protection') == 50, faGetLevel(depot.slots[0], 'sharpness'))
+check('...and drains exactly what those levels cost', tank.drained == spentMb, tank.drained + ' vs ' + spentMb)
+check('the gear goes back on the depot', depot.slots[0] === altarGear)
+check('altar levels count toward the owner\'s milestones', faStatGet(server, 'placer', 'altar_levels') == 20)
+var water = makeTank(100000, 'water'); var realTank = tank; tank = water
+handlers.tick({ server: server })
+check('an altar over the wrong fluid does nothing', water.drained == 0 && faGetLevel(depot.slots[0], 'sharpness') == 25)
+tank = makeTank(250)
+handlers.tick({ server: server })
+check('a nearly empty tank pays for what it can and stops (level 25 costs 200 mB)', tank.drained == 200 && tank.mb == 50 && faGetLevel(depot.slots[0], 'sharpness') == 26, tank.drained)
+blocks = {}
+handlers.tick({ server: server })
+check('altars removed some other way are forgotten', !server.persistentData.getCompound('fa_altars').contains('minecraft:overworld|10|64|10'))
+
+print('\nworld events')
+var evServer = makeServer()
+evServer.overworld = function () { return { isNight: function () { return false } } }
+check('Blood Moon refuses to start in daytime', global.FA_startEvent(evServer, 'bloodMoon') === false && global.FA_EVENT === null)
+check('Golden Hour starts and is announced', global.FA_startEvent(evServer, 'goldenHour') && global.FA_EVENT.type == 'goldenHour' && evServer.commands.some(function (c) { return /GOLDEN HOUR/.test(c) }))
+var gh = dropEvent(plainHero, makeMob(), [stack(4)]); dropsHook(gh)
+check('Golden Hour doubles loot', totalCount(gh) == 8, totalCount(gh))
+global.FA_endEvent(evServer)
+evServer.overworld = function () { return { isNight: function () { return true } } }
+global.FA_startEvent(evServer, 'bloodMoon')
+Math.random = function () { return 0.99 }
+var bmMob = spawn(makeMob(), 6000)
+check('Blood Moon: everything spawns +10 danger', bmMob.pdata.getInt('fa_danger') == 21, bmMob.pdata.getInt('fa_danger'))
+Math.random = realRandom
+global.FA_endEvent(evServer)
+check('events end cleanly', global.FA_EVENT === null)
+
+print('\nAscended bosses')
+var bossMob = makeMob(); bossMob.x = 30000
+Math.random = function () { return 0 }
+spawn(bossMob, 30000)
+Math.random = realRandom
+check('deep spawns can become Ascended bosses', bossMob.pdata.getBoolean('fa_boss') && bossMob.persistent && /Lv/.test(bossMob.customName), bossMob.customName)
+var lvl2 = bossMob.pdata.getInt('fa_danger')
+var bossTaken = hit(plainHero, bossMob, 1000)
+check('bosses take damage / (zone health x 60)', near(bossTaken, 1000 / (global.FA_dangerMult(lvl2, false).health * 60)), bossTaken)
+check('Reaper can never execute a boss', faIsBoss(bossMob))
+var frosty = hero({ frostbite: 50 }); hit(frosty, bossMob, 1)
+check('bosses shrug off Slowness', !bossMob.effects.some(function (e) { return e.effect == 'slowness' }))
+var fan = makePlayer(server, 'fan'); fan.x = 30002; bossMob.nearby = [fan]
+fan.isCreative = function () { return false }
+var tickBoss = handlers.forge['ServerTickEvent']
+var bossServer = makeServer(); bossServer.getPlayerList = function () { return { getPlayers: function () { return [] }, getPlayerCount: function () { return 0 } } }
+faLastSecond = 0; tickBoss({ phase: 'END', getServer: function () { return bossServer } })
+var tracked = faBosses[bossMob.getStringUUID()] || faBosses['mob']
+check('a boss bar shows to nearby players', tracked && tracked.bar.players.indexOf(fan) >= 0)
+check('the boss slams nearby players away', fan.motion && fan.motion[0] > 0)
+bossMob.hp = 12; spawnedMinions = []
+faLastSecond = 0; tickBoss({ phase: 'END', getServer: function () { return bossServer } })
+check('at 66% health it summons minions', spawnedMinions.length == global.FA.bosses.minionsPerPhase && spawnedMinions.every(function (m) { return m.pdata.getBoolean('fa_minion') }))
+var bossDrops = dropEvent(plainHero, bossMob, []); dropsHook(bossDrops)
+check('killing it drops Chaos Tomes, fragments and cores', ['kubejs:chaos_tome', 'kubejs:mythic_fragment', 'kubejs:dense_ascension_core'].every(function (id) { return bossDrops.list.arr.some(function (ie) { return ie.s.id == id }) }))
+bossMob.removed = true
+faLastSecond = 0; tickBoss({ phase: 'END', getServer: function () { return bossServer } })
+check('dead bosses take their bar with them', !faBosses[bossMob.getStringUUID()] && tracked.bar.players.length == 0)
+
 print('\nsafety: recipes and hooks')
 var outputs = {}
 recipes.forEach(function (r) {
-  var ins = (r.json.ingredients || []).map(function (i) { return i.item }).concat(r.json.ingredient ? [r.json.ingredient.item] : [])
-  ;(r.json.results || []).forEach(function (o) { if (ins.indexOf(o.item) >= 0 && o.item != 'kubejs:incomplete_ascension_core') outputs[r.rid] = o.item })
+  var ins = (r.json.ingredients || []).map(function (i) { return i.item || 'fluid:' + i.fluid }).concat(r.json.ingredient ? [r.json.ingredient.item] : [])
+  ;(r.json.results || []).forEach(function (o) {
+    var out = o.item || 'fluid:' + o.fluid
+    if (ins.indexOf(out) >= 0 && out != 'kubejs:incomplete_ascension_core') outputs[r.rid] = out
+  })
 })
 check('no recipe gives back its own input (no duplication loops)', Object.keys(outputs).length == 0, JSON.stringify(outputs))
 var core9 = byId('dense_ascension_core').json.ingredients.length, dense9 = byId('ascension_singularity').json.ingredients.length

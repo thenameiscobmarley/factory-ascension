@@ -175,6 +175,62 @@ def chaos_book():
     return px
 
 
+BLOCK_OUT = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "textures", "block")
+
+
+def gem_colors():
+    """Gem types and colors, read from the config so new gems get textures automatically."""
+    text = open(CONFIG).read()
+    return {m.group(1): tuple(int(v) for v in m.group(2).split(","))
+            for m in re.finditer(r"^\s+(\w+): \{ name: '[^']*', enchant: '\w+', color: \[([\d, ]+)\] \}", text, re.M)}
+
+
+def gem_item(color, tier):
+    """Cut gem: bigger and with more facets per tier."""
+    px = blank()
+    r = {1: 3.6, 2: 4.8, 3: 6.0}[tier]
+    c = 7.5
+    light = lerp(color, (255, 255, 255), 0.55)
+    dark = lerp(color, (0, 0, 0), 0.45)
+    for y in range(N):
+        for x in range(N):
+            dx, dy = x - c, y - c
+            if abs(dx) + abs(dy) * (1.25 if tier == 1 else 1.0) > r * 1.25 or abs(dx) > r or abs(dy) > r:
+                continue
+            col = color
+            if dy < -r * 0.3:
+                col = lerp(color, light, 0.5)
+            elif dx > 0 and dy > 0:
+                col = dark
+            px[y][x] = col + (255,)
+    for x, y in ((6, 5), (7, 5), (6, 6)):
+        if px[y][x][3]:
+            px[y][x] = (255, 255, 255, 255)
+    if tier == 3:
+        for x, y in ((3, 3), (12, 4), (11, 12)):
+            px[y][x] = (255, 250, 220, 255)
+    return px
+
+
+def altar_block():
+    """Obsidian block with a glowing amethyst rune ring."""
+    rnd = random.Random(7)
+    px = [[None] * N for _ in range(N)]
+    for y in range(N):
+        for x in range(N):
+            v = rnd.random()
+            px[y][x] = lerp((22, 14, 34), (48, 30, 70), v) + (255,)
+    for i in range(N):
+        px[0][i] = px[N - 1][i] = px[i][0] = px[i][N - 1] = (90, 60, 120, 255)
+    for a in range(0, 360, 10):
+        x = int(round(7.5 + 4.5 * math.cos(math.radians(a))))
+        y = int(round(7.5 + 4.5 * math.sin(math.radians(a))))
+        px[y][x] = (200, 140, 255, 255)
+    for x, y in ((7, 7), (8, 7), (7, 8), (8, 8), (7, 5), (8, 10), (5, 8), (10, 7)):
+        px[y][x] = (255, 220, 120, 255)
+    return px
+
+
 def fragment():
     """Jagged glowing shard."""
     px = blank()
@@ -252,6 +308,13 @@ def main():
         textures["tome_" + name] = outline(book(cover, gem_color, mythic), edge)
     textures["mythic_fragment"] = outline(fragment(), (30, 8, 40, 255))
     textures["chaos_tome"] = outline(chaos_book(), edge)
+    gems = gem_colors()
+    for name, color in gems.items():
+        for tier in (1, 2, 3):
+            textures["gem_%s_%d" % (name, tier)] = outline(gem_item(color, tier), (20, 16, 24, 255))
+    os.makedirs(BLOCK_OUT, exist_ok=True)
+    png(os.path.join(BLOCK_OUT, "ascension_altar.png"), altar_block())
+    print("wrote block/ascension_altar.png")
     for name, px in textures.items():
         png(os.path.join(OUT, name + ".png"), px)
         print("wrote", name + ".png")

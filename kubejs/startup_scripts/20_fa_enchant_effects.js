@@ -61,30 +61,74 @@ function faIds(type) {
   return rolled ? base.concat(rolled) : base
 }
 
-// All enchant levels on a player's hands + armor, summed: {sharpness: 120, protection: 3000}.
-// Returns an empty object for anything that isn't a player.
+const FA_MAX_TOTAL = 2000000000
+// Keys inside FactoryAscension that aren't enchant levels
+const FA_RESERVED = { stars: true, souls: true, gems: true, rolled: true }
+
+// Everything one item adds: its enchant levels, gems and rolled enchants, all x its Prestige stars.
+// Souls are raw counts and never multiplied.
+function faItemLevels(data) {
+  let own = {}
+  let add = (id, value) => { if (value > 0) own[id] = Math.min(FA_MAX_TOTAL, (own[id] || 0) + value) }
+  let stars = data.getInt('stars')
+  let mult = global.FA_starMult(stars > 0 ? stars : 0)
+  let keys = data.getAllKeys().iterator()
+  while (keys.hasNext()) {
+    let id = String(keys.next())
+    let value = data.getInt(id)
+    // Ignore broken values (only possible from hand-edited NBT) and cap totals, so nothing overflows
+    if (value <= 0 || FA_RESERVED[id] && id != 'souls') continue
+    add(id, id == 'souls' ? value : Math.floor(value * mult))
+  }
+  // Gems: {"0": {type, tier}, ...}
+  if (data.contains('gems')) {
+    let gems = data.getCompound('gems')
+    let slots = gems.getAllKeys().iterator()
+    while (slots.hasNext()) {
+      let gem = gems.getCompound(String(slots.next()))
+      let type = global.FA.gems.types[String(gem.getString('type'))]
+      let tier = gem.getInt('tier')
+      if (type && tier >= 1 && tier <= 3) add(type.enchant, Math.floor(global.FA_gemLevels(tier) * mult))
+    }
+  }
+  faRolledLevels(data, own, mult)
+  return own
+}
+
+// All enchant levels on a player's hands + armor, summed: {sharpness: 120, protection: 3000},
+// with gear-set bonuses applied. Returns an empty object for anything that isn't a player.
 function faLevels(entity) {
   let levels = {}
   if (!entity || !(entity instanceof $FAPlayer)) return levels
+  let pieces = {}
   let it = entity.getAllSlots().iterator()
   while (it.hasNext()) {
     let tag = it.next().getTag()
     if (!tag || !tag.contains(FA_TAG)) continue
-    let data = tag.getCompound(FA_TAG)
-    let keys = data.getAllKeys().iterator()
-    while (keys.hasNext()) {
-      let id = String(keys.next())
-      let value = data.getInt(id)
-      // Ignore broken values (only possible from hand-edited NBT) and cap totals, so nothing overflows
-      if (value > 0) levels[id] = Math.min(2000000000, (levels[id] || 0) + value)
-    }
-    faRolledLevels(data, levels)
+    let own = faItemLevels(tag.getCompound(FA_TAG))
+    Object.keys(own).forEach(id => {
+      levels[id] = Math.min(FA_MAX_TOTAL, (levels[id] || 0) + own[id])
+      pieces[id] = (pieces[id] || 0) + 1
+    })
   }
+  faApplySets(levels, pieces)
   return levels
 }
 
+// Gear sets: 2 or 4 equipped pieces with the set's enchant boost it and can add other enchants
+function faApplySets(levels, pieces) {
+  global.FA.sets.forEach(set => {
+    let n = pieces[set.key] || 0
+    let bonus = n >= 4 ? set[4] : n >= 2 ? set[2] : null
+    if (!bonus) return
+    levels[set.key] = Math.min(FA_MAX_TOTAL, Math.floor(levels[set.key] * bonus.mult))
+    Object.keys(bonus.add || {}).forEach(id => { levels[id] = Math.min(FA_MAX_TOTAL, (levels[id] || 0) + bonus.add[id]) })
+  })
+}
+
 // Rolled enchants live under FactoryAscension.rolled: {"0": {seed, level}, "1": ...}
-function faRolledLevels(data, levels) {
+function faRolledLevels(data, levels, mult) {
+  mult = mult || 1
   if (!data.contains('rolled')) return
   let rolled = data.getCompound('rolled')
   let slots = rolled.getAllKeys().iterator()
@@ -96,7 +140,7 @@ function faRolledLevels(data, levels) {
     roll.affixes.forEach((def, i) => {
       let id = 'r' + roll.seed + '_' + i
       faRegisterVirtual(id, def)
-      levels[id] = Math.min(2000000000, (levels[id] || 0) + level)
+      levels[id] = Math.min(FA_MAX_TOTAL, (levels[id] || 0) + Math.floor(level * mult))
     })
   }
 }
@@ -115,7 +159,27 @@ function faDanger(entity) {
   let mult = global.FA_dangerMult(level, elite)
   mult.level = level
   mult.elite = elite
+  mult.boss = data.getBoolean('fa_boss')
+  if (mult.boss) {
+    mult.health *= global.FA.bosses.healthMult
+    mult.damage *= global.FA.bosses.damageMult
+  }
   return mult
+}
+
+// The current world event ({type, until}) or null; set by startup_scripts/30_fa_world.js
+function faEvent(type) {
+  let e = global.FA_EVENT
+  return e && e.type == type ? e : null
+}
+
+// Stats for milestones live in the server script; startup hooks report through this
+function faStat(player, stat, amount, mode) {
+  try {
+    if (global.FA_onStat && player instanceof $FAPlayer) global.FA_onStat(player, stat, amount, mode || 'add')
+  } catch (err) {
+    faWarnOnce('stats', err)
+  }
 }
 
 // Living hostile mobs around an entity, up to max. Never players, pets or villagers.
@@ -167,9 +231,14 @@ let FA_HEADS = {
 // ---- Conditions ----
 
 function faIsBoss(entity) {
-  // Vanilla and most modded bosses can't change dimensions; huge health pools count too
-  return !entity.canChangeDimensions() || entity.getMaxHealth() >= 200
+  // Vanilla and most modded bosses can't change dimensions; huge health pools count too; so do Ascended bosses
+  if (!entity.canChangeDimensions() || entity.getMaxHealth() >= 200) return true
+  let data = entity.getPersistentData ? entity.getPersistentData() : null
+  return !!(data && data.getBoolean('fa_boss'))
 }
+
+// Bosses shrug off crowd control (freezing, levitation, being pulled), or fights would be trivial
+const FA_CC = { MOVEMENT_SLOWDOWN: true, LEVITATION: true, WEAKNESS: true }
 
 function faWhen(when, source, attacker, target) {
   switch (when) {
@@ -351,7 +420,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
         let c = global.FA_chronos(level)
         faChronosReady[uuid] = now + c.cooldown * 20
         let ticks = Math.round(c.seconds * 20)
-        faEnemiesNear(victim, c.radius, null, 64).forEach(m => {
+        faEnemiesNear(victim, c.radius, null, 64).filter(m => !faIsBoss(m)).forEach(m => {
           m.addEffect(new $FAEffectInstance($FAEffects.MOVEMENT_SLOWDOWN, ticks, 127, false, false))
           m.addEffect(new $FAEffectInstance($FAEffects.WEAKNESS, ticks, 127, false, false))
         })
@@ -369,7 +438,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
 
       faIds('hit_effect').forEach(id => {
         let level = A[id] || 0
-        if (level > 0) victim.addEffect(faEffect(faE(id), faE(id).seconds * 20, global.FA_amp(faE(id), level)))
+        if (level > 0 && !(FA_CC[faE(id).effect] && faIsBoss(victim))) victim.addEffect(faEffect(faE(id), faE(id).seconds * 20, global.FA_amp(faE(id), level)))
       })
       faIds('self_effect').forEach(id => {
         let level = A[id] || 0
@@ -405,7 +474,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
         if (level <= 0) return
         let e = faE(id)
         let pull = Math.min(2, 0.4 + 0.05 * level)
-        faEnemiesNear(victim, Math.min(e.cap, e.base + e.perLevel * level), [attacker], 64).forEach(m => {
+        faEnemiesNear(victim, Math.min(e.cap, e.base + e.perLevel * level), [attacker], 64).filter(m => !faIsBoss(m)).forEach(m => {
           let dx = victim.getX() - m.getX()
           let dy = victim.getY() - m.getY()
           let dz = victim.getZ() - m.getZ()
@@ -515,7 +584,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     if (event.getEntity() instanceof $FAPlayer) return
     let levels = faLevels(event.getSource().getEntity())
     let danger = faDanger(event.getEntity())
-    if (Object.keys(levels).length == 0 && !danger) return
+    if (Object.keys(levels).length == 0 && !danger && !faEvent('goldenHour')) return
 
     let budget = global.FA.maxExtraDropStacks
     let drops = event.getDrops()
@@ -535,8 +604,19 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
 
     // Mythic Fragments: only from danger-zone mobs killed by a player, and never multiplied
     let killer = event.getSource().getEntity()
-    if (danger && killer instanceof $FAPlayer && Math.random() < global.FA_fragmentChance(danger.level, danger.elite)) {
-      addStacks(Item.of('kubejs:mythic_fragment'), 1)
+    let byPlayer = killer instanceof $FAPlayer
+    if (danger && byPlayer) {
+      let chance = global.FA_fragmentChance(danger.level, danger.elite)
+      if (faEvent('bloodMoon')) chance = Math.min(1, chance * global.FA.events.bloodMoon.fragmentMult)
+      if (Math.random() < chance) addStacks(Item.of('kubejs:mythic_fragment'), 1)
+      if (danger.elite) faStat(killer, 'elites_killed', 1)
+    }
+    // Ascended boss loot (never multiplied), and tell everyone
+    if (danger && danger.boss && byPlayer) {
+      global.FA.bosses.drops.forEach(d => addStacks(Item.of(d[0]), d[1] + Math.floor(Math.random() * (d[2] - d[1] + 1))))
+      faStat(killer, 'bosses_killed', 1)
+      let server = killer.getServer()
+      if (server) server.tell(Text.gold(killer.getScoreboardName()).append(Text.yellow(' slew ').append(event.getEntity().getDisplayName())).append(Text.yellow('!')))
     }
     faIds('heads').forEach(id => {
       let level = levels[id] || 0
@@ -547,7 +627,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     // Plunder and danger: multiply what dropped
     let mult = 1
     faIds('plunder').forEach(id => { mult += faE(id).perLevel * (levels[id] || 0) })
-    if (danger) mult *= danger.loot
+    if (danger) mult *= danger.boss ? 1 : danger.loot
+    if (byPlayer && faEvent('goldenHour')) mult *= global.FA.events.goldenHour.lootMult
     let it = drops.iterator()
     while (it.hasNext()) {
       let itemEntity = it.next()
@@ -641,8 +722,17 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
     if (data.contains('fa_danger')) return
 
     let danger = global.FA_dangerLevel(level, mob.getX(), mob.getZ())
+    // Blood Moon: everything spawns more dangerous
+    if (danger > 0 && faEvent('bloodMoon')) danger += global.FA.events.bloodMoon.dangerBonus
     if (danger <= 0) return
     data.putInt('fa_danger', danger)
+
+    // Ascended boss: rare, only deep out, never from a boss's own minions
+    let B = global.FA.bosses
+    if (B.enabled && danger >= B.minDanger && !data.getBoolean('fa_minion') && Math.random() < B.chancePerSpawn) {
+      if (global.FA_makeBoss) global.FA_makeBoss(mob, danger)
+      return
+    }
 
     if (Math.random() < Math.min(d.eliteChanceCap, d.eliteChancePerLevel * danger)) {
       data.putBoolean('fa_elite', true)
@@ -665,6 +755,7 @@ function faDangerNotice(player) {
   let danger = global.FA_dangerLevel(player.level(), player.getX(), player.getZ())
   let last = faLastDanger[uuid]
   faLastDanger[uuid] = danger
+  if (danger > 0) faStat(player, 'max_danger', danger, 'max')
   if (last === undefined || last == danger) return
 
   let zone = global.FA_zone(danger)

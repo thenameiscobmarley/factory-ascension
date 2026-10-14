@@ -25,6 +25,9 @@ ItemEvents.tooltip(event => {
     if (!tag || !tag.contains('FactoryAscension')) return
     let data = tag.getCompound('FactoryAscension')
     let line = 1
+    let stars = data.getInt('stars')
+    if (stars > 0) text.add(line++, Text.yellow('\u2605'.repeat(Math.min(stars, 10)) + (stars > 10 ? ' x' + stars : '') + '  ')
+      .append(Text.darkGray('levels count x' + global.FA_starMult(stars).toFixed(2))))
     Object.keys(global.FA.enchants).forEach(id => {
       let level = data.getInt(id)
       if (level <= 0) return
@@ -47,6 +50,23 @@ ItemEvents.tooltip(event => {
         roll.affixes.forEach(def => text.add(line++, Text.darkGray('    ' + global.FA_describeDef(def, lvl))))
       }
     }
+    // Gems
+    if (data.contains('gems')) {
+      let gems = data.getCompound('gems')
+      let G = global.FA.gems
+      for (let i = 0; i < G.sockets; i++) {
+        if (!gems.contains(String(i))) continue
+        let g = gems.getCompound(String(i))
+        let type = G.types[String(g.getString('type'))]
+        let tier = g.getInt('tier')
+        if (!type || tier < 1 || tier > 3) continue
+        text.add(line++, Text.aqua('\u25c6 ' + G.tiers[tier - 1].name + ' ' + type.name).append(Text.darkGray('  +' + global.FA_gemLevels(tier) + ' ' + global.FA.enchants[type.enchant].name)))
+      }
+    }
+    // Gear sets this item belongs to
+    global.FA.sets.forEach(set => {
+      if (data.getInt(set.key) > 0) text.add(line++, Text.darkAqua('\u29bf ' + set.name + ' set ').append(Text.darkGray('(2 pieces: x' + set[2].mult + ' ' + global.FA.enchants[set.key].name + ', 4 pieces: more)')))
+    })
     let souls = data.getInt('souls')
     if (souls > 0) text.add(line++, Text.lightPurple('  Souls: ' + global.FA_num(souls)))
   })
@@ -78,6 +98,25 @@ ItemEvents.tooltip(event => {
     Text.gray('Rarity odds: ' + odds),
     Text.darkGray('Up to ' + global.FA.chaos.maxPerItem + ' per item. Sneak-use on a full item to reroll its newest.'),
     Text.darkGray('Upgrade rolled enchants with Essence: /ascension')
+  ])
+  let G = global.FA.gems
+  Object.keys(G.types).forEach(type => {
+    for (let tier = 1; tier <= 3; tier++) {
+      event.add(global.FA_gemId(type, tier), [
+        Text.aqua('+' + global.FA_gemLevels(tier) + ' ' + global.FA.enchants[G.types[type].enchant].name + ' when socketed'),
+        Text.gray('Right-click with gear in your other hand (up to ' + G.sockets + ' gems per item)'),
+        Text.darkGray(tier < 3 ? 'Compact 4 into one ' + G.tiers[tier].name + ' ' + G.types[type].name : 'The best gem there is')
+      ])
+    }
+  })
+  event.add('kubejs:ascension_altar', [
+    Text.lightPurple('Levels up gear on its own'),
+    Text.gray('Create Depot on top, Liquid Essence tank or basin below'),
+    Text.darkGray('Up to ' + global.FA.altar.maxLevelsPerSecond + ' levels a second, lowest enchant first')
+  ])
+  event.add('kubejs:liquid_essence_bucket', [
+    Text.lightPurple('Sneak + right-click to drink: +' + (1000 / global.FA.altar.mbPerEssence) + ' Essence'),
+    Text.darkGray('Or pipe it into an Ascension Altar')
   ])
   event.add('kubejs:mythic_fragment', [
     Text.lightPurple('Drops from mobs out in the danger zones, mostly Elites'),

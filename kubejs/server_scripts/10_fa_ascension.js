@@ -174,6 +174,10 @@ function faRollText(roll, level) {
   return Text[FA_RARITY_TEXT[R.color] || 'white']('\u2742 ' + roll.name + ' ' + global.FA_num(level))
 }
 
+// Stars and gems are read in 40_fa_progress.js; these wrappers keep the menu working if that file is missing
+function faStarsOf(stack) { return typeof faStars == 'function' ? faStars(stack) : 0 }
+function faGemsOf(stack) { return typeof faGems == 'function' ? faGems(stack) : [] }
+
 // ---- Feedback ----
 
 function faSound(player, sound, pitch) {
@@ -196,7 +200,9 @@ function faShowMenu(player) {
     return 1
   }
 
-  player.tell(Text.gold('').append(gear.getHoverName()).append(Text.gray(':')))
+  let starCount = faStarsOf(gear)
+  player.tell(Text.gold('').append(gear.getHoverName()).append(Text.yellow(starCount ? ' ' + '\u2605'.repeat(Math.min(starCount, 10)) + (starCount > 10 ? ' x' + starCount : '') : ''))
+    .append(Text.gray(':')))
   let any = false
   Object.keys(global.FA.enchants).forEach(id => {
     let level = faGetLevel(gear, id)
@@ -237,6 +243,11 @@ function faShowMenu(player) {
 
   let souls = gear.getTag() ? gear.getTag().getCompound(FA_ITEM_TAG).getInt('souls') : 0
   if (souls > 0) player.tell(Text.lightPurple(' Souls: ' + global.FA_num(souls)))
+  faGemsOf(gear).forEach(g => {
+    let G = global.FA.gems
+    player.tell(Text.aqua(' \u25c6 ' + G.tiers[g.tier - 1].name + ' ' + G.types[g.type].name).append(Text.darkGray('  +' + global.FA_gemLevels(g.tier) + ' ' + global.FA.enchants[G.types[g.type].enchant].name)))
+  })
+  if (any) player.tell(Text.darkGray(' Rebirth at ' + global.FA_num(global.FA_rebirthNeed(starCount)) + ' total levels: ').append(faButton('Rebirth', '/ascension rebirth', 'Reset to level 1 for a permanent star')))
   if (!any) player.tell(Text.gray(' No Ascended enchants yet. Hold a Tome in your other hand and right-click it.'))
   return 1
 }
@@ -273,6 +284,7 @@ function faAbsorb(player, stack, id) {
     let gained = count * global.FA.essenceValues[id]
     let total = faGetEssence(player) + gained
     faSetEssence(player, total)
+    if (global.FA_onStat) global.FA_onStat(player, 'essence_absorbed', gained)
     player.displayClientMessage(Text.lightPurple('+' + global.FA_num(gained) + ' Essence  ')
       .append(Text.gray('(bank: ' + global.FA_num(total) + ')')), true)
     faSound(player, 'minecraft:entity.experience_orb.pickup', 0.6)
@@ -303,6 +315,7 @@ function faUnlock(player, tome, id, gear) {
   if (!faCommit(player, gear, id, 0, 1, essence, essence - cost)) return
   // The tome is only used up once the unlock has fully gone through
   tome.shrink(1)
+  if (global.FA_onStat) global.FA_onStat(player, 'unlocks', 1)
   faSound(player, 'minecraft:block.enchantment_table.use', 1)
   player.tell(Text.gold(name + ' unlocked on ').append(gear.getHoverName()).append(Text.gold('! '))
     .append(faButton('Upgrade', '/ascension', 'Open the upgrade menu')))
@@ -341,6 +354,7 @@ function faUpgrade(player, id, amount) {
   }
 
   if (!faCommit(player, gear, id, level - added, level, essence, essence - spent)) return 0
+  if (global.FA_onStat) global.FA_onStat(player, 'levels_bought', added)
   faSound(player, 'minecraft:block.enchantment_table.use', 1.4)
   player.tell(Text.green('+' + global.FA_num(added) + ' ' + name + ' -> ' + global.FA_num(level) + '  ')
     .append(Text.gray('(' + global.FA_describe(id, level) + ', spent ' + global.FA_num(spent) + ' Essence)')))
@@ -377,6 +391,7 @@ function faChaosRoll(player, tome, gear) {
   let seed = Math.floor(Math.random() * 2147483646) + 1
   if (!faCommitRolled(player, gear, slot, old.seed, old.level, seed, 1, essence, essence - cost)) return
   tome.shrink(1)
+  if (global.FA_onStat) global.FA_onStat(player, 'chaos_rolls', 1)
 
   let roll = global.FA_rollEnchant(seed)
   let R = global.FA.chaos.rarities[roll.rarity]
@@ -420,6 +435,7 @@ function faUpgradeRolled(player, slotIndex, amount) {
     return 0
   }
   if (!faCommitRolled(player, gear, slotIndex, r.seed, r.level, r.seed, level, essence, essence - spent)) return 0
+  if (global.FA_onStat) global.FA_onStat(player, 'levels_bought', added)
   faSound(player, 'minecraft:block.enchantment_table.use', 1.4)
   player.tell(Text.green('+' + global.FA_num(added) + ' ').append(faRollText(roll, level)).append(Text.gray('  (spent ' + global.FA_num(spent) + ' Essence)')))
   return 1
@@ -480,6 +496,21 @@ ServerEvents.commandRegistry(event => {
     .executes(ctx => faShowMenu(ctx.source.getPlayerOrException()))
     .then(upgrade)
     .then(Commands.literal('danger').executes(ctx => faShowDanger(ctx.source.getPlayerOrException())))
+    .then(Commands.literal('milestones').executes(ctx => faShowMilestones(ctx.source.getPlayerOrException())))
+    .then(Commands.literal('rebirth')
+      .executes(ctx => faRebirth(ctx.source.getPlayerOrException(), false))
+      .then(Commands.literal('confirm').executes(ctx => faRebirth(ctx.source.getPlayerOrException(), true))))
+    .then(Commands.literal('event')
+      .executes(ctx => {
+        let e = global.FA_EVENT
+        ctx.source.getPlayerOrException().tell(e ? Text.gold('Current event: ' + e.type + ' (' + Math.ceil((e.until - Date.now()) / 60000) + ' min left)') : Text.gray('No world event right now.'))
+        return 1
+      })
+      // Op-only: start or stop an event, e.g. /ascension event start bloodMoon
+      .then(['bloodMoon', 'meteorShower', 'goldenHour'].reduce((cmd, type) => cmd.then(Commands.literal(type)
+        .executes(ctx => global.FA_startEvent(ctx.source.getServer(), type) ? 1 : 0)), Commands.literal('start').requires(src => src.hasPermission(2))))
+      .then(Commands.literal('stop').requires(src => src.hasPermission(2))
+        .executes(ctx => { global.FA_endEvent(ctx.source.getServer()); return 1 })))
     // Op-only, for testing and server admins
     .then(Commands.literal('essence')
       .requires(src => src.hasPermission(2))

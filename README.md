@@ -88,6 +88,56 @@ so every seed there is a real enchant.
   and every effect a roll can make passes the same config check as the hand-made enchants (tested on 5,000 rolls).
 - Rolls are made from a seed, so the same seed always gives the same enchant, in game and on the website.
 
+## Liquid Essence and the Ascension Altar
+
+Cores melt into **Liquid Essence** in a heated mixer (plus a splash of water): 1 core = 100 mB = 1 Essence, lossless.
+Pipe it, store it in tanks, sneak-drink a bucket for 10 Essence, or feed an **Ascension Altar**:
+
+```
+[ Create Depot ]      <- gear goes here (a belt or Mechanical Arm can deliver it)
+[ Ascension Altar ]
+[ tank or basin ]     <- Liquid Essence
+```
+
+Once a second the altar buys levels for the gear on the depot, lowest enchant first (rolled ones too),
+up to 20 levels a second, at the normal Essence prices. Your factory levels your gear while you're away.
+
+## Milestones
+
+16 factory goals with rewards, like *Assembly Line* (1,000 Essence absorbed), *Megafactory* (100,000),
+*Planet Eater* (10 million), *Gambler*, *Nightmare Walker* and *Godslayer*. Each pays out Chaos Tomes,
+fragments or gems once. `/ascension milestones` shows your progress. Altar levels count even while you're offline.
+
+## Prestige (Rebirth)
+
+Once an item has 1,000 total levels, `/ascension rebirth` resets its enchants to level 1 for a permanent
+**star**: every level on it then counts x1.25 (x1.5 at 2 stars, and so on). Each star needs 1,000 more levels than the last.
+
+## Gems and gear sets
+
+- **Gems** (Bloodstone, Sapphire, Garnet, Topaz, Opal, Onyx) are made in a superheated mixer, then compacted 4 → 1
+  into Flawless and Perfect. Right-click one with gear in your other hand to socket it (3 sockets per item):
+  +3 / +15 / +75 levels of their enchant. Sneak on a full item to replace the newest gem.
+- **Sets**: wear 2 or 4 pieces with the same enchant for a bonus. *Juggernaut* (Protection), *Berserker* (Sharpness),
+  *Plunderer* (Plunder), *Windwalker* (Swiftness), *Lifebinder* (Vitality). 2 pieces: x1.25 that enchant.
+  4 pieces: x1.5 plus extra enchants (e.g. Juggernaut adds Vitality 100 and Bulwark 50).
+
+## World events
+
+About once every 20 minutes something happens to the whole server:
+- **Blood Moon** (nights only): everything spawns 10 danger levels higher, and Mythic Fragments drop twice as often.
+- **Meteor Shower**: glowing rare loot (diamonds, ancient debris, gem clusters, even Chaos Tomes) falls from the sky near everyone.
+- **Golden Hour**: mob loot is doubled.
+
+`/ascension event` shows the current one. Ops can `/ascension event start <bloodMoon|meteorShower|goldenHour>` and `/ascension event stop`.
+
+## Ascended bosses
+
+Deep in the danger zones (danger 30+), a rare spawn becomes an **Ascended boss**: a glowing, named, giant version of the
+mob with a boss bar, x60 the zone's health and x3 its damage. At 66% and 33% health it summons minions and speeds up,
+and every few seconds it slams nearby players away. Bosses ignore Slowness, Levitation, Weakness, Chronos and Black Hole,
+and Reaper can't execute them. Killing one drops Chaos Tomes, Mythic Fragments and Dense Cores, and the whole server hears about it.
+
 ## Danger zones
 
 Near spawn, mobs are normal. Past 1000 blocks, every 500 blocks adds a **danger level**, with no cap.
@@ -174,12 +224,16 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension` | Everyone | Essence bank + upgrade menu for the held item |
 | `/ascension upgrade <enchant> <levels>` | Everyone | What the menu buttons run |
 | `/ascension danger` | Everyone | Danger level, zone and mob multipliers where you stand |
+| `/ascension milestones` | Everyone | Milestone progress |
+| `/ascension rebirth` | Everyone | Rebirth the held item (asks to confirm) |
+| `/ascension event` | Everyone | The current world event |
+| `/ascension event start <name>` / `stop` | Ops | Start or stop a world event |
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 192 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 237 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
