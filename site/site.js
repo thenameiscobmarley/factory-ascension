@@ -374,6 +374,7 @@
     put("dmg", el.dmg, "x" + m.damage.toFixed(1));
     put("loot", el.loot, "x" + m.loot.toFixed(1));
     put("elite", el.elite, Math.round(Math.min(D.eliteChanceCap, D.eliteChancePerLevel * lvl) * 100) + "%");
+    lootOdds(lvl);
     if (zone !== lastZone) {
       stage.style.setProperty("--zt", hex);
       stage.style.setProperty("--zc", hex + "70");
@@ -385,6 +386,40 @@
     $("#eliteLv").textContent = lvl;
     $("#elite").classList.toggle("is-on", lvl >= 6);
   }
+  // Loot odds at the current depth, and a sample drop on demand (same generator as the game)
+  const TIER_HEX = { white: "#e9e4de", green: "#5fd47a", aqua: "#4fe3e8", light_purple: "#d48cff", gold: "#ffb84d", red: "#ff4d4d" };
+  const segs = global.FA.loot.tiers.map((t, i) => '<i style="background:' + TIER_HEX[t.color] + '" title="' + t.name + '"></i>');
+  $("#lootBar").innerHTML = segs.join("");
+  let lootLvl = 0;
+  function lootOdds(lvl) {
+    lootLvl = lvl;
+    const odds = global.FA_lootOdds(lvl);
+    [...$("#lootBar").children].forEach((seg, i) => { seg.style.flexGrow = (odds[i] * 1000).toFixed(1); });
+    const top = odds[4] + odds[5];
+    $("#lootRead").textContent = lvl <= 0 ? "No loot drops in the Safe Lands" :
+      Math.round(global.FA_lootChance(lvl) * 100) + "% of kills drop loot · Legendary or better: " + (top * 100).toFixed(top < 0.1 ? 1 : 0) + "% of drops";
+  }
+  const lootLabel = drop => {
+    if (drop.kind == "relic") return drop.relic.name;
+    const id = drop.id;
+    const te = id.indexOf("kubejs:tome_") === 0 && E[id.slice(12)];
+    if (te) return (te.ultimate ? "Ultimate Tome: " : te.mythic ? "Mythic Tome of " : te.type == "fusion" ? "Fusion Tome of " : "Tome of ") + te.name;
+    const cm = /^kubejs:condensed_essence_(\d+)$/.exec(id);
+    if (cm) return global.FA_condensedName(+cm[1]);
+    const gm = /^kubejs:gem_([a-z]+)_(\d)$/.exec(id);
+    if (gm && FA.gems.types[gm[1]]) return FA.gems.tiers[+gm[2] - 1].name + " " + FA.gems.types[gm[1]].name;
+    return id.replace(/^[a-z]+:/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  };
+  $("#lootRoll").addEventListener("click", () => {
+    const lvl = Math.max(1, lootLvl);
+    const roll = global.FA_rollLoot(Math.random, lvl, 0), T = global.FA.loot.tiers[roll.tier], d = roll.drop;
+    let html = '<b style="color:' + TIER_HEX[T.color] + '">' + T.name + "</b> " + (d.kind == "relic" ? "" : d.count + "x ") + esc(lootLabel(d));
+    if (d.kind == "relic") html += '<span class="relic-ench">' + Object.keys(d.relic.enchants).map(id => esc(E[id].name) + " " + global.FA_num(d.relic.enchants[id])).join(" · ") +
+      (d.relic.gems.length ? " · " + d.relic.gems.length + " gems" : "") + (d.relic.stars ? " · ★" : "") + "</span>";
+    $("#lootDrop").innerHTML = html;
+    if (roll.tier >= 4 && !reduce && window.UV && UV.confetti) UV.confetti({ count: roll.tier == 5 ? 160 : 80, colors: [TIER_HEX[T.color], "#fff"] });
+  });
+
   if (window.UV && UV.scrub) UV.scrub($("#danger"), journey, "pin");
   else addEventListener("scroll", () => { const r = $("#danger").getBoundingClientRect(); journey(-r.top / Math.max(1, r.height - innerHeight)); }, { passive: true });
   journey(0);
@@ -395,6 +430,7 @@
     ["Create: The Factory Must Grow", "create-industry"], ["Mekanism", "mekanism"], ["Tinkers' Construct", "tinkers-construct"],
     ["Create Enchantment Industry", "create-enchantment-industry"], ["Twilight Forest", "the-twilight-forest"],
     ["Ice and Fire", "ice-and-fire-dragons"], ["When Dungeons Arise", "when-dungeons-arise"], ["JEI", "jei"], ["Jade", "jade"],
+    ["Sophisticated Backpacks", "sophisticated-backpacks"], ["Sophisticated Core", "sophisticated-core"],
     ["Embeddium", "embeddium"], ["ModernFix", "modernfix"], ["FerriteCore", "ferritecore"]
   ];
   $("#mods").innerHTML = MODS.map(m => '<a class="uv-chip' + (m[2] ? " req" : "") + '" href="https://www.curseforge.com/minecraft/mc-mods/' + m[1] + '">' + esc(m[0]) + "</a>").join("");

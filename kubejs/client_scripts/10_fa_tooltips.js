@@ -26,6 +26,8 @@ ItemEvents.tooltip(event => {
     if (!tag || !tag.contains('FactoryAscension')) return
     let data = tag.getCompound('FactoryAscension')
     let line = 1
+    let relic = data.getInt('relic')
+    if (relic > 0) text.add(line++, relic == 2 ? Text.red('\u2739 MYTHIC RELIC').bold(true) : Text.gold('\u2605 LEGENDARY RELIC').bold(true))
     let stars = data.getInt('stars')
     if (stars > 0) text.add(line++, Text.yellow('\u2605'.repeat(Math.min(stars, 10)) + (stars > 10 ? ' x' + stars : '') + '  ')
       .append(Text.darkGray('levels count x' + global.FA_starMult(stars).toFixed(2))))

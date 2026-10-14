@@ -63,7 +63,7 @@ function faIds(type) {
 
 const FA_MAX_TOTAL = 2000000000
 // Keys inside FactoryAscension that aren't enchant levels
-const FA_RESERVED = { stars: true, souls: true, gems: true, rolled: true }
+const FA_RESERVED = { stars: true, souls: true, gems: true, rolled: true, relic: true }
 
 // Everything one item adds: its enchant levels, gems and rolled enchants, all x its Prestige stars.
 // Souls are raw counts and never multiplied.

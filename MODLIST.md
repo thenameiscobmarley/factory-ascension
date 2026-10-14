@@ -21,6 +21,12 @@ count and the version notes on each page. Create add-ons sometimes lag behind ne
 | [Tinkers' Construct](https://www.curseforge.com/minecraft/mc-mods/tinkers-construct) | Build-your-own weapons from factory alloys |
 | [Create Enchantment Industry](https://www.curseforge.com/minecraft/mc-mods/create-enchantment-industry) | Liquid XP and automated enchanting. Check it supports your Create version |
 
+## Carrying the loot
+
+| Mod | Why |
+|---|---|
+| [Sophisticated Backpacks](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) + [Sophisticated Core](https://www.curseforge.com/minecraft/mc-mods/sophisticated-core) | Upgradeable backpacks (up to netherite size) with pickup, magnet, filter and void upgrades, for hauling horde loot home |
+
 ## Things to fight
 
 | Mod | Why |

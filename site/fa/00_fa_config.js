@@ -150,6 +150,47 @@ global.FA = {
       desc: 'Soar into the sky, then dive onto the target in a trail of fire and explode on impact' }
   },
 
+  // ---- Hordes: the farther out, the more mobs spawn together ----
+  // Each hostile mob that spawns in a danger zone brings extraPerLevel x danger extra copies (fractions are a chance),
+  // up to maxExtra, a tick later, in clear space next to it. No extras while nearbyCap hostiles are already within 48 blocks.
+  horde: {
+    enabled: true,
+    extraPerLevel: 0.05,       // danger 20 -> +1 mob per spawn, danger 60 -> +3
+    maxExtra: 6,
+    nearbyCap: 60,
+    radius: 3
+  },
+
+  // ---- Loot drops: danger-zone kills can drop a loot roll, Common to Mythic ----
+  // The deeper the zone, the more often a kill drops one and the better the tier. Elites roll twice and lean a tier up,
+  // Ascended bosses roll four times and lean two up. Bulk amounts grow with danger. Top tiers drop Relics:
+  // pre-enchanted gear with big levels (upgradeable like any other gear).
+  loot: {
+    enabled: true,
+    chance: 0.06, chancePerLevel: 0.004, chanceCap: 0.6,
+    eliteRolls: 2, bossRolls: 4,
+    tiers: [
+      // weight at danger 0, and how fast it grows per danger level (higher tiers grow faster)
+      { name: 'Common', color: 'white', weight: 60, growth: 0,
+        drops: [['item', 'kubejs:ascension_core', 4, 12, 5], ['item', 'kubejs:gem_mineral_cluster', 8, 24, 3], ['item', 'kubejs:common_mineral_cluster', 16, 48, 3], ['gem', 1, 2]] },
+      { name: 'Uncommon', color: 'green', weight: 25, growth: 0.01,
+        drops: [['item', 'kubejs:dense_ascension_core', 2, 6, 4], ['condensed', 0, 0, 3], ['tome', 'base', 3], ['gem', 1, 2], ['item', 'kubejs:exotic_mineral_cluster', 8, 16, 2]] },
+      { name: 'Rare', color: 'aqua', weight: 10, growth: 0.025,
+        drops: [['item', 'kubejs:chaos_tome', 1, 2, 4], ['gem', 2, 3], ['tome', 'fusion', 3], ['item', 'kubejs:mythic_fragment', 1, 3, 3], ['condensed', 1, 3, 2]] },
+      { name: 'Epic', color: 'light_purple', weight: 4, growth: 0.05,
+        drops: [['gem', 3, 3], ['tome', 'mythic', 3], ['item', 'kubejs:ascension_singularity', 1, 3, 2], ['condensed', 4, 8, 2], ['item', 'kubejs:chaos_tome', 3, 5, 2]] },
+      { name: 'Legendary', color: 'gold', weight: 0.9, growth: 0.08,
+        drops: [['relic', 'legendary', 5], ['item', 'kubejs:ascended_soul', 1, 1, 2], ['condensed', 10, 16, 2], ['tome', 'mythic', 2]] },
+      { name: 'Mythic', color: 'red', weight: 0.1, growth: 0.12,
+        drops: [['relic', 'mythic', 5], ['tome', 'ultimate', 2], ['condensed', 20, 30, 2], ['item', 'kubejs:ascended_soul', 2, 3, 1]] }
+    ],
+    // Relics: gear rolled with enchants that match what it is (weapons get offense, armor defense, tools utility)
+    relics: {
+      legendary: { enchants: [2, 4], levelMult: 1, mythicEnchants: 0, gems: [0, 1], rolled: 0, starChance: 0, color: 'gold' },
+      mythic: { enchants: [4, 6], levelMult: 3, mythicEnchants: 1, gems: [1, 3], rolled: 1, starChance: 0.35, color: 'red' }
+    }
+  },
+
   // ---- Mythic Fragments: drop from danger-zone mobs, needed for Mythic tomes ----
   fragments: {
     eliteChance: 0.15,          // Elites: 15% + 0.5% per danger level, max 75%
@@ -495,7 +536,9 @@ global.FA = {
     { id: 'boss_1', name: 'Godslayer', stat: 'bosses_killed', goal: 1, reward: [['kubejs:chaos_tome', 3]] },
     { id: 'rebirth_1', name: 'Born Again', stat: 'rebirths', goal: 1, reward: [['kubejs:gem_garnet_3', 1]] },
     { id: 'gems_10', name: 'Jeweler', stat: 'gems_socketed', goal: 10, reward: [['kubejs:gem_opal_2', 1]] },
-    { id: 'altar_1k', name: 'Automation', stat: 'altar_levels', goal: 1000, reward: [['kubejs:gem_onyx_3', 1]] }
+    { id: 'altar_1k', name: 'Automation', stat: 'altar_levels', goal: 1000, reward: [['kubejs:gem_onyx_3', 1]] },
+    { id: 'relic_1', name: 'Treasure Hunter', stat: 'relics_found', goal: 1, reward: [['kubejs:chaos_tome', 2]] },
+    { id: 'relic_25', name: 'Hoard of Legends', stat: 'relics_found', goal: 25, reward: [['kubejs:ascended_soul', 1]] }
   ],
 
   // ---- World events: random server-wide events ----
@@ -841,6 +884,112 @@ global.FA_condensedName = tier => tier == 0 ? 'Condensed Essence Block' : global
 // Essence in one block of a tier: (mbPerBlock / mbPerEssence) x ratio^tier
 global.FA_condensedValue = tier => global.FA.condensed.mbPerBlock / global.FA.altar.mbPerEssence * Math.pow(global.FA.condensed.ratio, tier)
 
+// ---- Loot helpers (shared by the game and the website) ----
+
+// Chance a danger-zone kill drops a loot roll
+global.FA_lootChance = danger => danger <= 0 ? 0 : Math.min(global.FA.loot.chanceCap, global.FA.loot.chance + global.FA.loot.chancePerLevel * danger)
+
+// Odds of each tier at a danger level, as fractions that add up to 1
+global.FA_lootOdds = danger => {
+  let w = global.FA.loot.tiers.map(t => t.weight * (1 + t.growth * Math.max(0, danger)))
+  let total = w.reduce((a, b) => a + b, 0)
+  return w.map(x => x / total)
+}
+
+let FA_RELIC_KINDS = {
+  weapon: { slot: 'weapon', items: ['sword', 'axe'], nouns: ['Blade', 'Cleaver', 'Edge', 'Fang'] },
+  tool: { slot: 'tool', items: ['pickaxe'], nouns: ['Pick', 'Breaker', 'Delver'] },
+  head: { slot: 'armor', items: ['helmet'], nouns: ['Crown', 'Visage', 'Helm'] },
+  chest: { slot: 'armor', items: ['chestplate'], nouns: ['Aegis', 'Heart', 'Bulwark'] },
+  legs: { slot: 'armor', items: ['leggings'], nouns: ['Greaves', 'Legguards'] },
+  feet: { slot: 'armor', items: ['boots'], nouns: ['Treads', 'Striders'] }
+}
+// Which enchant types suit which kind of gear
+let FA_RELIC_TYPES = {
+  weapon: ['damage', 'critical', 'reaper', 'cleave', 'lifesteal', 'hit_effect', 'self_effect', 'ignite', 'hit_heal', 'plunder', 'kill_heal', 'xp', 'drop',
+    'chain_lightning', 'gravity_well', 'death_nova', 'souls', 'overkill', 'rampage', 'heads', 'fusion'],
+  armor: ['resist', 'vitality', 'retribution', 'dodge', 'undying', 'regen', 'passive', 'attribute', 'phoenix', 'time_stop', 'aura', 'slam', 'flight', 'fusion'],
+  tool: ['mining', 'vein', 'magnet', 'repair', 'eternal', 'xp', 'drop']
+}
+let FA_RELIC_WORDS = {
+  prefix: ['Abyssal', 'Godforged', 'Starfallen', 'Dreadbound', 'Sunforged', 'Voidtouched', 'Stormborn', 'Bloodsworn', 'Ashen', 'Eternal', 'Runebound', 'Hollow'],
+  suffix: ['the Storm', 'the Abyss', 'Ten Thousand Kills', 'the Last King', 'Embers', 'the Void', 'Dawn', 'the Deep', 'Ruin', 'the Forge']
+}
+
+// A Relic as plain data: { item, name, quality, color, enchants: {id: level}, gems: [[type, tier]], rolled: [[seed, level]], stars }.
+// `r` is a random function (Math.random in game, seeded on the website). The game writes this onto a real item.
+global.FA_makeRelic = (r, quality, danger) => {
+  let Q = global.FA.loot.relics[quality]
+  let pick = list => list[Math.floor(r() * list.length)]
+  let kindName = pick(Object.keys(FA_RELIC_KINDS))
+  let kind = FA_RELIC_KINDS[kindName]
+  let metal = quality == 'mythic' ? 'netherite' : 'diamond'
+  let item = 'minecraft:' + metal + '_' + pick(kind.items)
+  let E = global.FA.enchants
+  let suits = id => FA_RELIC_TYPES[kind.slot].indexOf(E[id].type) >= 0 && !E[id].ultimate
+  let normal = Object.keys(E).filter(id => suits(id) && !E[id].mythic)
+  let mythics = Object.keys(E).filter(id => suits(id) && E[id].mythic)
+  let base = (8 + 2 * Math.max(0, danger)) * Q.levelMult
+  let level = id => E[id].maxLevel ? 1 + Math.floor(r() * E[id].maxLevel) : Math.max(1, Math.round(base * (0.5 + r())))
+  let enchants = {}
+  let count = Q.enchants[0] + Math.floor(r() * (Q.enchants[1] - Q.enchants[0] + 1))
+  for (let i = 0; i < Q.mythicEnchants && mythics.length; i++) { let id = pick(mythics); enchants[id] = level(id) }
+  let guard = 0
+  while (Object.keys(enchants).length < count + Q.mythicEnchants && normal.length && guard++ < 50) {
+    let id = pick(normal)
+    if (!enchants[id]) enchants[id] = level(id)
+  }
+  let gems = []
+  let gemTypes = Object.keys(global.FA.gems.types)
+  let gemCount = Math.min(global.FA.gems.sockets, Q.gems[0] + Math.floor(r() * (Q.gems[1] - Q.gems[0] + 1)))
+  for (let i = 0; i < gemCount && gemTypes.length; i++) gems.push([pick(gemTypes), quality == 'mythic' ? 3 : 2])
+  let rolled = []
+  for (let i = 0; i < Q.rolled; i++) rolled.push([1 + Math.floor(r() * 2147483645), Math.max(1, Math.round(base / 3))])
+  let stars = r() < Q.starChance ? 1 : 0
+  let name = pick(FA_RELIC_WORDS.prefix) + ' ' + pick(kind.nouns) + ' of ' + pick(FA_RELIC_WORDS.suffix)
+  return { item: item, name: name, quality: quality, color: Q.color, kind: kindName, enchants: enchants, gems: gems, rolled: rolled, stars: stars }
+}
+
+// One loot roll: picks a tier (bump = tiers to lean up, a chance each) and an entry from it.
+// Returns { tier, drop: { kind, id, count } or { kind: 'relic', relic } }.
+global.FA_rollLoot = (r, danger, bump) => {
+  let L = global.FA.loot
+  let odds = global.FA_lootOdds(danger)
+  let x = r()
+  let tier = 0
+  for (let i = 0; i < odds.length; i++) { x -= odds[i]; if (x < 0) { tier = i; break } }
+  for (let i = 0; i < (bump || 0); i++) if (r() < 0.5) tier = Math.min(L.tiers.length - 1, tier + 1)
+  let drops = L.tiers[tier].drops
+  let total = drops.reduce((a, d) => a + d[d.length - 1], 0)
+  let y = r() * total
+  let d = drops[drops.length - 1]
+  for (let i = 0; i < drops.length; i++) { y -= drops[i][drops[i].length - 1]; if (y < 0) { d = drops[i]; break } }
+  let scale = 1 + Math.max(0, danger) / 25   // bulk amounts grow with danger
+  let E = global.FA.enchants
+  let tomeOf = group => {
+    let ids = Object.keys(E).filter(id => group == 'ultimate' ? E[id].ultimate : group == 'mythic' ? E[id].mythic : group == 'fusion' ? E[id].type == 'fusion'
+      : !E[id].mythic && !E[id].ultimate && E[id].type != 'fusion')
+    return ids.length ? 'kubejs:tome_' + ids[Math.floor(r() * ids.length)] : 'kubejs:blank_ascension_tome'
+  }
+  let drop
+  switch (d[0]) {
+    case 'item': drop = { kind: 'item', id: d[1], count: Math.max(1, Math.round((d[2] + r() * (d[3] - d[2])) * (d[2] > 1 ? scale : 1))) }; break
+    case 'gem': {
+      let types = Object.keys(global.FA.gems.types)
+      drop = { kind: 'item', id: global.FA_gemId(types[Math.floor(r() * types.length)], d[1]), count: 1 }
+      break
+    }
+    case 'tome': drop = { kind: 'item', id: tomeOf(d[1]), count: 1 }; break
+    case 'condensed': {
+      let top = Math.min(global.FA_condensedTiers(), d[2] + Math.floor(Math.max(0, danger) / 20))
+      drop = { kind: 'item', id: global.FA_condensedId(Math.min(top, d[1] + Math.floor(r() * (top - d[1] + 1)))), count: 1 + Math.floor(r() * 3) }
+      break
+    }
+    case 'relic': drop = { kind: 'relic', relic: global.FA_makeRelic(r, d[1], danger) }; break
+  }
+  return { tier: tier, drop: drop }
+}
+
 // Essence cost for a rolled enchant from level L to L+1
 global.FA_rollCost = (level, rarity) => Math.ceil(global.FA_cost(level) * global.FA.chaos.rarities[rarity].costMult)
 
@@ -1023,6 +1172,23 @@ global.FA_validate = cfg => {
     b.drops.every(d => okNum(d[1], 0) && okNum(d[2], d[1]) && d[2] <= 64))) {
     problems.push('boss settings are broken, Ascended bosses were switched off')
     b.enabled = false
+  }
+  let hz = cfg.horde
+  if (hz && hz.enabled && !(okNum(hz.extraPerLevel, 0) && okNum(hz.maxExtra, 0) && hz.maxExtra <= 20 && okNum(hz.nearbyCap, 1) && okNum(hz.radius, 1))) {
+    problems.push('horde settings are broken, hordes were switched off')
+    hz.enabled = false
+  }
+  let lt = cfg.loot
+  let kinds = { item: 5, gem: 3, tome: 3, condensed: 4, relic: 3 }
+  if (lt && lt.enabled && !(okNum(lt.chance, 0) && okNum(lt.chancePerLevel, 0) && okNum(lt.chanceCap, 0) && lt.chanceCap <= 1 &&
+    okNum(lt.eliteRolls, 0) && okNum(lt.bossRolls, 0) && lt.tiers && lt.tiers.length > 0 &&
+    lt.tiers.every(t => typeof t.name == 'string' && okNum(t.weight, 0) && okNum(t.growth, 0) && t.drops && t.drops.length > 0 &&
+      t.drops.every(d => kinds[d[0]] == d.length && okNum(d[d.length - 1], 0.0001) &&
+        (d[0] != 'item' || (/^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(d[1]) && okNum(d[2], 1) && okNum(d[3], d[2]))) &&
+        (d[0] != 'gem' || (d[1] >= 1 && d[1] <= 3)) && (d[0] != 'tome' || ['base', 'fusion', 'mythic', 'ultimate'].indexOf(d[1]) >= 0) &&
+        (d[0] != 'condensed' || (okNum(d[1], 0) && okNum(d[2], d[1]))) && (d[0] != 'relic' || !!(lt.relics && lt.relics[d[1]])))))) {
+    problems.push('loot settings are broken, loot drops were switched off')
+    lt.enabled = false
   }
   let f = cfg.fragments
   if (!['eliteChance', 'eliteChancePerLevel', 'eliteChanceCap', 'normalChancePerLevel', 'normalChanceCap'].every(k => okNum(f[k], 0) && f[k] <= 1)) {

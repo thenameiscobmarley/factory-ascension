@@ -61,6 +61,7 @@ function OrbClass() {}
 var MobType = { UNDEAD: 'undead', ARTHROPOD: 'arthropod', WATER: 'water', UNDEFINED: 'undefined' }
 function ItemEntityClass(level, x, y, z, stack) { this.s = stack; this.setDefaultPickUpDelay = function () {} }
 ItemEntityClass.prototype.getItem = function () { return this.s }
+ItemEntityClass.prototype.setGlowingTag = function (g) { this.glowing = g }
 var Java = {
   loadClass: function (n) {
     var classes = {
@@ -157,7 +158,7 @@ function stack(count, max, name) {
     setTag: function (t) { this.tag = t },
     hasTag: function () { return !!this.tag },
     getOrCreateTag: function () { if (!this.tag) this.tag = new Compound(); return this.tag },
-    getHoverName: function () { return fakeText(this.name) }
+    getHoverName: function () { var t = fakeText(this.name); t.getString = function () { return this.s }; return t }
   }
 }
 function gear(name) { return stack(1, 1, name) }
@@ -249,6 +250,7 @@ function livingBits(o, maxHealth) {
     return self._lvl || (self._lvl = {
       dimension: function () { return { location: function () { return self.dim } } },
       getGameTime: function () { return gameTime },
+      noCollision: function () { return true },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
       isClientSide: function () { return false },
       addFreshEntity: function (e) { bolts.push(e) },
@@ -272,7 +274,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
@@ -1236,6 +1238,90 @@ check('Ultimate tomes need 2 Ascended Souls + 4 Mythic Fragments', byId('tome_th
   byId('tome_thunder_waltz').json.heatRequirement == 'superheated')
 check('Ascended bosses drop Ascended Souls', global.FA.bosses.drops.some(function (d) { return d[0] == 'kubejs:ascended_soul' }))
 check('Ultimates cost 10x Essence per level', global.FA_cost(10, 'eclipse') == Math.ceil(0.05 * 11 * 10))
+
+print('\nloot')
+var o0 = global.FA_lootOdds(0), o80 = global.FA_lootOdds(80)
+check('loot odds add up to 100% at every depth', near(o0.reduce(function (a, b) { return a + b }, 0), 1) && near(o80.reduce(function (a, b) { return a + b }, 0), 1))
+check('deeper zones shift the odds toward the top tiers', o80[4] + o80[5] > 4 * (o0[4] + o0[5]) && o80[0] < o0[0], (o0[4] + o0[5]).toFixed(4) + ' -> ' + (o80[4] + o80[5]).toFixed(4))
+print('  odds at danger 0: ' + o0.map(function (x, i) { return global.FA.loot.tiers[i].name + ' ' + (x * 100).toFixed(1) + '%' }).join(', '))
+print('  odds at danger 80: ' + o80.map(function (x, i) { return global.FA.loot.tiers[i].name + ' ' + (x * 100).toFixed(1) + '%' }).join(', '))
+check('a kill drops a loot roll more often deeper: 6.4% at danger 1, 38% at danger 80', near(global.FA_lootChance(1), 0.064) && near(global.FA_lootChance(80), 0.38))
+var known = {}; created.concat(createdBlocks).forEach(function (id) { known['kubejs:' + id] = true })
+var badLoot = [], tiersSeen = [0, 0, 0, 0, 0, 0], relicCount = 0
+for (var lr = 0; lr < 3000; lr++) {
+  var lroll = global.FA_rollLoot(Math.random, lr % 100, lr % 3)
+  tiersSeen[lroll.tier]++
+  var ld = lroll.drop
+  if (ld.kind == 'relic') { relicCount++; continue }
+  if (!(ld.count >= 1) || (ld.id.indexOf('kubejs:') === 0 && !known[ld.id])) badLoot.push(JSON.stringify(ld))
+}
+check('3,000 loot rolls only ever drop items that exist, in sane amounts', badLoot.length == 0, badLoot.slice(0, 3).join(' | '))
+print('  3,000 rolls (danger 0-99, mixed elites/bosses): ' + tiersSeen.map(function (n, i) { return global.FA.loot.tiers[i].name + ' ' + n }).join(', ') + '; relics ' + relicCount)
+var badRelics = []
+for (var rr = 0; rr < 500; rr++) {
+  var q = rr % 2 ? 'mythic' : 'legendary', rel = global.FA_makeRelic(Math.random, q, rr % 100)
+  var eids = Object.keys(rel.enchants)
+  if (!/^minecraft:(diamond|netherite)_/.test(rel.item)) badRelics.push('item ' + rel.item)
+  if (eids.length < (q == 'mythic' ? 5 : 2)) badRelics.push('few enchants ' + eids.length)
+  eids.forEach(function (id) {
+    var e2 = E[id]
+    if (!e2 || e2.ultimate || !(rel.enchants[id] >= 1) || (e2.maxLevel && rel.enchants[id] > e2.maxLevel)) badRelics.push(id + '=' + rel.enchants[id])
+  })
+  if (q == 'mythic' && !eids.some(function (id) { return E[id].mythic })) badRelics.push('mythic relic without a Mythic enchant')
+  if (!/^[A-Z][a-z]+ [A-Z][a-z]+ of ([A-Z]|the [A-Z])/.test(rel.name)) badRelics.push('name ' + rel.name)
+}
+check('500 Relics: real gear, suitable enchants within their caps, Mythic ones carry a Mythic enchant', badRelics.length == 0, badRelics.slice(0, 4).join(' | '))
+var sampleRelic = global.FA_makeRelic(Math.random, 'mythic', 60)
+print('  sample Mythic Relic at danger 60: ' + sampleRelic.name + ' (' + sampleRelic.item + '): ' + Object.keys(sampleRelic.enchants).map(function (id) { return E[id].name + ' ' + sampleRelic.enchants[id] }).join(', ') +
+  (sampleRelic.gems.length ? '; gems ' + sampleRelic.gems.map(function (g) { return g[0] }).join(',') : '') + (sampleRelic.stars ? '; 1 star' : ''))
+Item.of = function (id, n) { var st = stack(n || 1); st.id = id; st.name = id; return st }
+var relicItem = faRelicStack({ item: 'minecraft:netherite_sword', name: 'Test Edge of Ruin', quality: 'mythic', color: 'red', kind: 'weapon',
+  enchants: { sharpness: 400, overkill: 50 }, gems: [['bloodstone', 3]], rolled: [[1337, 20]], stars: 1 })
+var relicHero = makePlayer(server, 'relic'); relicHero.main = relicItem
+var rlv = faLevels(relicHero)
+check('a Relic reads like any gear: its stars, gems and rolls all count', rlv.sharpness == Math.floor(400 * 1.25) + Math.floor(75 * 1.25) && rlv.overkill == Math.floor(50 * 1.25) &&
+  Object.keys(rlv).some(function (k) { return /^r1337_/.test(k) }), JSON.stringify(rlv))
+check('Relics carry their name and a Relic tag', JSON.parse(relicItem.tag.d.display.d.Name).text == 'Test Edge of Ruin' && relicItem.tag.d.FactoryAscension.d.relic == 2)
+var relicTip = { arr: ['Edge'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
+advanced(relicItem, false, relicTip)
+check('Relic tooltips say what they are', /MYTHIC RELIC/.test(relicTip.arr[1]), relicTip.arr[1])
+Math.random = function () { return 0.01 }
+var deep = makeMob(); deep.pdata.putInt('fa_danger', 40)
+var dl = dropEvent(plainHero, deep, []); dropsHook(dl)
+check('a lucky danger-zone kill drops loot', dl.list.arr.length >= 1)
+var bossLoot = makeMob(); bossLoot.pdata.putInt('fa_danger', 40); bossLoot.pdata.putBoolean('fa_boss', true)
+var dbl = dropEvent(plainHero, bossLoot, []); dropsHook(dbl)
+check('Ascended bosses always roll loot, four times, never more than 12 stacks of it', dbl.list.arr.length >= 4 && dbl.list.arr.length <= 12 + 6, dbl.list.arr.length)
+var dnone = dropEvent(makeMob(), deep, []); dropsHook(dnone)
+check('no loot unless a player made the kill', dnone.list.arr.length == 0)
+var dsafe2 = dropEvent(plainHero, makeMob(), []); dropsHook(dsafe2)
+check('no loot from safe-zone mobs', dsafe2.list.arr.length == 0)
+Math.random = realRandom
+
+print('\nhordes')
+var hordeBase = makeMob(); hordeBase.x = 30000; hordeBase.nearby = []
+var addedBefore = bolts.length
+Math.random = function () { return 0.4 }
+spawn(hordeBase, 30000)
+Math.random = realRandom
+var hdanger = hordeBase.pdata.getInt('fa_danger')
+ticks(2)
+var extras = bolts.slice(addedBefore).filter(function (e) { return e.pdata && e.pdata.getBoolean('fa_horde') })
+var expectExtras = Math.min(global.FA.horde.maxExtra, Math.floor(global.FA.horde.extraPerLevel * hdanger) + (0.4 < (global.FA.horde.extraPerLevel * hdanger) % 1 ? 1 : 0))
+check('danger ' + hdanger + ' spawns come with a horde of ' + expectExtras, extras.length == expectExtras, extras.length + ' vs ' + expectExtras)
+var chainBefore = bolts.length
+extras.forEach(function (e) { join({ loadedFromDisk: function () { return false }, getEntity: function () { return e }, getLevel: function () { return e.level() } }) })
+ticks(2)
+check('horde mobs never bring hordes of their own', bolts.length == chainBefore)
+var crowded = makeMob(); crowded.x = 30000
+var crowd = []; for (var cr = 0; cr < global.FA.horde.nearbyCap; cr++) crowd.push(makeMob())
+crowded.nearby = crowd
+var crowdBefore = bolts.length
+spawn(crowded, 30000); ticks(2)
+check('no extra mobs while the area is already crowded', bolts.length == crowdBefore)
+var nearSpawn = makeMob(); var nsBefore = bolts.length
+spawn(nearSpawn, 100); ticks(2)
+check('no hordes in the safe zone', bolts.length == nsBefore)
 
 print('\njei')
 check('JEI hides only the half-made assembly item', jei.hidden.join() == 'kubejs:incomplete_ascension_core')

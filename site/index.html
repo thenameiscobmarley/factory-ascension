@@ -44,7 +44,7 @@
     <div><b data-uv-count="286">0</b><small>enchants</small></div>
     <div><b data-uv-count="15">0</b><small>Mythic powers</small></div>
     <div><b>&infin;</b><small>level cap</small></div>
-    <div><b data-uv-count="292">0</b><small>safety checks</small></div>
+    <div><b data-uv-count="308">0</b><small>safety checks</small></div>
   </div>
 </header>
 
@@ -189,6 +189,12 @@
         <div class="uv-stat"><small>Loot</small><b id="dLoot">x1.0</b></div>
         <div class="uv-stat"><small>Elites</small><b id="dElite">0%</b></div>
       </div>
+      <div class="loot">
+        <div class="loot-bar" id="lootBar" aria-label="Loot tier odds at this depth"></div>
+        <p class="loot-read" id="lootRead"></p>
+        <button class="uv-btn uv-btn--sm uv-btn--ghost" id="lootRoll" type="button">What drops here?</button>
+        <p class="loot-drop" id="lootDrop" aria-live="polite"></p>
+      </div>
       <div class="rail"><i id="railDot"></i><div id="railZones"></div></div>
     </div>
     <div class="elite" id="elite"><span>&#9760; Elite Zombie &middot; Lv <b id="eliteLv">0</b></span><img src="fa/items/mythic_fragment.png" alt="" /><small>drops Mythic Fragments</small></div>
@@ -233,7 +239,7 @@
   <span class="ok">ok</span>   exactly one tome used per unlock
   <span class="ok">ok</span>   a failed upgrade is rolled back (no free levels)
   <span class="ok">ok</span>   gear drops are never duplicated
-<b class="ok">all checks passed</b>  <span class="dim">(292)</span></pre>
+<b class="ok">all checks passed</b>  <span class="dim">(308)</span></pre>
   </div>
 </section>
 

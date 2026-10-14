@@ -31,7 +31,8 @@ Search each mod in [MODLIST.md](MODLIST.md), pick the **Forge 1.20.1** version, 
 When you've picked them all, click **Review and confirm**. Prism adds most dependencies by itself.
 
 The required ones are **Create, KubeJS, Rhino and Architectury API**. The rest are
-recommended, so add whichever you want.
+recommended, so add whichever you want. **Sophisticated Backpacks** (with Sophisticated Core) is the one for hauling
+horde loot home: give it a pickup upgrade and it scoops drops straight into the backpack.
 
 ## 5. Launch once, then close
 
@@ -50,7 +51,7 @@ You should end up with:
 
 ```
 minecraft/kubejs/
-  startup_scripts/00_fa_config.js, 10_fa_items.js, 20_fa_enchant_effects.js, 30_fa_world.js, 40_fa_ultimates.js
+  startup_scripts/00_fa_config.js, 10_fa_items.js, 20_fa_enchant_effects.js, 30_fa_world.js, 40_fa_ultimates.js, 50_fa_loot.js
   server_scripts/10_fa_ascension.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js,
                  40_fa_progress.js, 45_fa_altar.js
   client_scripts/10_fa_tooltips.js, 20_fa_jei.js

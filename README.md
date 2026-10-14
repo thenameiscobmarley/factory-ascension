@@ -183,6 +183,31 @@ About once every 20 minutes something happens to the whole server:
 
 `/ascension event` shows the current one. Ops can `/ascension event start <bloodMoon|meteorShower|goldenHour>` and `/ascension event stop`.
 
+## Hordes and loot drops
+
+**Hordes:** in the danger zones every hostile spawn brings extra copies of itself: +1 per 20 danger levels
+(danger 60 = packs of 4), up to +6, in clear space beside it. Extras never bring their own extras or become bosses, and none
+spawn while 60 hostiles are already within 48 blocks, so it stays playable.
+
+**Loot drops:** danger-zone kills can drop a loot roll (6% near the edge of the Safe Lands, up to 60% deep out). Elites roll twice
+and lean a tier up, Ascended bosses roll four times and lean two up. The deeper you go, the better the odds:
+
+| Tier | At danger 0 | At danger 80 | What drops |
+|---|---|---|---|
+| Common | 60% | 37% | Stacks of cores and mineral clusters (bigger stacks deeper out) |
+| Uncommon | 25% | 28% | Dense Cores, Condensed Essence, base tomes, Chipped gems |
+| Rare | 10% | 18% | Chaos Tomes, Flawless gems, Fusion tomes, Mythic Fragments |
+| Epic | 4% | 12% | Perfect gems, Mythic tomes, Singularities, dense Condensed Essence |
+| Legendary | 0.9% | 4% | **Legendary Relics**, Ascended Souls, very dense Condensed Essence |
+| Mythic | 0.1% | 0.7% | **Mythic Relics**, Ultimate tomes, Ascended Souls |
+
+**Relics** are named, pre-enchanted diamond or netherite gear, like *Dreadbound Greaves of Ruin*. Their enchants suit what
+they are (weapons roll offense, armor rolls defense, pickaxes roll utility), at levels that scale with the danger. Mythic Relics
+also carry a Mythic enchant, a Chaos roll, Perfect gems and sometimes a star. Upgrade them like any other gear.
+Epic and better drops glow, shoot a beam of light and play a sound; Legendary and Mythic ones put a title on your screen.
+Try the odds on the [website](https://thenameiscobmarley.github.io/factory-ascension/#danger): the danger journey shows them at every
+depth and can roll a sample drop.
+
 ## Ascended bosses
 
 Deep in the danger zones (danger 30+), a rare spawn becomes an **Ascended boss**: a glowing, named, giant version of the
@@ -285,7 +310,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 292 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 308 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
