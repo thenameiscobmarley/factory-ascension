@@ -65,6 +65,29 @@ Vitality +6,000 hidden health, Plunder x151 loot, Excavation x751 mining speed.
 Each level costs a bit more than the last: levels 1-20 cost 1 Essence each, level 3000 costs 151,
 and getting one enchant from 0 to 3000 takes about 226K Essence.
 
+## Chaos Tomes: random enchants
+
+A **Chaos Tome** rolls a brand-new, randomly generated enchant onto the gear in your other hand:
+a rarity, a generated name (like *Sanguine Rune of the Storm*) and 1 to 3 random effects.
+Try rolling some on the [website](https://thenameiscobmarley.github.io/factory-ascension/#chaos). It runs the same generator,
+so every seed there is a real enchant.
+
+| Rarity | Odds | Effects | Strength | Upgrade cost |
+|---|---|---|---|---|
+| Common | 50% | 1 | x1 | x1 |
+| Rare | 28% | 2 | x1.5 | x1.5 |
+| Epic | 15% | 2 | x2.2 | x2.5 |
+| Legendary | 6% | 3 | x3.2, can roll lightning, black holes, meteors and auras | x4 |
+| Mythic | 1% | 3 | x5 | x8 |
+
+- Recipe: blank tome + 4 Ascension Cores + an eye of ender in a superheated mixer.
+- Up to 3 rolled enchants per item. Sneak + right-click on a full item rerolls its newest one, back to level 1.
+- Rolled enchants level up with Essence in `/ascension`, with no level cap, like the others.
+- Legendary and Mythic rolls are announced to the whole server.
+- Rolls only use effects that clean up after themselves (no rolled flight, attributes or passive effects),
+  and every effect a roll can make passes the same config check as the hand-made enchants (tested on 5,000 rolls).
+- Rolls are made from a seed, so the same seed always gives the same enchant, in game and on the website.
+
 ## Danger zones
 
 Near spawn, mobs are normal. Past 1000 blocks, every 500 blocks adds a **danger level**, with no cap.
@@ -121,8 +144,8 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 - Upgrades are all-or-nothing: the item and the Essence bank change together, or neither changes.
   A tome is only used up after its unlock fully succeeds. If absorbing cores fails, the cores come back.
 - Core values must follow the 9 : 1 compression (1 : 9 : 81 Essence), so unpacking can never create Essence.
-- A fuzz test runs 3,000 random absorbs, unlocks and upgrades and checks that every bit of Essence is
-  accounted for: absorbed = bank + exactly what the levels on items cost.
+- A fuzz test runs 3,000 random absorbs, unlocks, upgrades and Chaos rolls and checks that every bit of Essence is
+  accounted for: absorbed = bank + exactly what the levels on items cost (+ what rerolls threw away).
 
 **No corruption**
 - Essence is saved in the world's KubeJS data, with a backup in the player's own file that survives death.
@@ -156,7 +179,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 177 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 192 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

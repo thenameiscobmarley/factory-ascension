@@ -95,6 +95,15 @@ ServerEvents.recipes(event => {
     gravity_slam: ['minecraft:crying_obsidian']
   }
 
+  // Chaos Tome: blank tome + 4 cores + an eye of ender, superheated
+  event.custom({
+    type: 'create:mixing',
+    ingredients: [{ item: 'kubejs:blank_ascension_tome' }, { item: 'kubejs:ascension_core' }, { item: 'kubejs:ascension_core' },
+      { item: 'kubejs:ascension_core' }, { item: 'kubejs:ascension_core' }, { item: 'minecraft:ender_eye' }],
+    results: [{ item: 'kubejs:chaos_tome' }],
+    heatRequirement: 'superheated'
+  }).id('kubejs:factory_ascension/chaos_tome')
+
   Object.keys(global.FA.enchants).forEach(id => {
     let items = catalysts[id]
     if (!items) {

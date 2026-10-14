@@ -163,6 +163,18 @@ def book(cover, gem_color, mythic=False):
     return px
 
 
+def chaos_book():
+    """Book with shifting rainbow bands and a white star: the random-enchant tome."""
+    px = book((40, 20, 60), (255, 255, 255), True)
+    for y in range(3, 13):
+        for x in range(5, 11):
+            hue = ((x + y) / 14.0) % 1.0
+            px[y][x] = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue, 0.65, 0.85)) + (255,)
+    for x, y in ((8, 5), (7, 7), (8, 7), (9, 7), (8, 9), (8, 6), (8, 8)):
+        px[y][x] = (255, 255, 255, 255)
+    return px
+
+
 def fragment():
     """Jagged glowing shard."""
     px = blank()
@@ -239,6 +251,7 @@ def main():
     for name, (cover, gem_color, mythic) in tomes.items():
         textures["tome_" + name] = outline(book(cover, gem_color, mythic), edge)
     textures["mythic_fragment"] = outline(fragment(), (30, 8, 40, 255))
+    textures["chaos_tome"] = outline(chaos_book(), edge)
     for name, px in textures.items():
         png(os.path.join(OUT, name + ".png"), px)
         print("wrote", name + ".png")

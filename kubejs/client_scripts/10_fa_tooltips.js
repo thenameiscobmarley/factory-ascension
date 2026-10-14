@@ -12,6 +12,8 @@ let FA_TYPE_COLORS = {
   projectile_teleport: 'gold', souls: 'gold', overkill: 'gold', rampage: 'gold', vein: 'gold', aura: 'gold', heads: 'gold', slam: 'gold'
 }
 
+let FA_TIP_RARITY = { gray: 'gray', aqua: 'aqua', light_purple: 'lightPurple', gold: 'gold', red: 'red' }
+
 function faColor(id) {
   return Text[FA_TYPE_COLORS[global.FA.enchants[id].type] || 'gold']
 }
@@ -31,6 +33,20 @@ ItemEvents.tooltip(event => {
       let label = e.mythic ? Text.lightPurple('\u2726 ').append(Text.gold(name)) : faColor(id)(name)
       text.add(line++, label.append(Text.darkGray('  ' + global.FA_describe(id, level))))
     })
+    // Rolled (Chaos Tome) enchants: name in its rarity color, then each effect
+    if (data.contains('rolled')) {
+      let rolled = data.getCompound('rolled')
+      for (let i = 0; i < global.FA.chaos.maxPerItem; i++) {
+        if (!rolled.contains(String(i))) continue
+        let slot = rolled.getCompound(String(i))
+        let lvl = slot.getInt('level')
+        if (lvl <= 0) continue
+        let roll = global.FA_rollEnchant(slot.getInt('seed'))
+        let R = global.FA.chaos.rarities[roll.rarity]
+        text.add(line++, Text[FA_TIP_RARITY[R.color] || 'white']('\u2742 ' + roll.name + ' ' + global.FA_num(lvl)).append(Text.darkGray('  ' + R.name)))
+        roll.affixes.forEach(def => text.add(line++, Text.darkGray('    ' + global.FA_describeDef(def, lvl))))
+      }
+    }
     let souls = data.getInt('souls')
     if (souls > 0) text.add(line++, Text.lightPurple('  Souls: ' + global.FA_num(souls)))
   })
@@ -56,6 +72,13 @@ ItemEvents.tooltip(event => {
     ])
   })
 
+  let odds = global.FA.chaos.rarities.map(R => R.name + ' ' + R.weight + '%').join(', ')
+  event.add('kubejs:chaos_tome', [
+    Text.lightPurple('Rolls a random enchant onto the gear in your other hand'),
+    Text.gray('Rarity odds: ' + odds),
+    Text.darkGray('Up to ' + global.FA.chaos.maxPerItem + ' per item. Sneak-use on a full item to reroll its newest.'),
+    Text.darkGray('Upgrade rolled enchants with Essence: /ascension')
+  ])
   event.add('kubejs:mythic_fragment', [
     Text.lightPurple('Drops from mobs out in the danger zones, mostly Elites'),
     Text.gray('4 of them + a catalyst make a Mythic tome (superheated mixer)')

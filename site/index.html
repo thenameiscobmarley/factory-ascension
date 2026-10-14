@@ -16,7 +16,7 @@
 <nav class="top">
   <a class="brand" href="#top"><img src="fa/items/ascension_core.png" alt="" width="24" height="24" /> Factory Ascension</a>
   <div class="links">
-    <a href="#loop">Loop</a><a href="#enchants">Enchants</a><a href="#mythic">Mythic</a><a href="#danger">Danger</a><a href="#safety">Safety</a><a href="#install">Install</a>
+    <a href="#loop">Loop</a><a href="#enchants">Enchants</a><a href="#mythic">Mythic</a><a href="#chaos">Chaos</a><a href="#danger">Danger</a><a href="#safety">Safety</a><a href="#install">Install</a>
   </div>
   <a class="uv-btn uv-btn--sm uv-btn--primary" href="https://github.com/thenameiscobmarley/factory-ascension">GitHub</a>
 </nav>
@@ -43,7 +43,7 @@
     <div><b data-uv-count="74">0</b><small>enchants</small></div>
     <div><b data-uv-count="15">0</b><small>Mythic powers</small></div>
     <div><b>&infin;</b><small>level cap</small></div>
-    <div><b data-uv-count="177">0</b><small>safety checks</small></div>
+    <div><b data-uv-count="192">0</b><small>safety checks</small></div>
   </div>
 </header>
 
@@ -103,12 +103,41 @@
   </div>
 </section>
 
+<!-- ============ CHAOS ============ -->
+<section class="sec chaos" id="chaos">
+  <div class="wrap">
+    <p class="mono" data-uv-reveal>04 · Chaos Forge</p>
+    <h2 class="chaos-title" data-uv-reveal>Roll the dice on your gear.</h2>
+    <p class="sub" data-uv-reveal>A <b>Chaos Tome</b> rolls a brand-new enchant that's never existed before: a rarity, a name and up to three random effects.
+      This forge runs the exact same generator as the game, so every seed below is a real enchant you could pull.</p>
+
+    <div class="forge">
+      <div class="forge-left">
+        <img class="chaos-tome" src="fa/items/chaos_tome.png" alt="Chaos Tome" width="112" height="112" />
+        <button class="uv-btn uv-btn--lg uv-btn--primary magnet" id="rollOne">Roll a Chaos Tome</button>
+        <button class="uv-btn uv-btn--ghost" id="rollMany">Roll 12 at once</button>
+        <div class="odds" id="odds" aria-label="Rarity odds"></div>
+        <div class="odds-key" id="oddsKey"></div>
+        <label class="roll-level">Preview level
+          <span class="presets" id="rollLevels"></span>
+        </label>
+        <form class="seed-form" id="seedForm"><input class="uv-input" id="seedIn" inputmode="numeric" placeholder="Look up a seed…" aria-label="Seed" /><button class="uv-btn uv-btn--sm uv-btn--ghost">Go</button></form>
+      </div>
+      <div class="forge-right">
+        <article class="roll-card" id="rollCard" aria-live="polite"></article>
+        <p class="roll-stats" id="rollStats"></p>
+      </div>
+    </div>
+    <div class="roll-grid" id="rollGrid"></div>
+  </div>
+</section>
+
 <!-- ============ DANGER ============ -->
 <section class="uv-pin danger" id="danger" style="--len: 520vh">
   <div class="uv-pin__stage">
     <div class="sky" id="sky"></div>
     <div class="danger-ui">
-      <p class="mono">04 · Danger zones · scroll to travel</p>
+      <p class="mono">05 · Danger zones · scroll to travel</p>
       <h2 class="zone" id="zoneName">Safe Lands</h2>
       <div class="dist"><b id="dist">0</b><span>blocks from spawn</span></div>
       <div class="readout">
@@ -127,7 +156,7 @@
 <!-- ============ SAFETY ============ -->
 <section class="sec" id="safety">
   <div class="wrap">
-    <p class="mono" data-uv-reveal>05 · Safety</p>
+    <p class="mono" data-uv-reveal>06 · Safety</p>
     <h2 class="uv-h2" data-uv-reveal>Insane power. Zero dupes.</h2>
     <p class="sub" data-uv-reveal>Uncapped numbers are only fun if they can't break your world. Every script is checked outside the game before it ships.</p>
     <div class="safety" data-uv-stagger="up">
@@ -162,14 +191,14 @@
   <span class="ok">ok</span>   exactly one tome used per unlock
   <span class="ok">ok</span>   a failed upgrade is rolled back (no free levels)
   <span class="ok">ok</span>   gear drops are never duplicated
-<b class="ok">all checks passed</b>  <span class="dim">(177)</span></pre>
+<b class="ok">all checks passed</b>  <span class="dim">(192)</span></pre>
   </div>
 </section>
 
 <!-- ============ INSTALL ============ -->
 <section class="sec" id="install">
   <div class="wrap">
-    <p class="mono" data-uv-reveal>06 · Install</p>
+    <p class="mono" data-uv-reveal>07 · Install</p>
     <h2 class="uv-h2" data-uv-reveal>Fifteen minutes to ascend.</h2>
     <ol class="steps" data-uv-stagger="up">
       <li><b>Make a Forge 1.20.1 instance</b><span>Prism Launcher works great. On Fedora it's in Discover, or:</span>
@@ -180,6 +209,7 @@
         <button class="code" data-copy="git clone https://github.com/thenameiscobmarley/factory-ascension.git">git clone https://github.com/thenameiscobmarley/factory-ascension.git</button></li>
       <li><b>Test it in creative</b><span>Hold the tome with a sword in your other hand, right-click, then type <code>/ascension</code>.</span>
         <button class="code" data-copy="/give @s kubejs:tome_wings">/give @s kubejs:tome_wings</button>
+        <button class="code" data-copy="/give @s kubejs:chaos_tome 16">/give @s kubejs:chaos_tome 16</button>
         <button class="code" data-copy="/ascension essence add 1000">/ascension essence add 1000</button></li>
     </ol>
     <div class="cta center" data-uv-reveal>

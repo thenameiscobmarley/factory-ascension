@@ -16,6 +16,9 @@ StartupEvents.registry('item', event => {
     event.create('tome_' + id).displayName((e.mythic ? 'Mythic Tome of ' : 'Tome of ') + e.name).rarity('epic').glow(true)
   })
 
+  // Rolls a random enchant (rarity, name and effects) onto gear
+  event.create('chaos_tome').displayName('Chaos Tome').rarity('epic').glow(true)
+
   // Dropped by mobs out in the danger zones, needed for Mythic tomes
   event.create('mythic_fragment').displayName('Mythic Fragment').rarity('epic').glow(true)
 

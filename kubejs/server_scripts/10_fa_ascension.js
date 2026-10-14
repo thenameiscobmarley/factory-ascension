@@ -110,6 +110,70 @@ function faCommit(player, gear, id, oldLevel, newLevel, oldEssence, newEssence) 
   }
 }
 
+// ---- Rolled (Chaos Tome) enchants ----
+// Stored on the item as FactoryAscension.rolled: {"0": {seed, level}, "1": ..., "2": ...}
+
+const FA_RARITY_TEXT = { gray: 'gray', aqua: 'aqua', light_purple: 'lightPurple', gold: 'gold', red: 'red' }
+
+function faRolledSlots(stack) {
+  let tag = stack.getTag()
+  if (!tag || !tag.contains(FA_ITEM_TAG)) return []
+  let data = tag.getCompound(FA_ITEM_TAG)
+  if (!data.contains('rolled')) return []
+  let rolled = data.getCompound('rolled')
+  let out = []
+  for (let i = 0; i < global.FA.chaos.maxPerItem; i++) {
+    if (!rolled.contains(String(i))) continue
+    let slot = rolled.getCompound(String(i))
+    let level = slot.getInt('level')
+    if (level > 0 && level <= FA_MAX_LEVEL) out.push({ slot: i, seed: slot.getInt('seed'), level: level })
+  }
+  return out
+}
+
+// Writes one rolled slot (seed + level). level 0 removes the slot.
+function faSetRolled(stack, slotIndex, seed, level) {
+  if (!(level >= 0 && level <= FA_MAX_LEVEL && level % 1 == 0)) throw 'bad level ' + level
+  if (!(slotIndex >= 0 && slotIndex < global.FA.chaos.maxPerItem)) throw 'bad slot ' + slotIndex
+  let tag = stack.getOrCreateTag()
+  let data = tag.getCompound(FA_ITEM_TAG)
+  let rolled = data.getCompound('rolled')
+  if (level == 0) {
+    rolled.remove(String(slotIndex))
+  } else {
+    let slot = rolled.getCompound(String(slotIndex))
+    slot.putInt('seed', seed)
+    slot.putInt('level', level)
+    rolled.put(String(slotIndex), slot)
+  }
+  data.put('rolled', rolled)
+  tag.put(FA_ITEM_TAG, data)
+}
+
+// All-or-nothing, like faCommit: the slot and the Essence change together or not at all
+function faCommitRolled(player, gear, slot, oldSeed, oldLevel, newSeed, newLevel, oldEssence, newEssence) {
+  try {
+    faSetRolled(gear, slot, newSeed, newLevel)
+    faSetEssence(player, newEssence)
+    return true
+  } catch (err) {
+    try {
+      faSetRolled(gear, slot, oldSeed, oldLevel)
+      faSetEssence(player, oldEssence)
+    } catch (err2) {
+      console.error('[Factory Ascension] rollback failed: ' + err2)
+    }
+    console.error('[Factory Ascension] rolled enchant change on ' + player.getScoreboardName() + "'s item failed and was undone: " + err)
+    player.tell(Text.red('Something went wrong, nothing was changed. (See the server log.)'))
+    return false
+  }
+}
+
+function faRollText(roll, level) {
+  let R = global.FA.chaos.rarities[roll.rarity]
+  return Text[FA_RARITY_TEXT[R.color] || 'white']('\u2742 ' + roll.name + ' ' + global.FA_num(level))
+}
+
 // ---- Feedback ----
 
 function faSound(player, sound, pitch) {
@@ -154,6 +218,21 @@ function faShowMenu(player) {
       line = line.append(Text.darkGray('(max)'))
     }
     player.tell(line)
+  })
+
+  faRolledSlots(gear).forEach(r => {
+    any = true
+    let roll = global.FA_rollEnchant(r.seed)
+    let R = global.FA.chaos.rarities[roll.rarity]
+    let cost = global.FA_rollCost(r.level, roll.rarity)
+    let line = Text.gray(' ').append(faRollText(roll, r.level)).append(Text.darkGray(' ' + R.name + ' '))
+    FA_MENU_STEPS.forEach(step => {
+      line = line.append(faButton('+' + step, '/ascension upgrade rolled ' + r.slot + ' ' + step,
+        'Add ' + step + ' level' + (step > 1 ? 's' : '') + ' (next costs ' + global.FA_num(cost) + ' Essence)')).append(Text.gray(' '))
+    })
+    line = line.append(faButton('Max', '/ascension upgrade rolled ' + r.slot + ' ' + global.FA.maxUpgradesPerCommand, 'Spend as much Essence as possible'))
+    player.tell(line)
+    roll.affixes.forEach(def => player.tell(Text.darkGray('     ' + global.FA_describeDef(def, r.level))))
   })
 
   let souls = gear.getTag() ? gear.getTag().getCompound(FA_ITEM_TAG).getInt('souls') : 0
@@ -268,6 +347,84 @@ function faUpgrade(player, id, amount) {
   return 1
 }
 
+// Chaos Tome: roll a random enchant onto the gear in your other hand.
+// On a full item, sneak-use rerolls its newest rolled enchant (back to level 1).
+function faChaosRoll(player, tome, gear) {
+  if (!faIsGear(gear)) {
+    player.displayClientMessage(Text.red('Hold the gear you want to roll onto in your other hand.'), true)
+    return
+  }
+  let slots = faRolledSlots(gear)
+  let max = global.FA.chaos.maxPerItem
+  let slot
+  let old = { seed: 0, level: 0 }
+  if (slots.length < max) {
+    for (slot = 0; slot < max; slot++) if (!slots.some(r => r.slot == slot)) break
+  } else if (player.isShiftKeyDown()) {
+    old = slots[slots.length - 1]
+    slot = old.slot
+  } else {
+    player.displayClientMessage(Text.yellow('This item already holds ' + max + ' rolled enchants. Sneak + right-click to reroll the newest one.'), true)
+    return
+  }
+  let cost = global.FA_rollCost(0, 0)
+  let essence = faGetEssence(player)
+  if (essence < cost) {
+    player.displayClientMessage(Text.red('Rolling needs ' + global.FA_num(cost) + ' Essence. Absorb some Ascension Cores first.'), true)
+    return
+  }
+
+  let seed = Math.floor(Math.random() * 2147483646) + 1
+  if (!faCommitRolled(player, gear, slot, old.seed, old.level, seed, 1, essence, essence - cost)) return
+  tome.shrink(1)
+
+  let roll = global.FA_rollEnchant(seed)
+  let R = global.FA.chaos.rarities[roll.rarity]
+  let name = player.getScoreboardName()
+  let server = player.getServer()
+  server.runCommandSilent('title ' + name + ' times 5 50 15')
+  server.runCommandSilent('title ' + name + ' subtitle ' + JSON.stringify({ text: roll.name, color: R.color }))
+  server.runCommandSilent('title ' + name + ' title ' + JSON.stringify({ text: R.name.toUpperCase(), color: R.color, bold: true }))
+  faSound(player, roll.rarity >= 3 ? 'minecraft:ui.toast.challenge_complete' : roll.rarity >= 1 ? 'minecraft:entity.player.levelup' : 'minecraft:block.enchantment_table.use', 1)
+  let line = Text.gray(old.level ? 'Rerolled into ' : 'Rolled ').append(faRollText(roll, 1)).append(Text.gray(' (' + R.name + ')'))
+  player.tell(line)
+  roll.affixes.forEach(def => player.tell(Text.darkGray('   ' + global.FA_describeDef(def, 1))))
+  if (roll.rarity >= 3) server.tell(Text.gold(name + ' rolled a ' + R.name + ' enchant: ').append(faRollText(roll, 1)))
+}
+
+function faUpgradeRolled(player, slotIndex, amount) {
+  let gear = faTarget(player)
+  if (!gear) {
+    player.tell(Text.red('Hold the item you want to upgrade.'))
+    return 0
+  }
+  let r = faRolledSlots(gear).filter(x => x.slot == slotIndex)[0]
+  if (!r) {
+    player.tell(Text.red('This item has no rolled enchant in slot ' + slotIndex + '.'))
+    return 0
+  }
+  let roll = global.FA_rollEnchant(r.seed)
+  let essence = faGetEssence(player)
+  let level = r.level
+  let added = 0
+  let spent = 0
+  while (added < amount && level < FA_MAX_LEVEL) {
+    let cost = global.FA_rollCost(level, roll.rarity)
+    if (essence - spent < cost) break
+    spent += cost
+    level++
+    added++
+  }
+  if (added == 0) {
+    player.tell(Text.red('Not enough Essence: the next level costs ' + global.FA_num(global.FA_rollCost(level, roll.rarity)) + '.'))
+    return 0
+  }
+  if (!faCommitRolled(player, gear, slotIndex, r.seed, r.level, r.seed, level, essence, essence - spent)) return 0
+  faSound(player, 'minecraft:block.enchantment_table.use', 1.4)
+  player.tell(Text.green('+' + global.FA_num(added) + ' ').append(faRollText(roll, level)).append(Text.gray('  (spent ' + global.FA_num(spent) + ' Essence)')))
+  return 1
+}
+
 // ---- Events ----
 
 Object.keys(global.FA.essenceValues).forEach(id => {
@@ -287,6 +444,13 @@ Object.keys(global.FA.enchants).forEach(id => {
   })
 })
 
+ItemEvents.rightClicked('kubejs:chaos_tome', event => {
+  let player = event.player
+  let gear = String(event.hand) == 'MAIN_HAND' ? player.getOffhandItem() : player.getMainHandItem()
+  faChaosRoll(player, event.item, gear)
+  event.cancel()
+})
+
 ServerEvents.commandRegistry(event => {
   let { commands: Commands, arguments: Arguments } = event
 
@@ -297,6 +461,12 @@ ServerEvents.commandRegistry(event => {
         .executes(ctx => faUpgrade(ctx.source.getPlayerOrException(), id,
           Math.max(1, Math.min(global.FA.maxUpgradesPerCommand, Arguments.INTEGER.getResult(ctx, 'amount')))))))
   })
+
+  upgrade = upgrade.then(Commands.literal('rolled')
+    .then(Commands.argument('slot', Arguments.INTEGER.create(event))
+      .then(Commands.argument('amount', Arguments.INTEGER.create(event))
+        .executes(ctx => faUpgradeRolled(ctx.source.getPlayerOrException(), Arguments.INTEGER.getResult(ctx, 'slot'),
+          Math.max(1, Math.min(global.FA.maxUpgradesPerCommand, Arguments.INTEGER.getResult(ctx, 'amount'))))))))
 
   let essenceCmd = (name, apply) => Commands.literal(name)
     .then(Commands.argument('amount', Arguments.INTEGER.create(event))

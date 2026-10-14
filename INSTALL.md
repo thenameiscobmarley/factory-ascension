@@ -53,7 +53,7 @@ minecraft/kubejs/
   startup_scripts/00_fa_config.js, 10_fa_items.js, 20_fa_enchant_effects.js
   server_scripts/10_fa_ascension.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js
   client_scripts/10_fa_tooltips.js
-  assets/kubejs/textures/item/  (83 .png files)
+  assets/kubejs/textures/item/  (84 .png files)
 ```
 
 ## 7. Check it works

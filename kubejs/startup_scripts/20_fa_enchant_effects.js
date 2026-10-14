@@ -40,8 +40,25 @@ Object.keys(global.FA.enchants).forEach(id => {
   if (!FA_BY_TYPE[type]) FA_BY_TYPE[type] = []
   FA_BY_TYPE[type].push(id)
 })
+// Rolled (Chaos Tome) enchants become "virtual" enchants: one per effect, with ids like r12345_0.
+// They're registered when an item carrying them is read, and from then on every hook treats them
+// exactly like config enchants, so they use the same tested effect code.
+let FA_VIRTUAL = {}
+let FA_VIRTUAL_BY_TYPE = {}
+let FA_VIRTUAL_COUNT = 0
+function faRegisterVirtual(id, def) {
+  if (FA_VIRTUAL[id]) return
+  // Bounded: if it ever gets big, start over; items re-register themselves on the next read
+  if (FA_VIRTUAL_COUNT >= 3000) { FA_VIRTUAL = {}; FA_VIRTUAL_BY_TYPE = {}; FA_VIRTUAL_COUNT = 0 }
+  FA_VIRTUAL[id] = def
+  if (!FA_VIRTUAL_BY_TYPE[def.type]) FA_VIRTUAL_BY_TYPE[def.type] = []
+  FA_VIRTUAL_BY_TYPE[def.type].push(id)
+  FA_VIRTUAL_COUNT++
+}
 function faIds(type) {
-  return FA_BY_TYPE[type] || []
+  let base = FA_BY_TYPE[type] || []
+  let rolled = FA_VIRTUAL_BY_TYPE[type]
+  return rolled ? base.concat(rolled) : base
 }
 
 // All enchant levels on a player's hands + armor, summed: {sharpness: 120, protection: 3000}.
@@ -61,12 +78,31 @@ function faLevels(entity) {
       // Ignore broken values (only possible from hand-edited NBT) and cap totals, so nothing overflows
       if (value > 0) levels[id] = Math.min(2000000000, (levels[id] || 0) + value)
     }
+    faRolledLevels(data, levels)
   }
   return levels
 }
 
+// Rolled enchants live under FactoryAscension.rolled: {"0": {seed, level}, "1": ...}
+function faRolledLevels(data, levels) {
+  if (!data.contains('rolled')) return
+  let rolled = data.getCompound('rolled')
+  let slots = rolled.getAllKeys().iterator()
+  while (slots.hasNext()) {
+    let slot = rolled.getCompound(String(slots.next()))
+    let level = slot.getInt('level')
+    if (level <= 0) continue
+    let roll = global.FA_rollEnchant(slot.getInt('seed'))
+    roll.affixes.forEach((def, i) => {
+      let id = 'r' + roll.seed + '_' + i
+      faRegisterVirtual(id, def)
+      levels[id] = Math.min(2000000000, (levels[id] || 0) + level)
+    })
+  }
+}
+
 function faE(id) {
-  return global.FA.enchants[id]
+  return global.FA.enchants[id] || FA_VIRTUAL[id]
 }
 
 // Danger data saved on a scaled mob: {level, elite}, or null for normal mobs and players

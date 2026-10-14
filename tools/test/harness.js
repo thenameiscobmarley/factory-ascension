@@ -121,7 +121,7 @@ function gear(name) { return stack(1, 1, name) }
 
 function makeServer() {
   var data = new Compound()
-  return { persistentData: data, commands: [], runCommandSilent: function (c) { this.commands.push(c) } }
+  return { persistentData: data, commands: [], told: [], runCommandSilent: function (c) { this.commands.push(c) }, tell: function (t) { this.told.push(t.s) } }
 }
 
 function makePlayer(server, uuid) {
@@ -234,7 +234,7 @@ handlers.registry.forEach(function (fn) { fn({ create: function (id) { created.p
 var enchantCount = Object.keys(global.FA.enchants).length
 var mythics = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].mythic })
 check('74 enchants (59 + 15 Mythic)', enchantCount == 74 && mythics.length == 15, enchantCount + ' / ' + mythics.length)
-check('items registered (4 core + blank + tomes + fragment + 3 clusters)', created.length == 9 + enchantCount, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + 3 clusters)', created.length == 10 + enchantCount, created.length)
 var File = java.io.File
 var missing = created.filter(function (id) { return !new File('kubejs/assets/kubejs/textures/item/' + id + '.png').exists() })
 check('every item has a texture', missing.length == 0, missing.join(','))
@@ -553,7 +553,7 @@ check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
 print('\ntooltips')
 var advanced = null, simple = 0
 handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, addAdvanced: function (ing, f) { advanced = f } }) })
-check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == 3 + 1 + enchantCount + 1 + 4, simple)
+check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == 3 + 1 + enchantCount + 1 + 1 + 4, simple)
 var lines = { arr: ['Netherite Chestplate', 'When on body:'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(chest, false, lines)
 check('enchants show right under the item name', /Ascended Protection 3,000/.test(lines.arr[1]), lines.arr.join(' | '))
@@ -564,7 +564,9 @@ check('items without enchants are untouched', plain.arr.length == 1)
 print('\ndescriptions')
 var blank = Object.keys(E).filter(function (id) { var d = global.FA_describe(id, 1); return !d || /undefined|NaN/.test(d + global.FA_describe(id, 3000)) })
 check('every enchant has a description at levels 1 and 3000', blank.length == 0, blank.join(','))
-check('numbers', global.FA_num(1234) == '1,234' && global.FA_num(2.5e9) == '2.50B' && global.FA_num(1e40).indexOf('e+') > 0)
+check('numbers', global.FA_num(1234) == '1,234' && global.FA_num(2.5e9) == '2.50B' && global.FA_num(1e40).indexOf('e+') > 0 &&
+  global.FA_num(0.25) == '0.25' && global.FA_num(1.5) == '1.5' && global.FA_num(42.37) == '42.4' && global.FA_num(7) == '7',
+  [global.FA_num(0.25), global.FA_num(1.5), global.FA_num(42.37)].join(' '))
 Object.keys(E).forEach(function (id) {
   var top = E[id].maxLevel || 3000
   print('  ' + E[id].name + ' ' + top + ': ' + global.FA_describe(id, top))
@@ -835,7 +837,13 @@ function rnd(n) { seed = (seed * 1103515245 + 12345) % 2147483648; return Math.f
 var fz = makePlayer(server, 'fuzz')
 var fzGear = [gear('A'), gear('B'), gear('C'), gear('D')]
 var ids = Object.keys(E)
-var absorbed = 0, tomesUsed = 0, tomesMade = 0
+var absorbed = 0, tomesUsed = 0, tomesMade = 0, destroyed = 0
+// What a rolled slot cost: 1 to roll, then each level at its rarity's price
+function rolledValue(r) {
+  var roll = global.FA_rollEnchant(r.seed), v = global.FA_rollCost(0, 0)
+  for (var k = 1; k < r.level; k++) v += global.FA_rollCost(k, roll.rarity)
+  return v
+}
 for (var step = 0; step < 3000; step++) {
   var op = rnd(10)
   if (op < 3) {
@@ -852,24 +860,98 @@ for (var step = 0; step < 3000; step++) {
     var tb = tm.count
     handlers.rightClicked['kubejs:tome_' + eid]({ player: fz, item: tm, hand: 'MAIN_HAND', cancel: function () {} })
     tomesUsed += tb - tm.count
-  } else {
+  } else if (op < 8) {
     fz.main = fzGear[rnd(4)]; fz.off = stack(0)
     faUpgrade(fz, ids[rnd(ids.length)], [1, 10, 100, 1000, 100000][rnd(5)])
+  } else if (op < 9) {
+    // Chaos Tome roll (sometimes a sneak reroll that throws away the newest rolled enchant)
+    var ct = stack(1); tomesMade++
+    var target2 = fzGear[rnd(4)]
+    fz.main = ct; fz.off = target2; fz.sneaking = rnd(2) == 1
+    var slotsBefore = faRolledSlots(target2)
+    faChaosRoll(fz, ct, target2)
+    tomesUsed += 1 - ct.count
+    if (ct.count == 0 && slotsBefore.length == global.FA.chaos.maxPerItem) destroyed += rolledValue(slotsBefore[slotsBefore.length - 1])
+    fz.sneaking = false
+  } else {
+    var g3 = fzGear[rnd(4)]; fz.main = g3; fz.off = stack(0)
+    var rs = faRolledSlots(g3)
+    if (rs.length) faUpgradeRolled(fz, rs[rnd(rs.length)].slot, [1, 10, 100, 100000][rnd(4)])
   }
   if (faGetEssence(fz) < 0) break
 }
-var spentOnItems = 0, unlocked = 0
+var spentOnItems = 0, unlocked = 0, rolledCount = 0
 fzGear.forEach(function (g) {
+  faRolledSlots(g).forEach(function (r) { spentOnItems += rolledValue(r); rolledCount++ })
   ids.forEach(function (id) {
     var lv = faGetLevel(g, id)
     if (lv > 0) unlocked++
     for (var k2 = 0; k2 < lv; k2++) spentOnItems += global.FA_cost(k2, id)
   })
 })
-print('  info absorbed ' + absorbed + ', bank ' + faGetEssence(fz) + ', on items ' + spentOnItems + ', unlocks ' + unlocked)
-check('Essence is conserved: absorbed = bank + cost of every level on items', near(absorbed, faGetEssence(fz) + spentOnItems), absorbed + ' vs ' + (faGetEssence(fz) + spentOnItems))
-check('exactly one tome used per unlock', tomesUsed == unlocked, tomesUsed + ' vs ' + unlocked)
+print('  info absorbed ' + absorbed + ', bank ' + faGetEssence(fz) + ', on items ' + spentOnItems + ', rerolled away ' + destroyed + ', unlocks ' + unlocked + ', rolled ' + rolledCount)
+check('Essence is conserved: absorbed = bank + cost of every level on items (+ rerolled away)', near(absorbed, faGetEssence(fz) + spentOnItems + destroyed), absorbed + ' vs ' + (faGetEssence(fz) + spentOnItems + destroyed))
+check('rolled enchants were part of the fuzz', rolledCount > 0)
+check('no item ever holds more rolled enchants than allowed', fzGear.every(function (g) { return faRolledSlots(g).length <= global.FA.chaos.maxPerItem }))
 check('Essence never went negative', faGetEssence(fz) >= 0)
+
+print('\nchaos tomes')
+var r1 = global.FA_rollEnchant(424242), r2 = global.FA_rollEnchant(424242)
+check('the same seed always rolls the same enchant', JSON.stringify(r1) == JSON.stringify(r2))
+var counts = [0, 0, 0, 0, 0], badRolls = [], affixTotal = 0
+for (var sd = 1; sd <= 5000; sd++) {
+  var rr = global.FA_rollEnchant(sd * 7919)
+  counts[rr.rarity]++
+  var R0 = global.FA.chaos.rarities[rr.rarity]
+  if (rr.affixes.length != R0.affixes) badRolls.push(sd + ': affix count')
+  var cfgCopy = JSON.parse(JSON.stringify(global.FA)); cfgCopy.enchants = {}
+  rr.affixes.forEach(function (a, i) { cfgCopy.enchants['a' + i] = JSON.parse(JSON.stringify(a)) })
+  var probs = global.FA_validate(cfgCopy)
+  if (probs.length) badRolls.push(sd + ': ' + probs[0])
+  rr.affixes.forEach(function (a) { affixTotal++; if (/undefined|NaN/.test(global.FA_describeDef(a, 1) + global.FA_describeDef(a, 1000))) badRolls.push(sd + ': bad text') })
+  if (!/^[A-Z][a-z]+ [A-Z]/.test(rr.name)) badRolls.push(sd + ': name ' + rr.name)
+}
+check('5,000 rolls: every effect passes the config check, text and names are clean', badRolls.length == 0, badRolls.slice(0, 3).join(' | '))
+print('  info rarity spread over 5,000 rolls: ' + global.FA.chaos.rarities.map(function (R, i) { return R.name + ' ' + counts[i] }).join(', '))
+check('rarity odds roughly match the weights', Math.abs(counts[0] / 5000 - 0.5) < 0.04 && counts[4] > 10 && counts[4] < 120, counts.join(','))
+check('rolls never include effects that need cleanup', !/flight|attribute|passive|eternal|vein|undying|phoenix|time_stop/.test(JSON.stringify([global.FA_rollEnchant(1), global.FA_rollEnchant(99)])))
+print('  sample: ' + [11, 222, 3333].map(function (sd) { var x = global.FA_rollEnchant(sd); return global.FA.chaos.rarities[x.rarity].name + ' "' + x.name + '"' }).join(', '))
+
+var roller = makePlayer(server, 'roller'); faSetEssence(roller, 1000)
+var rGear = gear('Roll Sword'), cTome = stack(5)
+roller.main = cTome; roller.off = rGear
+for (var t = 0; t < 3; t++) handlers.rightClicked['kubejs:chaos_tome']({ player: roller, item: cTome, hand: 'MAIN_HAND', cancel: function () {} })
+check('Chaos Tomes fill up to 3 rolled slots', faRolledSlots(rGear).length == 3 && cTome.count == 2 && faGetEssence(roller) == 997)
+handlers.rightClicked['kubejs:chaos_tome']({ player: roller, item: cTome, hand: 'MAIN_HAND', cancel: function () {} })
+check('a full item refuses a 4th roll and keeps the tome', faRolledSlots(rGear).length == 3 && cTome.count == 2)
+var newestBefore = faRolledSlots(rGear)[2].seed
+roller.sneaking = true
+handlers.rightClicked['kubejs:chaos_tome']({ player: roller, item: cTome, hand: 'MAIN_HAND', cancel: function () {} })
+roller.sneaking = false
+check('sneak-use rerolls only the newest slot', faRolledSlots(rGear).length == 3 && faRolledSlots(rGear)[2].seed != newestBefore && cTome.count == 1)
+roller.main = rGear; roller.off = stack(0)
+faUpgradeRolled(roller, 0, 9)
+check('rolled enchants level up with Essence', faRolledSlots(rGear)[0].level == 10)
+check('upgrading an empty slot is refused', faUpgradeRolled(roller, 5, 1) == 0)
+roller.messages = []; faShowMenu(roller)
+var menuClicks = []; roller.messages.forEach(function (t2) { menuClicks = menuClicks.concat(t2.clicks || []) })
+check('the /ascension menu lists rolled enchants with upgrade buttons', menuClicks.indexOf('/ascension upgrade rolled 0 10') >= 0)
+// A rolled enchant actually works in combat
+var dmgSeed = 0
+for (var sd2 = 1; sd2 < 20000 && !dmgSeed; sd2++) { var x2 = global.FA_rollEnchant(sd2); if (x2.affixes.length == 1 && x2.affixes[0].type == 'damage' && x2.affixes[0].when == 'always') dmgSeed = sd2 }
+var rolledBlade = gear('Rolled Blade'); faSetRolled(rolledBlade, 0, dmgSeed, 10)
+var rolledHero = makePlayer(server, 'rh'); rolledHero.main = rolledBlade
+var expectDmg = 10 * (1 + global.FA_rollEnchant(dmgSeed).affixes[0].perLevel * 10)
+check('a rolled damage enchant boosts damage like a normal one', near(hit(rolledHero, makeMob(), 10), expectDmg), hit(rolledHero, makeMob(), 10) + ' vs ' + expectDmg)
+var tipLines = { arr: ['Rolled Blade'], add: function (i, t3) { this.arr.splice(i, 0, t3.s) } }
+advanced(rolledBlade, false, tipLines)
+check('tooltips show rolled enchants with their rarity and effects', tipLines.arr.length >= 3 && /Common/.test(tipLines.arr[1]), tipLines.arr.join(' | '))
+print('  sample: ' + tipLines.arr.slice(1).join(' | '))
+var hackedRoll = gear('Hacked Roll'); faSetRolled(hackedRoll, 0, 77, 5); hackedRoll.tag.d.FactoryAscension.d.rolled.d['0'].d.level = -9
+check('broken rolled levels from edited NBT are ignored', faRolledSlots(hackedRoll).length == 0)
+var badThrow = false
+try { faSetRolled(rGear, 7, 1, 1) } catch (e) { badThrow = true }
+check('rolled slots outside 0-2 are refused', badThrow)
 
 print('\nsafety: recipes and hooks')
 var outputs = {}

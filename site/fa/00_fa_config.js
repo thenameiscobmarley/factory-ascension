@@ -161,6 +161,20 @@ global.FA = {
     ]
   },
 
+  // ---- Chaos Tomes: randomly generated enchants ----
+  // A Chaos Tome rolls a brand-new enchant onto gear: a rarity, a generated name and 1-3 random effects.
+  // Rolls are made from a seed, so the same seed always gives the same enchant (in game and on the website).
+  chaos: {
+    maxPerItem: 3,             // rolled enchants one item can hold (sneak-use a Chaos Tome on a full item to reroll its newest)
+    rarities: [
+      { name: 'Common', weight: 50, power: 1, affixes: 1, costMult: 1, color: 'gray' },
+      { name: 'Rare', weight: 28, power: 1.5, affixes: 2, costMult: 1.5, color: 'aqua' },
+      { name: 'Epic', weight: 15, power: 2.2, affixes: 2, costMult: 2.5, color: 'light_purple' },
+      { name: 'Legendary', weight: 6, power: 3.2, affixes: 3, costMult: 4, color: 'gold' },
+      { name: 'Mythic', weight: 1, power: 5, affixes: 3, costMult: 8, color: 'red' }
+    ]
+  },
+
   // ---- Safety limits (not power caps) ----
   maxExtraDropStacks: 8,       // most extra item stacks one kill can spawn, so loot enchants can't lag the server
   maxCleaveTargets: 16,
@@ -170,6 +184,8 @@ global.FA = {
 // Readable numbers: 1234 -> "1,234", 12345678 -> "12.3M", 1e40 -> "1.00e+40"
 global.FA_num = n => {
   if (!isFinite(n)) return 'Infinity'
+  // Small fractions keep their decimals (0.25, 1.5) instead of rounding down to 0
+  if (n < 100 && n % 1 != 0) return String(Math.round(n * (n < 10 ? 100 : 10)) / (n < 10 ? 100 : 10))
   if (n < 1e6) {
     let whole = String(Math.floor(n))
     return whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -197,8 +213,8 @@ let FA_WHEN = {
 }
 
 // Short effect text for an enchant at a level, shared by tooltips and the /ascension menu
-global.FA_describe = (id, level) => {
-  let e = global.FA.enchants[id]
+global.FA_describe = (id, level) => global.FA_describeDef(global.FA.enchants[id], level)
+global.FA_describeDef = (e, level) => {
   let num = global.FA_num
   let x = n => 'x' + (n < 100 ? n.toFixed(2) : num(n))
   let pct = n => (n < 10 ? Math.round(n * 1000) / 10 : num(Math.round(n * 100))) + '%'
@@ -312,6 +328,128 @@ global.FA_fragmentChance = (danger, elite) => {
     : Math.min(f.normalChanceCap, f.normalChancePerLevel * danger)
 }
 
+// ---- Chaos Tome generator ----
+// Park-Miller random numbers: exact in plain JS doubles, so every engine (KubeJS's Rhino, browsers,
+// the test harness) produces the very same enchant from the same seed.
+global.FA_rng = seed => {
+  let state = (Math.abs(Math.floor(seed)) % 2147483646) + 1
+  return () => {
+    state = (state * 16807) % 2147483647
+    return (state - 1) / 2147483646
+  }
+}
+
+let FA_ROLL_WORDS = {
+  prefix: {
+    damage: ['Savage', 'Brutal', 'Searing', 'Vicious', 'Keen'], resist: ['Warded', 'Stalwart', 'Ironclad', 'Bastion'],
+    hit_effect: ['Cursed', 'Blighted', 'Venomous', 'Frostbitten'], self_effect: ['Surging', 'Fervent', 'Kindled'],
+    lifesteal: ['Sanguine', 'Vampiric'], hit_heal: ['Mending', 'Hallowed'], kill_heal: ['Ravenous', 'Gorging'],
+    xp: ['Learned', 'Sage'], plunder: ['Greedy', 'Gilded'], drop: ['Lucky', 'Prospecting'], regen: ['Verdant', 'Blooming'],
+    ignite: ['Blazing', 'Smoldering'], critical: ['Precise', 'Deadly'], cleave: ['Sweeping', 'Rending'],
+    retribution: ['Spiteful', 'Thorned'], vitality: ['Hearty', 'Titanic'], mining: ['Delving', 'Tunneling'],
+    dodge: ['Elusive', 'Phantom'], chain_lightning: ['Thundering', 'Stormborn'], gravity_well: ['Collapsing', 'Abyssal'],
+    death_nova: ['Cataclysmic', 'Volatile'], aura: ['Radiant', 'Sunforged']
+  },
+  noun: [['Spark', 'Trinket', 'Charm'], ['Sigil', 'Rune', 'Edge'], ['Relic', 'Oath', 'Brand'], ['Covenant', 'Crown', 'Requiem'], ['Apotheosis', 'Singularity', 'Godspark']],
+  suffix: ['the Abyss', 'the Forge', 'the Storm', 'the Void', 'Embers', 'the Tide', 'the Wilds', 'Dread', 'Dawn', 'Ashes', 'the Deep', 'Kings']
+}
+
+// Every effect a roll can pick. `min` = lowest rarity index it can appear at. Each builder gets
+// (random 0..1, rarity power) and returns a normal enchant definition, checked by FA_validate like any other.
+// Effects that have to be cleaned up when gear comes off (attributes, flight, passives) are never rolled.
+let FA_AFFIXES = [
+  { w: 10, make: (r, p) => ({ type: 'damage', when: ['always', 'undead', 'arthropod', 'boss', 'nether', 'raider', 'airborne', 'full_health', 'low_health', 'berserk', 'projectile', 'sneaking'][Math.floor(r() * 12)], perLevel: (0.05 + r() * 0.1) * p }) },
+  { w: 8, make: (r, p) => ({ type: 'resist', vs: ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee'][Math.floor(r() * 8)], perLevel: (0.03 + r() * 0.05) * p }) },
+  { w: 6, make: (r, p) => {
+    let fx = [['MOVEMENT_SLOWDOWN', 'Slowness'], ['WEAKNESS', 'Weakness'], ['WITHER', 'Wither'], ['POISON', 'Poison'], ['LEVITATION', 'Levitation'], ['GLOWING', 'Glowing']][Math.floor(r() * 6)]
+    return { type: 'hit_effect', effect: fx[0], label: fx[1], seconds: 2 + Math.floor(r() * 4), ampEvery: Math.max(1, Math.round((8 + r() * 8) / p)) }
+  } },
+  { w: 4, make: (r, p) => {
+    // Resistance stops at amplifier 2 (level 3): level 5 would make you immune to everything
+    let fx = [['MOVEMENT_SPEED', 'Speed', 4], ['DAMAGE_BOOST', 'Strength', 4], ['REGENERATION', 'Regeneration', 3], ['DAMAGE_RESISTANCE', 'Resistance', 2]][Math.floor(r() * 4)]
+    return { type: 'self_effect', effect: fx[0], label: fx[1], seconds: 2 + Math.floor(r() * 3), ampEvery: Math.max(1, Math.round((10 + r() * 10) / p)), maxAmp: fx[2] }
+  } },
+  { w: 5, make: (r, p) => ({ type: 'lifesteal', perLevel: (0.003 + r() * 0.005) * p }) },
+  { w: 4, make: (r, p) => ({ type: 'hit_heal', perLevel: (0.2 + r() * 0.3) * p }) },
+  { w: 4, make: (r, p) => ({ type: 'kill_heal', perLevel: (0.5 + r() * 1) * p }) },
+  { w: 4, make: (r, p) => ({ type: 'xp', perLevel: (0.05 + r() * 0.07) * p }) },
+  { w: 4, make: (r, p) => ({ type: 'plunder', perLevel: (0.02 + r() * 0.03) * p }) },
+  { w: 4, make: (r, p) => {
+    let d = [['minecraft:gold_nugget', 'gold nuggets', 0.2], ['minecraft:iron_nugget', 'iron nuggets', 0.3], ['minecraft:emerald', 'emeralds', 0.02],
+      ['minecraft:diamond', 'diamonds', 0.005], ['minecraft:lapis_lazuli', 'lapis', 0.1], ['minecraft:quartz', 'quartz', 0.1]][Math.floor(r() * 6)]
+    return { type: 'drop', item: d[0], label: d[1], perLevel: d[2] * (0.7 + r() * 0.6) * p }
+  } },
+  { w: 4, make: (r, p) => ({ type: 'regen', perLevel: (0.08 + r() * 0.12) * p }) },
+  { w: 4, make: (r, p) => ({ type: 'ignite', perLevel: (2 + r() * 2) * p }) },
+  { w: 3, make: (r, p) => ({ type: 'critical', critMultiplier: Math.round((2 + r() * p) * 10) / 10 }) },
+  { w: 3, make: (r, p) => ({ type: 'cleave', perLevel: (0.02 + r() * 0.03) * p, radius: 2 + Math.floor(r() * 3) }) },
+  { w: 3, make: (r, p) => ({ type: 'retribution', perLevel: (0.02 + r() * 0.03) * p }) },
+  { w: 4, make: (r, p) => ({ type: 'vitality', perLevel: (1 + r() * 1.5) * p }) },
+  { w: 3, make: (r, p) => ({ type: 'mining', perLevel: (0.1 + r() * 0.15) * p }) },
+  { w: 2, make: (r, p) => ({ type: 'dodge', cap: Math.min(0.5, 0.15 + 0.05 * p) }) },
+  { w: 2, min: 3, make: (r, p) => ({ type: 'chain_lightning', perLevel: (0.01 + r() * 0.01) * p, radius: 6 + Math.floor(r() * 5) }) },
+  { w: 2, min: 3, make: (r, p) => ({ type: 'gravity_well', perLevel: 0.5 * p, base: 3, cap: 16 }) },
+  { w: 2, min: 3, make: (r, p) => ({ type: 'death_nova', perLevel: (0.05 + r() * 0.05) * p }) },
+  { w: 2, min: 3, make: (r, p) => ({ type: 'aura', perLevel: (1 + r()) * p }) }
+]
+
+let faRollCache = {}
+let faRollCacheSize = 0
+
+// The enchant a seed makes: { seed, name, rarity (index), affixes: [definition, ...] }
+global.FA_rollEnchant = seed => {
+  seed = Math.abs(Math.floor(seed)) % 2147483647
+  if (faRollCache[seed]) return faRollCache[seed]
+  let r = global.FA_rng(seed)
+  let rarities = global.FA.chaos.rarities
+  let total = 0
+  rarities.forEach(x => { total += x.weight })
+  let pick = r() * total
+  let rarity = 0
+  for (let i = 0; i < rarities.length; i++) {
+    pick -= rarities[i].weight
+    if (pick < 0) { rarity = i; break }
+  }
+  let R = rarities[rarity]
+
+  // Pick distinct effect types, weighted
+  let pool = FA_AFFIXES.filter(a => !a.min || rarity >= a.min)
+  let affixes = []
+  let used = {}
+  while (affixes.length < R.affixes && pool.length) {
+    let weight = 0
+    pool.forEach(a => { weight += a.w })
+    let x = r() * weight
+    let chosen = pool[pool.length - 1]
+    for (let i = 0; i < pool.length; i++) {
+      x -= pool[i].w
+      if (x < 0) { chosen = pool[i]; break }
+    }
+    pool = pool.filter(a => a !== chosen)
+    let def = chosen.make(r, R.power)
+    if (used[def.type]) continue
+    used[def.type] = true
+    def.name = 'affix'
+    affixes.push(def)
+  }
+
+  let W = FA_ROLL_WORDS
+  let prefixes = W.prefix[affixes[0].type] || ['Strange']
+  let nouns = W.noun[rarity]
+  let name = prefixes[Math.floor(r() * prefixes.length)] + ' ' + nouns[Math.floor(r() * nouns.length)]
+  if (rarity >= 1) name += ' of ' + W.suffix[Math.floor(r() * W.suffix.length)]
+
+  let roll = { seed: seed, name: name, rarity: rarity, affixes: affixes }
+  // Cache rolls (they never change); clear the cache now and then so it can't grow forever
+  if (faRollCacheSize > 2000) { faRollCache = {}; faRollCacheSize = 0 }
+  faRollCache[seed] = roll
+  faRollCacheSize++
+  return roll
+}
+
+// Essence cost for a rolled enchant from level L to L+1
+global.FA_rollCost = (level, rarity) => Math.ceil(global.FA_cost(level) * global.FA.chaos.rarities[rarity].costMult)
+
 // Essence cost to go from level L to L+1 (Mythic enchants cost more)
 global.FA_cost = (level, id) => {
   let e = id ? global.FA.enchants[id] : null
@@ -402,6 +540,21 @@ global.FA_validate = cfg => {
   if (!dangerOk && d.enabled) {
     problems.push('danger settings are broken, so danger scaling was switched off')
     d.enabled = false
+  }
+  let c = cfg.chaos
+  let chaosOk = c && okNum(c.maxPerItem, 1) && c.maxPerItem <= 10 && c.maxPerItem % 1 == 0 && c.rarities && c.rarities.length > 0 &&
+    c.rarities.every(R => typeof R.name == 'string' && okNum(R.weight, 0) && okNum(R.power, 0.01) && okNum(R.costMult, 1) &&
+      okNum(R.affixes, 1) && R.affixes <= 5 && R.affixes % 1 == 0 && ['gray', 'aqua', 'light_purple', 'gold', 'red'].indexOf(R.color) >= 0) &&
+    c.rarities.some(R => R.weight > 0)
+  if (!chaosOk) {
+    problems.push('chaos settings are broken, reset to defaults')
+    cfg.chaos = { maxPerItem: 3, rarities: [
+      { name: 'Common', weight: 50, power: 1, affixes: 1, costMult: 1, color: 'gray' },
+      { name: 'Rare', weight: 28, power: 1.5, affixes: 2, costMult: 1.5, color: 'aqua' },
+      { name: 'Epic', weight: 15, power: 2.2, affixes: 2, costMult: 2.5, color: 'light_purple' },
+      { name: 'Legendary', weight: 6, power: 3.2, affixes: 3, costMult: 4, color: 'gold' },
+      { name: 'Mythic', weight: 1, power: 5, affixes: 3, costMult: 8, color: 'red' }
+    ] }
   }
   let f = cfg.fragments
   if (!['eliteChance', 'eliteChancePerLevel', 'eliteChanceCap', 'normalChancePerLevel', 'normalChanceCap'].every(k => okNum(f[k], 0) && f[k] <= 1)) {

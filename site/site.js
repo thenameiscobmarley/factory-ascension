@@ -148,6 +148,73 @@
     '<div class="myth"><img src="' + tex("tome_" + id) + '" alt="" /><b>' + esc(E[id].name) + "</b><span>" +
     esc(global.FA_describe(id, E[id].maxLevel || 10)) + "</span></div>").join("");
 
+  // ---------- chaos forge (same generator as the game: global.FA_rollEnchant) ----------
+  const C = FA.chaos;
+  const RAR_HEX = { gray: "#b9b3ad", aqua: "#4fe3e8", light_purple: "#d48cff", gold: "#ffb84d", red: "#ff4d4d" };
+  const totalWeight = C.rarities.reduce((a, R) => a + R.weight, 0);
+  $("#odds").innerHTML = C.rarities.map(R => '<i style="width:' + (R.weight / totalWeight * 100) + "%;background:" + RAR_HEX[R.color] + '"></i>').join("");
+  $("#oddsKey").innerHTML = C.rarities.map(R => '<span><b style="color:' + RAR_HEX[R.color] + '">' + R.name + "</b> " + Math.round(R.weight / totalWeight * 1000) / 10 + "%</span>").join("");
+  let rollLevel = 1, current = null, rolled = 0, best = -1;
+  const LEVELS = [1, 10, 100, 1000];
+  $("#rollLevels").innerHTML = LEVELS.map(l => '<button class="uv-btn uv-btn--sm uv-btn--ghost' + (l == 1 ? " is-active" : "") + '" data-l="' + l + '">' + global.FA_num(l) + "</button>").join("");
+  const randomSeed = () => 1 + Math.floor(Math.random() * 2147483645);
+  const lines = (roll, l) => roll.affixes.map(a => global.FA_describeDef(a, l));
+
+  function showRoll(seed, animate) {
+    const roll = global.FA_rollEnchant(seed);
+    const R = C.rarities[roll.rarity];
+    current = seed;
+    const card = $("#rollCard");
+    card.className = "roll-card r" + roll.rarity;
+    card.style.setProperty("--rc", RAR_HEX[R.color]);
+    card.innerHTML = '<span class="rar">' + R.name + "</span><h3>" + esc(roll.name) + '</h3><span class="lvl">Level ' + global.FA_num(rollLevel) +
+      " · upgrades cost x" + R.costMult + "</span><ul>" + lines(roll, rollLevel).map(t => "<li>" + esc(t) + "</li>").join("") +
+      '</ul><span class="seed">seed ' + roll.seed + "</span>";
+    if (animate && !reduce) { void card.offsetWidth; card.classList.add("flip"); }
+    return roll;
+  }
+  function celebrate(roll) {
+    if (reduce || roll.rarity < 3 || !(window.UV && UV.confetti)) return;
+    const r = $("#rollCard").getBoundingClientRect();
+    UV.confetti({ x: r.left + r.width / 2, y: r.top + 40, count: roll.rarity == 4 ? 200 : 90, colors: roll.rarity == 4 ? ["#ff4d4d", "#ffb84d", "#fff"] : ["#ffb84d", "#fff3c4", "#ff8a3d"] });
+  }
+  function stats(roll) {
+    rolled++;
+    if (roll.rarity > best) best = roll.rarity;
+    $("#rollStats").textContent = rolled + " rolled this visit · best: " + C.rarities[best].name;
+  }
+  $("#rollOne").addEventListener("click", () => {
+    const tome = $(".chaos-tome");
+    tome.classList.remove("shake"); void tome.offsetWidth; tome.classList.add("shake");
+    const roll = showRoll(randomSeed(), true);
+    stats(roll); celebrate(roll);
+  });
+  $("#rollMany").addEventListener("click", () => {
+    let top = null;
+    $("#rollGrid").innerHTML = Array.from({ length: 12 }, (_, i) => {
+      const seed = randomSeed(), roll = global.FA_rollEnchant(seed), R = C.rarities[roll.rarity];
+      stats(roll);
+      if (!top || roll.rarity > top.rarity) top = roll;
+      return '<button class="roll-mini" style="--rc:' + RAR_HEX[R.color] + ";--d:" + i * 45 + 'ms" data-seed="' + seed + '"><small>' + R.name + "</small><b>" + esc(roll.name) +
+        "</b>" + lines(roll, 1).map(t => "<span>" + esc(t) + "</span>").join("") + "</button>";
+    }).join("");
+    if (top) { showRoll(top.seed, true); celebrate(top); }
+  });
+  $("#rollGrid").addEventListener("click", e => { const b = e.target.closest(".roll-mini"); if (b) showRoll(+b.dataset.seed, true); });
+  $("#rollLevels").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    rollLevel = +b.dataset.l;
+    $("#rollLevels").querySelectorAll("button").forEach(x => x.classList.toggle("is-active", x === b));
+    if (current) showRoll(current, false);
+  });
+  $("#seedForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const n = parseInt($("#seedIn").value, 10);
+    if (n > 0) showRoll(n, true);
+  });
+  showRoll(1337, false);
+
   // ---------- danger journey ----------
   const D = FA.danger;
   const overworld = { dimension: () => ({ location: () => "minecraft:overworld" }), getSharedSpawnPos: () => ({ getX: () => 0, getZ: () => 0 }) };
