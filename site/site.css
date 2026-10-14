@@ -96,6 +96,8 @@ code { font: 500 .9em var(--mono); background: #ffffff10; padding: 1px 6px; bord
 @keyframes orbit { to { --a: 360deg; } }
 .ench.is-mythic h3 { color: #e9d7ff; }
 .empty { color: var(--muted); padding: 40px 0; }
+/* .ench sets display: grid, which would beat the hidden attribute, so hide filtered cards explicitly */
+[hidden] { display: none !important; }
 
 /* ---- mythic ---- */
 .mythic { background: radial-gradient(80% 60% at 50% 0%, #2a1645, transparent 70%), #0d0a12; border-block: 1px solid #c08cff22; }
