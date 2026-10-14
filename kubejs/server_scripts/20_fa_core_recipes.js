@@ -99,12 +99,8 @@ ServerEvents.recipes(event => {
   }).id('kubejs:factory_ascension/melt_condensed_essence')
 
   // Gems: a chipped gem from a superheated mixer, then compact 4 -> 1 for each tier up
-  let gemCatalysts = {
-    bloodstone: ['minecraft:redstone', 4], sapphire: ['minecraft:lapis_lazuli', 4], garnet: ['minecraft:nether_wart', 4],
-    topaz: ['minecraft:gold_ingot', 4], opal: ['minecraft:quartz', 4], onyx: ['minecraft:coal_block', 4]
-  }
   Object.keys(global.FA.gems.types).forEach(type => {
-    let c = gemCatalysts[type]
+    let c = global.FA.gems.types[type].catalyst
     if (!c) return
     let ingredients = [{ item: 'minecraft:diamond' }, { fluid: 'minecraft:lava', amount: 250 }]
     for (let i = 0; i < c[1]; i++) ingredients.push({ item: c[0] })

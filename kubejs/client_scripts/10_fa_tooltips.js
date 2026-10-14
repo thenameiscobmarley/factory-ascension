@@ -148,4 +148,185 @@ ItemEvents.tooltip(event => {
   event.add('kubejs:common_mineral_cluster', Text.gray('Crush for iron, copper, zinc and gold'))
   event.add('kubejs:gem_mineral_cluster', Text.gray('Crush for redstone, lapis, diamonds and emeralds'))
   event.add('kubejs:exotic_mineral_cluster', Text.gray('Crush for modded metals (Mekanism, TFMG)'))
+
+  // ---- Details on every pack item: a flavor line, then Shift for where it comes from, how it's made and what it's for ----
+  let FA = global.FA
+  let details = (id, lore, lines) => {
+    event.addAdvanced(id, (item, advanced, text) => {
+      text.add(Text.darkPurple(lore).italic(true))
+      if (event.isShift()) lines().forEach(l => text.add(l))
+      else text.add(Text.darkGray('Hold ').append(Text.yellow('Shift')).append(Text.darkGray(' for details')))
+    })
+  }
+  let made = s => Text.gray('Made: ').append(Text.white(s))
+  let from = s => Text.gray('Found: ').append(Text.white(s))
+  let use = s => Text.gray('Used for: ').append(Text.white(s))
+  let tip = s => Text.darkGray(s)
+  let ess = n => global.FA_num(n) + ' Essence'
+  let mb = FA.altar.mbPerEssence
+  let A = FA.ascendite
+  let pct = x => Math.round(x * 100) + '%'
+  // "Diamond, 2x Flint" from a list of item ids
+  let itemList = ids => {
+    let counts = {}, order = []
+    ids.forEach(i => { if (!counts[i]) { counts[i] = 0; order.push(i) } counts[i]++ })
+    return order.map(i => (counts[i] > 1 ? counts[i] + 'x ' : '') + faItemName(i)).join(', ')
+  }
+
+  // Cores
+  let coreWays = [
+    made('a diamond on a sequenced assembly line (rose quartz' + (Platform.isLoaded('tfmg') ? ', steel' : '') + ', 250 mB lava, press) x3'),
+    tip('  or 4 Ascendite Ingots + 4 Redstone + Lapis (crafting grid)'),
+    tip('  or ' + A.shardsPerCore + ' Ascension Shards (crafting grid, or pressed in a Basin)'),
+    tip('  or 2 Ascendite Ingots + Redstone + 250 mB Lava (heated mixer)')
+  ]
+  details('kubejs:ascension_core', 'Hums with the power of a whole factory.', () => coreWays.concat([
+    use('Essence, Blank Tomes, Fusion and Chaos Tomes, Liquid Essence (' + mb + ' mB each)')]))
+  details('kubejs:dense_ascension_core', "Nine cores crushed into one. It's warm to the touch.", () => [
+    made('9 Ascension Cores pressed in a heated Basin'), tip('Unpack back into 9 in a crafting grid'),
+    use('the Ascension Altar, the Essence Condenser, ' + 9 * mb + ' mB of Liquid Essence')])
+  details('kubejs:ascension_singularity', 'A pinpoint of pure progress. Do not drop.', () => [
+    made('9 Dense Cores pressed in a superheated Basin'), tip('Unpack into 9 Dense Cores in a crafting grid'),
+    use(ess(81) + ' in one click, or a stack of them for ' + ess(81 * 64))])
+  details('kubejs:incomplete_ascension_core', 'Not done yet. Keep it moving.', () => [
+    tip('Half-made by the sequenced assembly line. Feed it back to the start until it pops out finished.')])
+
+  // Tomes
+  details('kubejs:blank_ascension_tome', 'Empty pages, waiting for a purpose.', () => [
+    made('a Deployer pressing an Ascension Core into a Book'),
+    use('every enchant tome: mix it with that tome\'s catalyst in a heated Basin (see each tome)')])
+  let costTo = {}
+  let essenceTo = (id, target) => {
+    let key = id + '|' + target
+    if (costTo[key] === undefined) {
+      let total = 0
+      for (let L = 1; L < target; L++) total += global.FA_cost(L, id)
+      costTo[key] = total
+    }
+    return costTo[key]
+  }
+  Object.keys(FA.enchants).forEach(id => {
+    let e = FA.enchants[id]
+    let lore = e.ultimate ? 'A legendary technique, written in blood and lightning.' : e.mythic ? 'Its pages glow with something not of this world.'
+      : e.type == 'fusion' ? 'Two powers bound into one spine.' : 'Knowledge that grows without limit.'
+    details('kubejs:tome_' + id, lore, () => {
+      let lines = []
+      if (e.type == 'fusion') {
+        lines.push(made('Tome of ' + FA.enchants[e.parts[0]].name + ' + Tome of ' + FA.enchants[e.parts[1]].name + ' + Ascension Core, heated mixer'))
+        lines.push(tip('Each half works at ' + pct(FA.fusionStrength || 0.6) + ' strength, in one enchant slot'))
+      } else {
+        let cat = global.FA_TOME_CATALYSTS[id] || []
+        let extra = e.ultimate ? ' + 4 Mythic Fragments + 2 Ascended Souls' : e.mythic ? ' + 4 Mythic Fragments' : ''
+        lines.push(made('Blank Tome + ' + itemList(cat) + extra + ((e.ultimate || e.mythic) ? ', superheated mixer' : ', heated mixer')))
+      }
+      if (e.ultimate) {
+        lines.push(tip('Sneak and hit an enemy with a melee attack to unleash it. You can\'t be hurt mid-combo,'))
+        lines.push(tip('and it always brings you back where you started. Cooldown ' + global.FA_ultCooldown(e, 1) + 's at level 1, shorter as it levels.'))
+      }
+      if (e.maxLevel != 1) {
+        ;[10, 100, 1000].filter(L => !e.maxLevel || L <= e.maxLevel).forEach(L =>
+          lines.push(Text.gray('Level ' + global.FA_num(L) + ': ').append(faColor(id)(global.FA_describe(id, L)))
+            .append(Text.darkGray('  (' + ess(essenceTo(id, L)) + ' from level 1)'))))
+      }
+      return lines
+    })
+  })
+  details('kubejs:chaos_tome', 'No two pages read the same.', () => [
+    made('Blank Tome + 4 Ascension Cores + Eye of Ender, superheated mixer'),
+    from('Ascended bosses drop 1-3'),
+    tip('Every roll makes a brand-new enchant with its own name, rarity and 1-3 effects')])
+
+  // Boss and danger-zone drops
+  let F = FA.fragments
+  details('kubejs:mythic_fragment', 'A shard of something that should not exist.', () => [
+    from('danger-zone kills. Elites: ' + pct(F.eliteChance) + ' + ' + pct(F.eliteChancePerLevel) + ' per danger level (max ' + pct(F.eliteChanceCap) + ')'),
+    tip('  Other mobs: ' + (F.normalChancePerLevel * 100).toFixed(1) + '% per danger level (max ' + pct(F.normalChanceCap) + '). Bosses drop several.'),
+    use('Mythic tomes (4 each) and Ultimate tomes (4 each)')])
+  details('kubejs:ascended_soul', 'Still screaming, faintly.', () => [
+    from('Ascended bosses only: rare giant mobs at danger ' + FA.bosses.minDanger + '+ (' + global.FA_num((FA.bosses.minDanger - 1) * FA.danger.blocksPerLevel + FA.danger.safeRadius) + '+ blocks from spawn)'),
+    use('Ultimate tomes (2 each)')])
+
+  // Gems
+  Object.keys(FA.gems.types).forEach(type => {
+    let T = FA.gems.types[type]
+    for (let tier = 1; tier <= 3; tier++) {
+      let lore = ['Rough, but the power is there.', 'Cut without a single flaw.', 'Perfect. It sings when it catches the light.'][tier - 1]
+      details(global.FA_gemId(type, tier), lore, () => [
+        tier == 1 ? made('Diamond + 250 mB Lava + ' + T.catalyst[1] + 'x ' + faItemName(T.catalyst[0]) + ', superheated mixer')
+          : made('4 ' + FA.gems.tiers[tier - 2].name + ' ' + T.name + ' pressed in a ' + (tier == 3 ? 'superheated' : 'heated') + ' Basin'),
+        tip('Each socketed gem adds its levels on top of the ' + FA.enchants[T.enchant].name + ' levels you bought'),
+        tip(tier < 3 ? '4 of these press into one ' + FA.gems.tiers[tier].name + ' ' + T.name : 'Worth ' + global.FA_gemLevels(3) / global.FA_gemLevels(1) + ' Chipped gems in one socket')])
+    }
+  })
+
+  // Ore line
+  details('kubejs:common_mineral_cluster', 'Gravel, pressed by heat into something worth crushing.', () => [
+    made('4 Gravel + 100 mB Lava, heated mixer'), use('crushing: crushed iron, copper (75%), zinc (60%), gold (35%)'),
+    tip('Wash the crushed ore with a fan through water for nuggets, or blow crushed iron through soul fire for Ascendite')])
+  details('kubejs:gem_mineral_cluster', 'Stone that remembers being a gem.', () => [
+    made('4 Cobblestone + Quartz + 250 mB Lava, superheated mixer'), use('crushing: 2 Redstone, Lapis (75%), Diamond (12%), Emerald (8%)')])
+  details('kubejs:exotic_mineral_cluster', 'Blackstone laced with metals from other worlds.', () => [
+    made('4 Blackstone + Redstone + 250 mB Lava, superheated mixer'), use('crushing: modded raw metals (osmium, lead, nickel, tin...)')])
+
+  // Liquid Essence machines
+  details('kubejs:ascension_altar', 'Place gear upon it and watch it grow.', () => [
+    made('2 Amethyst Blocks + Dense Core + Brass Casing + 5 Obsidian'),
+    tip('Build: Create Depot on top (put gear on it), tank or basin of Liquid Essence below'),
+    tip('Normal Essence prices: 1 Essence = ' + mb + ' mB. Counts toward your milestones even offline.')])
+  details('kubejs:essence_condenser', 'Turns a lake of essence into a stack of blocks.', () => [
+    made('4 Brass Ingots + 3 Tinted Glass + Dense Core + Fluid Tank'),
+    tip('Build: tank or basin of Liquid Essence below, chest, barrel or Item Vault on top'),
+    tip('1 block = ' + FA.condensed.mbPerBlock + ' mB. Never takes part of a block.')])
+  details('kubejs:liquid_essence_bucket', 'Smells like ozone and ambition.', () => [
+    made('melt Ascension Cores with a splash of water in a heated mixer (' + mb + ' mB per core)'),
+    use('Ascension Altars, Essence Condensers, or drinking (sneak + right-click)')])
+  for (let tier = 0; tier <= global.FA_condensedTiers(); tier++) {
+    details(global.FA_condensedId(tier), tier == 0 ? 'An ocean of essence in one block.' : 'Heavier than it has any right to be.', () => [
+      made(tier == 0 ? 'an Essence Condenser' : FA.condensed.ratio + ' of the tier below, pressed in a Basin or in a crafting grid'),
+      Text.gray('Worth: ').append(Text.lightPurple(ess(global.FA_condensedValue(tier)))).append(Text.darkGray(' (right-click to absorb)')),
+      tip(tier == 0 ? 'Melts back into ' + FA.condensed.mbPerBlock + ' mB in a heated mixer' : 'Unpacks into ' + FA.condensed.ratio + ' of the tier below')])
+  }
+
+  // Ascendite
+  let O = A.ore
+  ;['kubejs:ascendite_ore', 'kubejs:deepslate_ascendite_ore'].forEach(id => details(id, 'Teal veins that glimmer in torchlight.', () => [
+    from('Overworld, Y ' + O.minY + ' to ' + O.maxY + ' (most common around Y ' + Math.round((O.minY + O.maxY) / 2) + '). Stone pickaxe or better.'),
+    tip('Drops Raw Ascendite (more with Fortune) and a ' + pct(O.shardChance) + ' chance of an Ascension Shard (+' + pct(O.shardFortune) + ' per Fortune level)'),
+    tip('Silk Touch keeps the ore. Crushing it gives extra ore, XP and sometimes a shard.')]))
+  details('kubejs:raw_ascendite', 'Heavy, cold, and faintly humming.', () => [
+    from('mining Ascendite Ore'), use('smelting into an Ingot, or crushing (Crushed Raw Ascendite + XP, sometimes a shard)')])
+  details('kubejs:crushed_raw_ascendite', 'Ground fine, ready for the furnace or the wash.', () => [
+    made('crushing Raw Ascendite or its ore, or blowing Crushed Raw Iron through soul fire (' + pct(A.hauntChance) + ')'),
+    use('smelting into an Ingot, or washing (fan through water) into 9 Nuggets + Redstone (50%)')])
+  details('kubejs:ascendite_ingot', 'Lighter than iron, tougher than it looks.', () => [
+    made('smelting Raw or Crushed Ascendite, or 9 Nuggets'),
+    use('Ascendite tools and armor, Ascension Cores, Precision Mechanisms, Blocks of Ascendite')])
+  details('kubejs:ascendite_nugget', 'A little goes a long way.', () => [
+    made('washing Crushed Raw Ascendite (9 each), or splitting an Ingot'),
+    use('2 Brass from 1 Copper + 1 Zinc, double Andesite Alloy' + (Platform.isLoaded('tfmg') ? ', early TFMG Steel (heated mixer)' : ''))])
+  details('kubejs:ascension_shard', 'A sliver of crystallized ascension.', () => [
+    from('mining Ascendite Ore (' + pct(O.shardChance) + ', more with Fortune), and sometimes from crushing it'),
+    use(A.shardsPerCore + ' make an Ascension Core (crafting grid, or pressed in a Basin)')])
+  details('kubejs:ascendite_block', 'A solid block of teal metal.', () => [
+    made('9 Ascendite Ingots'), use('a Blaze Burner without catching a blaze (+ Empty Blaze Burner + Magma Block), beacon bases')])
+  let T = A.tools
+  ;['sword', 'pickaxe', 'axe', 'shovel', 'hoe'].forEach(g => details('kubejs:ascendite_' + g, 'Forged from Ascendite: light, sharp, and ready to ascend.', () => [
+    Text.gray('Tier: ').append(Text.aqua('between iron and diamond')).append(Text.darkGray('  ' + T.uses + ' durability, ' + (T.level >= 2 ? 'mines diamonds' : 'mines iron'))),
+    made('Ascendite Ingots + Sticks, like iron tools. Repair with Ascendite Ingots in an anvil.'),
+    tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
+  let P = A.armor.protection, slots = { boots: 0, leggings: 1, chestplate: 2, helmet: 3 }
+  let total = P[0] + P[1] + P[2] + P[3]
+  Object.keys(slots).forEach(g => details('kubejs:ascendite_' + g, 'Forged from Ascendite: light, sharp, and ready to ascend.', () => [
+    Text.gray('Armor: ').append(Text.aqua(String(P[slots[g]]))).append(Text.darkGray('  (full set: ' + total + ' armor, ' + 4 * A.armor.toughness + ' toughness)')),
+    made('Ascendite Ingots, like iron armor. Repair with Ascendite Ingots in an anvil.'),
+    tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
 })
+
+// Display name of any item, for recipe lines
+function faItemName(id) {
+  try {
+    return String(Item.of(id).getHoverName().getString())
+  } catch (err) {
+    return String(id).replace(/^[a-z0-9_]+:/, '').replace(/_/g, ' ')
+  }
+}

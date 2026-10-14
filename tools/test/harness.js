@@ -23,6 +23,7 @@ function fakeText(s) {
     s: String(s), click: null,
     append: function (o) { var t = fakeText(this.s + (o.s !== undefined ? o.s : o)); t.clicks = (this.clicks || []).concat(o.clicks || []); return t },
     bold: function () { return this },
+    italic: function () { return this },
     clickRunCommand: function (c) { this.clicks = (this.clicks || []).concat([c]); return this },
     hover: function () { return this }
   }
@@ -31,7 +32,8 @@ var Text = {}
 ;['gold', 'gray', 'darkGray', 'lightPurple', 'red', 'darkRed', 'green', 'aqua', 'yellow', 'white', 'blue', 'of', 'darkAqua', 'darkPurple', 'darkGreen', 'darkBlue'].forEach(function (c) { Text[c] = fakeText })
 
 var KNOWN_ITEMS = { 'mekanism:raw_osmium': 1, 'mekanism:raw_lead': 1, 'mekanism:raw_tin': 1, 'mekanism:raw_uranium': 1, 'tfmg:steel_ingot': 1, 'tfmg:raw_nickel': 1 }
-var Item = { of: function (id, n) { return { id: id, count: n || 1, isEmpty: function () { return !KNOWN_ITEMS[id] } } } }
+var Item = { of: function (id, n) { return { id: id, count: n || 1, isEmpty: function () { return !KNOWN_ITEMS[id] },
+  getHoverName: function () { return { getString: function () { return String(id).replace(/^[a-z0-9_]+:/, '') } } } } } }
 var Ingredient = { all: 'ALL' }
 // KubeJS's Fluid.of: what scripts must pass to fluid handlers (a Forge FluidStack arrives empty in KubeJS)
 var Fluid = { of: function (id, amount) { return { fluid: id, amount: amount, getAmount: function () { return this.amount } } } }
@@ -328,6 +330,11 @@ check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems
 var File = java.io.File
 var missing = created.filter(function (id) { return !new File('kubejs/assets/kubejs/textures/item/' + id + '.png').exists() })
 check('every item has a texture', missing.length == 0, missing.join(','))
+// Every texture is regenerated at 32x32; a 16x16 one means the generator skipped it (stale file)
+function pngSize(path) { var d = java.nio.file.Files.readAllBytes(new File(path).toPath()); var n = function (o) { return ((d[o] & 255) << 24) | ((d[o + 1] & 255) << 16) | ((d[o + 2] & 255) << 8) | (d[o + 3] & 255) }; return n(16) + 'x' + n(20) }
+var staleTex = created.map(function (id) { return 'kubejs/assets/kubejs/textures/item/' + id + '.png' }).concat(createdBlocks.map(function (b) { return 'kubejs/assets/kubejs/textures/block/' + b + '.png' }))
+  .filter(function (f) { return new File(f).exists() && pngSize(f) != '32x32' })
+check('every item and block texture is 32x32 (none skipped by tools/make_textures.py)', staleTex.length == 0, staleTex.slice(0, 5).join(', '))
 
 // ---------------- Recipes ----------------
 print('\nrecipes')
@@ -679,8 +686,28 @@ check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
 
 // ---------------- Tooltips ----------------
 print('\ntooltips')
-var advanced = null, simple = 0
-handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, addAdvanced: function (ing, f) { advanced = f } }) })
+var advanced = null, simple = 0, detailTips = {}, shiftDown = false
+handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, isShift: function () { return shiftDown },
+  addAdvanced: function (ing, f) { if (ing === Ingredient.all) advanced = f; else detailTips[ing] = f } }) })
+// Every pack item gets a flavor line plus Shift details, and none of them print undefined or NaN
+var allPackItems = created.concat(createdBlocks).map(function (x) { return 'kubejs:' + x }).concat(['kubejs:liquid_essence_bucket'])
+var noDetails = allPackItems.filter(function (id) { return !detailTips[id] })
+check('every pack item and block has a detail tooltip', noDetails.length == 0, noDetails.slice(0, 8).join(', '))
+var badTips = []
+function renderTip(id, shift) {
+  shiftDown = shift
+  var out = { arr: [], add: function (t) { this.arr.push(t.s) } }
+  detailTips[id](stack(1), false, out)
+  return out.arr
+}
+Object.keys(detailTips).forEach(function (id) {
+  var short = renderTip(id, false), long = renderTip(id, true)
+  if (short.length != 2 || !/Shift/.test(short[1]) || long.length < 2 || long.concat(short).some(function (l) { return /undefined|NaN|null|\[object/.test(l) })) badTips.push(id + ': ' + long.join(' / '))
+})
+shiftDown = false
+check('detail tooltips: a hint without Shift, real details with it, no undefined/NaN', badTips.length == 0, badTips.slice(0, 3).join(' || '))
+print('  sample Shift details: ' + renderTip('kubejs:tome_sharpness', true).join(' | '))
+print('  sample Shift details: ' + renderTip('kubejs:ascendite_chestplate', true).join(' | '))
 check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == Object.keys(global.FA.essenceValues).length + 1 + enchantCount + 1 + 1 + 1 + 4 + gemCount + 2 + (global.FA_condensedTiers() + 1) + 1, simple)
 var lines = { arr: ['Netherite Chestplate', 'When on body:'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(chest, false, lines)
@@ -731,7 +758,10 @@ check('danger 11 mob takes damage / 3.75', near(hit(plainHero, far, 37.5), 10))
 check('elite takes another /3', near(hit(plainHero, elite, 112.5), 10))
 check('/kill still works on scaled mobs', hit(null, far, 50, { bypass: true }) == 50)
 var tenMob = makeMob(); tenMob.pdata.putInt('fa_danger', 10)
+// No loot roll or fragment this time (they're random), so only the drop multiplier is measured
+Math.random = function () { return 0.999 }
 var d6 = dropEvent(plainHero, tenMob, [stack(4)]); dropsHook(d6)
+Math.random = realRandom
 check('danger 10 doubles drops even without Plunder', totalCount(d6) == 8, totalCount(d6))
 var xpEv2 = { xp: 10, getEntity: function () { return tenMob }, getAttackingPlayer: function () { return plainHero }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
 xpHook(xpEv2)

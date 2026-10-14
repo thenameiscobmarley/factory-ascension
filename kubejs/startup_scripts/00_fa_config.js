@@ -510,13 +510,14 @@ global.FA = {
   gems: {
     sockets: 3,
     tiers: [{ name: 'Chipped', levels: 3 }, { name: 'Flawless', levels: 15 }, { name: 'Perfect', levels: 75 }],
+    // catalyst: [item, count] mixed with a diamond + 250 mB lava (superheated) for a Chipped gem
     types: {
-      bloodstone: { name: 'Bloodstone', enchant: 'sharpness', color: [200, 30, 40] },
-      sapphire: { name: 'Sapphire', enchant: 'protection', color: [40, 90, 230] },
-      garnet: { name: 'Garnet', enchant: 'vitality', color: [150, 20, 70] },
-      topaz: { name: 'Topaz', enchant: 'plunder', color: [240, 180, 40] },
-      opal: { name: 'Opal', enchant: 'swiftness', color: [190, 240, 255] },
-      onyx: { name: 'Onyx', enchant: 'excavation', color: [60, 60, 75] }
+      bloodstone: { name: 'Bloodstone', enchant: 'sharpness', color: [200, 30, 40], catalyst: ['minecraft:redstone', 4] },
+      sapphire: { name: 'Sapphire', enchant: 'protection', color: [40, 90, 230], catalyst: ['minecraft:lapis_lazuli', 4] },
+      garnet: { name: 'Garnet', enchant: 'vitality', color: [150, 20, 70], catalyst: ['minecraft:nether_wart', 4] },
+      topaz: { name: 'Topaz', enchant: 'plunder', color: [240, 180, 40], catalyst: ['minecraft:gold_ingot', 4] },
+      opal: { name: 'Opal', enchant: 'swiftness', color: [190, 240, 255], catalyst: ['minecraft:quartz', 4] },
+      onyx: { name: 'Onyx', enchant: 'excavation', color: [60, 60, 75], catalyst: ['minecraft:coal_block', 4] }
     }
   },
 
@@ -1233,3 +1234,103 @@ global.FA_validate(global.FA).forEach(p => console.error('[Factory Ascension] co
 // Condensed Essence blocks can be absorbed like cores: add every tier to essenceValues
 // (after the config check, which only guards the core 1 : 9 : 81 values)
 for (let tier = 0; tier <= global.FA_condensedTiers(); tier++) global.FA.essenceValues[global.FA_condensedId(tier)] = global.FA_condensedValue(tier)
+
+// ---- Tome catalysts: what goes in the heated mixer with a Blank Ascension Tome, per enchant ----
+// Used by the tome recipes (25_fa_tome_recipes.js) and shown in tome tooltips. Every tome has at least one
+// catalyst no other tome uses, so the mixer never mixes them up (the test harness checks this).
+global.FA_TOME_CATALYSTS = {
+  // Damage
+  sharpness: ['minecraft:diamond', 'minecraft:flint', 'minecraft:flint'],
+  smite: ['minecraft:rotten_flesh', 'minecraft:rotten_flesh', 'minecraft:rotten_flesh'],
+  bane: ['minecraft:spider_eye', 'minecraft:spider_eye'],
+  giant_slayer: ['minecraft:wither_skeleton_skull'],
+  hellbane: ['minecraft:blaze_rod', 'minecraft:blaze_rod'],
+  raidbreaker: ['minecraft:crossbow'],
+  impaling: ['minecraft:prismarine_shard', 'minecraft:prismarine_shard'],
+  skyhunter: ['minecraft:phantom_membrane', 'minecraft:phantom_membrane'],
+  first_strike: ['minecraft:spectral_arrow', 'minecraft:spectral_arrow'],
+  executioner: ['minecraft:iron_axe'],
+  berserk: ['minecraft:blaze_powder', 'minecraft:blaze_powder'],
+  power: ['minecraft:bow'],
+  assassin: ['minecraft:ink_sac', 'minecraft:ink_sac'],
+  critical: ['minecraft:amethyst_shard', 'minecraft:amethyst_shard'],
+  reaper: ['minecraft:wither_rose'],
+  cleave: ['minecraft:diamond_axe'],
+  // On hit
+  lifesteal: ['minecraft:fermented_spider_eye', 'minecraft:redstone', 'minecraft:redstone'],
+  frostbite: ['minecraft:blue_ice'],
+  enfeeble: ['minecraft:poisonous_potato'],
+  withering: ['minecraft:soul_sand', 'minecraft:soul_sand', 'minecraft:coal'],
+  venom: ['minecraft:pufferfish'],
+  skyward: ['minecraft:shulker_shell'],
+  fire_aspect: ['minecraft:fire_charge', 'minecraft:fire_charge'],
+  knockback: ['minecraft:piston'],
+  second_wind: ['minecraft:honeycomb', 'minecraft:honeycomb'],
+  adrenaline: ['minecraft:cocoa_beans', 'minecraft:cocoa_beans'],
+  // On kill
+  plunder: ['minecraft:emerald', 'minecraft:gold_ingot', 'minecraft:gold_ingot'],
+  soul_eater: ['minecraft:soul_lantern'],
+  wisdom: ['minecraft:experience_bottle', 'minecraft:experience_bottle'],
+  midas: ['minecraft:gold_block'],
+  gem_hunter: ['minecraft:emerald_block'],
+  // Defense
+  protection: ['minecraft:iron_block', 'minecraft:obsidian'],
+  fire_ward: ['minecraft:magma_block'],
+  featherweight: ['minecraft:slime_block'],
+  blast_ward: ['minecraft:tnt'],
+  arrow_ward: ['minecraft:shield'],
+  spellward: ['minecraft:lapis_block'],
+  wither_ward: ['minecraft:nether_star'],
+  bulwark: ['minecraft:chain', 'minecraft:chain'],
+  vitality: ['minecraft:golden_apple', 'minecraft:glistering_melon_slice'],
+  retribution: ['minecraft:cactus', 'minecraft:quartz', 'minecraft:quartz'],
+  evasion: ['minecraft:ender_pearl', 'minecraft:ender_pearl'],
+  undying: ['minecraft:totem_of_undying'],
+  // Passive
+  renewal: ['minecraft:ghast_tear'],
+  night_sight: ['minecraft:golden_carrot', 'minecraft:golden_carrot'],
+  gills: ['minecraft:scute'],
+  fireproof: ['minecraft:magma_cream', 'minecraft:magma_cream'],
+  industrious: ['minecraft:golden_pickaxe'],
+  leaping: ['minecraft:slime_ball', 'minecraft:slime_ball'],
+  sustenance: ['minecraft:cake'],
+  magnetism: ['minecraft:lodestone'],
+  restoration: ['minecraft:anvil'],
+  // Movement & utility
+  swiftness: ['minecraft:sugar', 'minecraft:sugar', 'minecraft:feather'],
+  reach: ['minecraft:spyglass'],
+  stride: ['minecraft:scaffolding', 'minecraft:scaffolding'],
+  frenzy: ['minecraft:clock'],
+  lucky: ['minecraft:rabbit_foot'],
+  excavation: ['create:mechanical_drill', 'minecraft:redstone_block'],
+  eternal: ['minecraft:netherite_ingot', 'create:precision_mechanism'],
+  // Mythic (plus 4 Mythic Fragments each, superheated)
+  wings: ['minecraft:elytra'],
+  thunderlord: ['minecraft:lightning_rod'],
+  black_hole: ['minecraft:end_crystal'],
+  meteor: ['create:blaze_cake'],
+  chronos: ['minecraft:amethyst_block'],
+  phoenix: ['minecraft:respawn_anchor'],
+  voidwalker: ['minecraft:popped_chorus_fruit', 'minecraft:popped_chorus_fruit'],
+  soul_harvest: ['minecraft:soul_campfire'],
+  overkill: ['minecraft:netherite_sword'],
+  rampage: ['minecraft:nether_wart_block'],
+  vein_miner: ['minecraft:diamond_pickaxe'],
+  timber: ['create:mechanical_saw'],
+  radiance: ['minecraft:beacon'],
+  headhunter: ['minecraft:skeleton_skull'],
+  gravity_slam: ['minecraft:crying_obsidian'],
+  // Ultimate (plus 2 Ascended Souls and 4 Mythic Fragments each, superheated)
+  thunder_waltz: ['minecraft:trident'],
+  thousand_cuts: ['minecraft:golden_sword'],
+  heaven_splitter: ['minecraft:sticky_piston'],
+  dragon_spiral: ['minecraft:dragon_head'],
+  void_collapse: ['minecraft:ender_chest'],
+  starfall: ['minecraft:firework_rocket'],
+  shadow_barrage: ['minecraft:black_dye'],
+  frozen_eternity: ['minecraft:packed_ice'],
+  spirit_bomb: ['minecraft:glowstone'],
+  blade_storm: ['minecraft:iron_sword'],
+  eclipse: ['minecraft:daylight_detector'],
+  phoenix_dive: ['minecraft:fire_charge']
+}

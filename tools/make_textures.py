@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Generate the 16x16 item textures for Factory Ascension (stdlib only).
+"""Generate the item and block textures for Factory Ascension (stdlib only).
+
+Every sprite is drawn at 16x16, then rendered at 32x32 with a detail pass (see hd_item / hd_block):
+smoothed edges, top-left lighting with highlights and shadows, a fine material grain and a thin colored outline.
 
 Run from the repo root:  python3 tools/make_textures.py
 """
@@ -16,6 +19,13 @@ N = 16
 
 
 def png(path, px):
+    # Detail pass at 2x, chosen by what the texture is
+    if isinstance(px, Outlined):
+        px = hd_item(px.base, px.edge, path)
+    elif os.sep + "armor" + os.sep in path:
+        px = hd_armor(px, path)
+    elif os.sep + "block" + os.sep in path:
+        px = hd_block(px, path)
     raw = b"".join(b"\x00" + bytes(c for p in row for c in p) for row in px)
 
     def chunk(tag, data):
@@ -28,6 +38,131 @@ def png(path, px):
         f.write(chunk(b"IEND", b""))
 
 
+# ---- 32x32 detail pass ----
+
+def _grain(seed, x, y):
+    """Deterministic noise in [-1, 1] per pixel, different for every texture."""
+    h = (x * 374761393 + y * 668265263 + seed * 2246822519) & 0xFFFFFFFF
+    h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
+    return ((h ^ (h >> 16)) & 0xFFFF) / 32767.5 - 1
+
+
+def _seed(path):
+    return zlib.crc32(os.path.basename(path).encode()) & 0xFFFF
+
+
+def _shade(c, f):
+    """Lighten (f > 0, toward white) or darken (f < 0, toward black) an RGBA color."""
+    r, g, b, a = c
+    if f >= 0:
+        return (int(r + (255 - r) * f), int(g + (255 - g) * f), int(b + (255 - b) * f), a)
+    return (int(r * (1 + f)), int(g * (1 + f)), int(b * (1 + f)), a)
+
+
+def _similar(a, b):
+    if a[3] == 0 or b[3] == 0:
+        return a[3] == b[3]
+    return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2]) < 48
+
+
+def scale2x(px):
+    """Scale2x (EPX) for RGBA pixel art: doubles the size and rounds off staircase edges."""
+    h, w = len(px), len(px[0])
+    out = [[None] * (w * 2) for _ in range(h * 2)]
+    get = lambda x, y: px[min(max(y, 0), h - 1)][min(max(x, 0), w - 1)]
+    for y in range(h):
+        for x in range(w):
+            p = px[y][x]
+            a, b, c, d = get(x, y - 1), get(x + 1, y), get(x - 1, y), get(x, y + 1)
+            e1 = e2 = e3 = e4 = p
+            if _similar(c, a) and not _similar(c, d) and not _similar(a, b):
+                e1 = a
+            if _similar(a, b) and not _similar(a, c) and not _similar(b, d):
+                e2 = b
+            if _similar(d, c) and not _similar(d, b) and not _similar(c, a):
+                e3 = c
+            if _similar(b, d) and not _similar(b, a) and not _similar(d, c):
+                e4 = d
+            out[y * 2][x * 2], out[y * 2][x * 2 + 1], out[y * 2 + 1][x * 2], out[y * 2 + 1][x * 2 + 1] = e1, e2, e3, e4
+    return out
+
+
+def _lum(c):
+    return (c[0] * 299 + c[1] * 587 + c[2] * 114) / 255000.0
+
+
+def emboss(px, strength):
+    """Raise features inside a sprite: where it gets brighter toward the top-left light, the edge catches light;
+    where it gets darker, it falls into shadow. Gives carved, layered detail to gems, runes, guards and specks."""
+    n_y, n_x = len(px), len(px[0])
+    out = [row[:] for row in px]
+    for y in range(1, n_y - 1):
+        for x in range(1, n_x - 1):
+            c = px[y][x]
+            ul, dr = px[y - 1][x - 1], px[y + 1][x + 1]
+            # Bright symbols, shine and page edges stay crisp
+            if not (c[3] and ul[3] and dr[3]) or _lum(c) > 0.72:
+                continue
+            d = _lum(dr) - _lum(ul)
+            if abs(d) > 0.04:
+                out[y][x] = _shade(c, max(-0.35, min(0.35, d * strength)))
+    return out
+
+
+def hd_item(base, edge, path):
+    seed = _seed(path)
+    px = emboss(scale2x(base), 1.1)
+    n = len(px)
+    opaque = lambda x, y: 0 <= x < n and 0 <= y < n and px[y][x][3] > 0
+    out = [row[:] for row in px]
+    for y in range(n):
+        for x in range(n):
+            if not opaque(x, y):
+                continue
+            c = px[y][x]
+            # Light from the top-left: rims facing it catch light, rims facing away fall into shadow
+            if not opaque(x - 1, y) or not opaque(x, y - 1):
+                c = _shade(c, 0.24)
+            elif not opaque(x - 1, y - 1) or not opaque(x - 2, y) or not opaque(x, y - 2):
+                c = _shade(c, 0.1)
+            # Light colors (pages, shine, pale gems) only shade a little, so they don't go muddy
+            light = _lum(px[y][x]) > 0.62
+            if not opaque(x + 1, y) or not opaque(x, y + 1):
+                c = _shade(c, -0.1 if light else -0.3)
+            elif not opaque(x + 1, y + 1) or not opaque(x + 2, y) or not opaque(x, y + 2):
+                c = _shade(c, -0.04 if light else -0.12)
+            # Fine grain, skipped on near-white shine so highlights stay crisp
+            if sum(c[:3]) < 690:
+                c = _shade(c, 0.05 * _grain(seed, x, y))
+            out[y][x] = c
+    # Thin outline: a dark version of the color it wraps, tinted by the sprite's edge color
+    final = [row[:] for row in out]
+    for y in range(n):
+        for x in range(n):
+            if opaque(x, y):
+                continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                if opaque(x + dx, y + dy):
+                    inner = _shade(out[y + dy][x + dx], -0.72)
+                    final[y][x] = lerp(inner[:3], edge[:3], 0.5) + (255,)
+                    break
+    return final
+
+
+def hd_block(px, path):
+    """Blocks tile, so no outline or rim light: smoothed detail plus grain at 2x."""
+    seed = _seed(path)
+    up = emboss(scale2x(px), 0.8)
+    return [[_shade(c, 0.045 * _grain(seed, x, y)) if c[3] else c for x, c in enumerate(row)] for y, row in enumerate(up)]
+
+
+def hd_armor(px, path):
+    """Worn armor: plain 2x (its UV layout must stay exact) with grain."""
+    seed = _seed(path)
+    up = [[c for c in row for _ in range(2)] for row in px for _ in range(2)]
+    return [[_shade(c, 0.06 * _grain(seed, x, y)) if c[3] else c for x, c in enumerate(row)] for y, row in enumerate(up)]
+
+
 def blank():
     return [[(0, 0, 0, 0) for _ in range(N)] for _ in range(N)]
 
@@ -36,8 +171,21 @@ def lerp(a, b, t):
     return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(len(a)))
 
 
+class Outlined(list):
+    """A 16x16 sprite with a 1px outline, remembering the sprite underneath so the 32x32 pass can redraw the outline thinner."""
+
+    def __init__(self, px, base, edge):
+        super().__init__(px)
+        self.base = base
+        self.edge = edge
+
+
 def outline(px, color):
     """Dark 1px outline around every opaque pixel, like vanilla items."""
+    return Outlined(outline_px(px, color), px, color)
+
+
+def outline_px(px, color):
     out = [row[:] for row in px]
     for y in range(N):
         for x in range(N):
@@ -182,7 +330,7 @@ def gem_colors():
     """Gem types and colors, read from the config so new gems get textures automatically."""
     text = open(CONFIG).read()
     return {m.group(1): tuple(int(v) for v in m.group(2).split(","))
-            for m in re.finditer(r"^\s+(\w+): \{ name: '[^']*', enchant: '\w+', color: \[([\d, ]+)\] \}", text, re.M)}
+            for m in re.finditer(r"^\s+(\w+): \{ name: '[^']*', enchant: '\w+', color: \[([\d, ]+)\]", text, re.M)}
 
 
 def gem_item(color, tier):
@@ -626,6 +774,8 @@ def main():
     textures["ascended_soul"] = outline(soul(), (10, 20, 40, 255))
     textures["chaos_tome"] = outline(chaos_book(), edge)
     gems = gem_colors()
+    if len(gems) < 6:
+        raise SystemExit('could not read gem colors from ' + CONFIG)
     for name, color in gems.items():
         for tier in (1, 2, 3):
             textures["gem_%s_%d" % (name, tier)] = outline(gem_item(color, tier), (20, 16, 24, 255))
