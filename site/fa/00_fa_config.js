@@ -175,13 +175,13 @@ global.FA = {
       { name: 'Common', color: 'white', weight: 60, growth: 0,
         drops: [['item', 'kubejs:ascension_core', 4, 12, 5], ['item', 'kubejs:gem_mineral_cluster', 8, 24, 3], ['item', 'kubejs:common_mineral_cluster', 16, 48, 3], ['gem', 1, 2]] },
       { name: 'Uncommon', color: 'green', weight: 25, growth: 0.01,
-        drops: [['item', 'kubejs:dense_ascension_core', 2, 6, 4], ['condensed', 0, 0, 3], ['tome', 'base', 3], ['gem', 1, 2], ['item', 'kubejs:exotic_mineral_cluster', 8, 16, 2]] },
+        drops: [['item', 'kubejs:dense_ascension_core', 2, 6, 4], ['condensed', 0, 0, 3], ['tome', 'base', 3], ['gem', 1, 2], ['item', 'kubejs:exotic_mineral_cluster', 8, 16, 2], ['item', 'kubejs:enchantment_pack', 1, 1, 2]] },
       { name: 'Rare', color: 'aqua', weight: 10, growth: 0.025,
-        drops: [['item', 'kubejs:chaos_tome', 1, 2, 4], ['gem', 2, 3], ['tome', 'fusion', 3], ['item', 'kubejs:mythic_fragment', 1, 3, 3], ['condensed', 1, 3, 2]] },
+        drops: [['item', 'kubejs:chaos_tome', 1, 2, 4], ['gem', 2, 3], ['tome', 'fusion', 3], ['item', 'kubejs:mythic_fragment', 1, 3, 3], ['condensed', 1, 3, 2], ['item', 'kubejs:enchantment_pack', 1, 3, 3]] },
       { name: 'Epic', color: 'light_purple', weight: 4, growth: 0.05,
-        drops: [['gem', 3, 3], ['tome', 'mythic', 3], ['item', 'kubejs:ascension_singularity', 1, 3, 2], ['condensed', 4, 8, 2], ['item', 'kubejs:chaos_tome', 3, 5, 2]] },
+        drops: [['gem', 3, 3], ['tome', 'mythic', 3], ['item', 'kubejs:ascension_singularity', 1, 3, 2], ['condensed', 4, 8, 2], ['item', 'kubejs:chaos_tome', 3, 5, 2], ['item', 'kubejs:booster_box', 1, 1, 1]] },
       { name: 'Legendary', color: 'gold', weight: 0.9, growth: 0.08,
-        drops: [['relic', 'legendary', 5], ['item', 'kubejs:ascended_soul', 1, 1, 2], ['condensed', 10, 16, 2], ['tome', 'mythic', 2]] },
+        drops: [['relic', 'legendary', 5], ['item', 'kubejs:ascended_soul', 1, 1, 2], ['condensed', 10, 16, 2], ['tome', 'mythic', 2], ['item', 'kubejs:booster_box', 1, 2, 2]] },
       { name: 'Mythic', color: 'red', weight: 0.1, growth: 0.12,
         drops: [['relic', 'mythic', 5], ['tome', 'ultimate', 2], ['condensed', 20, 30, 2], ['item', 'kubejs:ascended_soul', 2, 3, 1]] }
     ],
@@ -618,6 +618,80 @@ global.FA = {
       { raw: 'squid_tentacle', rawName: 'Squid Tentacle', cooked: 'fried_calamari', cookedName: 'Fried Calamari', mobs: ['minecraft:squid', 'minecraft:glow_squid'], chance: 0.4, hunger: 5, saturation: 0.6, effect: ['minecraft:water_breathing', 60, 0] },
       { raw: 'hoglin_ribs', rawName: 'Hoglin Ribs', cooked: 'bbq_hoglin_ribs', cookedName: 'BBQ Hoglin Ribs', mobs: ['minecraft:hoglin'], chance: 0.35, hunger: 10, saturation: 0.9, effect: ['minecraft:fire_resistance', 45, 0] }
     ]
+  },
+
+  // ---- Enchantment card packs: foil packs of tome "cards", and booster boxes of packs ----
+  packs: {
+    cards: 5,                  // tomes per pack, revealed one by one
+    lastCardRare: true,        // the last card is always Rare or better
+    boxPacks: 12,              // packs in a Booster Box
+    // kind: which tomes ('base', 'fusion', 'mythic', 'ultimate'); level: [min, max] the tome comes pre-leveled to
+    rarities: [
+      { name: 'Common', weight: 60, color: 'white', kind: 'base', level: [1, 1] },
+      { name: 'Uncommon', weight: 25, color: 'green', kind: 'base', level: [5, 25] },
+      { name: 'Rare', weight: 10, color: 'aqua', kind: 'base', level: [50, 150] },
+      { name: 'Holo Rare', weight: 3.5, color: 'light_purple', kind: 'fusion', level: [10, 100], holo: true },
+      { name: 'Mythic Rare', weight: 1.2, color: 'gold', kind: 'mythic', level: [1, 25], holo: true },
+      { name: 'Secret Rare', weight: 0.3, color: 'red', kind: 'ultimate', level: [1, 5], holo: true }
+    ],
+    // Vanilla chests: [chance of a pack, chance of a booster box] per chest
+    chests: {
+      'minecraft:chests/simple_dungeon': [0.3, 0], 'minecraft:chests/abandoned_mineshaft': [0.25, 0],
+      'minecraft:chests/desert_pyramid': [0.3, 0.02], 'minecraft:chests/jungle_temple': [0.3, 0.02],
+      'minecraft:chests/shipwreck_treasure': [0.3, 0.02], 'minecraft:chests/buried_treasure': [0.5, 0.05],
+      'minecraft:chests/pillager_outpost': [0.25, 0], 'minecraft:chests/ruined_portal': [0.15, 0],
+      'minecraft:chests/stronghold_corridor': [0.3, 0.03], 'minecraft:chests/stronghold_library': [0.6, 0.08],
+      'minecraft:chests/nether_bridge': [0.25, 0.02], 'minecraft:chests/bastion_treasure': [0.6, 0.15],
+      'minecraft:chests/woodland_mansion': [0.5, 0.1], 'minecraft:chests/ancient_city': [0.6, 0.15],
+      'minecraft:chests/end_city_treasure': [0.6, 0.2]
+    }
+  },
+
+  // ---- Artifacts: true one-of-one gear ----
+  // Awaken gear in /ascension once its enchants total awakenLevels (or find one: a Mythic Relic sometimes drops as one).
+  // Each Artifact gets a generated name, a world serial number, a signature color and aura, a lore line, and
+  // `quirks` mechanics from the list below with randomly rolled strength, so no two are ever the same.
+  artifacts: {
+    enabled: true,
+    awakenLevels: 2500,        // total enchant levels the gear needs
+    awakenEssence: 25000,
+    awakenSouls: 1,            // Ascended Souls used up
+    relicChance: 0.15,         // chance a Mythic Relic drops as an Artifact
+    quirks: [3, 4],            // how many quirks [min, max]
+    // id: what it does ({p} = its rolled power); for: weapon, armor, tool or any; power: [min, max]
+    list: [
+      { id: 'echo', name: 'Echo Strike', for: 'weapon', power: [10, 35], text: '{p}% chance a hit lands twice' },
+      { id: 'evolving', name: 'Evolving', for: 'any', power: [1, 3], text: '+{p}% damage for every 100 kills it has made' },
+      { id: 'nightstalker', name: 'Nightstalker', for: 'weapon', power: [30, 100], text: '+{p}% damage at night' },
+      { id: 'sunblessed', name: 'Sunblessed', for: 'any', power: [1, 3], text: 'heals {p} health a second in daylight' },
+      { id: 'vortex', name: 'Vortex', for: 'weapon', power: [4, 8], text: 'every 10 hits pulls enemies within {p} blocks into the target' },
+      { id: 'overcharge', name: 'Overcharge', for: 'weapon', power: [50, 150], text: 'every 8 hits a shockwave deals {p}% of the hit around the target' },
+      { id: 'gilded', name: 'Gilded', for: 'weapon', power: [5, 25], text: 'kills drop gold, {p}% chance of an Ascension Core' },
+      { id: 'second_life', name: 'Second Life', for: 'armor', power: [240, 600], text: 'a killing blow leaves you at half health instead (every {p}s)', lowerIsBetter: true },
+      { id: 'colossus', name: 'Colossus', for: 'armor', power: [4, 12], text: '+{p} max health' },
+      { id: 'quickdraw', name: 'Quickdraw', for: 'weapon', power: [10, 40], text: '+{p}% attack speed' },
+      { id: 'soulbound', name: 'Soulbound', for: 'any', power: [1, 1], text: 'stays with you when you die' },
+      { id: 'featherfall', name: 'Featherfall', for: 'armor', power: [1, 1], text: 'no fall damage' },
+      { id: 'prospector', name: 'Prospector', for: 'tool', power: [2, 8], text: '{p}% chance stone you mine drops Raw Ascendite' }
+    ],
+    names: {
+      first: ['Vael', 'Kor', 'Ith', 'Zar', 'Mor', 'Sel', 'Drak', 'Aur', 'Nyx', 'Thal', 'Ves', 'Orr', 'Kael', 'Syl', 'Eld', 'Rhun'],
+      second: ['thorn', 'gar', 'iel', 'eth', 'orin', 'ax', 'ys', 'umbra', 'ion', 'ash', 'wyn', 'mere', 'dris', 'kael'],
+      titles: ['the Dawnshatter', 'Bane of Kings', 'the Last Light', 'Worldsong', 'the Hollow Star', 'Ember of Ages', 'the Unwritten',
+        "Grief's Edge", 'the Silent Storm', 'Heart of the Forge', 'the Unbroken Oath', 'Starfall Remnant', 'the Ninth Ascension', 'Echo of the Void'],
+      lore: ['Forged in a factory that never slept.', 'It remembers every hand that held it.', 'There will never be another.',
+        'Whispers in a language older than stone.', 'Its edge was quenched in liquid Essence.', 'Some say it chose its owner.',
+        'Light bends strangely around it.', 'It hums a little louder in the dark.']
+    },
+    colors: ['gold', 'light_purple', 'aqua', 'red', 'green', 'yellow'],
+    auras: ['1 0.8 0.2', '0.8 0.4 1', '0.3 1 1', '1 0.3 0.3', '0.4 1 0.4', '1 1 0.4']
+  },
+
+  // ---- Home: /sethome saves where you stand, /home takes you back (any dimension) ----
+  home: {
+    enabled: true,
+    combatSeconds: 10,         // no /home for this long after you hit, or get hit by, a mob or player
+    cooldownSeconds: 30        // time between uses
   },
 
   // ---- Glowing ores: light level 0-15 each ore gives off, so veins show up in dark caves ----
@@ -1174,6 +1248,69 @@ let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, 
 let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
 let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
 
+// One card from a pack: { rarity index, enchant id, level }. rnd: 0..1 random; minRarity: lowest allowed index.
+global.FA_rollCard = (rnd, minRarity) => {
+  let P = global.FA.packs
+  let pool = P.rarities.map((r, i) => i >= (minRarity || 0) ? r.weight : 0)
+  let total = pool.reduce((a, b) => a + b, 0)
+  let pick = rnd() * total, ri = 0
+  for (let i = 0; i < pool.length; i++) {
+    pick -= pool[i]
+    if (pick < 0) { ri = i; break }
+    ri = i
+  }
+  let R = P.rarities[ri]
+  let E = global.FA.enchants
+  let ids = Object.keys(E).filter(id => R.kind == 'ultimate' ? E[id].ultimate : R.kind == 'mythic' ? E[id].mythic : R.kind == 'fusion' ? E[id].type == 'fusion'
+    : !E[id].mythic && !E[id].ultimate && E[id].type != 'fusion')
+  let id = ids[Math.floor(rnd() * ids.length)]
+  let level = R.level[0] + Math.floor(rnd() * (R.level[1] - R.level[0] + 1))
+  if (E[id].maxLevel) level = Math.min(level, E[id].maxLevel)
+  return { rarity: ri, id: id, level: Math.max(1, level) }
+}
+
+// A whole pack of cards; the last one is Rare or better when lastCardRare is on
+global.FA_openPack = rnd => {
+  let P = global.FA.packs
+  let cards = []
+  for (let i = 0; i < P.cards; i++) cards.push(global.FA_rollCard(rnd, i == P.cards - 1 && P.lastCardRare ? 2 : 0))
+  return cards
+}
+
+// A brand-new Artifact (plain data): name, title, color, aura, lore and rolled quirks fitting the gear kind
+global.FA_rollArtifact = (rnd, kind) => {
+  let A = global.FA.artifacts
+  let pick = list => list[Math.floor(rnd() * list.length)]
+  let n = A.names
+  let fits = A.list.filter(q => q.for == 'any' || q.for == kind)
+  let count = Math.min(fits.length, A.quirks[0] + Math.floor(rnd() * (A.quirks[1] - A.quirks[0] + 1)))
+  // Shuffle the fitting quirks and take the first few (always finishes, even with a stuck random source)
+  let order = fits.slice()
+  for (let i = order.length - 1; i > 0; i--) {
+    let j = Math.floor(rnd() * (i + 1))
+    let t = order[i]
+    order[i] = order[j]
+    order[j] = t
+  }
+  let quirks = order.slice(0, count).map(q => {
+    let power = q.power[0] + rnd() * (q.power[1] - q.power[0])
+    return { id: q.id, power: Math.round(power * 10) / 10 }
+  })
+  let ci = Math.floor(rnd() * A.colors.length)
+  return {
+    name: pick(n.first) + "'" + pick(n.second), title: pick(n.titles), lore: pick(n.lore),
+    color: A.colors[ci], aura: A.auras[ci % A.auras.length], quirks: quirks, seed: Math.floor(rnd() * 2147483647)
+  }
+}
+
+// "Echo Strike: 23% chance a hit lands twice"
+global.FA_quirkText = (id, power) => {
+  let q = global.FA.artifacts.list.filter(x => x.id == id)[0]
+  if (!q) return id
+  let p = Math.round(power * 10) / 10
+  return q.name + ': ' + q.text.replace('{p}', String(p))
+}
+
 // Which variant a new mob becomes (rarest checked first), or '' for none. Elementals only for hostile mobs.
 global.FA_rollVariant = (rnd, hostile) => {
   let V = global.FA.variants
@@ -1401,6 +1538,11 @@ global.FA_validate = cfg => {
     okNum(vr.fireSeconds, 0) && okNum(vr.frostSeconds, 0) && okNum(vr.stormBonus, 0))) {
     problems.push('variants settings are broken, rare mob variants were switched off')
     vr.enabled = false
+  }
+  let ho = cfg.home
+  if (ho && ho.enabled && !(okNum(ho.combatSeconds, 0) && okNum(ho.cooldownSeconds, 0))) {
+    problems.push('home settings are broken, reset to 10s combat / 30s cooldown')
+    cfg.home = { enabled: true, combatSeconds: 10, cooldownSeconds: 30 }
   }
   let hm = cfg.hammer
   let idOk = id => /^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(id)

@@ -227,7 +227,69 @@ def polishing_cloth():
     ])
 
 
-HAMMERS = {'rock_hammer': rock_hammer, 'ascendite_rock_hammer': ascendite_rock_hammer, 'polishing_cloth': polishing_cloth}
+def _foil(x, y, t=0.0):
+    """Holographic foil: hue sweeps diagonally, with a soft shine band."""
+    import colorsys
+    hue = ((x + y) / 44.0 + t) % 1.0
+    r, g, b = colorsys.hsv_to_rgb(hue, 0.55, 0.95)
+    shine = max(0.0, 1 - abs((x - y) - 4) / 3.0)
+    return _mix((int(r * 255), int(g * 255), int(b * 255)), (255, 255, 255), shine * 0.6)
+
+
+def enchantment_pack():
+    """A foil booster pack: crimped top and bottom, rainbow foil body, a dark window with a gold star."""
+    from tome_art import star_pts
+    px = [[(0, 0, 0, 0)] * S for _ in range(S)]
+    for y in range(3, 29):
+        for x in range(7, 25):
+            crimp = y < 6 or y > 25
+            if crimp and (x + (0 if y < 6 else 1)) % 2 == 0 and y in (3, 28):
+                continue
+            c = _foil(x, y)
+            if crimp:
+                c = _mix(c, (200, 200, 210), 0.5)
+                if y in (5, 26):
+                    c = _mix(c, (90, 90, 110), 0.5)
+            elif x in (7, 24):
+                c = _mix(c, (60, 40, 90), 0.45)
+            px[y][x] = c + (255,)
+    window = raster(add(rect(0.32, 0.3, 0.68, 0.72)), S)
+    star = raster(add(poly(star_pts(0.5, 0.5, 0.14, 0.06, 5))), S)
+    for y in range(S):
+        for x in range(S):
+            if window[y][x] and px[y][x][3]:
+                px[y][x] = _mix((30, 18, 50), (70, 40, 110), y / 32.0) + (255,)
+            if star[y][x]:
+                px[y][x] = _shade('gold', 0.2 + 0.4 * (y / 32.0)) + (255,)
+    return px
+
+
+def booster_box():
+    """A dark box seen at an angle, with a foil band and a gold star."""
+    from tome_art import star_pts
+    px = [[(0, 0, 0, 0)] * S for _ in range(S)]
+    for y in range(6, 28):
+        for x in range(4, 28):
+            top = y < 11
+            side = x > 22
+            c = (64, 40, 96) if not top else (92, 62, 132)
+            if side:
+                c = (42, 26, 64)
+            if 15 <= y <= 18 and not top:
+                c = _foil(x, y, 0.3) if not side else _mix(_foil(x, y, 0.3), (0, 0, 0), 0.35)
+            if x == 4 or y == 6 or (top and y == 10) or x == 22:
+                c = _mix(c, (255, 255, 255), 0.25)
+            px[y][x] = c + (255,)
+    star = raster(add(poly(star_pts(0.4, 0.73, 0.1, 0.04, 5))), S)
+    for y in range(S):
+        for x in range(S):
+            if star[y][x] and px[y][x][3]:
+                px[y][x] = _shade('gold', 0.3) + (255,)
+    return px
+
+
+HAMMERS = {'rock_hammer': rock_hammer, 'ascendite_rock_hammer': ascendite_rock_hammer, 'polishing_cloth': polishing_cloth,
+           'enchantment_pack': enchantment_pack, 'booster_box': booster_box}
 
 ICONS = {'sword': sword, 'pickaxe': pickaxe, 'axe': axe, 'shovel': shovel, 'hoe': hoe,
          'helmet': helmet, 'chestplate': chestplate, 'leggings': leggings, 'boots': boots}

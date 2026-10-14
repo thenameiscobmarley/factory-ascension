@@ -298,6 +298,14 @@ function faShowMenu(player) {
     player.tell(Text.aqua(' \u25c6 ' + G.tiers[g.tier - 1].name + ' ' + G.types[g.type].name).append(Text.darkGray('  +' + global.FA_gemLevels(g.tier) + ' ' + global.FA.enchants[G.types[g.type].enchant].name)))
   })
   if (any) player.tell(Text.darkGray(' Rebirth at ' + global.FA_num(global.FA_rebirthNeed(starCount)) + ' total levels: ').append(faButton('Rebirth', '/ascension rebirth', 'Reset to level 1 for a permanent star')))
+  let AW = global.FA.artifacts
+  if (any && AW.enabled && !global.FA_isArtifact(gear)) {
+    let total = faTotalLevels(gear)
+    player.tell(total >= AW.awakenLevels
+      ? Text.lightPurple(' \u2736 It can be Awakened into a one-of-one Artifact: ').append(Text.gold('[Awaken]').clickRunCommand('/ascension awaken')
+        .hover(Text.gray(global.FA_num(AW.awakenEssence) + ' Essence + ' + AW.awakenSouls + ' Ascended Soul')))
+      : Text.darkGray(' Awakening into an Artifact needs ' + global.FA_num(AW.awakenLevels) + ' total levels (' + global.FA_num(total) + ' now)'))
+  }
   if (!any) player.tell(Text.gray(' No Ascended enchants yet. Hold a Tome in your other hand and right-click it.'))
   return 1
 }
@@ -410,6 +418,76 @@ function faUpgradeTome(player, amount) {
   faSound(player, 'minecraft:block.enchantment_table.use', 1.2)
   player.tell(Text.green('+' + global.FA_num(level - start) + ' -> a level ' + global.FA_num(level) + ' Tome of ' + name + '  ')
     .append(Text.gray('(' + global.FA_describe(id, level) + ', spent ' + global.FA_num(spent) + ' Essence)')))
+  return 1
+}
+
+// ---- Awakening: gear with enough enchant levels becomes a one-of-one Artifact ----
+
+function faTotalLevels(gear) {
+  let total = 0
+  Object.keys(global.FA.enchants).forEach(id => { total += faGetLevel(gear, id) })
+  return total
+}
+
+// Ascended Souls in the player's inventory
+function faCountItem(player, id) {
+  let inv = player.getInventory()
+  let n = 0
+  for (let i = 0; i < inv.getContainerSize(); i++) {
+    let st = inv.getItem(i)
+    if (st && !st.isEmpty() && String(st.getId()) == id) n += st.getCount()
+  }
+  return n
+}
+
+function faTakeItem(player, id, count) {
+  let inv = player.getInventory()
+  for (let i = 0; i < inv.getContainerSize() && count > 0; i++) {
+    let st = inv.getItem(i)
+    if (!st || st.isEmpty() || String(st.getId()) != id) continue
+    let n = Math.min(count, st.getCount())
+    st.shrink(n)
+    count -= n
+  }
+}
+
+function faAwaken(player) {
+  let A = global.FA.artifacts
+  let gear = faTarget(player)
+  if (!A.enabled || !gear) {
+    player.tell(Text.red('Hold the gear you want to Awaken.'))
+    return 0
+  }
+  if (global.FA_isArtifact(gear)) {
+    player.tell(Text.yellow('That is already an Artifact.'))
+    return 0
+  }
+  let total = faTotalLevels(gear)
+  if (total < A.awakenLevels) {
+    player.tell(Text.red('Awakening needs ' + global.FA_num(A.awakenLevels) + ' total enchant levels on it (it has ' + global.FA_num(total) + ').'))
+    return 0
+  }
+  let essence = faGetEssence(player)
+  if (essence < A.awakenEssence || faCountItem(player, 'kubejs:ascended_soul') < A.awakenSouls) {
+    player.tell(Text.red('Awakening costs ' + global.FA_num(A.awakenEssence) + ' Essence and ' + A.awakenSouls + ' Ascended Soul' + (A.awakenSouls > 1 ? 's' : '') + '.'))
+    return 0
+  }
+  let art = global.FA_makeArtifact(gear, Math.random, player.getServer())
+  if (!art) {
+    player.tell(Text.red('That can\'t be Awakened.'))
+    return 0
+  }
+  faSetEssence(player, essence - A.awakenEssence)
+  faTakeItem(player, 'kubejs:ascended_soul', A.awakenSouls)
+  let server = player.getServer()
+  let name = player.username
+  server.runCommandSilent('execute at ' + name + ' run playsound minecraft:ui.toast.challenge_complete player ' + name + ' ~ ~ ~ 1 0.6')
+  server.runCommandSilent('execute at ' + name + ' run particle minecraft:end_rod ~ ~1 ~ 0.6 1 0.6 0.15 120 normal')
+  server.runCommandSilent('title ' + name + ' times 5 60 20')
+  server.runCommandSilent('title ' + name + ' subtitle ' + JSON.stringify({ text: art.title + '  \u00b7  1 of 1  \u00b7  #' + art.serial, color: 'gray' }))
+  server.runCommandSilent('title ' + name + ' title ' + JSON.stringify({ text: art.name, color: art.color, bold: true }))
+  server.tell(Text.lightPurple('\u2736 ' + name + ' Awakened ').append(Text.gold(art.name + ', ' + art.title)).append(Text.lightPurple(' (#' + art.serial + ')')))
+  art.quirks.forEach(q => player.tell(Text.aqua('  \u25c8 ' + global.FA_quirkText(q.id, q.power))))
   return 1
 }
 
@@ -672,6 +750,7 @@ ServerEvents.commandRegistry(event => {
     .executes(ctx => faShowMenu(ctx.source.getPlayerOrException()))
     .then(upgrade)
     .then(tomeCmd)
+    .then(Commands.literal('awaken').executes(ctx => faAwaken(ctx.source.getPlayerOrException())))
     .then(extractCmd)
     .then(Commands.literal('danger').executes(ctx => faShowDanger(ctx.source.getPlayerOrException())))
     // Op-only: move the safe zone (no extra difficulty) to where you stand, or back to world spawn

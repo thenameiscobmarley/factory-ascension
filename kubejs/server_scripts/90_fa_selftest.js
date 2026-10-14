@@ -17,6 +17,7 @@ const $STArmorStand = Java.loadClass('net.minecraft.world.entity.decoration.Armo
 const $STHand = Java.loadClass('net.minecraft.world.InteractionHand')
 const $STEffects = Java.loadClass('net.minecraft.world.effect.MobEffects')
 const $STHit = Java.loadClass('net.minecraft.world.phys.BlockHitResult')
+const $STCompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
 const $STVec = Java.loadClass('net.minecraft.world.phys.Vec3')
 
 let faSelftestBusy = false
@@ -314,6 +315,72 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     check('Rock Hammer: right-clicking a placed cobblestone smashes it in place', after == 'minecraft:air', after + ', ' + pops + ' drops')
     level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().inflate(4)).forEach(e => e.discard())
     player.setPositionAndRotation(X, Y, Z, 0, 0)
+  })
+
+  // ---- /home, card packs, Artifacts ----
+  attempt('home', () => {
+    player.getPersistentData().remove('fa_combat')
+    player.getPersistentData().remove('fa_home_used')
+    player.setPositionAndRotation(X + 3, Y, Z - 3, 0, 0)
+    faSetHome(player)
+    // The teleport itself is vanilla /tp, which can't target Forge's fake player; check that /home goes through
+    // out of combat and is refused in combat
+    player.setPositionAndRotation(X + 20, Y, Z + 20, 0, 0)
+    let went = faGoHome(player) == 1
+    player.getPersistentData().remove('fa_home_used')
+    player.getPersistentData().putInt('fa_combat', server.getTickCount())
+    let refused = faGoHome(player) == 0
+    check('/home goes through out of combat and is refused in combat', went && refused, went + ' / ' + refused)
+    player.getPersistentData().remove('fa_combat')
+    server.persistentData.getCompound('fa_homes').remove(player.stringUuid)
+    player.setPositionAndRotation(X, Y, Z, 0, 0)
+  })
+  attempt('card packs', () => {
+    player.getInventory().clearContent()
+    let pack = Item.of('kubejs:enchantment_pack', 2)
+    player.setItemInHand('main_hand', pack)
+    player.gameMode.useItem(player, level, pack, $STHand.MAIN_HAND)
+    let tomes = 0
+    let inv = player.getInventory()
+    for (let i = 0; i < inv.getContainerSize(); i++) {
+      let st = inv.getItem(i)
+      if (st && !st.isEmpty() && String(st.getId()).indexOf('kubejs:tome_') == 0) tomes += st.getCount()
+    }
+    check('opening an Enchantment Pack (real click) gives 5 tome cards', tomes == global.FA.packs.cards && player.getMainHandItem().getCount() == 1, tomes)
+    player.getInventory().clearContent()
+    let found = 0
+    for (let i = 0; i < 40; i++) server.runCommandSilent('loot spawn ' + (X - 12) + ' ' + (Y + 2) + ' ' + (Z + 12) + ' loot minecraft:chests/simple_dungeon')
+    let near = level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().move(-12, 0, 12).inflate(6))
+    for (let i = 0; i < near.size(); i++) {
+      if (String(near.get(i).getItem().getId()) == 'kubejs:enchantment_pack') found++
+      near.get(i).discard()
+    }
+    check('Enchantment Packs turn up in dungeon chests (' + found + ' in 40 chests)', found > 0, found)
+  })
+  attempt('artifacts', () => {
+    let blade = Item.of('minecraft:netherite_sword')
+    faSetLevel(blade, 'sharpness', 3000)
+    player.setItemInHand('main_hand', blade)
+    faSetEssence(player, 1e6)
+    player.getInventory().add(Item.of('kubejs:ascended_soul'))
+    let ok = faAwaken(player) == 1
+    let held = player.getMainHandItem()
+    let name = held.getHoverName().getString()
+    check('Awakening makes a one-of-one Artifact: ' + name, ok && global.FA_isArtifact(held), name)
+    // Soulbound round trip through Minecraft's own item save and load
+    let persisted = player.getPersistentData().getCompound('PlayerPersisted')
+    let box = new $STCompoundTag()
+    box.put('0', held.save(new $STCompoundTag()))
+    persisted.put('fa_soulbound', box)
+    player.getPersistentData().put('PlayerPersisted', persisted)
+    player.getInventory().clearContent()
+    let n = global.FA_returnSoulbound(player)
+    let back = false
+    let inv = player.getInventory()
+    for (let i = 0; i < inv.getContainerSize(); i++) if (global.FA_isArtifact(inv.getItem(i))) back = true
+    check('a Soulbound Artifact comes back intact after death', n == 1 && back)
+    player.getInventory().clearContent()
+    player.setItemInHand('main_hand', sword)
   })
 
   // ---- Glowing ores and the movable safe zone ----

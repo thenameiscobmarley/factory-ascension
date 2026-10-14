@@ -38,6 +38,21 @@ ItemEvents.tooltip(event => {
     let relic = data.getInt('relic')
     if (relic > 0) text.add(line++, relic == 2 ? Text.red('\u2739 MYTHIC RELIC').bold(true) : Text.gold('\u2605 LEGENDARY RELIC').bold(true))
     let stars = data.getInt('stars')
+    // Artifact: serial, quirks, lore
+    if (data.contains('artifact')) {
+      let a = data.getCompound('artifact')
+      let tc = { gold: 'gold', light_purple: 'lightPurple', aqua: 'aqua', red: 'red', green: 'green', yellow: 'yellow' }[String(a.getString('color'))] || 'gold'
+      text.add(line++, Text[tc]('\u2736 ARTIFACT').bold(true).append(Text.gray('  1 of 1  \u00b7  #' + ('000' + a.getInt('serial')).slice(-4))))
+      let quirks = a.getCompound('quirks')
+      quirks.getAllKeys().forEach(k => {
+        let q = quirks.getCompound(k)
+        text.add(line++, Text.aqua('\u25c8 ' + global.FA_quirkText(String(q.getString('id')), q.getDouble('power'))))
+      })
+      if (a.getInt('kills') > 0) text.add(line++, Text.darkGray('  Kills: ' + global.FA_num(a.getInt('kills'))))
+      text.add(line++, Text.darkPurple(String(a.getString('lore'))).italic(true))
+    }
+    // A holo card pulled from a pack
+    if (data.contains('card')) text.add(line++, Text.lightPurple('\u2726 HOLO \u00b7 ' + data.getString('card')).bold(true))
     // Condition grade, right under the name
     if (data.contains('condition') && global.FA.condition.enabled) {
       let gi = data.getInt('condition') - 1
@@ -334,6 +349,16 @@ ItemEvents.tooltip(event => {
     Text.gray('Tier: ').append(Text.aqua('between iron and diamond')).append(Text.darkGray('  ' + T.uses + ' durability, ' + (T.level >= 2 ? 'mines diamonds' : 'mines iron'))),
     made('Ascendite Ingots + Sticks, like iron tools. Repair with Ascendite Ingots in an anvil.'),
     tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
+  // Card packs
+  let PK = FA.packs
+  details('kubejs:enchantment_pack', 'Sealed in shimmering foil. What\'s inside?', () => [
+    Text.gray('Right-click to open: ').append(Text.white(PK.cards + ' enchant tome cards')).append(Text.darkGray(PK.lastCardRare ? ' (the last one is Rare or better)' : '')),
+    tip(PK.rarities.map(r => r.name + ' ' + r.weight + '%').join(', ')),
+    tip('Holo cards and up come pre-leveled. Found in dungeon, temple, stronghold and end city chests, and danger-zone loot.')])
+  details('kubejs:booster_box', 'The whole box. Every collector\'s dream.', () => [
+    Text.gray('Right-click to open: ').append(Text.white(PK.boxPacks + ' Enchantment Packs')),
+    tip('Found in the best chests (end cities, ancient cities, bastions, mansions) and Epic+ danger-zone loot')])
+
   // Polishing Cloth
   details('kubejs:polishing_cloth', 'A little elbow grease goes a long way.', () => [
     Text.gray('Use: ').append(Text.white('hold gear in your other hand and right-click the cloth')),

@@ -70,6 +70,10 @@ StartupEvents.registry('item', event => {
     })
   })
 
+  // Enchantment card packs (foil) and booster boxes of them (config: packs)
+  event.create('enchantment_pack').displayName('Enchantment Pack').rarity('rare').glow(true)
+  event.create('booster_box').displayName('Enchantment Booster Box').rarity('epic').glow(true)
+
   // Rerolls a piece of gear's condition, keeping the better grade (config: condition)
   event.create('polishing_cloth').displayName('Polishing Cloth').rarity('uncommon')
 

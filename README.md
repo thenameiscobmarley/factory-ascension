@@ -259,6 +259,50 @@ The tools and armor are gunmetal steel with glowing teal energy channels, gold g
 and leather-wrapped grips with gold bands. Worn armor matches: a gold-trimmed helm with a glowing eye slit, gem and nose guard,
 gold pauldrons, a teal V into the chest gem, a belt with a gem buckle, gold knee plates and capped boots with a glowing sole.
 
+## Artifacts: one-of-one gear
+
+An Artifact is more than enchants. It keeps everything it had, and gains:
+
+- a generated name and title, like *Nyx'ash, Echo of the Void*, and a world serial number: **1 of 1 · #0007**
+- a signature color and a particle aura while you hold it, and a lore line
+- **3-4 quirks**, rolled for the kind of gear, each with a random strength, so no two Artifacts are the same:
+
+| Quirk | Gear | Does |
+|---|---|---|
+| Echo Strike | weapon | 10-35% chance a hit lands twice |
+| Evolving | any | +1-3% damage for every 100 kills it has made (it counts) |
+| Nightstalker | weapon | +30-100% damage at night |
+| Sunblessed | any | heals 1-3 health a second in daylight |
+| Vortex | weapon | every 10 hits pulls enemies within 4-8 blocks into the target |
+| Overcharge | weapon | every 8 hits a shockwave deals 50-150% of the hit around the target |
+| Gilded | weapon | kills drop gold, 5-25% chance of an Ascension Core |
+| Second Life | armor | a killing blow leaves you at half health instead (every 4-10 min) |
+| Colossus | armor | +4-12 max health |
+| Quickdraw | weapon | +10-40% attack speed |
+| Soulbound | any | stays with you when you die |
+| Featherfall | armor | no fall damage |
+| Prospector | tool | 2-8% chance stone you mine drops Raw Ascendite |
+
+**How to get one:** gear with 2,500 total enchant levels shows **[Awaken]** in `/ascension` (25,000 Essence + 1 Ascended
+Soul). Or get lucky: 15% of Mythic Relic drops come out as Artifacts, announced to the server.
+
+## Enchantment card packs
+
+**Enchantment Packs** come in shimmering foil. Right-click one to open it: 5 tome "cards" are revealed one by one, and the
+last is always Rare or better.
+
+| Card | Odds | Tome |
+|---|---|---|
+| Common | 60% | an Ascended tome |
+| Uncommon | 25% | an Ascended tome pre-leveled 5-25 |
+| Rare | 10% | an Ascended tome pre-leveled 50-150 |
+| ✦ Holo Rare | 3.5% | a Fusion tome, level 10-100 |
+| ✦ Mythic Rare | 1.2% | a Mythic tome |
+| ✦ Secret Rare | 0.3% | an Ultimate tome (announced to the server) |
+
+A **Booster Box** holds 12 packs. Packs turn up in dungeon, mineshaft, temple, shipwreck, stronghold, nether fortress,
+bastion, mansion, ancient city and end city chests, and in danger-zone loot. Boxes only in the best chests and Epic+ loot.
+
 ## Rare mob variants
 
 Any mob can spawn as a rare variant. The rarer it is, the better it drops. Kills are announced in chat.
@@ -397,12 +441,6 @@ itself; it only counts once it's on gear.
 The enchants show in the item's tooltip right under its name, with what they do, e.g.
 `Ascended Sharpness 101  x11.10 damage`.
 
-Every item the pack adds is **3D**: `tools/make_item_models.py` builds a relief model from each texture, so in your hand,
-on the ground and in item frames the whole item is thick with beveled rims, its surface follows the texture (light parts
-raised, dark parts grooved: leather wraps, metal plates, page edges, meat and bone), and gems, emblems, gold trim and
-glowing channels sit highest. (In inventory slots they still look like normal icons.) Worn armor can't change shape
-without a Java mod, so its texture is sculpted instead: beveled trim, brushed metal, rivets and set gems.
-
 Every one of the 286 enchant tomes has its own cover: each base enchant has an emblem that shows what it does
 (a sword for Sharpness, a spider for Bane, an hourglass for Chronos...), Mythic tomes get a gold frame and a glow,
 Ultimates a black-and-crimson double frame with a ribbon, and Fusion tomes split the cover between both parents'
@@ -464,6 +502,9 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension` | Everyone | Essence bank + upgrade menu for the held item |
 | `/ascension upgrade <enchant> <levels>` | Everyone | What the menu buttons run |
 | `/ascension danger` | Everyone | Danger level, zone and mob multipliers where you stand |
+| `/sethome` (or `/home set`) | Everyone | Save where you stand as your home (any dimension) |
+| `/home` | Everyone | Teleport home. Not while in combat (10s after hitting or being hit), 30s cooldown |
+| `/ascension awaken` | Everyone | Awaken the held gear into an Artifact (what the menu button runs) |
 | `/ascension milestones` | Everyone | Milestone progress |
 | `/ascension rebirth` | Everyone | Rebirth the held item (asks to confirm) |
 | `/ascension event` | Everyone | The current world event |
@@ -472,12 +513,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 40 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 45 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 386 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 413 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
@@ -491,7 +532,7 @@ the same, so it also bans method names KubeJS hides or renames (found on a real 
 handlers (a Forge FluidStack from a script arrives empty). Scripts start with `// priority: N` so they load in order
 on servers too. The real test is `/ascension selftest` in game (see [INSTALL.md](INSTALL.md)).
 
-3D item models are generated by `python3 tools/make_item_models.py` (run it after the textures). Textures are generated by `python3 tools/make_textures.py`: each is drawn at 16x16, then rendered at 32x32 with a detail
+Textures are generated by `python3 tools/make_textures.py`: each is drawn at 16x16, then rendered at 32x32 with a detail
 pass (smoothed edges, top-left lighting, carved inner detail, grain, a thin colored outline), and `docs/ENCHANTS.md` by
 `java -jar rhino-1.7.15.jar -version 200 tools/make_enchant_docs.js`. Both read the config, so new enchants
 added there get a tome texture and a docs entry automatically.

@@ -133,8 +133,19 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
       let made = []
       let label
       if (roll.drop.kind == 'relic') {
-        made.push(faRelicStack(roll.drop.relic))
+        let relic = faRelicStack(roll.drop.relic)
         label = roll.drop.relic.name
+        // The luckiest Mythic Relics come out as one-of-one Artifacts
+        let AR = global.FA.artifacts
+        if (roll.drop.relic.quality == 'mythic' && AR.enabled && Math.random() < AR.relicChance && global.FA_makeArtifact) {
+          let art = global.FA_makeArtifact(relic, Math.random, killer.getServer())
+          if (art) {
+            label = art.name + ', ' + art.title
+            let server = killer.getServer()
+            if (server) server.tell(Text.lightPurple('\u2736 ' + killer.username + ' found an Artifact: ').append(Text.gold(label + ' (#' + art.serial + ')')))
+          }
+        }
+        made.push(relic)
         faStat(killer, 'relics_found', 1)
       } else {
         let proto = Item.of(roll.drop.id)

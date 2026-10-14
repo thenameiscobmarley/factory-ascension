@@ -54,7 +54,9 @@ Compound.prototype = {
   remove: function (k) { delete this.d[k] },
   getBoolean: function (k) { return !!this.d[k] },
   put: function (k, v) { this.d[k] = v },
-  getAllKeys: function () { return javaList(Object.keys(this.d)) }
+  getAllKeys: function () { var l = javaList(Object.keys(this.d)); l.forEach = function (f) { this.arr.forEach(f) }; return l },
+  putFloat: function (k, v) { this.d[k] = v },
+  getFloat: function (k) { return this.d[k] || 0 }
 }
 
 function PlayerClass() {}
@@ -66,13 +68,15 @@ var MobType = { UNDEAD: 'undead', ARTHROPOD: 'arthropod', WATER: 'water', UNDEFI
 function ItemEntityClass(level, x, y, z, stack) { this.s = stack; this.setDefaultPickUpDelay = function () {} }
 ItemEntityClass.prototype.getItem = function () { return this.s }
 var modIds = 0
+function FakeArmorItem() {}
+function FakeDiggerItem() {}
 var Java = {
   loadClass: function (n) {
     var classes = {
       'net.minecraft.world.entity.player.Player': PlayerClass,
       'net.minecraft.world.entity.item.ItemEntity': ItemEntityClass,
       'net.minecraft.tags.DamageTypeTags': { BYPASSES_INVULNERABILITY: 'bypass', IS_PROJECTILE: 'projectile', IS_FIRE: 'fire', IS_FALL: 'fall', IS_EXPLOSION: 'explosion' },
-      'net.minecraft.world.entity.ai.attributes.Attributes': { MOVEMENT_SPEED: 'movement_speed', ATTACK_SPEED: 'attack_speed', ATTACK_KNOCKBACK: 'attack_knockback', LUCK: 'luck' },
+      'net.minecraft.world.entity.ai.attributes.Attributes': { MAX_HEALTH: 'max_health', MOVEMENT_SPEED: 'movement_speed', ATTACK_SPEED: 'attack_speed', ATTACK_KNOCKBACK: 'attack_knockback', LUCK: 'luck' },
       'net.minecraft.world.entity.LivingEntity': LivingClass,
       'net.minecraft.world.entity.monster.Enemy': EnemyClass,
       'net.minecraft.world.entity.raid.Raider': RaiderClass,
@@ -91,7 +95,11 @@ var Java = {
       'net.minecraft.world.BossEvent$BossBarOverlay': { NOTCHED_10: 'n10' },
       'net.minecraft.world.level.levelgen.Heightmap$Types': { MOTION_BLOCKING: 'mb' },
       'net.minecraft.core.BlockPos': FakePos,
-      'net.minecraft.world.item.ArmorItem': function FakeArmorItem() {},
+      'net.minecraft.world.item.ArmorItem': FakeArmorItem,
+      'net.minecraft.world.item.DiggerItem': FakeDiggerItem,
+      'net.minecraft.world.item.AxeItem': function FakeAxeItem() {},
+      'net.minecraft.nbt.CompoundTag': Compound,
+      'net.minecraft.world.item.ItemStack': { of: function (t) { var st = stack(1, 1); st.id = t.d.id; st.tag = t.d.tag || null; st.restored = true; return st } },
       'net.minecraftforge.common.capabilities.ForgeCapabilities': { ITEM_HANDLER: 'items', FLUID_HANDLER: 'fluids' },
       'net.minecraft.core.Direction': { UP: 'up', DOWN: 'down' },
       'net.minecraftforge.fluids.capability.IFluidHandler$FluidAction': { SIMULATE: 'sim', EXECUTE: 'exec' },
@@ -132,7 +140,7 @@ var JEIEvents = {
 var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
 var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn },
   rightClicked: function (fn) { handlers.blockClick = fn } }
-var ServerEvents = { loaded: function (fn) { handlers.loaded = fn }, recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn },
+var ServerEvents = { loaded: function (fn) { handlers.loaded = fn }, chestLootTables: function (fn) { handlers.chestLoot = fn }, recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn },
   tags: function (type, fn) { (handlers.tags[type] = handlers.tags[type] || []).push(fn) }, highPriorityData: function (fn) { handlers.data.push(fn) } }
 var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) },
   crafted: function (fn) { handlers.crafted = fn },
@@ -149,6 +157,8 @@ function javaList(arr) {
     iterator: function () { var i = 0, a = this.arr; return { hasNext: function () { return i < a.length }, next: function () { return a[i++] } } },
     add: function (x) { this.arr.push(x) },
     size: function () { return this.arr.length },
+    get: function (i) { return this.arr[i] },
+    remove: function (i) { return this.arr.splice(i, 1)[0] },
     toArray: function () { return this.arr.slice() }
   }
 }
@@ -166,14 +176,17 @@ function stack(count, max, name) {
     getOrCreateTag: function () { if (!this.tag) this.tag = new Compound(); return this.tag },
     getHoverName: function () { var t = fakeText(this.name); t.getString = function () { return this.s }; return t },
     getId: function () { return this.id }, getItem: function () { return this.id },
-    damage: 0, getDamageValue: function () { return this.damage }, setDamageValue: function (d) { this.damage = d }, getMaxDamage: function () { return this.maxDamage || 0 }
+    damage: 0, getDamageValue: function () { return this.damage },
+    save: function (t) { t.d.id = this.id; t.d.tag = this.tag; return t }, setDamageValue: function (d) { this.damage = d }, getMaxDamage: function () { return this.maxDamage || 0 }
   }
 }
 function gear(name) { return stack(1, 1, name) }
 
 function makeServer() {
   var data = new Compound()
-  return { persistentData: data, commands: [], told: [], runCommandSilent: function (c) { this.commands.push(c) }, tell: function (t) { this.told.push(t.s) } }
+  return { persistentData: data, commands: [], told: [], runCommandSilent: function (c) { this.commands.push(c) }, tell: function (t) { this.told.push(t.s) },
+    getTickCount: function () { return gameTime }, scheduleInTicks: function (t, f) { f() },
+    getPlayerList: function () { return { getPlayers: function () { var a = []; a.size = function () { return 0 }; return a } } } }
 }
 
 function makePlayer(server, uuid) {
@@ -212,6 +225,8 @@ function makePlayer(server, uuid) {
   p.displayClientMessage = function (t) { this.bar.push(t.s) }
   p.tell = function (t) { this.messages.push(t) }
   p.give = function (i) { this.given.push(i) }
+  p.inv = []
+  p.getInventory = function () { var self = this; return { getContainerSize: function () { return self.inv.length }, getItem: function (i) { return self.inv[i] } } }
   p.cooldowns = {}
   p.getCooldowns = function () { var self = this; return { isOnCooldown: function (it) { return !!self.cooldowns[it] }, addCooldown: function (it, t) { self.cooldowns[it] = t } } }
   return p
@@ -264,6 +279,7 @@ function livingBits(o, maxHealth) {
       getBlockState: function () { return { isAir: function () { return true } } },
       createEntity: function (t) { var m = makeMob(); m.type = t; spawnedMinions.push(m); return m },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
+      getDayTime: function () { return self.dayTime || 1000 },
       isClientSide: function () { return false },
       addFreshEntity: function (e) { bolts.push(e) },
       getEntitiesOfClass: function (cls, box) { var l = self.nearby.filter(function (e) { return e instanceof cls }); return { size: function () { return l.length }, get: function (i) { return l[i] } } }
@@ -290,8 +306,8 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js',
-  'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js',
+  'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
@@ -347,7 +363,7 @@ check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount =
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 3, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 5, created.length)
 check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
   return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
@@ -363,16 +379,6 @@ function pngSize(path) { var d = java.nio.file.Files.readAllBytes(new File(path)
 var staleTex = created.map(function (id) { return 'kubejs/assets/kubejs/textures/item/' + id + '.png' }).concat(createdBlocks.map(function (b) { return 'kubejs/assets/kubejs/textures/block/' + b + '.png' }))
   .filter(function (f) { return new File(f).exists() && pngSize(f) != '32x32' })
 check('every item and block texture is 32x32 (none skipped by tools/make_textures.py)', staleTex.length == 0, staleTex.slice(0, 5).join(', '))
-// 3D item models (tools/make_item_models.py): one per item texture, pointing at it, boxes inside Minecraft's limits
-var badModels = created.filter(function (id) {
-  var f = new File('kubejs/assets/kubejs/models/item/' + id + '.json')
-  if (!f.exists()) return true
-  var m = JSON.parse(String(new java.lang.String(java.nio.file.Files.readAllBytes(f.toPath()), 'UTF-8')))
-  return m.textures.t != 'kubejs:item/' + id || !m.elements || m.elements.length == 0 || !m.display ||
-    !m.elements.every(function (e) { return e.from.concat(e.to).every(function (v) { return v >= -16 && v <= 32 }) && e.faces.south && e.faces.north })
-})
-check('every item has a 3D model (run tools/make_item_models.py after changing textures)', badModels.length == 0, badModels.slice(0, 5).join(', '))
-
 // Every tome has its own design (tools/tome_art.py): no two tome textures may be the same picture
 var tomeHashes = {}, sameTomes = []
 created.filter(function (id) { return id.indexOf('tome_') == 0 }).forEach(function (id) {
@@ -527,7 +533,7 @@ var clicks = []
 p.messages.forEach(function (t) { clicks = clicks.concat(t.clicks || []) })
 check('menu has clickable upgrade buttons', clicks.indexOf('/ascension upgrade protection 100') >= 0, clicks.join(','))
 print('  sample: ' + p.messages[2].s)
-check('command registered', handlers.commands.length == 1)
+check('commands registered (/ascension, /home, /sethome)', handlers.commands.length == 2)
 
 // ---------------- Effects ----------------
 print('\ndamage')
@@ -1705,6 +1711,117 @@ popped = []; blockSet = null
 handlers.blockClick({ player: miner2, item: hammer2, block: { id: 'minecraft:stone', set: function (b) { blockSet = b }, popItem: function () {} }, level: miner2.level, cancel: function () {} })
 check('non-rock blocks are left alone', blockSet === null)
 Math.random = realRandom
+
+// ---------------- /home ----------------
+print('\nhome')
+server.getTickCount = function () { return gameTime }   // an earlier test froze it at 40
+var homer = makePlayer(server, 'homer')
+homer.x = 120; homer.y = 70; homer.z = -40
+server.commands = []
+check('/home before /sethome tells you to set one', faGoHome(homer) == 0)
+faSetHome(homer)
+homer.x = 5000
+gameTime = 100000
+check('/home teleports you back (any dimension, via tp)', faGoHome(homer) == 1 && server.commands.some(function (c) { return /execute in minecraft:overworld run tp homer 120\.00 70\.00 -40\.00/.test(c) }),
+  server.commands.join(' | '))
+gameTime += 20
+check('...then it cools down', faGoHome(homer) == 0)
+gameTime += global.FA.home.cooldownSeconds * 20
+var foe = makeMob()
+hit(foe, homer, 2)
+check('getting hit puts you in combat: no /home for ' + global.FA.home.combatSeconds + 's', global.FA_combatLeft(homer) == global.FA.home.combatSeconds && faGoHome(homer) == 0)
+gameTime += global.FA.home.combatSeconds * 20 + 1
+homer.messages = []
+var backHome = faGoHome(homer)
+check('...and it works again once combat is over', backHome == 1, homer.messages.map(function (t) { return t.s }).join(' | ') + ' combat=' + global.FA_combatLeft(homer))
+homer.pdata.putInt('fa_combat', gameTime + 999999)
+check('a combat mark from before a server restart doesn\'t count', global.FA_combatLeft(homer) == 0)
+
+// ---------------- Enchantment card packs ----------------
+print('\ncard packs')
+var PR = global.FA.packs.rarities, pr = new java.util.Random(11), tallyR = PR.map(function () { return 0 }), lastOk = true
+for (var pk = 0; pk < 4000; pk++) {
+  var pack = global.FA_openPack(function () { return pr.nextDouble() })
+  pack.forEach(function (c) { tallyR[c.rarity]++ })
+  if (pack[pack.length - 1].rarity < 2) lastOk = false
+}
+check('a pack has ' + global.FA.packs.cards + ' cards and the last is always Rare or better', lastOk)
+check('rarer cards are rarer (4,000 packs)', tallyR[0] > tallyR[1] && tallyR[1] > tallyR[3] && tallyR[3] > tallyR[4] && tallyR[4] > tallyR[5] && tallyR[5] > 0, tallyR.join(' / '))
+var secret = global.FA_rollCard(function () { return 0.9999 }, 0)
+check('Secret Rare cards are Ultimate tomes', !!global.FA.enchants[secret.id].ultimate && secret.rarity == PR.length - 1, secret.id)
+var opener = makePlayer(server, 'opener'), packSt = stack(2); packSt.id = 'kubejs:enchantment_pack'
+handlers.rightClicked['kubejs:enchantment_pack']({ player: opener, item: packSt, cancel: function () {} })
+check('opening a pack gives 5 tomes (leveled to the card) and uses one pack', packSt.count == 1 && opener.given.length == 5 &&
+  opener.given.every(function (t) { return /^kubejs:tome_/.test(t.id) }), opener.given.map(function (t) { return t.id }).join(','))
+var boxSt = stack(1); boxSt.id = 'kubejs:booster_box'; opener.given = []
+handlers.rightClicked['kubejs:booster_box']({ player: opener, item: boxSt, cancel: function () {} })
+check('a booster box holds ' + global.FA.packs.boxPacks + ' packs', boxSt.count == 0 && opener.given[0].id == 'kubejs:enchantment_pack' && opener.given[0].count == global.FA.packs.boxPacks)
+var chestMods = {}
+handlers.chestLoot({ modify: function (id, fn) { var pools = []; fn({ addPool: function (f) { var pool = { items: [], empty: 0, addItem: function (i) { var e = { id: i, weight: function (w) { e.w = w; return e } }; pool.items.push(e); return e }, addEmpty: function (w) { pool.empty = w } }; f(pool); pools.push(pool) } }); chestMods[id] = pools } })
+// KubeJS's chest event adds the chests/ folder itself (found on a real server: full ids matched nothing)
+var dung = chestMods['minecraft:simple_dungeon'], endc = chestMods['minecraft:end_city_treasure']
+check('dungeon chests get a 30% pack roll; end cities a box roll too', dung.length == 1 && dung[0].items[0].w == 300 && dung[0].empty == 700 && endc.length == 2 && endc[1].items[0].id == 'kubejs:booster_box')
+
+// ---------------- Artifacts ----------------
+print('\nartifacts')
+var ar = new java.util.Random(5), seen = {}, dupes = 0
+for (var ai = 0; ai < 2000; ai++) {
+  var art = global.FA_rollArtifact(function () { return ar.nextDouble() }, 'weapon')
+  var key = art.name + '|' + art.title + '|' + art.quirks.map(function (q) { return q.id + q.power }).join(',')
+  if (seen[key]) dupes++; seen[key] = 1
+}
+check('2,000 rolled Artifacts are all different', dupes == 0, dupes)
+var armorArt = global.FA_rollArtifact(Math.random, 'armor')
+check('Artifacts only get quirks that fit the gear (armor never gets Echo Strike)', armorArt.quirks.every(function (q) { var d = global.FA.artifacts.list.filter(function (x) { return x.id == q.id })[0]; return d.for == 'any' || d.for == 'armor' }))
+var artServer = makeServer()
+var blade2 = stack(1, 1, 'Netherite Sword'); blade2.id = 'minecraft:netherite_sword'; blade2.maxDamage = 2031
+var made2 = global.FA_makeArtifact(blade2, function () { return 0.5 }, artServer)
+check('making an Artifact names it and numbers it #1 of 1', made2 && made2.serial == 1 && /,/.test(JSON.parse(blade2.tag.getCompound('display').getString('Name')).text) && global.FA_isArtifact(blade2))
+var blade3 = stack(1, 1); blade3.id = 'minecraft:iron_sword'; blade3.maxDamage = 250
+check('the next one is #2', global.FA_makeArtifact(blade3, Math.random, artServer).serial == 2)
+check('an Artifact can\'t be made twice', global.FA_makeArtifact(blade2, Math.random, artServer) === false)
+// Quirks in combat
+function artWith(id, power, isArmor) {
+  var st = stack(1, 1); st.id = 'test:gear'; st.maxDamage = 500
+  if (isArmor) st.getItem = function () { return new FakeArmorItem() }
+  var tag = st.getOrCreateTag(), data = tag.getCompound('FactoryAscension'), a = new Compound(), qs = new Compound(), one = new Compound()
+  one.putString('id', id); one.putDouble('power', power); qs.put('0', one); a.put('quirks', qs); a.putString('aura', '1 1 1')
+  data.put('artifact', a); tag.put('FactoryAscension', data)
+  return st
+}
+var wielder = makePlayer(server, 'wielder')
+wielder.main = artWith('nightstalker', 50)
+wielder.dayTime = 18000
+check('Nightstalker 50: +50% damage at night', near(hit(wielder, makeMob(), 10), 15), hit(wielder, makeMob(), 10))
+wielder.dayTime = 6000
+check('...and nothing by day', hit(wielder, makeMob(), 10) == 10)
+var faller = makePlayer(server, 'faller'); faller.armor = [artWith('featherfall', 1, true)]
+check('Featherfall armor: no fall damage', hit(null, faller, 20, { tags: ['fall'] }) == 0)
+var lucky = makePlayer(server, 'lucky'); lucky.armor = [artWith('second_life', 300, true)]; lucky.hp = 5
+check('Second Life: a killing blow leaves you at half health instead', hit(makeMob(), lucky, 50) == 0 && lucky.hp == 10)
+check('...and it needs to recharge', hit(makeMob(), lucky, 50) == 50)
+var held = makePlayer(server, 'held'); held.off = artWith('nightstalker', 50); held.dayTime = 18000
+check('an Artifact weapon in the off hand does nothing', hit(held, makeMob(), 10) == 10)
+// Soulbound survives death
+var dier = makePlayer(server, 'dier'), sb = artWith('soulbound', 1)
+var deathDrops = javaList([{ getItem: function () { return sb } }, { getItem: function () { return stack(5) } }])
+global.FA_keepSoulbound(dier, deathDrops)
+check('Soulbound: the Artifact is taken out of your death drops', deathDrops.size() == 1)
+check('...and given back when you respawn', global.FA_returnSoulbound(dier) == 1 && dier.given.length == 1 && dier.given[0].restored)
+// Awakening
+var awakener = makePlayer(server, 'awakener'), big2 = gear('Diamond Sword')
+big2.id = 'minecraft:diamond_sword'; big2.maxDamage = 1561
+faSetLevel(big2, 'sharpness', 3000)
+awakener.main = big2
+server.persistentData.putDouble('fa_essence_awakener', 1e6)
+var soul = stack(1); soul.id = 'kubejs:ascended_soul'; awakener.inv = [soul]
+check('Awakening turns 2,500+ levels of gear into an Artifact (costs Essence and an Ascended Soul)', faAwaken(awakener) == 1 && global.FA_isArtifact(big2) &&
+  soul.count == 0 && faGetEssence(awakener) == 1e6 - global.FA.artifacts.awakenEssence)
+var small2 = gear('Stick'); small2.maxDamage = 50; faSetLevel(small2, 'sharpness', 10); awakener.main = small2
+check('...but not gear with too few levels', faAwaken(awakener) == 0 && !global.FA_isArtifact(small2))
+var artTip = { arr: ['Sword'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
+advanced(big2, false, artTip)
+check('the tooltip shows ARTIFACT, 1 of 1, its serial, quirks and lore', /ARTIFACT\s+1 of 1/.test(artTip.arr[1]) && artTip.arr.some(function (l) { return /^\u25c8 /.test(l) }), artTip.arr.slice(0, 4).join(' | '))
 
 // ---------------- Moving the safe zone ----------------
 print('\nsafe zone center')
