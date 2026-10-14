@@ -249,7 +249,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 252 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 256 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
@@ -266,6 +266,12 @@ added there get a tome texture and a docs entry automatically.
 ## License
 
 MIT
+
+## JEI
+
+Every item, block and the Liquid Essence fluid show up in JEI, and every recipe shows under its machine's tab.
+`client_scripts/20_fa_jei.js` adds information pages for things that don't come from a recipe (the Condenser, the Altar,
+Condensed Essence, Mythic Fragments, Chaos Tomes, absorbing cores, socketing gems, every tome) and hides the assembly line's half-made core.
 
 ## Website
 

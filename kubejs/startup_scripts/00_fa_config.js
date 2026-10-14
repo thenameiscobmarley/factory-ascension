@@ -575,11 +575,12 @@ global.FA_condensedValue = tier => global.FA.condensed.mbPerBlock / global.FA.al
 global.FA_rollCost = (level, rarity) => Math.ceil(global.FA_cost(level) * global.FA.chaos.rarities[rarity].costMult)
 
 // Essence cost to go from level L to L+1 (Mythic enchants cost more)
-global.FA_cost = (level, id) => {
+// The price multiplier of an enchant: Mythic ones use mythicCostMultiplier, others can set costMult
+global.FA_costMult = id => {
   let e = id ? global.FA.enchants[id] : null
-  let mult = e && e.mythic ? global.FA.mythicCostMultiplier : 1
-  return Math.ceil(global.FA.costBase * Math.pow(level + 1, global.FA.costPower) * mult)
+  return e ? (e.mythic ? global.FA.mythicCostMultiplier : e.costMult || 1) : 1
 }
+global.FA_cost = (level, id) => Math.ceil(global.FA.costBase * Math.pow(level + 1, global.FA.costPower) * global.FA_costMult(id))
 
 // ---- Config check ----
 // Runs at startup. A typo or bad number switches that one thing off (with a log line) instead of

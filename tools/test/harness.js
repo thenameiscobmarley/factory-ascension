@@ -120,6 +120,11 @@ FakePos.prototype = {
   offset: function (a, b, c) { return new FakePos(this.x + a, this.y + b, this.z + c) }
 }
 var StartupEvents = { registry: function (type, fn) { handlers.registry.push({ type: type, fn: fn }) } }
+var jei = { hidden: [], info: {} }
+var JEIEvents = {
+  hideItems: function (fn) { fn({ hide: function (id) { jei.hidden.push(id) } }) },
+  information: function (fn) { fn({ addItem: function (id, lines) { jei.info[id] = lines } }) }
+}
 var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
 var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn } }
 var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn } }
@@ -264,7 +269,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
   'startup_scripts/30_fa_world.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
-  'client_scripts/10_fa_tooltips.js'].forEach(function (f) {
+  'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
   load('kubejs/' + f)
   print('loaded ' + f)
 })
@@ -1123,6 +1128,14 @@ check('a nearly empty tank pays for what it can and stops (level 25 costs 200 mB
 blocks = {}
 handlers.tick({ server: server })
 check('altars removed some other way are forgotten', !server.persistentData.getCompound('fa_altars').contains('minecraft:overworld|10|64|10'))
+
+print('\njei')
+check('JEI hides only the half-made assembly item', jei.hidden.join() == 'kubejs:incomplete_ascension_core')
+var needInfo = ['kubejs:essence_condenser', 'kubejs:ascension_altar', 'kubejs:condensed_essence_0', 'kubejs:mythic_fragment', 'kubejs:chaos_tome', 'kubejs:ascension_core', 'kubejs:gem_onyx_3', 'kubejs:tome_sharpness']
+check('JEI explains everything that comes from a machine or the world', needInfo.every(function (id) { return jei.info[id] && jei.info[id].length > 0 }),
+  needInfo.filter(function (id) { return !jei.info[id] }).join(','))
+check('JEI pages have no broken text', Object.keys(jei.info).every(function (id) { return jei.info[id].every(function (l) { return typeof l == 'string' && !/undefined|NaN/.test(l) }) }))
+check('every tome has a JEI page', Object.keys(E).every(function (id) { return !!jei.info['kubejs:tome_' + id] }))
 
 print('\ncondensed essence')
 var names = []
