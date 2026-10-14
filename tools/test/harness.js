@@ -307,7 +307,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
   'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js',
-  'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
+  'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
@@ -347,9 +347,15 @@ var AS = global.FA.ascendite
 check('Ascendite tool and armor tiers come from the config', toolTiers.ascendite.uses == AS.tools.uses && toolTiers.ascendite.level == AS.tools.level &&
   armorTiers.ascendite.slotProtections === AS.armor.protection && armorTiers.ascendite.repairIngredient == 'kubejs:ascendite_ingot')
 var gearIds = Object.keys(gearTiers)
-check('9 Ascendite tools and armor pieces use the Ascendite tier', gearIds.length == 9 && gearIds.every(function (id) { return gearTiers[id].tier == 'ascendite' && id == 'ascendite_' + gearTiers[id].type }),
-  gearIds.join(','))
-check('worn Ascendite armor has both texture layers', [1, 2].every(function (l) { return new java.io.File('kubejs/assets/kubejs/textures/models/armor/ascendite_layer_' + l + '.png').exists() }))
+var tierNames = ['ascendite'].concat(Object.keys(global.FA.gearTiers))
+check('Ascendite, Voidsteel, Celestium and Ascendium each have 9 tools and armor pieces on their own tier', gearIds.length == 36 &&
+  gearIds.every(function (id) { return id == gearTiers[id].tier + '_' + gearTiers[id].type && tierNames.indexOf(gearTiers[id].tier) >= 0 }), gearIds.length)
+check('every tier is registered for tools and armor, repaired with its own ingot', tierNames.every(function (t) {
+  return toolTiers[t] && armorTiers[t] && toolTiers[t].repairIngredient == 'kubejs:' + t + '_ingot' && armorTiers[t].repairIngredient == 'kubejs:' + t + '_ingot' }))
+check('Voidsteel sits between diamond and netherite, Celestium and Ascendium past netherite', toolTiers.voidsteel.uses > 1561 && toolTiers.voidsteel.uses < 2031 &&
+  toolTiers.celestium.uses > 2031 && toolTiers.ascendium.uses > toolTiers.celestium.uses && armorTiers.ascendium.toughness > armorTiers.celestium.toughness &&
+  armorTiers.celestium.toughness > 3)
+check('every tier\'s worn armor has both texture layers', tierNames.every(function (t) { return [1, 2].every(function (l) { return new java.io.File('kubejs/assets/kubejs/textures/models/armor/' + t + '_layer_' + l + '.png').exists() }) }))
 var condTiers = global.FA_condensedTiers()
 check('altar, condenser, 51 Condensed Essence blocks and 3 Ascendite blocks registered', createdBlocks.length == 2 + condTiers + 1 + 3 && createdBlocks.indexOf('essence_condenser') >= 0 &&
   createdBlocks.indexOf('condensed_essence_50') >= 0 && createdFluids.join() == 'liquid_essence', createdBlocks.length)
@@ -363,7 +369,7 @@ check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount =
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear))', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30, created.length)
 check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
   return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
@@ -533,7 +539,7 @@ var clicks = []
 p.messages.forEach(function (t) { clicks = clicks.concat(t.clicks || []) })
 check('menu has clickable upgrade buttons', clicks.indexOf('/ascension upgrade protection 100') >= 0, clicks.join(','))
 print('  sample: ' + p.messages[2].s)
-check('commands registered (/ascension, /home, /sethome)', handlers.commands.length == 2)
+check('commands registered (/ascension, /home, /sethome, /ascension sell)', handlers.commands.length == 3)
 
 // ---------------- Effects ----------------
 print('\ndamage')
@@ -1834,6 +1840,34 @@ check('...but not gear with too few levels', faAwaken(awakener) == 0 && !global.
 var artTip = { arr: ['Sword'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(big2, false, artTip)
 check('the tooltip shows ARTIFACT, 1 of 1, its serial, quirks and lore', /ARTIFACT\s+1 of 1/.test(artTip.arr[1]) && artTip.arr.some(function (l) { return /^\u25c8 /.test(l) }), artTip.arr.slice(0, 4).join(' | '))
+
+// ---------------- Selling ----------------
+print('\nselling')
+var seller = makePlayer(server, 'seller')
+server.persistentData.putDouble('fa_essence_seller', 0)
+var souls = stack(3); souls.id = 'kubejs:ascended_soul'; seller.main = souls
+check('a sell quote prices the whole stack (3 Ascended Souls = 180 Essence)', faSellValue(souls).value == 180)
+seller.given = []
+faSell(seller, 'cores')
+var paid = {}
+seller.given.forEach(function (g) { paid[g.id] = (paid[g.id] || 0) + g.count })
+check('selling for cores pays compressed: 180 = 2 Singularities + 2 Dense Cores', souls.count == 0 && paid['kubejs:ascension_singularity'] == 2 && paid['kubejs:dense_ascension_core'] == 2 && !paid['kubejs:ascension_core'],
+  JSON.stringify(paid))
+var gemS = stack(2); gemS.id = 'kubejs:gem_sapphire_3'; seller.main = gemS; seller.given = []
+faSell(seller, 'buckets')
+check('selling for Liquid Essence pays buckets (2 Perfect gems = 150 Essence = 15 buckets)', seller.given[0].id == 'kubejs:liquid_essence_bucket' && seller.given[0].count == 15)
+var lvTome = stack(1); lvTome.id = 'kubejs:tome_sharpness'; faSetLevel(lvTome, 'sharpness', 100)
+var plainTome = stack(1); plainTome.id = 'kubejs:tome_sharpness'
+check('a leveled tome is worth more than a plain one (half its levels\' cost is refunded)', faSellValue(lvTome).value > faSellValue(plainTome).value + 100 &&
+  faSellValue(plainTome).value == global.FA.sell.tomes.base, faSellValue(lvTome).value + ' / ' + faSellValue(plainTome).value)
+var junk = stack(64); junk.id = 'minecraft:dirt'
+check('things with no value can\'t be sold', faSellValue(junk).value == 0)
+var hugeGear = gear('Axe'); faSetLevel(hugeGear, 'cleave', 2000000000)
+check('even absurd levels price instantly (no endless loop)', isFinite(faSellValue(hugeGear).value) && faSellValue(hugeGear).value > 0)
+seller.main = gear('Stick'); seller.given = []
+check('selling an unsellable item just shows the quote', faSell(seller, 'cores') == 0 && seller.given.length == 0)
+check('blaze rods without the Nether, and Waystones recipes only when Waystones is installed', !!byId('starter_blaze_rod') && !byId('starter_waystone'))
+check('Voidsteel, Celestium and Ascendium ingots come from the factory', ['voidsteel_ingot', 'celestium_ingot', 'ascendium_ingot'].every(function (r) { return byId(r) && byId(r).json.type == 'create:mixing' }))
 
 // ---------------- Moving the safe zone ----------------
 print('\nsafe zone center')

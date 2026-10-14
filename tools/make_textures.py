@@ -744,6 +744,13 @@ def ascendite_textures(textures):
     for kind, draw in gear_art.ICONS.items():
         px = draw()
         textures["ascendite_" + kind] = Outlined(px, px, (10, 12, 20, 255))
+    # Higher gear tiers: the same designs in each tier's colors, plus its ingot
+    for tier, palette in gear_art.TIER_PALETTES.items():
+        for kind, draw in gear_art.ICONS.items():
+            px = gear_art.with_palette(palette, draw)
+            textures[tier + "_" + kind] = Outlined(px, px, (10, 12, 20, 255))
+        px = gear_art.with_palette(palette, gear_art.ingot)
+        textures[tier + "_ingot"] = Outlined(px, px, (10, 12, 20, 255))
     for name, draw in gear_art.HAMMERS.items():
         px = draw()
         textures[name] = Outlined(px, px, (10, 12, 20, 255))
@@ -756,6 +763,8 @@ def ascendite_textures(textures):
     os.makedirs(ARMOR_OUT, exist_ok=True)
     for layer in (1, 2):
         png(os.path.join(ARMOR_OUT, "ascendite_layer_%d.png" % layer), gear_art.armor_layer(layer))
+        for tier, palette in gear_art.TIER_PALETTES.items():
+            png(os.path.join(ARMOR_OUT, "%s_layer_%d.png" % (tier, layer)), gear_art.with_palette(palette, gear_art.armor_layer, layer))
     print("wrote Ascendite ore, block, armor layers and %d items" % (len(ASC_SPRITES) + 3))
 
 

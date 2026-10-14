@@ -218,7 +218,8 @@ function faButton(label, command, hover) {
 // The /ascension menu: Essence bank, and the target item's enchants with upgrade buttons
 function faShowMenu(player) {
   let essence = faGetEssence(player)
-  player.tell(Text.lightPurple('Essence: ').append(Text.white(global.FA_num(essence))).bold(true))
+  player.tell(Text.lightPurple('Essence: ').append(Text.white(global.FA_num(essence))).bold(true)
+    .append(Text.darkGray('   ')).append(Text.gold('[Sell held item]').clickRunCommand('/ascension sell').hover(Text.gray('See what the item in your hand is worth'))))
 
   // A tome in your main hand: level the tome itself
   let held = player.getMainHandItem()

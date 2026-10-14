@@ -235,6 +235,18 @@ Haven't found any yet? Alloy an **Ascendite Ingot** by hand: iron ingot + copper
 - **Tools and armor** (sword, pickaxe, axe, shovel, hoe, helmet, chestplate, leggings, boots): between iron and diamond.
   900 durability, mines diamonds, armor 2/6/7/2 + 1 toughness. They take Ascended enchants like any gear.
 
+### Higher gear tiers
+
+| Tier | Tools | Armor (full set) | Ingot (Create) |
+|---|---|---|---|
+| Voidsteel | 1,800 uses, +3.5 damage | 20 armor, 10 toughness | heated mixer: diamond + 2 Ascendite ingots + obsidian → 2 |
+| Celestium | 3,200 uses, +5 damage | 24 armor, 16 toughness | superheated: netherite ingot + 2 Voidsteel + Dense Ascension Core → 2 |
+| Ascendium | 6,000 uses, +7 damage | 28 armor, 24 toughness | superheated: 2 Celestium + Ascension Singularity + 4 Mythic Fragments + 1,000 mB Liquid Essence |
+
+For comparison: diamond is 1,561 uses / +3 / 20 armor / 8 toughness, netherite 2,031 / +4 / 20 / 12. Each tier crafts like
+iron gear from its ingot, takes Ascended enchants, and has its own look (Voidsteel violet, Celestium pearl and sky
+blue, Ascendium crimson and molten orange). Numbers are in the `gearTiers` section of the config.
+
 ### Starting the factory (all need Ascendite)
 
 | Makes | Recipe | Skips |
@@ -244,6 +256,13 @@ Haven't found any yet? Alloy an **Ascendite Ingot** by hand: iron ingot + copper
 | Precision Mechanism | 2 cogwheels + 2 golden sheets + Ascendite ingot (crafting grid) | sequenced assembly |
 | Blaze Burner | Empty Blaze Burner + Block of Ascendite + magma block | catching a blaze |
 | TFMG Steel Ingot | Iron ingot + coal + Ascendite nugget, heated mixer | TFMG's blast furnace |
+| Blaze Rod | Lava bucket + stick + 2 redstone + gold ingot (bucket comes back) | the Nether |
+| Waystone* | 3 stone bricks + Warp Stone + 3 cobbled deepslate | obsidian |
+| Warp Stone* | 4 amethyst shards + 2 Ascendite ingots + 2 lapis + redstone | ender pearls and an emerald |
+| 4 Warp Dust* | amethyst shard + Ascendite nugget | an ender pearl |
+| 3 Warp Scrolls* | gold nuggets + purple dye + Ascendite nugget + paper | an ender pearl |
+
+\* only when the [Waystones](https://www.curseforge.com/minecraft/mc-mods/waystones) mod is installed.
 
 ### More ways to make Ascension Cores (no sequenced assembly)
 
@@ -313,6 +332,19 @@ last is always Rare or better.
 
 A **Booster Box** holds 12 packs. Packs turn up in dungeon, mineshaft, temple, shipwreck, stronghold, nether fortress,
 bastion, mansion, ancient city and end city chests, and in danger-zone loot. Boxes only in the best chests and Epic+ loot.
+
+## Selling: turn loot into Essence
+
+Hold something and type `/ascension sell` (or click **[Sell held item]** in `/ascension`). You get a quote for the whole
+stack and two buttons: **[Sell for Cores]** (paid in Singularities, Dense Cores and Cores, so it doesn't flood your
+inventory) or **[Sell for Liquid Essence]** (buckets, 10 Essence each). Leftover fractions go into your Essence bank.
+
+- **Tomes and cards:** 2 (base) / 6 (Fusion) / 25 (Mythic) / 80 (Ultimate) Essence, plus half of what their levels
+  cost; holo cards are worth x1.5
+- **Enchanted gear:** half of what its enchant levels cost (+500 for an Artifact, with a warning first)
+- **Gems:** 3 / 15 / 75. **Boss and danger drops:** Mythic Fragment 8, Ascended Soul 60, Chaos Tome 12
+- **Packs:** 6, Booster Box 80, Gear Cache 8. **Ingots:** Voidsteel 2, Celestium 10, Ascendium 60, netherite 8
+- Every value is in the `sell` section of the config.
 
 ## Rare mob variants
 
@@ -516,6 +548,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/sethome` (or `/home set`) | Everyone | Save where you stand as your home (any dimension) |
 | `/home` | Everyone | Teleport home. Not while in combat (10s after hitting or being hit), 30s cooldown |
 | `/ascension awaken` | Everyone | Awaken the held gear into an Artifact (what the menu button runs) |
+| `/ascension sell` | Everyone | Quote the held stack, then sell it for Cores or Liquid Essence |
 | `/ascension milestones` | Everyone | Milestone progress |
 | `/ascension rebirth` | Everyone | Rebirth the held item (asks to confirm) |
 | `/ascension event` | Everyone | The current world event |
@@ -524,12 +557,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 46 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 49 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 418 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 429 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

@@ -725,6 +725,40 @@ global.FA = {
     cooldownSeconds: 30        // time between uses
   },
 
+  // ---- More gear tiers: Voidsteel (between diamond and netherite), Celestium (past netherite), Ascendium (endgame) ----
+  // Each has a full tool and armor set made from its ingot, like iron. For comparison: diamond tools 1561 uses /
+  // +3 damage, armor 3/6/8/3 + 2 toughness; netherite 2031 / +4, 3/6/8/3 + 3 toughness + 0.1 knockback resistance.
+  gearTiers: {
+    voidsteel: { name: 'Voidsteel',
+      tools: { uses: 1800, speed: 8.5, attackDamageBonus: 3.5, level: 3, enchantability: 12 },
+      armor: { durabilityMultiplier: 35, protection: [3, 6, 8, 3], toughness: 2.5, knockbackResistance: 0.05, enchantability: 12 } },
+    celestium: { name: 'Celestium',
+      tools: { uses: 3200, speed: 10, attackDamageBonus: 5, level: 4, enchantability: 18 },
+      armor: { durabilityMultiplier: 50, protection: [4, 7, 9, 4], toughness: 4, knockbackResistance: 0.15, enchantability: 18 } },
+    ascendium: { name: 'Ascendium',
+      tools: { uses: 6000, speed: 13, attackDamageBonus: 7, level: 4, enchantability: 25 },
+      armor: { durabilityMultiplier: 80, protection: [5, 8, 10, 5], toughness: 6, knockbackResistance: 0.25, enchantability: 25 } }
+  },
+
+  // ---- Selling: /ascension sell turns the item in your hand into Ascension Cores or Liquid Essence ----
+  // Values are in Essence (1 Essence = 1 Ascension Core; a Liquid Essence bucket = 10).
+  sell: {
+    enabled: true,
+    items: {
+      'kubejs:mythic_fragment': 8, 'kubejs:ascended_soul': 60, 'kubejs:chaos_tome': 12, 'kubejs:blank_ascension_tome': 1.5,
+      'kubejs:enchantment_pack': 6, 'kubejs:booster_box': 80, 'kubejs:gear_cache': 8, 'kubejs:polishing_cloth': 0.5,
+      'kubejs:ascension_shard': 0.25, 'kubejs:raw_ascendite': 0.1, 'kubejs:ascendite_ingot': 0.15, 'kubejs:ascendite_block': 1.35,
+      'kubejs:voidsteel_ingot': 2, 'kubejs:celestium_ingot': 10, 'kubejs:ascendium_ingot': 60,
+      'minecraft:diamond': 1, 'minecraft:emerald': 0.5, 'minecraft:netherite_ingot': 8, 'minecraft:nether_star': 40
+    },
+    gems: [3, 15, 75],                 // Chipped / Flawless / Perfect
+    foodCooked: 0.2,                   // any cooked mob food
+    tomes: { base: 2, fusion: 6, mythic: 25, ultimate: 80 },
+    holoBonus: 1.5,                    // x value for a holo card from a pack
+    levelRefund: 0.5,                  // tomes and gear: plus this share of the Essence their enchant levels cost
+    artifact: 500                      // extra for an Artifact
+  },
+
   // ---- Glowing ores: light level 0-15 each ore gives off, so veins show up in dark caves ----
   // Ores from mods that aren't installed are skipped. Set enabled: false for vanilla lighting.
   glowingOres: {

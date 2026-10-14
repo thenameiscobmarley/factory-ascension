@@ -303,6 +303,46 @@ def gear_cache():
 HAMMERS = {'rock_hammer': rock_hammer, 'ascendite_rock_hammer': ascendite_rock_hammer, 'polishing_cloth': polishing_cloth,
            'enchantment_pack': enchantment_pack, 'booster_box': booster_box, 'gear_cache': gear_cache}
 
+def ingot():
+    """A beveled ingot bar with a glowing seam."""
+    return draw([
+        ('steel', add(poly([(0.1, 0.62), (0.3, 0.42), (0.9, 0.42), (0.7, 0.62)]), poly([(0.1, 0.62), (0.7, 0.62), (0.7, 0.78), (0.1, 0.78)]),
+                      poly([(0.7, 0.62), (0.9, 0.42), (0.9, 0.58), (0.7, 0.78)]))),
+        ('teal', add(seg(0.2, 0.7, 0.62, 0.7, 0.03))),
+        ('gem', add(circ(0.62, 0.52, 0.035))),
+    ])
+
+
+# Colors per gear tier: each replaces the base metal, the glowing channel, the trim and the gem
+TIER_PALETTES = {
+    'voidsteel': {
+        'steel': ((128, 108, 160), (56, 40, 84), (16, 10, 30)), 'steel_dk': ((80, 62, 110), (36, 24, 56), (12, 8, 20)),
+        'teal': ((246, 214, 255), (190, 104, 255), (96, 34, 170)), 'gold': ((245, 246, 252), (176, 182, 196), (86, 90, 104)),
+        'gem': ((210, 255, 250), (60, 226, 214), (20, 112, 112)),
+    },
+    'celestium': {
+        'steel': ((255, 253, 240), (226, 216, 184), (146, 134, 100)), 'steel_dk': ((206, 198, 166), (156, 146, 114), (94, 84, 62)),
+        'teal': ((240, 255, 255), (130, 226, 255), (40, 126, 206)), 'gold': ((255, 236, 150), (232, 176, 58), (140, 84, 22)),
+        'gem': ((214, 232, 255), (74, 124, 255), (22, 42, 146)),
+    },
+    'ascendium': {
+        'steel': ((160, 66, 64), (76, 22, 26), (22, 6, 8)), 'steel_dk': ((96, 32, 32), (48, 12, 14), (16, 4, 6)),
+        'teal': ((255, 244, 190), (255, 152, 40), (176, 62, 10)), 'gold': ((255, 236, 150), (232, 176, 58), (140, 84, 22)),
+        'gem': ((255, 206, 214), (232, 40, 72), (112, 10, 30)),
+    },
+}
+
+
+def with_palette(palette, fn, *args):
+    """Run a drawing with a tier's colors swapped into the material table, then put the defaults back."""
+    saved = {k: MATERIALS[k] for k in palette}
+    MATERIALS.update(palette)
+    try:
+        return fn(*args)
+    finally:
+        MATERIALS.update(saved)
+
+
 ICONS = {'sword': sword, 'pickaxe': pickaxe, 'axe': axe, 'shovel': shovel, 'hoe': hoe,
          'helmet': helmet, 'chestplate': chestplate, 'leggings': leggings, 'boots': boots}
 

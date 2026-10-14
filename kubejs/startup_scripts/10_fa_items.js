@@ -86,31 +86,51 @@ StartupEvents.registry('item', event => {
 
   // Tools and armor use the tiers registered below (numbers in the config)
   FA_GEAR.forEach(g => event.create('ascendite_' + g[0], g[0]).displayName('Ascendite ' + g[1]).tier('ascendite'))
+
+  // Higher gear tiers (config: gearTiers): an ingot and a full set each
+  Object.keys(global.FA.gearTiers).forEach(t => {
+    let T = global.FA.gearTiers[t]
+    let rarity = t == 'voidsteel' ? 'uncommon' : t == 'celestium' ? 'rare' : 'epic'
+    event.create(t + '_ingot').displayName(T.name + ' Ingot').rarity(rarity)
+    FA_GEAR.forEach(g => event.create(t + '_' + g[0], g[0]).displayName(T.name + ' ' + g[1]).tier(t).rarity(rarity))
+  })
 })
 
 // Tool and armor tiers (the website runs this file without them, so they're optional here)
 if (typeof ItemEvents != 'undefined' && ItemEvents.toolTierRegistry) {
+  // Ascendite plus every tier in the config's gearTiers, each repaired with its own ingot
+  let faAllTiers = () => {
+    let all = { ascendite: { tools: global.FA.ascendite.tools, armor: global.FA.ascendite.armor } }
+    Object.keys(global.FA.gearTiers).forEach(t => { all[t] = global.FA.gearTiers[t] })
+    return all
+  }
   ItemEvents.toolTierRegistry(event => {
-    let T = global.FA.ascendite.tools
-    event.add('ascendite', tier => {
-      tier.uses = T.uses
-      tier.speed = T.speed
-      tier.attackDamageBonus = T.attackDamageBonus
-      tier.level = T.level
-      tier.enchantmentValue = T.enchantability
-      tier.repairIngredient = 'kubejs:ascendite_ingot'
+    let all = faAllTiers()
+    Object.keys(all).forEach(name => {
+      let T = all[name].tools
+      event.add(name, tier => {
+        tier.uses = T.uses
+        tier.speed = T.speed
+        tier.attackDamageBonus = T.attackDamageBonus
+        tier.level = T.level
+        tier.enchantmentValue = T.enchantability
+        tier.repairIngredient = 'kubejs:' + name + '_ingot'
+      })
     })
   })
   ItemEvents.armorTierRegistry(event => {
-    let A = global.FA.ascendite.armor
-    event.add('ascendite', tier => {
-      tier.durabilityMultiplier = A.durabilityMultiplier
-      tier.slotProtections = A.protection
-      tier.toughness = A.toughness
-      tier.knockbackResistance = A.knockbackResistance
-      tier.enchantmentValue = A.enchantability
-      tier.equipSound = 'minecraft:item.armor.equip_iron'
-      tier.repairIngredient = 'kubejs:ascendite_ingot'
+    let all = faAllTiers()
+    Object.keys(all).forEach(name => {
+      let A = all[name].armor
+      event.add(name, tier => {
+        tier.durabilityMultiplier = A.durabilityMultiplier
+        tier.slotProtections = A.protection
+        tier.toughness = A.toughness
+        tier.knockbackResistance = A.knockbackResistance
+        tier.enchantmentValue = A.enchantability
+        tier.equipSound = name == 'ascendite' ? 'minecraft:item.armor.equip_iron' : 'minecraft:item.armor.equip_netherite'
+        tier.repairIngredient = 'kubejs:' + name + '_ingot'
+      })
     })
   })
 }

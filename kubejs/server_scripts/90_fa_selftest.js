@@ -398,6 +398,35 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.setItemInHand('main_hand', sword)
   })
 
+  // ---- Selling, gear tiers, Waystones and blaze rod recipes ----
+  attempt('selling', () => {
+    player.getInventory().clearContent()
+    player.setItemInHand('main_hand', Item.of('kubejs:ascended_soul', 3))
+    faSell(player, 'cores')
+    let inv = player.getInventory(), sing = 0, dense = 0, souls = 0
+    for (let i = 0; i < inv.getContainerSize(); i++) {
+      let st = inv.getItem(i)
+      if (!st || st.isEmpty()) continue
+      if (String(st.getId()) == 'kubejs:ascension_singularity') sing += st.getCount()
+      if (String(st.getId()) == 'kubejs:dense_ascension_core') dense += st.getCount()
+      if (String(st.getId()) == 'kubejs:ascended_soul') souls += st.getCount()
+    }
+    check('selling 3 Ascended Souls takes them and pays 2 Singularities + 2 Dense Cores', sing == 2 && dense == 2 && souls == 0, sing + ' / ' + dense + ' / ' + souls)
+    player.getInventory().clearContent()
+    player.setItemInHand('main_hand', sword)
+  })
+  attempt('gear tiers', () => {
+    let d = t => Item.of('kubejs:' + t + '_chestplate').item.getDefense()
+    let uses = t => Item.of('kubejs:' + t + '_pickaxe').getMaxDamage()
+    check('new tiers: Voidsteel ' + uses('voidsteel') + ' / Celestium ' + uses('celestium') + ' / Ascendium ' + uses('ascendium') + ' uses (diamond 1561, netherite 2031)',
+      uses('voidsteel') > 1561 && uses('voidsteel') < 2031 && uses('celestium') > 2031 && uses('ascendium') > uses('celestium') &&
+      d('celestium') == global.FA.gearTiers.celestium.armor.protection[2], d('voidsteel') + ' / ' + d('celestium') + ' / ' + d('ascendium'))
+    let r = ['starter_blaze_rod', 'voidsteel_ingot', 'celestium_ingot', 'ascendium_ingot', 'voidsteel_sword', 'ascendium_chestplate']
+    if (Platform.isLoaded('waystones')) r = r.concat(['starter_warp_stone', 'starter_waystone', 'starter_warp_dust', 'starter_warp_scroll'])
+    let missing = r.filter(x => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + x).isPresent())
+    check('tier, blaze rod' + (Platform.isLoaded('waystones') ? ' and Waystones' : '') + ' recipes are loaded', missing.length == 0, missing.join(', '))
+  })
+
   // ---- Glowing ores and the movable safe zone ----
   attempt('glowing ores', () => {
     let G = global.FA.glowingOres.light

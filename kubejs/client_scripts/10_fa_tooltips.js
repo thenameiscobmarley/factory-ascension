@@ -387,6 +387,29 @@ ItemEvents.tooltip(event => {
       made(hid.indexOf('ascendite') >= 0 ? '5 Ascendite Ingots + 2 Sticks' : '5 Iron Ingots + 2 Sticks')])
   })
 
+  // Higher gear tiers
+  let tierMade = {
+    voidsteel: 'Diamond + 2 Ascendite Ingots + Obsidian in a heated mixer (makes 2)',
+    celestium: 'Netherite Ingot + 2 Voidsteel Ingots + a Dense Ascension Core, superheated (makes 2)',
+    ascendium: '2 Celestium Ingots + an Ascension Singularity + 4 Mythic Fragments + 1,000 mB Liquid Essence, superheated'
+  }
+  let tierPlace = { voidsteel: 'between diamond and netherite', celestium: 'stronger than netherite', ascendium: 'far beyond netherite (endgame)' }
+  let tierLore = { voidsteel: 'Darker than night, lighter than it looks.', celestium: 'It catches starlight even underground.', ascendium: 'Still warm from the forge that made it.' }
+  Object.keys(FA.gearTiers).forEach(t => {
+    let G = FA.gearTiers[t], GT = G.tools, GA = G.armor
+    details('kubejs:' + t + '_ingot', tierLore[t], () => [made(tierMade[t]), use(G.name + ' tools and armor (' + tierPlace[t] + ')')])
+    ;['sword', 'pickaxe', 'axe', 'shovel', 'hoe'].forEach(g => details('kubejs:' + t + '_' + g, tierLore[t], () => [
+      Text.gray('Tier: ').append(Text.aqua(tierPlace[t])).append(Text.darkGray('  ' + GT.uses + ' durability, +' + GT.attackDamageBonus + ' damage bonus')),
+      made(G.name + ' Ingots + Sticks, like iron tools. Repair with ' + G.name + ' Ingots in an anvil.'),
+      tip('Takes Ascended enchants like any gear')]))
+    let GP = GA.protection, slotIx = { boots: 0, leggings: 1, chestplate: 2, helmet: 3 }
+    Object.keys(slotIx).forEach(g => details('kubejs:' + t + '_' + g, tierLore[t], () => [
+      Text.gray('This piece: ').append(Text.aqua(GP[slotIx[g]] + ' armor, ' + GA.toughness + ' toughness'))
+        .append(Text.darkGray('  (all 4 pieces: ' + (GP[0] + GP[1] + GP[2] + GP[3]) + ' armor, ' + 4 * GA.toughness + ' toughness)')),
+      made(G.name + ' Ingots, like iron armor. Repair with ' + G.name + ' Ingots in an anvil.'),
+      tip('Takes Ascended enchants like any gear')]))
+  })
+
   // Mob food
   let MF = FA.mobFood
   let pretty = id => String(id).replace(/^[a-z0-9_]+:/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')

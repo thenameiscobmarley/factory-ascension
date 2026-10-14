@@ -53,14 +53,14 @@ You should end up with:
 minecraft/kubejs/
   startup_scripts/00_fa_config.js, 10_fa_items.js, 20_fa_enchant_effects.js, 30_fa_world.js, 40_fa_ultimates.js, 50_fa_loot.js,
                   60_fa_mob_food.js, 70_fa_variants.js, 80_fa_combat.js, 90_fa_artifacts.js
-  server_scripts/10_fa_ascension.js, 15_fa_home.js, 16_fa_packs.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js,
+  server_scripts/10_fa_ascension.js, 15_fa_home.js, 16_fa_packs.js, 17_fa_sell.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js,
                  32_fa_ascendite_data.js, 35_fa_starter_recipes.js, 37_fa_food_recipes.js, 38_fa_hammer.js, 39_fa_condition.js, 40_fa_progress.js, 45_fa_altar.js,
                  90_fa_selftest.js
   client_scripts/10_fa_tooltips.js, 20_fa_jei.js
   data/kubejs/   (Ascendite ore worldgen: worldgen/ and forge/biome_modifier/)
-  assets/kubejs/textures/item/   (361 .png files)
+  assets/kubejs/textures/item/   (391 .png files)
   assets/kubejs/textures/block/  (56 .png files: altar, condenser, 51 Condensed Essence tiers, Ascendite ores + block)
-  assets/kubejs/textures/models/armor/  (2 .png files: worn Ascendite armor)
+  assets/kubejs/textures/models/armor/  (8 .png files: worn Ascendite, Voidsteel, Celestium and Ascendium armor)
 ```
 
 ## 7. Check it works
@@ -77,9 +77,9 @@ minecraft/kubejs/
    All 286 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
-4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 46 checks
+4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 49 checks
    with a fake player (Essence, a real tome right-click, leveled tomes and extracting, enchants, danger zones, Ascendite, mob food, Rock Hammers, gear condition, rare variants, glowing ores, the safe-zone center, /home, card packs, Artifacts, gems, rebirth,
-   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **46 / 46 passed**.
+   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **49 / 49 passed**.
    Any FAIL line says which part is broken.
 5. If something's missing, open the instance folder -> `logs/kubejs/` and look in
    `startup.log`, `server.log` and `client.log` for lines with `[Factory Ascension]` or `ERROR`.

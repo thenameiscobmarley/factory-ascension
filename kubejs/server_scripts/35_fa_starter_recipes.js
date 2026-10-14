@@ -75,11 +75,40 @@ ServerEvents.recipes(event => {
     hoe: [['II ', ' S ', ' S ']], helmet: [['III', 'I I']], chestplate: [['I I', 'III', 'III']], leggings: [['III', 'I I', 'I I']],
     boots: [['I I', 'I I']]
   }
-  Object.keys(gear).forEach(g => {
-    // Minecraft rejects a recipe whose key has a symbol the pattern doesn't use, so armor gets no stick
-    let key = gear[g][0].join('').indexOf('S') >= 0 ? { I: I, S: S } : { I: I }
-    event.shaped('kubejs:ascendite_' + g, gear[g][0], key).id(id('ascendite_' + g))
+  // Ascendite and every higher tier (config: gearTiers) craft their gear from their own ingot
+  ;['ascendite'].concat(Object.keys(global.FA.gearTiers)).forEach(tier => {
+    let ingot = 'kubejs:' + tier + '_ingot'
+    Object.keys(gear).forEach(g => {
+      // Minecraft rejects a recipe whose key has a symbol the pattern doesn't use, so armor gets no stick
+      let key = gear[g][0].join('').indexOf('S') >= 0 ? { I: ingot, S: S } : { I: ingot }
+      event.shaped('kubejs:' + tier + '_' + g, gear[g][0], key).id(id(tier + '_' + g))
+    })
   })
+
+  // ---- Higher tier ingots, made in the factory ----
+  // Voidsteel (between diamond and netherite): heated mixer
+  event.custom({
+    type: 'create:mixing',
+    ingredients: [{ item: 'minecraft:diamond' }, { item: I }, { item: I }, { item: 'minecraft:obsidian' }],
+    results: [{ item: 'kubejs:voidsteel_ingot', count: 2 }],
+    heatRequirement: 'heated'
+  }).id(id('voidsteel_ingot'))
+  // Celestium (past netherite): superheated
+  event.custom({
+    type: 'create:mixing',
+    ingredients: [{ item: 'minecraft:netherite_ingot' }, { item: 'kubejs:voidsteel_ingot' }, { item: 'kubejs:voidsteel_ingot' }, { item: 'kubejs:dense_ascension_core' }],
+    results: [{ item: 'kubejs:celestium_ingot', count: 2 }],
+    heatRequirement: 'superheated'
+  }).id(id('celestium_ingot'))
+  // Ascendium (endgame): superheated, with Liquid Essence
+  event.custom({
+    type: 'create:mixing',
+    ingredients: [{ item: 'kubejs:celestium_ingot' }, { item: 'kubejs:celestium_ingot' }, { item: 'kubejs:ascension_singularity' },
+      { item: 'kubejs:mythic_fragment' }, { item: 'kubejs:mythic_fragment' }, { item: 'kubejs:mythic_fragment' }, { item: 'kubejs:mythic_fragment' },
+      { fluid: 'kubejs:liquid_essence', amount: 1000 }],
+    results: [{ item: 'kubejs:ascendium_ingot' }],
+    heatRequirement: 'superheated'
+  }).id(id('ascendium_ingot'))
 
   // ---- Starting the factory ----
   // Brass by hand, before you have a Blaze Burner
@@ -107,6 +136,21 @@ ServerEvents.recipes(event => {
   // Polishing Cloth: rerolls a piece of gear's condition, keeping the better grade
   event.shapeless(Item.of('kubejs:polishing_cloth', 2), ['minecraft:white_wool', 'kubejs:ascendite_nugget', 'kubejs:ascendite_nugget', 'minecraft:slime_ball'])
     .id(id('polishing_cloth'))
+
+  // A blaze rod without the Nether: lava, a stick, redstone and gold (the bucket comes back)
+  event.shapeless('minecraft:blaze_rod', ['minecraft:lava_bucket', 'minecraft:stick', 'minecraft:redstone', 'minecraft:redstone', 'minecraft:gold_ingot'])
+    .id(id('starter_blaze_rod'))
+
+  // Waystones (if installed): no ender pearls, emeralds or obsidian needed
+  if (Platform.isLoaded('waystones')) {
+    event.shaped('waystones:warp_stone', ['DAD', 'LRL', 'DAD'], { D: 'minecraft:amethyst_shard', A: I, L: 'minecraft:lapis_lazuli', R: 'minecraft:redstone' })
+      .id(id('starter_warp_stone'))
+    event.shaped('waystones:waystone', [' S ', 'SWS', 'CCC'], { S: 'minecraft:stone_bricks', W: 'waystones:warp_stone', C: 'minecraft:cobbled_deepslate' })
+      .id(id('starter_waystone'))
+    event.shapeless(Item.of('waystones:warp_dust', 4), ['minecraft:amethyst_shard', 'kubejs:ascendite_nugget']).id(id('starter_warp_dust'))
+    event.shaped(Item.of('waystones:warp_scroll', 3), ['GDG', 'GNG', 'PPP'], { G: 'minecraft:gold_nugget', D: 'minecraft:purple_dye', N: 'kubejs:ascendite_nugget', P: 'minecraft:paper' })
+      .id(id('starter_warp_scroll'))
+  }
 
   // ---- More ways to make Ascension Cores (none need sequenced assembly) ----
   // By hand, from day one
