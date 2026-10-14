@@ -115,6 +115,28 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     check('upgrading to Sharpness 100 spends Essence', faGetLevel(sword, 'sharpness') == 100 && faGetEssence(player) < 1e6, faGetLevel(sword, 'sharpness'))
   })
 
+  // Leveled tomes: level one in hand, apply it with a real click, then extract it back into a tome
+  attempt('tome levels', () => {
+    let tome = Item.of('kubejs:tome_cleave')
+    player.setItemInHand('main_hand', tome)
+    player.setItemInHand('off_hand', Item.of('minecraft:air'))
+    faUpgradeTome(player, 49)
+    let tl = faGetLevel(player.getMainHandItem(), 'cleave')
+    let axe = Item.of('minecraft:iron_axe')
+    player.setItemInHand('off_hand', axe)
+    player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+    let onAxe = faGetLevel(player.getOffhandItem(), 'cleave')
+    check('a tome leveled to 50 in hand puts Cleave 50 on an axe (real click)', tl == 50 && onAxe == 50, tl + ' / ' + onAxe)
+    player.setItemInHand('main_hand', player.getOffhandItem())
+    player.setItemInHand('off_hand', Item.of('kubejs:blank_ascension_tome'))
+    let before = player.getInventory().countItem(Item.of('kubejs:tome_cleave').getItem())
+    faExtract(player, 'cleave')
+    let gotBack = player.getInventory().countItem(Item.of('kubejs:tome_cleave').getItem()) - before
+    check('[Extract] pulls Cleave 50 off the axe into a tome', faGetLevel(player.getMainHandItem(), 'cleave') == 0 && gotBack == 1, gotBack)
+    player.getInventory().clearContent()
+    player.setItemInHand('main_hand', sword)
+  })
+
   // A real right-click, through Minecraft's own item-use code (the way a player's click reaches the scripts)
   attempt('tome right-click', () => {
     let useWith = (tomeHand, tome, gear) => {

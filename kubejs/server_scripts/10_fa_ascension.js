@@ -92,6 +92,30 @@ function faMaxLevel(id) {
   return max ? Math.min(max, FA_MAX_LEVEL) : FA_MAX_LEVEL
 }
 
+// ---- Tomes carry a level ----
+// A tome stores its level the same way gear does (FactoryAscension.<enchant>); a plain tome is level 1.
+// Level a tome on its own with /ascension, then apply it to gear; or extract an enchant from gear into a tome.
+
+// The enchant id of a tome stack, or null
+function faTomeId(stack) {
+  if (!stack || stack.isEmpty()) return null
+  let item = String(stack.getId())
+  if (item.indexOf('kubejs:tome_') != 0) return null
+  let id = item.slice('kubejs:tome_'.length)
+  return global.FA.enchants[id] ? id : null
+}
+
+function faTomeLevel(tome, id) {
+  return Math.max(1, faGetLevel(tome, id))
+}
+
+// A tome item holding one enchant at a level
+function faMakeTome(id, level) {
+  let tome = Item.of('kubejs:tome_' + id)
+  if (level > 1) faSetLevel(tome, id, level)
+  return tome
+}
+
 // All-or-nothing: write the new level, then the new Essence. If either write fails, put the
 // item and the bank back exactly as they were, so a failure can never give free levels or eat Essence.
 function faCommit(player, gear, id, oldLevel, newLevel, oldEssence, newEssence) {
@@ -196,9 +220,31 @@ function faShowMenu(player) {
   let essence = faGetEssence(player)
   player.tell(Text.lightPurple('Essence: ').append(Text.white(global.FA_num(essence))).bold(true))
 
+  // A tome in your main hand: level the tome itself
+  let held = player.getMainHandItem()
+  let tomeId = faTomeId(held)
+  if (tomeId) {
+    let e = global.FA.enchants[tomeId]
+    let tl = faTomeLevel(held, tomeId)
+    let line = Text.gold('Tome of ' + e.name + ' ' + global.FA_num(tl) + ' ').append(Text.gray(global.FA_describe(tomeId, tl) + ' '))
+    if (held.getCount() != 1) {
+      line = line.append(Text.red('(hold just one to level it)'))
+    } else if (tl < faMaxLevel(tomeId)) {
+      let cost = global.FA_cost(tl, tomeId)
+      FA_MENU_STEPS.forEach(step => {
+        line = line.append(faButton('+' + step, '/ascension tome ' + step, 'Add ' + step + ' level' + (step > 1 ? 's' : '') + ' to the tome (next costs ' + global.FA_num(cost) + ' Essence)')).append(Text.gray(' '))
+      })
+      line = line.append(faButton('Max', '/ascension tome ' + global.FA.maxUpgradesPerCommand, 'Spend as much Essence as possible on the tome'))
+    } else {
+      line = line.append(Text.darkGray('(max)'))
+    }
+    player.tell(line)
+    player.tell(Text.darkGray(' Apply it: hold gear in your other hand and right-click the tome. Gear with a lower level swaps it out.'))
+  }
+
   let gear = faTarget(player)
   if (!gear) {
-    player.tell(Text.gray('Hold a weapon, tool or armor piece to see its Ascended enchants.'))
+    if (!tomeId) player.tell(Text.gray('Hold a weapon, tool or armor piece to see its Ascended enchants, or a tome to level it.'))
     return 1
   }
 
@@ -225,6 +271,8 @@ function faShowMenu(player) {
     } else {
       line = line.append(Text.darkGray('(max)'))
     }
+    line = line.append(Text.gray(' ')).append(Text.gold('[Extract]').clickRunCommand('/ascension extract ' + id)
+      .hover(Text.gray('Pull ' + e.name + ' ' + global.FA_num(level) + ' off into a tome (needs a Blank Ascension Tome in your other hand)')))
     player.tell(line)
   })
 
@@ -303,8 +351,10 @@ function faUnlock(player, tome, id, gear) {
     player.displayClientMessage(Text.red('Hold the gear you want to enchant in your other hand.'), true)
     return
   }
-  if (faGetLevel(gear, id) > 0) {
-    player.displayClientMessage(Text.yellow('That already has ' + name + '. Hold it and type /ascension to upgrade it.'), true)
+  let tomeLevel = faTomeLevel(tome, id)
+  let had = faGetLevel(gear, id)
+  if (had >= tomeLevel) {
+    player.displayClientMessage(Text.yellow('That already has ' + name + ' ' + global.FA_num(had) + '. Level this tome past it first (hold it, /ascension).'), true)
     return
   }
   let cost = global.FA_cost(0, id)
@@ -314,13 +364,86 @@ function faUnlock(player, tome, id, gear) {
     return
   }
 
-  if (!faCommit(player, gear, id, 0, 1, essence, essence - cost)) return
+  if (!faCommit(player, gear, id, had, tomeLevel, essence, essence - cost)) return
   // The tome is only used up once the unlock has fully gone through
   tome.shrink(1)
+  // Swapping a higher tome onto gear that had a lower level: the old level comes back as a tome, nothing is lost
+  if (had > 0) player.give(faMakeTome(id, had))
   if (global.FA_onStat) global.FA_onStat(player, 'unlocks', 1)
-  faSound(player, 'minecraft:block.enchantment_table.use', 1)
-  player.tell(Text.gold(name + ' unlocked on ').append(gear.getHoverName()).append(Text.gold('! '))
+  faSound(player, 'minecraft:block.enchantment_table.use', tomeLevel > 1 ? 0.7 : 1)
+  player.tell(Text.gold(name + (tomeLevel > 1 ? ' ' + global.FA_num(tomeLevel) : '') + (had > 0 ? ' swapped onto ' : ' unlocked on ')).append(gear.getHoverName())
+    .append(Text.gold('! ')).append(had > 0 ? Text.gray('(your old level ' + global.FA_num(had) + ' came back as a tome) ') : Text.gray(''))
     .append(faButton('Upgrade', '/ascension', 'Open the upgrade menu')))
+}
+
+// Level the tome in your main hand (one tome at a time, so a stack never levels all at once)
+function faUpgradeTome(player, amount) {
+  let tome = player.getMainHandItem()
+  let id = faTomeId(tome)
+  if (!id) {
+    player.tell(Text.red('Hold a tome in your main hand to level it.'))
+    return 0
+  }
+  let name = global.FA.enchants[id].name
+  if (tome.getCount() != 1) {
+    player.tell(Text.red('Hold just one tome to level it (that\'s a stack of ' + tome.getCount() + ').'))
+    return 0
+  }
+  let start = faTomeLevel(tome, id)
+  let level = start
+  let essence = faGetEssence(player)
+  let max = faMaxLevel(id)
+  let spent = 0
+  while (level - start < amount && level < max) {
+    let cost = global.FA_cost(level, id)
+    if (essence - spent < cost) break
+    spent += cost
+    level++
+  }
+  if (level == start) {
+    player.tell(level >= max ? Text.yellow('This tome is already at the max level.')
+      : Text.red('Not enough Essence: the next level costs ' + global.FA_num(global.FA_cost(level, id)) + '.'))
+    return 0
+  }
+  if (!faCommit(player, tome, id, faGetLevel(tome, id), level, essence, essence - spent)) return 0
+  if (global.FA_onStat) global.FA_onStat(player, 'levels_bought', level - start)
+  faSound(player, 'minecraft:block.enchantment_table.use', 1.2)
+  player.tell(Text.green('+' + global.FA_num(level - start) + ' -> a level ' + global.FA_num(level) + ' Tome of ' + name + '  ')
+    .append(Text.gray('(' + global.FA_describe(id, level) + ', spent ' + global.FA_num(spent) + ' Essence)')))
+  return 1
+}
+
+// Pull an enchant off gear into a tome: gear in one hand, a Blank Ascension Tome in the other
+function faExtract(player, id) {
+  let main = player.getMainHandItem(), off = player.getOffhandItem()
+  let blankId = 'kubejs:blank_ascension_tome'
+  let gear = null, blank = null
+  if (faIsGear(main) && off && String(off.getId()) == blankId) { gear = main; blank = off }
+  else if (faIsGear(off) && main && String(main.getId()) == blankId) { gear = off; blank = main }
+  let name = global.FA.enchants[id].name
+  if (!gear) {
+    player.tell(Text.red('Hold the gear in one hand and a Blank Ascension Tome in the other to extract an enchant.'))
+    return 0
+  }
+  let level = faGetLevel(gear, id)
+  if (level <= 0) {
+    player.tell(Text.red('That has no ' + name + ' to extract.'))
+    return 0
+  }
+  let tome = faMakeTome(id, level)
+  try {
+    faSetLevel(gear, id, 0)
+    if (id == 'eternal' && gear.nbt) gear.nbt.remove('Unbreakable')
+  } catch (err) {
+    console.error('[Factory Ascension] extracting ' + id + ' failed: ' + err)
+    player.tell(Text.red('Something went wrong, nothing was changed.'))
+    return 0
+  }
+  blank.shrink(1)
+  player.give(tome)
+  faSound(player, 'minecraft:item.book.page_turn', 0.8)
+  player.tell(Text.gold('Extracted ').append(Text.white(name + ' ' + global.FA_num(level))).append(Text.gold(' into a tome. ')).append(Text.gray('Right-click it with gear in your other hand to apply it.')))
+  return 1
 }
 
 function faUpgrade(player, id, amount) {
@@ -486,6 +609,14 @@ ServerEvents.commandRegistry(event => {
         .executes(ctx => faUpgradeRolled(ctx.source.getPlayerOrException(), Arguments.INTEGER.getResult(ctx, 'slot'),
           Math.max(1, Math.min(global.FA.maxUpgradesPerCommand, Arguments.INTEGER.getResult(ctx, 'amount'))))))))
 
+  let tomeCmd = Commands.literal('tome').then(Commands.argument('amount', Arguments.INTEGER.create(event))
+    .executes(ctx => faUpgradeTome(ctx.source.getPlayerOrException(),
+      Math.max(1, Math.min(global.FA.maxUpgradesPerCommand, Arguments.INTEGER.getResult(ctx, 'amount'))))))
+  let extractCmd = Commands.literal('extract')
+  Object.keys(global.FA.enchants).forEach(id => {
+    extractCmd = extractCmd.then(Commands.literal(id).executes(ctx => faExtract(ctx.source.getPlayerOrException(), id)))
+  })
+
   let essenceCmd = (name, apply) => Commands.literal(name)
     .then(Commands.argument('amount', Arguments.INTEGER.create(event))
       .executes(ctx => {
@@ -497,6 +628,8 @@ ServerEvents.commandRegistry(event => {
   event.register(Commands.literal('ascension')
     .executes(ctx => faShowMenu(ctx.source.getPlayerOrException()))
     .then(upgrade)
+    .then(tomeCmd)
+    .then(extractCmd)
     .then(Commands.literal('danger').executes(ctx => faShowDanger(ctx.source.getPlayerOrException())))
     .then(Commands.literal('milestones').executes(ctx => faShowMilestones(ctx.source.getPlayerOrException())))
     .then(Commands.literal('rebirth')

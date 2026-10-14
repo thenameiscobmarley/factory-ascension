@@ -359,6 +359,16 @@ function pngSize(path) { var d = java.nio.file.Files.readAllBytes(new File(path)
 var staleTex = created.map(function (id) { return 'kubejs/assets/kubejs/textures/item/' + id + '.png' }).concat(createdBlocks.map(function (b) { return 'kubejs/assets/kubejs/textures/block/' + b + '.png' }))
   .filter(function (f) { return new File(f).exists() && pngSize(f) != '32x32' })
 check('every item and block texture is 32x32 (none skipped by tools/make_textures.py)', staleTex.length == 0, staleTex.slice(0, 5).join(', '))
+// 3D item models (tools/make_item_models.py): one per item texture, pointing at it, boxes inside Minecraft's limits
+var badModels = created.filter(function (id) {
+  var f = new File('kubejs/assets/kubejs/models/item/' + id + '.json')
+  if (!f.exists()) return true
+  var m = JSON.parse(String(new java.lang.String(java.nio.file.Files.readAllBytes(f.toPath()), 'UTF-8')))
+  return m.textures.t != 'kubejs:item/' + id || !m.elements || m.elements.length == 0 || !m.display ||
+    !m.elements.every(function (e) { return e.from.concat(e.to).every(function (v) { return v >= -16 && v <= 32 }) && e.faces.south && e.faces.north })
+})
+check('every item has a 3D model (run tools/make_item_models.py after changing textures)', badModels.length == 0, badModels.slice(0, 5).join(', '))
+
 // Every tome has its own design (tools/tome_art.py): no two tome textures may be the same picture
 var tomeHashes = {}, sameTomes = []
 created.filter(function (id) { return id.indexOf('tome_') == 0 }).forEach(function (id) {
@@ -1691,6 +1701,55 @@ popped = []; blockSet = null
 handlers.blockClick({ player: miner2, item: hammer2, block: { id: 'minecraft:stone', set: function (b) { blockSet = b }, popItem: function () {} }, level: miner2.level, cancel: function () {} })
 check('non-rock blocks are left alone', blockSet === null)
 Math.random = realRandom
+
+// ---------------- Leveling tomes, applying them, extracting enchants ----------------
+print('\ntome levels')
+var scribe = makePlayer(server, 'scribe')
+server.persistentData.putDouble('fa_essence_scribe', 1e9)
+var stome = stack(1); stome.id = 'kubejs:tome_sharpness'
+scribe.main = stome; scribe.off = stack(0)
+faUpgradeTome(scribe, 249)
+check('a held tome levels up on its own (/ascension tome): Sharpness tome 1 -> 250', faGetLevel(stome, 'sharpness') == 250, faGetLevel(stome, 'sharpness'))
+var spentTome = 1e9 - faGetEssence(scribe), expectTome = 0
+for (var tl = 1; tl < 250; tl++) expectTome += global.FA_cost(tl, 'sharpness')
+check('...at the same Essence price as leveling gear', near(spentTome, expectTome), spentTome + ' vs ' + expectTome)
+check('holding a leveled tome gives none of its power', !(faLevels(scribe).sharpness > 0))
+var pile = stack(3); pile.id = 'kubejs:tome_sharpness'; scribe.main = pile
+check('a stack of tomes can\'t be leveled all at once', faUpgradeTome(scribe, 5) == 0 && !pile.tag)
+var carnage = gear('Netherite Sword')
+scribe.main = stome; scribe.off = carnage
+handlers.rightClicked['kubejs:tome_sharpness']({ player: scribe, item: stome, hand: 'MAIN_HAND', cancel: function () {} })
+check('applying a level 250 tome puts Sharpness 250 straight on the gear', faGetLevel(carnage, 'sharpness') == 250 && stome.count == 0, faGetLevel(carnage, 'sharpness'))
+var big = stack(1); big.id = 'kubejs:tome_sharpness'; faSetLevel(big, 'sharpness', 900)
+scribe.main = big; scribe.given = []
+handlers.rightClicked['kubejs:tome_sharpness']({ player: scribe, item: big, hand: 'MAIN_HAND', cancel: function () {} })
+check('a higher tome swaps in, and the old level comes back as a tome (nothing lost)', faGetLevel(carnage, 'sharpness') == 900 &&
+  scribe.given.length == 1 && scribe.given[0].id == 'kubejs:tome_sharpness' && faGetLevel(scribe.given[0], 'sharpness') == 250)
+var small = stack(1); small.id = 'kubejs:tome_sharpness'
+scribe.main = small
+handlers.rightClicked['kubejs:tome_sharpness']({ player: scribe, item: small, hand: 'MAIN_HAND', cancel: function () {} })
+check('a lower tome is refused and kept', small.count == 1 && faGetLevel(carnage, 'sharpness') == 900)
+var blankT = stack(2); blankT.id = 'kubejs:blank_ascension_tome'
+scribe.main = carnage; scribe.off = blankT; scribe.given = []
+faExtract(scribe, 'sharpness')
+check('extracting: Sharpness 900 comes off the gear into a level 900 tome, using a Blank Tome', faGetLevel(carnage, 'sharpness') == 0 && blankT.count == 1 &&
+  scribe.given.length == 1 && faGetLevel(scribe.given[0], 'sharpness') == 900)
+check('extracting needs the enchant to be there', faExtract(scribe, 'sharpness') == 0 && blankT.count == 1)
+var eternalGear = gear('Bow'); faSetLevel(eternalGear, 'eternal', 1)
+scribe.main = eternalGear
+faExtract(scribe, 'eternal')
+check('extracting Eternal makes the gear breakable again', eternalGear.tag.d.Unbreakable === undefined, JSON.stringify(Object.keys(eternalGear.tag.d)))
+var menuTome = stack(1); menuTome.id = 'kubejs:tome_protection'; faSetLevel(menuTome, 'protection', 40)
+scribe.main = menuTome; scribe.off = stack(0); scribe.messages = []
+faShowMenu(scribe)
+var tclicks = []
+scribe.messages.forEach(function (t) { tclicks = tclicks.concat(t.clicks || []) })
+check('/ascension with a tome in hand shows the tome and its level buttons', /Tome of Ascended Protection 40/.test(scribe.messages[1].s) && tclicks.indexOf('/ascension tome 100') >= 0, scribe.messages.map(function (t) { return t.s }).join(' | '))
+scribe.main = gear('Axe'); faSetLevel(scribe.main, 'cleave', 5); scribe.messages = []
+faShowMenu(scribe)
+tclicks = []
+scribe.messages.forEach(function (t) { tclicks = tclicks.concat(t.clicks || []) })
+check('gear enchants in the menu have an [Extract] button', tclicks.indexOf('/ascension extract cleave') >= 0)
 
 // ---------------- Gear condition ----------------
 print('\ncondition')

@@ -110,10 +110,9 @@ ItemEvents.tooltip(event => {
       e.ultimate ? Text.red('\u2604 ULTIMATE').bold(true) : e.mythic ? Text.lightPurple('\u2726 MYTHIC').bold(true) : e.type == 'fusion'
         ? Text.darkAqua('\u2697 FUSION of ' + global.FA.enchants[e.parts[0]].name + ' + ' + global.FA.enchants[e.parts[1]].name) : Text.darkGray('Ascended'),
       faColor(id)('Level 1: ' + global.FA_describe(id, 1)),
-      Text.gray('Hold gear in your other hand and right-click to unlock'),
+      Text.gray('Hold gear in your other hand and right-click to apply it'),
       Text.darkGray(e.maxLevel == 1 ? 'One-time enchant'
-        : e.maxLevel ? 'Then upgrade it with Essence: /ascension (max level ' + e.maxLevel + ')'
-          : 'Then upgrade it with Essence: /ascension (no level cap)')
+        : 'Level the tome itself first if you like: hold it and type /ascension' + (e.maxLevel ? ' (max level ' + e.maxLevel + ')' : ''))
     ])
   })
 
@@ -214,7 +213,8 @@ ItemEvents.tooltip(event => {
   // Tomes
   details('kubejs:blank_ascension_tome', 'Empty pages, waiting for a purpose.', () => [
     made('a Deployer pressing an Ascension Core into a Book'),
-    use('every enchant tome: mix it with that tome\'s catalyst in a heated Basin (see each tome)')])
+    use('every enchant tome: mix it with that tome\'s catalyst in a heated Basin (see each tome)'),
+    tip('Also pulls an enchant off gear into a tome: gear in one hand, this in the other, /ascension -> [Extract]')])
   let costTo = {}
   let essenceTo = (id, target) => {
     let key = id + '|' + target

@@ -140,6 +140,8 @@ function faLevels(entity) {
     let slot = it.next()
     let tag = faEmpty(slot) ? null : slot.nbt
     if (!tag || !tag.contains(FA_TAG)) continue
+    // A leveled tome stores its level but does nothing until it's applied to gear
+    if (String(slot.getId()).indexOf('kubejs:tome_') == 0) continue
     let own = faItemLevels(tag.getCompound(FA_TAG))
     Object.keys(own).forEach(id => {
       levels[id] = Math.min(FA_MAX_TOTAL, (levels[id] || 0) + own[id])
@@ -640,7 +642,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDeathEvent', e
       while (it.hasNext()) {
         let slot = it.next()
         let tag = faEmpty(slot) ? null : slot.nbt
-        if (!tag || !tag.contains(FA_TAG)) continue
+        if (!tag || !tag.contains(FA_TAG) || String(slot.getId()).indexOf('kubejs:tome_') == 0) continue
         let data = tag.getCompound(FA_TAG)
         if (data.getInt(id) <= 0) continue
         data.putInt('souls', Math.min(2000000000, data.getInt('souls') + 1))
