@@ -248,6 +248,38 @@ A new teal ore in the Overworld, Y -48 to 80 (most common around Y 16), in stone
 
 The original diamond assembly line still works. All the numbers are in the `ascendite` section of `00_fa_config.js`.
 
+### Ascendite gear
+
+The tools and armor are gunmetal steel with glowing teal energy channels, gold guards, collars and trim, violet gems
+and leather-wrapped grips with gold bands. Worn armor matches: gold-trimmed plates, a teal visor slit and a chest gem.
+
+## Mob food
+
+Animals and some monsters drop body parts when they die. Eat them **raw** and you get sick (Hunger II, often
+Nausea, sometimes Poison). **Cook** them in a furnace, smoker or campfire and they're good food with a buff tied to
+the animal. A mob that dies burning drops them already cooked. Looting adds +5% per level. Babies drop nothing.
+
+| Mob | Raw (chance) | Cooked | Cooked buff |
+|---|---|---|---|
+| Pig | Pig Eyes (30%) | Fried Pig Eyes | Night Vision 45s |
+| Pig | Pig Brain (20%) | Roasted Pig Brain | Haste 30s |
+| Cow, Mooshroom | Cow Tongue (30%) | Grilled Cow Tongue | 8 hunger + Saturation |
+| Cow, Mooshroom | Cow Heart (15%) | Seared Cow Heart | Health Boost 60s |
+| Sheep | Sheep Liver (25%) | Cooked Sheep Liver | Regeneration 6s |
+| Chicken | Chicken Feet (35%) | Fried Chicken Feet | Slow Falling 20s |
+| Rabbit | Rabbit Leg (35%) | Roasted Rabbit Leg | Jump Boost II 30s |
+| Spider, Cave Spider | Spider Legs (30%) | Grilled Spider Legs | Speed 30s |
+| Zombie, Husk, Drowned, Zombie Villager | Zombie Brain (15%) | Cooked Zombie Brain | Strength 20s |
+| Skeleton, Stray | Marrow Bone (20%) | Bone Marrow Broth | Resistance 20s |
+| Creeper | Creeper Heart (15%) | Smoked Creeper Heart | Absorption II 30s |
+| Squid, Glow Squid | Squid Tentacle (40%) | Fried Calamari | Water Breathing 60s |
+| Hoglin | Hoglin Ribs (35%) | BBQ Hoglin Ribs | 10 hunger + Fire Resistance 45s |
+
+Some tomes need a matching part in their recipe: Night Sight (Fried Pig Eyes), Wisdom (Roasted Pig Brain),
+Vitality (Seared Cow Heart), Sustenance (Grilled Cow Tongue), Renewal (Sheep Liver), Featherweight (Chicken Feet),
+Leaping (Roasted Rabbit Leg), Bane (Spider Legs), Smite (Zombie Brain), Bulwark (Marrow Bone), Blast Ward
+(Creeper Heart), Gills (Squid Tentacle) and Hellbane (Hoglin Ribs). Everything is in the `mobFood` section of the config.
+
 ## Storage: Tom's Simple Storage
 
 For a chest that sorts itself, scrolls, and gets bigger the more you add, the pack uses
@@ -360,12 +392,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension event` | Everyone | The current world event |
 | `/ascension event start <name>` / `stop` | Ops | Start or stop a world event |
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
-| `/ascension selftest` | Ops / console | Runs 25 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 28 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 332 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 337 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

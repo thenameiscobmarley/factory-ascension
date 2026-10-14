@@ -590,6 +590,36 @@ global.FA = {
     }
   },
 
+  // ---- Mob food: animal parts that drop on death. Raw makes you sick; cook it (furnace, smoker, campfire) ----
+  // Mobs that die burning drop the cooked version. Each cooked food gives a small buff tied to its animal,
+  // and several enchant tomes need one of these parts (see global.FA_TOME_CATALYSTS).
+  mobFood: {
+    enabled: true,
+    lootingBonus: 0.05,        // +5% drop chance per Looting level
+    raw: {
+      hunger: 2, saturation: 0.1,
+      // [effect, seconds, amplifier, chance]: what eating it raw does to you
+      sickness: [['minecraft:hunger', 30, 1, 1.0], ['minecraft:nausea', 12, 0, 0.6], ['minecraft:poison', 5, 0, 0.3]]
+    },
+    cookSeconds: 10,           // furnace time (smoker and blast are half, campfire x3)
+    // mobs: who drops it; chance: per death; effect: [effect, seconds, amplifier] when eaten cooked
+    foods: [
+      { raw: 'pig_eyes', rawName: 'Pig Eyes', cooked: 'fried_pig_eyes', cookedName: 'Fried Pig Eyes', mobs: ['minecraft:pig'], chance: 0.3, hunger: 4, saturation: 0.5, effect: ['minecraft:night_vision', 45, 0] },
+      { raw: 'pig_brain', rawName: 'Pig Brain', cooked: 'roasted_pig_brain', cookedName: 'Roasted Pig Brain', mobs: ['minecraft:pig'], chance: 0.2, hunger: 6, saturation: 0.6, effect: ['minecraft:haste', 30, 0] },
+      { raw: 'cow_tongue', rawName: 'Cow Tongue', cooked: 'grilled_cow_tongue', cookedName: 'Grilled Cow Tongue', mobs: ['minecraft:cow', 'minecraft:mooshroom'], chance: 0.3, hunger: 8, saturation: 0.8, effect: ['minecraft:saturation', 2, 0] },
+      { raw: 'cow_heart', rawName: 'Cow Heart', cooked: 'seared_cow_heart', cookedName: 'Seared Cow Heart', mobs: ['minecraft:cow', 'minecraft:mooshroom'], chance: 0.15, hunger: 7, saturation: 0.7, effect: ['minecraft:health_boost', 60, 0] },
+      { raw: 'sheep_liver', rawName: 'Sheep Liver', cooked: 'cooked_sheep_liver', cookedName: 'Cooked Sheep Liver', mobs: ['minecraft:sheep'], chance: 0.25, hunger: 6, saturation: 0.6, effect: ['minecraft:regeneration', 6, 0] },
+      { raw: 'chicken_feet', rawName: 'Chicken Feet', cooked: 'fried_chicken_feet', cookedName: 'Fried Chicken Feet', mobs: ['minecraft:chicken'], chance: 0.35, hunger: 4, saturation: 0.5, effect: ['minecraft:slow_falling', 20, 0] },
+      { raw: 'rabbit_leg', rawName: 'Rabbit Leg', cooked: 'roasted_rabbit_leg', cookedName: 'Roasted Rabbit Leg', mobs: ['minecraft:rabbit'], chance: 0.35, hunger: 5, saturation: 0.6, effect: ['minecraft:jump_boost', 30, 1] },
+      { raw: 'spider_legs', rawName: 'Spider Legs', cooked: 'grilled_spider_legs', cookedName: 'Grilled Spider Legs', mobs: ['minecraft:spider', 'minecraft:cave_spider'], chance: 0.3, hunger: 4, saturation: 0.4, effect: ['minecraft:speed', 30, 0] },
+      { raw: 'zombie_brain', rawName: 'Zombie Brain', cooked: 'cooked_zombie_brain', cookedName: 'Cooked Zombie Brain', mobs: ['minecraft:zombie', 'minecraft:husk', 'minecraft:drowned', 'minecraft:zombie_villager'], chance: 0.15, hunger: 5, saturation: 0.4, effect: ['minecraft:strength', 20, 0] },
+      { raw: 'marrow_bone', rawName: 'Marrow Bone', cooked: 'bone_marrow_broth', cookedName: 'Bone Marrow Broth', mobs: ['minecraft:skeleton', 'minecraft:stray'], chance: 0.2, hunger: 6, saturation: 0.7, effect: ['minecraft:resistance', 20, 0] },
+      { raw: 'creeper_heart', rawName: 'Creeper Heart', cooked: 'smoked_creeper_heart', cookedName: 'Smoked Creeper Heart', mobs: ['minecraft:creeper'], chance: 0.15, hunger: 6, saturation: 0.6, effect: ['minecraft:absorption', 30, 1] },
+      { raw: 'squid_tentacle', rawName: 'Squid Tentacle', cooked: 'fried_calamari', cookedName: 'Fried Calamari', mobs: ['minecraft:squid', 'minecraft:glow_squid'], chance: 0.4, hunger: 5, saturation: 0.6, effect: ['minecraft:water_breathing', 60, 0] },
+      { raw: 'hoglin_ribs', rawName: 'Hoglin Ribs', cooked: 'bbq_hoglin_ribs', cookedName: 'BBQ Hoglin Ribs', mobs: ['minecraft:hoglin'], chance: 0.35, hunger: 10, saturation: 0.9, effect: ['minecraft:fire_resistance', 45, 0] }
+    ]
+  },
+
   // ---- Safety limits (not power caps) ----
   maxExtraDropStacks: 8,       // most extra item stacks one kill can spawn, so loot enchants can't lag the server
   maxCleaveTargets: 16,
@@ -1226,6 +1256,15 @@ global.FA_validate = cfg => {
     problems.push('fragment chances must be between 0 and 1, reset to defaults')
     cfg.fragments = { eliteChance: 0.15, eliteChancePerLevel: 0.005, eliteChanceCap: 0.75, normalChancePerLevel: 0.002, normalChanceCap: 0.05 }
   }
+  let mf = cfg.mobFood
+  let effectOk = e => e && /^[a-z0-9_]+:[a-z0-9_]+$/.test(e[0]) && okNum(e[1], 0) && okNum(e[2], 0)
+  if (mf && mf.enabled && !(okNum(mf.lootingBonus, 0) && okNum(mf.cookSeconds, 1) && mf.raw && okNum(mf.raw.hunger, 0) && okNum(mf.raw.saturation, 0) &&
+    mf.raw.sickness.every(e => effectOk(e) && okNum(e[3], 0) && e[3] <= 1) && mf.foods && mf.foods.every(fd =>
+      /^[a-z0-9_]+$/.test(fd.raw) && /^[a-z0-9_]+$/.test(fd.cooked) && fd.mobs && fd.mobs.length > 0 && okNum(fd.chance, 0) && fd.chance <= 1 &&
+      okNum(fd.hunger, 0) && okNum(fd.saturation, 0) && effectOk(fd.effect)))) {
+    problems.push('mobFood settings are broken, mob food drops were switched off')
+    mf.enabled = false
+  }
   return problems
 }
 
@@ -1241,10 +1280,10 @@ for (let tier = 0; tier <= global.FA_condensedTiers(); tier++) global.FA.essence
 global.FA_TOME_CATALYSTS = {
   // Damage
   sharpness: ['minecraft:diamond', 'minecraft:flint', 'minecraft:flint'],
-  smite: ['minecraft:rotten_flesh', 'minecraft:rotten_flesh', 'minecraft:rotten_flesh'],
-  bane: ['minecraft:spider_eye', 'minecraft:spider_eye'],
+  smite: ['minecraft:rotten_flesh', 'minecraft:rotten_flesh', 'kubejs:zombie_brain'],
+  bane: ['minecraft:spider_eye', 'kubejs:spider_legs'],
   giant_slayer: ['minecraft:wither_skeleton_skull'],
-  hellbane: ['minecraft:blaze_rod', 'minecraft:blaze_rod'],
+  hellbane: ['minecraft:blaze_rod', 'kubejs:hoglin_ribs'],
   raidbreaker: ['minecraft:crossbow'],
   impaling: ['minecraft:prismarine_shard', 'minecraft:prismarine_shard'],
   skyhunter: ['minecraft:phantom_membrane', 'minecraft:phantom_membrane'],
@@ -1270,30 +1309,30 @@ global.FA_TOME_CATALYSTS = {
   // On kill
   plunder: ['minecraft:emerald', 'minecraft:gold_ingot', 'minecraft:gold_ingot'],
   soul_eater: ['minecraft:soul_lantern'],
-  wisdom: ['minecraft:experience_bottle', 'minecraft:experience_bottle'],
+  wisdom: ['minecraft:experience_bottle', 'kubejs:roasted_pig_brain'],
   midas: ['minecraft:gold_block'],
   gem_hunter: ['minecraft:emerald_block'],
   // Defense
   protection: ['minecraft:iron_block', 'minecraft:obsidian'],
   fire_ward: ['minecraft:magma_block'],
-  featherweight: ['minecraft:slime_block'],
-  blast_ward: ['minecraft:tnt'],
+  featherweight: ['minecraft:slime_block', 'kubejs:chicken_feet'],
+  blast_ward: ['minecraft:tnt', 'kubejs:creeper_heart'],
   arrow_ward: ['minecraft:shield'],
   spellward: ['minecraft:lapis_block'],
   wither_ward: ['minecraft:nether_star'],
-  bulwark: ['minecraft:chain', 'minecraft:chain'],
-  vitality: ['minecraft:golden_apple', 'minecraft:glistering_melon_slice'],
+  bulwark: ['minecraft:chain', 'kubejs:marrow_bone'],
+  vitality: ['minecraft:golden_apple', 'kubejs:seared_cow_heart'],
   retribution: ['minecraft:cactus', 'minecraft:quartz', 'minecraft:quartz'],
   evasion: ['minecraft:ender_pearl', 'minecraft:ender_pearl'],
   undying: ['minecraft:totem_of_undying'],
   // Passive
-  renewal: ['minecraft:ghast_tear'],
-  night_sight: ['minecraft:golden_carrot', 'minecraft:golden_carrot'],
-  gills: ['minecraft:scute'],
+  renewal: ['minecraft:ghast_tear', 'kubejs:sheep_liver'],
+  night_sight: ['minecraft:golden_carrot', 'kubejs:fried_pig_eyes'],
+  gills: ['minecraft:scute', 'kubejs:squid_tentacle'],
   fireproof: ['minecraft:magma_cream', 'minecraft:magma_cream'],
   industrious: ['minecraft:golden_pickaxe'],
-  leaping: ['minecraft:slime_ball', 'minecraft:slime_ball'],
-  sustenance: ['minecraft:cake'],
+  leaping: ['minecraft:slime_ball', 'kubejs:roasted_rabbit_leg'],
+  sustenance: ['minecraft:cake', 'kubejs:grilled_cow_tongue'],
   magnetism: ['minecraft:lodestone'],
   restoration: ['minecraft:anvil'],
   // Movement & utility

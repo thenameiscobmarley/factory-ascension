@@ -51,6 +51,19 @@ StartupEvents.registry('item', event => {
   event.create('ascendite_ingot').displayName('Ascendite Ingot')
   event.create('ascendite_nugget').displayName('Ascendite Nugget')
   event.create('ascension_shard').displayName('Ascension Shard').rarity('uncommon').glow(true)
+  // Mob food: raw parts make you sick, cooked ones are good food with a small buff (config: mobFood)
+  let MF = global.FA.mobFood
+  MF.foods.forEach(fd => {
+    event.create(fd.raw).displayName(fd.rawName).food(food => {
+      food.hunger(MF.raw.hunger).saturation(MF.raw.saturation).meat()
+      MF.raw.sickness.forEach(e => food.effect(e[0], e[1] * 20, e[2], e[3]))
+    })
+    event.create(fd.cooked).displayName(fd.cookedName).food(food => {
+      food.hunger(fd.hunger).saturation(fd.saturation).meat().alwaysEdible()
+      food.effect(fd.effect[0], fd.effect[1] * 20, fd.effect[2], 1)
+    })
+  })
+
   // Tools and armor use the tiers registered below (numbers in the config)
   FA_GEAR.forEach(g => event.create('ascendite_' + g[0], g[0]).displayName('Ascendite ' + g[1]).tier('ascendite'))
 })

@@ -224,6 +224,8 @@ function livingBits(o, maxHealth) {
   o.type = o.type || 'minecraft:zombie'
   o.getServer = o.getServer || function () { return server }
   o.extinguish = function () { this.fire = 0 }
+  o.isBaby = function () { return !!this.baby }
+  o.isOnFire = function () { return this.fire > 0 }
   o.setMotion = function (x, y, z) { this.motion = [x, y, z] }
   o.isRemoved = function () { return !!this.removed }
   o.getDisplayName = function () { return fakeText(this.customName || 'Zombie') }
@@ -277,9 +279,9 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
-  'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js',
+  'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
   load('kubejs/' + f)
@@ -293,7 +295,7 @@ var created = [], createdBlocks = [], createdFluids = []
 var builder = {}
 ;['displayName', 'rarity', 'glow', 'maxStackSize', 'thinTexture', 'bucketColor', 'soundType', 'hardness', 'resistance', 'requiresTool',
   'tagBlock', 'lightLevel', 'textureAll'].forEach(function (m) { builder[m] = function () { return builder } })
-var gearTiers = {}
+var gearTiers = {}, foodDefs = {}
 handlers.registry.forEach(function (r) {
   var list = r.type == 'item' ? created : r.type == 'block' ? createdBlocks : createdFluids
   r.fn({ create: function (id, type) {
@@ -301,6 +303,13 @@ handlers.registry.forEach(function (r) {
     var b = {}
     Object.keys(builder).forEach(function (m) { b[m] = function () { return b } })
     b.tier = function (t) { gearTiers[id] = { type: type, tier: t }; return b }
+    b.food = function (fn) {
+      var f = foodDefs[id] = { effects: [] }
+      var fb = { hunger: function (n) { f.hunger = n; return fb }, saturation: function (n) { f.saturation = n; return fb }, meat: function () { return fb },
+        alwaysEdible: function () { f.always = true; return fb }, effect: function (e, t, a, p) { f.effects.push([e, t, a, p]); return fb } }
+      fn(fb)
+      return b
+    }
     return b
   } })
 })
@@ -326,7 +335,15 @@ var ultIds = Object.keys(global.FA.enchants).filter(function (id) { return globa
 check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount == 286 && mythics.length == 15 && fusionIds.length == 200 && ultIds.length == 12,
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear)', created.length == 11 + enchantCount + gemCount + 14, created.length)
+var MF = global.FA.mobFood
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length, created.length)
+check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
+  var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
+  return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
+    c.hunger == fd.hunger && c.effects.length == 1 && c.effects[0][0] == fd.effect[0] && c.effects[0][3] == 1 && c.always
+}))
+// Off for the other tests (it adds random drops); its own tests switch it back on
+MF.enabled = false
 var File = java.io.File
 var missing = created.filter(function (id) { return !new File('kubejs/assets/kubejs/textures/item/' + id + '.png').exists() })
 check('every item has a texture', missing.length == 0, missing.join(','))
@@ -352,8 +369,8 @@ var ev = {
   shapeless: function (o, i) { var r = { json: { type: 'shapeless', out: o, ins: i }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r },
   shaped: function (o, p, k) { var r = { json: { type: 'shaped', out: o, key: k, pattern: p }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r }
 }
-;['smelting', 'blasting'].forEach(function (t) {
-  ev[t] = function (o, i) { var r = { json: { type: t, out: o, input: i }, xp: function () { return r }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r }
+;['smelting', 'blasting', 'smoking', 'campfireCooking'].forEach(function (t) {
+  ev[t] = function (o, i) { var r = { json: { type: t, out: o, input: i }, xp: function () { return r }, cookingTime: function (n) { r.json.time = n; return r }, id: function (x) { r.rid = x; return r } }; recipes.push(r); return r }
 })
 handlers.recipes.forEach(function (fn) { fn(ev) })
 function byId(id) { return recipes.filter(function (r) { return r.rid == 'kubejs:factory_ascension/' + id })[0] }
@@ -385,6 +402,11 @@ check('Ascension Cores have 4 more recipes without sequenced assembly', coreWays
 check('Ascendite ores and raw ore smelt into ingots', ['raw_ascendite', 'crushed_raw_ascendite', 'ascendite_ore', 'deepslate_ascendite_ore'].every(function (id) {
   return recipes.some(function (r) { return r.json.type == 'smelting' && r.json.input == 'kubejs:' + id && r.json.out == 'kubejs:ascendite_ingot' }) }))
 check('every Ascendite tool and armor piece has a recipe', gearIds.every(function (id) { return !!byId(id) }))
+check('every raw mob food cooks in a furnace, smoker and campfire', global.FA.mobFood.foods.every(function (fd) {
+  return ['smelting', 'smoking', 'campfireCooking'].every(function (t) { return recipes.some(function (r) { return r.json.type == t && r.json.input == 'kubejs:' + fd.raw && r.json.out == 'kubejs:' + fd.cooked }) }) }))
+var partTomes = Object.keys(global.FA_TOME_CATALYSTS).filter(function (t) { return global.FA_TOME_CATALYSTS[t].some(function (i) { return global.FA.mobFood.foods.some(function (fd) { return i == 'kubejs:' + fd.raw || i == 'kubejs:' + fd.cooked }) }) })
+check('13 tomes use a mob part tied to their effect (Night Sight: Fried Pig Eyes, Vitality: Seared Cow Heart...)', partTomes.length == 13 &&
+  global.FA_TOME_CATALYSTS.night_sight.indexOf('kubejs:fried_pig_eyes') >= 0 && global.FA_TOME_CATALYSTS.vitality.indexOf('kubejs:seared_cow_heart') >= 0, partTomes.join(','))
 check('starter recipes: brass, precision mechanism, blaze burner, TFMG steel', ['starter_brass', 'starter_precision_mechanism', 'starter_blaze_burner', 'starter_steel'].every(function (id) { return !!byId(id) }))
 // Tags and the ore's loot table
 var tagged = {}
@@ -628,7 +650,8 @@ function dropEvent(attacker, victim2, stacks) {
       level: function () { return null }, getX: function () { return 0 }, getY: function () { return 0 }, getZ: function () { return 0 } }
   })
   var list = javaList(ents)
-  return { list: list, getEntity: function () { return victim2 }, getSource: function () { return src(attacker) }, getDrops: function () { return list } }
+  return { list: list, looting: 0, getEntity: function () { return victim2 }, getSource: function () { return src(attacker) }, getDrops: function () { return list },
+    getLootingLevel: function () { return this.looting } }
 }
 function totalCount(ev) { var t = 0; ev.list.arr.forEach(function (ie) { t += ie.getItem().count }); return t }
 Item.of = function (id, n) { var st = stack(n || 1); st.id = id; return st }
@@ -771,6 +794,26 @@ Math.random = function () { return 0.999 }
 var d6 = dropEvent(plainHero, tenMob, [stack(4)]); dropsHook(d6)
 Math.random = realRandom
 check('danger 10 doubles drops even without Plunder', totalCount(d6) == 8, totalCount(d6))
+
+// ---- Mob food ----
+MF.enabled = true
+var dropIds = function (ev) { return ev.list.arr.map(function (ie) { return ie.getItem().id }).filter(function (x) { return !!x }) }
+var pig = makeMob(); pig.type = 'minecraft:pig'
+Math.random = function () { return 0 }
+var f1 = dropEvent(plainHero, pig, []); dropsHook(f1)
+check('a pig drops Pig Eyes and a Pig Brain (raw)', dropIds(f1).join() == 'kubejs:pig_eyes,kubejs:pig_brain', dropIds(f1).join())
+pig.fire = 5
+var f2 = dropEvent(plainHero, pig, []); dropsHook(f2)
+check('a pig that dies burning drops them cooked', dropIds(f2).join() == 'kubejs:fried_pig_eyes,kubejs:roasted_pig_brain', dropIds(f2).join())
+var piglet = makeMob(); piglet.type = 'minecraft:pig'; piglet.baby = true
+var f3 = dropEvent(plainHero, piglet, []); dropsHook(f3)
+check('baby animals drop no parts', dropIds(f3).length == 0)
+Math.random = function () { return 0.32 }
+var f4 = dropEvent(plainHero, pig, []); pig.fire = 0; dropsHook(f4)
+var f5 = dropEvent(plainHero, pig, []); f5.looting = 3; dropsHook(f5)
+check('Looting raises the drop chance (a 32% roll: nothing at Looting 0; Eyes 45% and Brain 35% at Looting III)', dropIds(f4).length == 0 && dropIds(f5).join() == 'kubejs:pig_eyes,kubejs:pig_brain', dropIds(f4).join() + ' / ' + dropIds(f5).join())
+Math.random = realRandom
+MF.enabled = false
 var xpEv2 = { xp: 10, getEntity: function () { return tenMob }, getAttackingPlayer: function () { return plainHero }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
 xpHook(xpEv2)
 check('danger 10 triples XP', xpEv2.xp == 30)

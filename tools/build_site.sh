@@ -17,7 +17,7 @@ rm -rf site/fa site/vendor
 mkdir -p site/fa/items site/vendor/uivault
 cp kubejs/startup_scripts/00_fa_config.js kubejs/startup_scripts/10_fa_items.js site/fa/
 cp kubejs/server_scripts/20_fa_core_recipes.js kubejs/server_scripts/25_fa_tome_recipes.js kubejs/server_scripts/30_fa_material_recipes.js \
-   kubejs/server_scripts/35_fa_starter_recipes.js site/fa/
+   kubejs/server_scripts/35_fa_starter_recipes.js kubejs/server_scripts/37_fa_food_recipes.js site/fa/
 cp kubejs/assets/kubejs/textures/item/*.png site/fa/items/
 cp kubejs/assets/kubejs/textures/block/*.png site/fa/items/   # blocks (altar, condenser, condensed essence) use their block texture as the icon
 cp "$uivault/lib/uivault.css" "$uivault/lib/uivault.js" "$uivault/lib/css/fonts.css" site/vendor/uivault/

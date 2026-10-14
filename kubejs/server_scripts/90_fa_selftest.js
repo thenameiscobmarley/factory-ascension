@@ -15,6 +15,7 @@ const $STItemEntity = Java.loadClass('net.minecraft.world.entity.item.ItemEntity
 const $STLiving = Java.loadClass('net.minecraft.world.entity.LivingEntity')
 const $STArmorStand = Java.loadClass('net.minecraft.world.entity.decoration.ArmorStand')
 const $STHand = Java.loadClass('net.minecraft.world.InteractionHand')
+const $STEffects = Java.loadClass('net.minecraft.world.effect.MobEffects')
 
 let faSelftestBusy = false
 
@@ -204,6 +205,32 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       if (String(level.getBlock(new $STBlockPos(sx + dx, sy + dy, sz + dz)).id) == 'kubejs:ascendite_ore') ores++
     }
     check('Ascendite ore worldgen is loaded (a vein placed ' + ores + ' ore)', ores > 0, ores)
+  })
+
+  // ---- Mob food: a real pig drops parts, raw food makes you sick, cooking recipes are loaded ----
+  attempt('mob food', () => {
+    let foods = global.FA.mobFood.foods
+    let saved = foods.map(fd => fd.chance)
+    foods.forEach(fd => { fd.chance = 1 })
+    let pig = spawn('minecraft:pig', X - 6, Y, Z + 8)
+    pig.attack(player.damageSources().playerAttack(player), 1000)
+    foods.forEach((fd, i) => { fd.chance = saved[i] })
+    let parts = []
+    let near = level.getEntitiesOfClass($STItemEntity, pig.getBoundingBox().inflate(3))
+    for (let i = 0; i < near.size(); i++) {
+      let id = String(near.get(i).getItem().getId())
+      if (id.indexOf('kubejs:') == 0) parts.push(id)
+      near.get(i).discard()
+    }
+    check('a pig drops Pig Eyes and a Pig Brain', parts.indexOf('kubejs:pig_eyes') >= 0 && parts.indexOf('kubejs:pig_brain') >= 0, parts.join(', ') || 'nothing')
+    player.removeAllEffects()
+    let raw = Item.of('kubejs:pig_eyes')
+    player.setItemInHand('main_hand', raw)
+    raw.finishUsingItem(level, player)
+    check('eating raw Pig Eyes makes you sick (Hunger)', player.hasEffect($STEffects.HUNGER))
+    player.removeAllEffects()
+    let cooks = ['cook_', 'smoke_', 'campfire_'].filter(k => server.getRecipeManager().byKey('kubejs:factory_ascension/' + k + 'pig_eyes').isPresent())
+    check('raw food cooks in a furnace, smoker and campfire', cooks.length == 3, cooks.join(', '))
   })
 
   let altarPos, condPos, altarTank, condTank, depot, chestPos, altarGear, condFilled = 0

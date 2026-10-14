@@ -10,7 +10,7 @@
     "create:mixing": "Mechanical Mixer + Basin", "create:compacting": "Mechanical Press + Basin (compacting)", "create:crushing": "Crushing Wheels",
     "create:deploying": "Deployer", "create:sequenced_assembly": "Sequenced assembly line", "create:filling": "Spout", "create:pressing": "Mechanical Press",
     "create:splashing": "Encased Fan through water (washing)", "create:haunting": "Encased Fan through soul fire (haunting)",
-    smelting: "Furnace", blasting: "Blast Furnace", shaped: "Crafting table", shapeless: "Crafting table", condenser: "Essence Condenser (tank below, chest on top)"
+    smelting: "Furnace", blasting: "Blast Furnace", smoking: "Smoker", campfireCooking: "Campfire", shaped: "Crafting table", shapeless: "Crafting table", condenser: "Essence Condenser (tank below, chest on top)"
   };
   const HEAT = { heated: "Blaze Burner: heated", superheated: "Blaze Burner: superheated (blaze cake)" };
   // Where the raw materials come from, for the ends of every chain
@@ -24,6 +24,10 @@
     "kubejs:raw_ascendite": "Mine Ascendite ore (Overworld, Y -48 to 80)", "kubejs:ascension_shard": "Mining Ascendite ore (12% per ore, more with Fortune)",
     "minecraft:copper_ingot": "Copper ore, or crushed copper from Common Mineral Clusters", "create:zinc_ingot": "Zinc ore, or crushed zinc from Common Mineral Clusters", "minecraft:redstone": "Gem Mineral Cluster, crushed", "minecraft:lapis_lazuli": "Gem Mineral Cluster, crushed"
   };
+  // Mob food comes from mobs, not recipes
+  global.FA.mobFood.foods.forEach(fd => {
+    BASE["kubejs:" + fd.raw] = "Drops from " + fd.mobs.map(pretty).join(", ") + " (" + Math.round(fd.chance * 100) + "%, more with Looting). Eating it raw makes you sick";
+  });
   const tex = id => id.indexOf("kubejs:") === 0 && id.indexOf("fluid:") !== 0 ? "fa/items/" + id.slice(7) + ".png" : null;
   // Fluids show in their real colors (Liquid Essence's comes from the pack config)
   const FLUID_COLORS = { "fluid:kubejs:liquid_essence": "#" + ("000000" + global.FA.altar.color.toString(16)).slice(-6), "fluid:minecraft:lava": "#ff7a1a", "fluid:minecraft:water": "#3f76e4" };
@@ -66,10 +70,10 @@
       }
     };
     // Furnace recipes: one input, one output
-    ["smelting", "blasting"].forEach(type => {
+    ["smelting", "blasting", "smoking", "campfireCooking"].forEach(type => {
       ev[type] = (out, input) => {
         add({ machine: type, inputs: [{ id: input, count: 1 }], outputs: [{ id: out, count: 1 }] });
-        const r = { xp: () => r, id: () => {} };
+        const r = { xp: () => r, cookingTime: () => r, id: () => {} };
         return r;
       };
     });

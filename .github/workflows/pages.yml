@@ -26,7 +26,7 @@ jobs:
         run: |
           cmp kubejs/startup_scripts/00_fa_config.js site/fa/00_fa_config.js
           cmp kubejs/startup_scripts/10_fa_items.js site/fa/10_fa_items.js
-          for f in 20_fa_core_recipes 25_fa_tome_recipes 30_fa_material_recipes 35_fa_starter_recipes; do cmp kubejs/server_scripts/$f.js site/fa/$f.js; done
+          for f in 20_fa_core_recipes 25_fa_tome_recipes 30_fa_material_recipes 35_fa_starter_recipes 37_fa_food_recipes; do cmp kubejs/server_scripts/$f.js site/fa/$f.js; done
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

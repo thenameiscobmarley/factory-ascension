@@ -14,6 +14,8 @@ import re
 import struct
 import zlib
 
+import food_art
+import gear_art
 import tome_art
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "textures", "item")
@@ -162,7 +164,8 @@ def hd_block(px, path):
 def hd_armor(px, path):
     """Worn armor: plain 2x (its UV layout must stay exact) with grain."""
     seed = _seed(path)
-    up = [[c for c in row for _ in range(2)] for row in px for _ in range(2)]
+    # Drawn at 64x32 needs doubling; gear_art draws it at 128x64 already
+    up = px if len(px[0]) >= 128 else [[c for c in row for _ in range(2)] for row in px for _ in range(2)]
     return [[_shade(c, 0.06 * _grain(seed, x, y)) if c[3] else c for x, c in enumerate(row)] for y, row in enumerate(up)]
 
 
@@ -737,6 +740,10 @@ def armor_layer(layer):
 def ascendite_textures(textures):
     for name, rows in ASC_SPRITES.items():
         textures[name] = outline(from_mask(rows, asc), (8, 40, 48, 255))
+    # Tools and armor: the detailed 32x32 designs from gear_art.py (gunmetal, teal energy, gold trim, violet gems)
+    for kind, draw in gear_art.ICONS.items():
+        px = draw()
+        textures["ascendite_" + kind] = Outlined(px, px, (10, 12, 20, 255))
     textures["raw_ascendite"] = outline(raw_ascendite(), (8, 40, 48, 255))
     textures["crushed_raw_ascendite"] = outline(crushed_ascendite(), (8, 40, 48, 255))
     textures["ascension_shard"] = outline(ascension_shard(), (30, 10, 50, 255))
@@ -745,7 +752,7 @@ def ascendite_textures(textures):
     png(os.path.join(BLOCK_OUT, "ascendite_block.png"), ascendite_storage_block())
     os.makedirs(ARMOR_OUT, exist_ok=True)
     for layer in (1, 2):
-        png(os.path.join(ARMOR_OUT, "ascendite_layer_%d.png" % layer), armor_layer(layer))
+        png(os.path.join(ARMOR_OUT, "ascendite_layer_%d.png" % layer), gear_art.armor_layer(layer))
     print("wrote Ascendite ore, block, armor layers and %d items" % (len(ASC_SPRITES) + 3))
 
 
@@ -793,6 +800,16 @@ def main():
             seen[key] = name
     textures["mythic_fragment"] = outline(fragment(), (30, 8, 40, 255))
     textures["ascended_soul"] = outline(soul(), (10, 20, 40, 255))
+    # Mob food: raw sprite + its roasted version, names from the config
+    foods = re.findall(r"\{ raw: '(\w+)', rawName: '[^']*', cooked: '(\w+)'", open(CONFIG).read())
+    if len(foods) < 13:
+        raise SystemExit('could not read mobFood foods from ' + CONFIG)
+    for i, (raw, done) in enumerate(foods):
+        if raw not in food_art.RAW:
+            raise SystemExit('no sprite for mob food ' + raw + ' (add one to tools/food_art.py)')
+        px = food_art.RAW[raw]()
+        textures[raw] = outline(px, (40, 16, 20, 255))
+        textures[done] = outline(food_art.cooked(px, i), (36, 20, 10, 255))
     textures["chaos_tome"] = Outlined(tome_art.chaos_tome(), tome_art.chaos_tome(), edge)
     gems = gem_colors()
     if len(gems) < 6:

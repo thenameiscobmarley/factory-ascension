@@ -314,6 +314,29 @@ ItemEvents.tooltip(event => {
     Text.gray('Tier: ').append(Text.aqua('between iron and diamond')).append(Text.darkGray('  ' + T.uses + ' durability, ' + (T.level >= 2 ? 'mines diamonds' : 'mines iron'))),
     made('Ascendite Ingots + Sticks, like iron tools. Repair with Ascendite Ingots in an anvil.'),
     tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
+  // Mob food
+  let MF = FA.mobFood
+  let pretty = id => String(id).replace(/^[a-z0-9_]+:/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  let roman = n => ['I', 'II', 'III', 'IV', 'V'][n] || String(n + 1)
+  let tomesNeeding = item => Object.keys(global.FA_TOME_CATALYSTS).filter(t => global.FA_TOME_CATALYSTS[t].indexOf(item) >= 0).map(t => FA.enchants[t].name)
+  let rawLore = ['Smells awful. Definitely cook this.', 'Still twitching a little.', 'Who would eat this raw?']
+  let cookedLore = ['Crispy outside, surprisingly good inside.', 'Somehow it tastes like adventure.', 'Grandma would be proud.']
+  MF.foods.forEach((fd, i) => {
+    let mobs = fd.mobs.map(pretty).join(', ')
+    let needs = item => {
+      let t = tomesNeeding(item)
+      return t.length ? [use('the ' + t.join(', ') + ' tome' + (t.length > 1 ? 's' : ''))] : []
+    }
+    details('kubejs:' + fd.raw, rawLore[i % rawLore.length], () => [
+      from(mobs + ' (' + pct(fd.chance) + ', +' + pct(MF.lootingBonus) + ' per Looting level)'),
+      Text.red('Raw: ' + MF.raw.sickness.map(e => pretty(e[0]) + ' ' + roman(e[2]) + (e[3] < 1 ? ' (' + pct(e[3]) + ')' : '')).join(', ')),
+      tip('Cook it in a furnace, smoker or campfire: ' + fd.cookedName)].concat(needs('kubejs:' + fd.raw)))
+    details('kubejs:' + fd.cooked, cookedLore[i % cookedLore.length], () => [
+      Text.green('+' + fd.hunger + ' hunger, ' + pretty(fd.effect[0]) + (fd.effect[2] > 0 ? ' ' + roman(fd.effect[2]) : '') + ' for ' + fd.effect[1] + 's'),
+      made('cooking ' + fd.rawName + ', or kill the ' + fd.mobs.map(pretty)[0] + ' while it burns'),
+      tip('You can eat it even when full')].concat(needs('kubejs:' + fd.cooked)))
+  })
+
   let P = A.armor.protection, slots = { boots: 0, leggings: 1, chestplate: 2, helmet: 3 }
   let total = P[0] + P[1] + P[2] + P[3]
   Object.keys(slots).forEach(g => details('kubejs:ascendite_' + g, 'Forged from Ascendite: light, sharp, and ready to ascend.', () => [
