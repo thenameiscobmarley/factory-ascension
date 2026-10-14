@@ -7,7 +7,7 @@ const $FABarColor = Java.loadClass('net.minecraft.world.BossEvent$BossBarColor')
 const $FABarOverlay = Java.loadClass('net.minecraft.world.BossEvent$BossBarOverlay')
 const $FAHeightmap = Java.loadClass('net.minecraft.world.level.levelgen.Heightmap$Types')
 
-global.FA_EVENT = null      // { type, until (ms), next (ms, meteor timer) }
+// The current event lives in global.FA_STATE.event: { type, until (ms), next (ms, meteor timer) }, or false for none
 let faBosses = {}           // uuid -> { mob, bar, phase, nextSlam }
 
 // ---- World events ----
@@ -30,7 +30,7 @@ global.FA_startEvent = (server, type) => {
   let cfg = E[type]
   if (!cfg || !FA_EVENT_INFO[type]) return false
   if (type == 'bloodMoon' && cfg.nightOnly && !server.overworld().isNight()) return false
-  global.FA_EVENT = { type: type, until: Date.now() + cfg.minutes * 60000, next: 0 }
+  global.FA_STATE.event = { type: type, until: Date.now() + cfg.minutes * 60000, next: 0 }
   let info = FA_EVENT_INFO[type]
   faTitleAll(server, info.title, info.color, info.sub)
   server.tell(Text.gold('★ ' + info.title + ' ★ ').append(Text.gray(info.sub + ' (' + cfg.minutes + ' min)')))
@@ -40,8 +40,8 @@ global.FA_startEvent = (server, type) => {
 }
 
 global.FA_endEvent = server => {
-  let e = global.FA_EVENT
-  global.FA_EVENT = null
+  let e = global.FA_STATE.event
+  global.FA_STATE.event = false   // never null: see FA_STATE in 00_fa_config.js
   if (e && server) server.tell(Text.gray('The ' + FA_EVENT_INFO[e.type].title.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) + ' has ended.'))
 }
 
@@ -178,7 +178,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$ServerTickEvent', event 
 
   try {
     let E = global.FA.events
-    let current = global.FA_EVENT
+    let current = global.FA_STATE.event
     if (current && now >= current.until) {
       global.FA_endEvent(server)
     } else if (current && current.type == 'meteorShower' && now >= current.next) {

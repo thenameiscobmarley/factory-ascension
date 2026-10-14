@@ -570,6 +570,11 @@ global.FA = {
   maxUpgradesPerCommand: 100000
 }
 
+// Runtime state shared between scripts lives in this object. Nothing reachable from `global` may ever hold null:
+// in KubeJS `global` is a Java map, and reading a key that holds null crashes the game (it did, in the server tick).
+// Objects stored on it may be read the same way, so "no value" is written as false instead.
+global.FA_STATE = { event: false }
+
 // Fusion enchants become ordinary enchant entries (type 'fusion'), so tomes, upgrades, the altar, tooltips,
 // JEI and the website all handle them like any other enchant
 global.FA.fusions.forEach(f => {

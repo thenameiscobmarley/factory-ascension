@@ -178,7 +178,7 @@ function faDanger(entity) {
 
 // The current world event ({type, until}) or null; set by startup_scripts/30_fa_world.js
 function faEvent(type) {
-  let e = global.FA_EVENT
+  let e = global.FA_STATE.event
   return e && e.type == type ? e : null
 }
 

@@ -213,6 +213,7 @@ function makePlayer(server, uuid) {
 }
 // Shared living-entity behaviour for fake players and mobs
 var gameTime = 1000
+var mobIds = 0
 var bolts = []
 var spawnedMinions = []
 function livingBits(o, maxHealth) {
@@ -242,7 +243,8 @@ function livingBits(o, maxHealth) {
   o.canChangeDimensions = function () { return !this.boss }
   o.isInWaterOrRain = function () { return this.wet }
   o.onGround = function () { return this.ground }
-  o.getStringUUID = o.getStringUUID || function () { return 'mob' }
+  // Every entity has its own id, like the game
+  if (!o.getStringUUID) { var myId = 'mob-' + (++mobIds); o.getStringUUID = function () { return myId } }
   o.displayClientMessage = o.displayClientMessage || function () {}
   var self = o
   // The same world object every call, like the game
@@ -1392,8 +1394,8 @@ server.getAllLevels = function () { return [world2] }
 print('\nworld events')
 var evServer = makeServer()
 evServer.overworld = function () { return { isNight: function () { return false } } }
-check('Blood Moon refuses to start in daytime', global.FA_startEvent(evServer, 'bloodMoon') === false && global.FA_EVENT === null)
-check('Golden Hour starts and is announced', global.FA_startEvent(evServer, 'goldenHour') && global.FA_EVENT.type == 'goldenHour' && evServer.commands.some(function (c) { return /GOLDEN HOUR/.test(c) }))
+check('Blood Moon refuses to start in daytime', global.FA_startEvent(evServer, 'bloodMoon') === false && !global.FA_STATE.event)
+check('Golden Hour starts and is announced', global.FA_startEvent(evServer, 'goldenHour') && global.FA_STATE.event.type == 'goldenHour' && evServer.commands.some(function (c) { return /GOLDEN HOUR/.test(c) }))
 var gh = dropEvent(plainHero, makeMob(), [stack(4)]); dropsHook(gh)
 check('Golden Hour doubles loot', totalCount(gh) == 8, totalCount(gh))
 global.FA_endEvent(evServer)
@@ -1404,7 +1406,7 @@ var bmMob = spawn(makeMob(), 6000)
 check('Blood Moon: everything spawns +10 danger', bmMob.pdata.getInt('fa_danger') == 21, bmMob.pdata.getInt('fa_danger'))
 Math.random = realRandom
 global.FA_endEvent(evServer)
-check('events end cleanly', global.FA_EVENT === null)
+check('events end cleanly', !global.FA_STATE.event)
 
 print('\nAscended bosses')
 var bossMob = makeMob(); bossMob.x = 30000
@@ -1423,7 +1425,7 @@ fan.isCreative = function () { return false }
 var tickBoss = handlers.forge['ServerTickEvent']
 var bossServer = makeServer(); bossServer.getPlayerList = function () { return { getPlayers: function () { return [] }, getPlayerCount: function () { return 0 } } }
 faLastSecond = 0; tickBoss({ phase: 'END', getServer: function () { return bossServer } })
-var tracked = faBosses[bossMob.getStringUUID()] || faBosses['mob']
+var tracked = faBosses[bossMob.getStringUUID()]
 check('a boss bar shows to nearby players', tracked && tracked.bar.players.indexOf(fan) >= 0)
 check('the boss slams nearby players away', fan.motion && fan.motion[0] > 0)
 bossMob.hp = 12; spawnedMinions = []
@@ -1496,6 +1498,33 @@ check('a crash inside a secondary hit never leaves enchants switched off', nextH
 var reload = makeMob(); reload.pdata.putInt('fa_danger', 7)
 spawn(reload, 60000, { fromDisk: true })
 check('reloaded mobs keep their saved danger level', reload.pdata.getInt('fa_danger') == 7)
+
+// ---------------- KubeJS's `global` ----------------
+// In KubeJS `global` is a Java map, and reading a key that holds null crashes the game (a real crash, from the
+// server tick). These two checks make sure no script ever leaves null (or undefined) on it.
+print('\nkubejs global')
+var nullAssigns = []
+;['startup_scripts', 'server_scripts', 'client_scripts'].forEach(function (dir) {
+  var files = new java.io.File('kubejs/' + dir).listFiles()
+  for (var i = 0; i < files.length; i++) {
+    var text = String(new java.lang.String(java.nio.file.Files.readAllBytes(files[i].toPath()), 'UTF-8'))
+    var lines = text.split('\n')
+    lines.forEach(function (line, n) {
+      if (/\bglobal\.[\w.]+\s*=\s*(null|undefined)\b/.test(line) || /\bdelete\s+global\./.test(line)) nullAssigns.push(files[i].getName() + ':' + (n + 1))
+    })
+  }
+})
+check('no script ever sets a global key to null or deletes one', nullAssigns.length == 0, nullAssigns.join(', '))
+// Deep scan: nothing reachable from global (config, state, caches) may hold null or undefined
+var nullPaths = [], seenObjs = []
+function scanNull(v, path, depth) {
+  if (v === null || v === undefined) { nullPaths.push(path); return }
+  if (typeof v != 'object' || depth > 8 || seenObjs.indexOf(v) >= 0) return
+  seenObjs.push(v)
+  Object.keys(v).forEach(function (k) { scanNull(v[k], path + '.' + k, depth + 1) })
+}
+Object.keys(global).forEach(function (k) { scanNull(global[k], 'global.' + k, 0) })
+check('after every test, nothing reachable from global holds null', nullPaths.length == 0, nullPaths.slice(0, 5).join(', '))
 
 print('\n' + (failures ? failures + ' FAILED' : 'all checks passed'))
 if (failures) java.lang.System.exit(1)

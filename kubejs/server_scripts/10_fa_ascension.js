@@ -502,7 +502,7 @@ ServerEvents.commandRegistry(event => {
       .then(Commands.literal('confirm').executes(ctx => faRebirth(ctx.source.getPlayerOrException(), true))))
     .then(Commands.literal('event')
       .executes(ctx => {
-        let e = global.FA_EVENT
+        let e = global.FA_STATE.event
         ctx.source.getPlayerOrException().tell(e ? Text.gold('Current event: ' + e.type + ' (' + Math.ceil((e.until - Date.now()) / 60000) + ' min left)') : Text.gray('No world event right now.'))
         return 1
       })
