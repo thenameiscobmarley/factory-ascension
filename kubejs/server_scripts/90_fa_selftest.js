@@ -253,7 +253,7 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       drops.get(i).discard()
     }
     check('mining Ascendite ore drops Raw Ascendite', raw >= 1, raw)
-    let recipeIds = ['core_by_hand', 'core_from_shards', 'core_mixing', 'core_compacting', 'starter_brass', 'starter_precision_mechanism', 'ascendite_pickaxe']
+    let recipeIds = ['core_by_hand', 'core_from_shards', 'core_mixing', 'core_compacting', 'starter_brass', 'starter_precision_mechanism', 'ascendite_pickaxe', 'press_cobblestone_ascendite']
     let missing = recipeIds.filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent())
     check('the cheaper core recipes and starter recipes are loaded', missing.length == 0, missing.join(', '))
     // The ore feature is in the world's worldgen registry: place one vein into a block of stone and look for ore

@@ -579,6 +579,7 @@ global.FA = {
     },
     shardsPerCore: 4,          // Ascension Shards -> 1 Ascension Core (crafting grid)
     hauntChance: 0.3,          // Encased Fan through soul fire: Crushed Raw Iron -> Crushed Raw Ascendite (renewable)
+    pressCobble: 9,            // Mechanical Press over a Basin: this much cobblestone -> 1 Raw Ascendite (Create allows at most 9)
     // Between iron and diamond. Mines diamonds; levels well with Ascended enchants like any gear.
     tools: { uses: 900, speed: 7.5, attackDamageBonus: 2.5, level: 2, enchantability: 18 },
     armor: {

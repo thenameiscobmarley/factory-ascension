@@ -1840,6 +1840,10 @@ check('the center is saved with the world and loads back', global.FA_STATE.cente
 faCenterCommand(mover, 'reset')
 check('/ascension center reset: back to world spawn (and never null on global)', global.FA_STATE.center === false && global.FA_dangerLevel(mover.level, 6000, 0) == 11)
 check('two more starter recipes: an amethyst Ascension Core and an Ascendite alloy ingot', !!byId('core_from_amethyst') && !!byId('ascendite_alloy'))
+var pressAsc = byId('press_cobblestone_ascendite')
+check('a Mechanical Press over a Basin turns ' + global.FA.ascendite.pressCobble + ' cobblestone into Raw Ascendite', !!pressAsc && pressAsc.json.type == 'create:compacting' &&
+  pressAsc.json.ingredients.length == global.FA.ascendite.pressCobble && pressAsc.json.ingredients.every(function (i) { return i.item == 'minecraft:cobblestone' }) &&
+  pressAsc.json.results[0].item == 'kubejs:raw_ascendite')
 
 // ---------------- Rare mob variants ----------------
 print('\nvariants')

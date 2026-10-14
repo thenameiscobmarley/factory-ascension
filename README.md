@@ -229,6 +229,8 @@ Haven't found any yet? Alloy an **Ascendite Ingot** by hand: iron ingot + copper
 - **Processing:** smelt or blast Raw Ascendite into ingots, or crush it with Create (extra ore, XP, sometimes a shard),
   then wash Crushed Raw Ascendite for 9 nuggets. Ingot / nugget / block convert both ways.
 - **Renewable later:** blow Crushed Raw Iron through soul fire with an Encased Fan: 30% becomes Crushed Raw Ascendite.
+- **Mass production:** a Mechanical Press over a Basin presses **9 cobblestone into 1 Raw Ascendite** (Create's limit is 9
+  items per basin recipe). Feed it from a cobblestone generator: 5,000 cobblestone is about 555 Raw Ascendite.
 - **Tools and armor** (sword, pickaxe, axe, shovel, hoe, helmet, chestplate, leggings, boots): between iron and diamond.
   900 durability, mines diamonds, armor 2/6/7/2 + 1 toughness. They take Ascended enchants like any gear.
 

@@ -329,7 +329,8 @@ ItemEvents.tooltip(event => {
     tip('Drops Raw Ascendite (more with Fortune) and a ' + pct(O.shardChance) + ' chance of an Ascension Shard (+' + pct(O.shardFortune) + ' per Fortune level)'),
     tip('Silk Touch keeps the ore. Crushing it gives extra ore, XP and sometimes a shard.')]))
   details('kubejs:raw_ascendite', 'Heavy, cold, and faintly humming.', () => [
-    from('mining Ascendite Ore'), use('smelting into an Ingot, or crushing (Crushed Raw Ascendite + XP, sometimes a shard)')])
+    from('mining Ascendite Ore, or pressing ' + A.pressCobble + ' Cobblestone in a Basin (Mechanical Press)'),
+    use('smelting into an Ingot, or crushing (Crushed Raw Ascendite + XP, sometimes a shard)')])
   details('kubejs:crushed_raw_ascendite', 'Ground fine, ready for the furnace or the wash.', () => [
     made('crushing Raw Ascendite or its ore, or blowing Crushed Raw Iron through soul fire (' + pct(A.hauntChance) + ')'),
     use('smelting into an Ingot, or washing (fan through water) into 9 Nuggets + Redstone (50%)')])

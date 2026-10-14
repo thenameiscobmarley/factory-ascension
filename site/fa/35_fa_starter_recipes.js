@@ -55,6 +55,13 @@ ServerEvents.recipes(event => {
   event.shapeless('kubejs:ascendite_ingot', ['minecraft:iron_ingot', 'minecraft:copper_ingot', 'minecraft:lapis_lazuli', 'minecraft:lapis_lazuli',
     'minecraft:amethyst_shard']).id(id('ascendite_alloy'))
 
+  // Mass production: a Mechanical Press over a Basin squeezes cobblestone into Raw Ascendite
+  event.custom({
+    type: 'create:compacting',
+    ingredients: many({ item: 'minecraft:cobblestone' }, Math.min(9, A.pressCobble)),
+    results: [{ item: 'kubejs:raw_ascendite' }]
+  }).id(id('press_cobblestone_ascendite'))
+
   // Storage
   event.shapeless('kubejs:ascendite_block', many('kubejs:ascendite_ingot', 9)).id(id('ascendite_block'))
   event.shapeless(Item.of('kubejs:ascendite_ingot', 9), ['kubejs:ascendite_block']).id(id('unpack_ascendite_block'))

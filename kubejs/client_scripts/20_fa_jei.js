@@ -34,7 +34,8 @@ if (typeof JEIEvents != 'undefined') {
       'Smelt Raw Ascendite into ingots, or crush it with Create for extra ore. Mined ore can also drop an Ascension Shard (' +
         Math.round(O.shardChance * 100) + '%, more with Fortune).',
       'Ascendite makes tools and armor between iron and diamond, early brass, Precision Mechanisms and Blaze Burners, and Ascension Cores by hand.',
-      'Later it is renewable: blow Crushed Raw Iron through soul fire with an Encased Fan (' + Math.round(FA.ascendite.hauntChance * 100) + '% Crushed Raw Ascendite).'
+      'Later it is renewable: blow Crushed Raw Iron through soul fire with an Encased Fan (' + Math.round(FA.ascendite.hauntChance * 100) + '% Crushed Raw Ascendite),',
+      'or mass-produce it: a Mechanical Press over a Basin turns ' + FA.ascendite.pressCobble + ' Cobblestone into 1 Raw Ascendite.'
     ]))
     // Rock Hammers: what every rock can give
     let HM = FA.hammer
