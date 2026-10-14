@@ -105,8 +105,8 @@ function faItemLevels(data) {
     if (value <= 0 || FA_RESERVED[id] && id != 'souls') continue
     let e = global.FA.enchants[id]
     if (e && e.type == 'fusion') {
-      // A fusion is its two parent effects, each a virtual enchant "<id>~0" / "<id>~1"
-      for (let i = 0; i < 2; i++) {
+      // A fusion (or Triad) is its parent effects, each a virtual enchant "<id>~0", "<id>~1" (, "<id>~2")
+      for (let i = 0; i < e.parts.length; i++) {
         faRegisterVirtual(id + '~' + i, global.FA_fusionPart(id, i))
         add(id + '~' + i, Math.floor(value * mult))
       }

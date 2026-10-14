@@ -20,7 +20,8 @@ var groups = [
   ['Movement & utility', ['attribute', 'mining', 'eternal']],
   ['Mythic', 'mythic'],
   ['Ultimate', 'ultimate'],
-  ['Fusion', 'fusion']
+  ['Fusion', 'fusion'],
+  ['Triad', 'triad']
 ]
 function nice(id) {
   if (id.indexOf('kubejs:tome_') === 0 && global.FA.enchants[id.slice(12)]) return 'Tome of ' + global.FA.enchants[id.slice(12)].name
@@ -58,10 +59,15 @@ groups.forEach(function (g) {
     out.push('Two enchants fused into one tome: each Fusion does both of its parents\' effects at ' + Math.round(global.FA.fusionStrength * 100) + '% strength.',
       'Tome: the two parent tomes + an Ascension Core in a **heated** mixer. Fusion levels cost ' + global.FA.fusionCostMultiplier + 'x the Essence.', '')
   }
+  if (g[1] == 'triad') {
+    out.push('Three enchants fused into one tome: each Triad does all three of its parents\' effects at ' + Math.round(global.FA.triadStrength * 100) + '% strength.',
+      'Tome: the three parent tomes + 2 Ascension Cores in a **heated** mixer. Triad levels cost ' + global.FA.triadCostMultiplier + 'x the Essence.', '')
+  }
   out.push('| Enchant | Level 1 | Level 100 | Max | Tome catalysts |', '|---|---|---|---|---|')
   Object.keys(E).forEach(function (id) {
     var e = E[id]
-    if (g[1] == 'mythic' ? !e.mythic : g[1] == 'ultimate' ? !e.ultimate : g[1] == 'fusion' ? e.type != 'fusion' : (e.mythic || e.ultimate || e.type == 'fusion' || g[1].indexOf(e.type) < 0)) return
+    if (g[1] == 'mythic' ? !e.mythic : g[1] == 'ultimate' ? !e.ultimate : g[1] == 'fusion' ? (e.type != 'fusion' || e.triad) : g[1] == 'triad' ? !e.triad :
+      (e.mythic || e.ultimate || e.type == 'fusion' || g[1].indexOf(e.type) < 0)) return
     var at100 = e.maxLevel ? '' : global.FA_describe(id, 100)
     out.push('| **' + e.name + '** | ' + global.FA_describe(id, 1) + ' | ' + at100 + ' | ' +
       (e.maxLevel ? e.maxLevel + ' (' + global.FA_describe(id, e.maxLevel) + ')' : 'none') + ' | ' + catalysts(id) + ' |')

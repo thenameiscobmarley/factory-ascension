@@ -118,7 +118,7 @@
     ["Passive", ["regen", "passive", "magnet", "repair"]],
     ["Utility", ["attribute", "mining", "eternal"]]
   ];
-  const groupOf = id => E[id].ultimate ? "Ultimate" : E[id].mythic ? "Mythic" : E[id].type == "fusion" ? "Fusion" : (GROUPS.find(g => g[1].includes(E[id].type)) || ["Other"])[0];
+  const groupOf = id => E[id].ultimate ? "Ultimate" : E[id].mythic ? "Mythic" : E[id].triad ? "Triad" : E[id].type == "fusion" ? "Fusion" : (GROUPS.find(g => g[1].includes(E[id].type)) || ["Other"])[0];
   const nice = item => item.indexOf("kubejs:tome_") === 0 && E[item.slice(12)] ? "Tome of " + E[item.slice(12)].name
     : item.replace(/^(minecraft|create|kubejs):/, "").replace(/_/g, " ");
   const catalysts = id => {
@@ -143,7 +143,7 @@
   const toSlider = l => Math.round(Math.log10(l) / 5 * 1000);
   let level = 1, group = "All", query = "";
 
-  const chips = ["All"].concat(GROUPS.map(g => g[0]), ["Mythic", "Ultimate", "Fusion"]);
+  const chips = ["All"].concat(GROUPS.map(g => g[0]), ["Mythic", "Ultimate", "Fusion", "Triad"]);
   $("#chips").innerHTML = chips.map(g => '<button class="uv-chip' + (g == "All" ? " is-active" : "") + '" role="tab" data-g="' + g + '">' + g +
     ' <small>' + (g == "All" ? ids.length : ids.filter(id => groupOf(id) == g).length) + "</small></button>").join("");
   $("#presets").innerHTML = PRESETS.map(p => '<button class="uv-btn uv-btn--sm uv-btn--ghost" data-l="' + p + '">' + global.FA_num(p) + "</button>").join("");
@@ -403,7 +403,7 @@
     if (drop.kind == "relic") return drop.relic.name;
     const id = drop.id;
     const te = id.indexOf("kubejs:tome_") === 0 && E[id.slice(12)];
-    if (te) return (te.ultimate ? "Ultimate Tome: " : te.mythic ? "Mythic Tome of " : te.type == "fusion" ? "Fusion Tome of " : "Tome of ") + te.name;
+    if (te) return (te.ultimate ? "Ultimate Tome: " : te.mythic ? "Mythic Tome of " : te.triad ? "Triad Tome of " : te.type == "fusion" ? "Fusion Tome of " : "Tome of ") + te.name;
     const cm = /^kubejs:condensed_essence_(\d+)$/.exec(id);
     if (cm) return global.FA_condensedName(+cm[1]);
     const gm = /^kubejs:gem_([a-z]+)_(\d)$/.exec(id);

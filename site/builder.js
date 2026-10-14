@@ -64,8 +64,10 @@
     });
     html += '<optgroup label="Mythic">' + ids.filter(id => E[id].mythic).map(id => '<option value="' + id + '">✦ ' + esc(E[id].name) + "</option>").join("") + "</optgroup>";
     html += '<optgroup label="Ultimate">' + ids.filter(id => E[id].ultimate).map(id => '<option value="' + id + '">☄ ' + esc(E[id].name) + "</option>").join("") + "</optgroup>";
-    html += '<optgroup label="Fusion">' + ids.filter(id => E[id].type == "fusion").map(id => '<option value="' + id + '">⚗ ' + esc(E[id].name) + " (" +
-      esc(E[E[id].parts[0]].name) + " + " + esc(E[E[id].parts[1]].name) + ")</option>").join("") + "</optgroup>";
+    html += '<optgroup label="Fusion">' + ids.filter(id => E[id].type == "fusion" && !E[id].triad).map(id => '<option value="' + id + '">⚗ ' + esc(E[id].name) + " (" +
+      E[id].parts.map(p => esc(E[p].name)).join(" + ") + ")</option>").join("") + "</optgroup>";
+    html += '<optgroup label="Triad">' + ids.filter(id => E[id].triad).map(id => '<option value="' + id + '">❖ ' + esc(E[id].name) + " (" +
+      E[id].parts.map(p => esc(E[p].name)).join(" + ") + ")</option>").join("") + "</optgroup>";
     return html;
   })();
   const gemOptions = sel => '<option value="">empty socket</option>' + Object.keys(FA.gems.types).map(t =>

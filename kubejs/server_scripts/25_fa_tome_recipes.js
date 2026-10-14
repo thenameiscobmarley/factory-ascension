@@ -31,7 +31,8 @@ ServerEvents.recipes(event => {
     if (e.type == 'fusion') {
       event.custom({
         type: 'create:mixing',
-        ingredients: [{ item: 'kubejs:tome_' + e.parts[0] }, { item: 'kubejs:tome_' + e.parts[1] }, { item: 'kubejs:ascension_core' }],
+        // Fusion: 2 parent tomes + a core. Triad: 3 parent tomes + 2 cores
+        ingredients: e.parts.map(pid => ({ item: 'kubejs:tome_' + pid })).concat(e.triad ? [{ item: 'kubejs:ascension_core' }, { item: 'kubejs:ascension_core' }] : [{ item: 'kubejs:ascension_core' }]),
         results: [{ item: 'kubejs:tome_' + id }],
         heatRequirement: 'heated'
       }).id('kubejs:factory_ascension/tome_' + id)

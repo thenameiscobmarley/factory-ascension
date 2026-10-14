@@ -391,6 +391,12 @@ def fusions():
     return re.findall(r"^\s+\['([a-z0-9_]+)', '[^']+', '([a-z0-9_]+)', '([a-z0-9_]+)'\]", text, re.M)
 
 
+def triads():
+    """[(id, parent A, parent B, parent C)] from the config's triads list."""
+    text = open(CONFIG).read()
+    return re.findall(r"\['(triad_\w+)', (?:'[^']*'|\"[^\"]*\"), '(\w+)', '(\w+)', '(\w+)'\]", text)
+
+
 def fusion_book(pa, pb):
     """Diagonally split cover: parent A top-left, parent B bottom-right, with a bright seam and a two-tone gem."""
     px = book(pa[0], pa[1])
@@ -806,6 +812,9 @@ def main():
     # Fusion tomes: split cover, each half in a parent's color with its emblem
     for fid, a, b in fusions():
         textures["tome_" + fid] = tome32(tome_art.fusion_tome(a, b, tomes[a], tomes[b]))
+    # Triad tomes: three bands with the three parents' colors and emblems
+    for tid, a, b, c in triads():
+        textures["tome_" + tid] = tome32(tome_art.triad_tome([a, b, c], [tomes[a], tomes[b], tomes[c]]))
     seen = {}
     for name, px in textures.items():
         if name.startswith("tome_"):

@@ -30,7 +30,7 @@ var FA_CALC = (function () {
     Object.keys(e).forEach(function (id) {
       var d = cfg().enchants[id];
       if (!d || !(e[id] > 0)) return;
-      if (d.type == "fusion") { add(id + "~0", Math.floor(e[id] * mult)); add(id + "~1", Math.floor(e[id] * mult)); }
+      if (d.type == "fusion") d.parts.forEach((p, i) => add(id + "~" + i, Math.floor(e[id] * mult)));
       else add(id, Math.floor(e[id] * mult));
     });
     (item.gems || []).slice(0, cfg().gems.sockets).forEach(function (g) {

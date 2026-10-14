@@ -463,6 +463,24 @@ def fusion_tome(a, b, ca, cb):
     return px
 
 
+def triad_tome(parts, colors):
+    """Three bands, one per parent: its cover color and its emblem, with bright seams between them."""
+    px = _blank()
+    face = (Y1 - Y0 + 1)
+    band = lambda y: min(2, (y - Y0) * 3 // face)
+    _cover(px, lambda x, y: colors[band(y)][0], GOLD, frame=1, kind='mythic')
+    for y in range(Y0 + 1, Y1):
+        if band(y) != band(y - 1):
+            for x in range(SPINE + 1, X1 + 1):
+                px[y][x] = (230, 248, 255, 255)
+    size = 7
+    for i, (pid, col) in enumerate(zip(parts, colors)):
+        top = Y0 + i * face // 3 + (face // 3 - size) // 2 + 1
+        left = (SPINE + 1 + X1) // 2 - size // 2 + (i - 1) * 3
+        _paint(px, emblem_mask(pid, size), left, top, col[1], _lerp(col[0], (0, 0, 0), 0.65), region=lambda x, y, i=i: band(y) == i)
+    return px
+
+
 def blank_tome():
     px = _blank()
     _cover(px, lambda x, y: (112, 74, 46), SILVER, frame=1)

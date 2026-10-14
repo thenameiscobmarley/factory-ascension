@@ -370,7 +370,8 @@ var enchantCount = Object.keys(global.FA.enchants).length
 var mythics = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].mythic })
 var fusionIds = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].type == 'fusion' })
 var ultIds = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].ultimate })
-check('286 enchants (59 + 15 Mythic + 200 Fusion + 12 Ultimate)', enchantCount == 286 && mythics.length == 15 && fusionIds.length == 200 && ultIds.length == 12,
+check('486 enchants (59 + 15 Mythic + 200 Fusion + 200 Triad + 12 Ultimate)', enchantCount == 486 && mythics.length == 15 && fusionIds.length == 400 &&
+  fusionIds.filter(function (id) { return global.FA.enchants[id].triad }).length == 200 && ultIds.length == 12,
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
@@ -822,9 +823,13 @@ check('elites get a visible name with their level', elite.pdata.getBoolean('fa_e
 Math.random = realRandom
 
 var plainHero = makePlayer(server, 'plain')
-check('danger 11 mob deals x2.65 damage', near(hit(far, plainHero, 10), 26.5), hit(far, plainHero, 10))
-check('danger 11 mob takes damage / 3.75', near(hit(plainHero, far, 37.5), 10))
-check('elite takes another /3', near(hit(plainHero, elite, 112.5), 10))
+// The curve: x(1 + perLevel * level^1.35). At danger 11 that's x4.06 damage and /6.09 health
+var curve = Math.pow(11, 1.35)
+check('danger 11 mob deals x' + (1 + 0.12 * curve).toFixed(2) + ' damage (danger^1.35 curve)', near(hit(far, plainHero, 10), 10 * (1 + 0.12 * curve)), hit(far, plainHero, 10))
+check('danger 11 mob takes damage / ' + (1 + 0.2 * curve).toFixed(2), near(hit(plainHero, far, 10 * (1 + 0.2 * curve)), 10))
+check('elite takes another /3', near(hit(plainHero, elite, 30 * (1 + 0.2 * curve)), 10))
+check('the curve is gentle near home and steeper far out, but not quadratic', global.FA_dangerMult(1, false).health < 1.3 &&
+  global.FA_dangerMult(40, false).health / global.FA_dangerMult(20, false).health < 2.6)
 check('/kill still works on scaled mobs', hit(null, far, 50, { bypass: true }) == 50)
 var tenMob = makeMob(); tenMob.pdata.putInt('fa_danger', 10)
 // No loot roll or fragment this time (they're random), so only the drop multiplier is measured
@@ -1768,11 +1773,22 @@ var boxSt = stack(1); boxSt.id = 'kubejs:booster_box'; opener.given = []
 handlers.rightClicked['kubejs:booster_box']({ player: opener, item: boxSt, cancel: function () {} })
 check('a booster box holds ' + global.FA.packs.boxPacks + ' packs', boxSt.count == 0 && opener.given[0].id == 'kubejs:enchantment_pack' && opener.given[0].count == global.FA.packs.boxPacks)
 var chestMods = {}
-handlers.chestLoot({ modify: function (id, fn) { var pools = []; fn({ addPool: function (f) { var pool = { items: [], empty: 0, addItem: function (i) { var e = { id: i, weight: function (w) { e.w = w; return e } }; pool.items.push(e); return e }, addEmpty: function (w) { pool.empty = w } }; f(pool); pools.push(pool) } }); chestMods[id] = pools } })
+handlers.chestLoot({ modify: function (id, fn) { var pools = []; fn({ addPool: function (f) { var pool = { items: [], empty: 0, addItem: function (i) { var e = { id: i, weight: function (w) { e.w = w; return e }, addFunction: function (f) { e.fn = f; return e } }; pool.items.push(e); return e }, addEmpty: function (w) { pool.empty = w } }; f(pool); pools.push(pool) } }); chestMods[id] = pools } })
 // KubeJS's chest event adds the chests/ folder itself (found on a real server: full ids matched nothing)
 var dung = chestMods['minecraft:simple_dungeon'], endc = chestMods['minecraft:end_city_treasure']
-check('dungeon chests get a 30% pack roll and gear cache rolls; end cities a box roll too', dung.length == 3 && dung[0].items[0].w == 300 && dung[0].empty == 700 &&
-  dung[1].items[0].id == 'kubejs:gear_cache' && endc.length == 4 && endc[1].items[0].id == 'kubejs:booster_box')
+check('dungeon chests get a 30% pack roll and gear cache rolls; end cities a box roll too', dung.length == 4 && dung[0].items[0].w == 300 && dung[0].empty == 700 &&
+  dung[1].items[0].id == 'kubejs:gear_cache' && endc.length == 5 && endc[1].items[0].id == 'kubejs:booster_box')
+var jp = dung[3], packJ = jp.items.filter(function (e) { return e.id == 'kubejs:enchantment_pack' })[0]
+var jpTotal = jp.items.reduce(function (a, e) { return a + e.w }, 0)
+check('jackpot: a ' + (global.FA.jackpot.chestChance * 100) + '% roll per chest for a huge stack (10-40 packs, caches, boxes, cores)', near(jpTotal / (jpTotal + jp.empty), global.FA.jackpot.chestChance) &&
+  packJ.fn.function == 'minecraft:set_count' && packJ.fn.count.min == 10 && packJ.fn.count.max == 40)
+// Lucky levels: most rolls normal, a few huge, the cap reachable only by insane luck
+var lr = new java.util.Random(9), lm = [], bigs = 0
+for (var li = 0; li < 200000; li++) { var m = global.FA_luckyMult(function () { return lr.nextDouble() }); lm.push(m); if (m >= 100) bigs++ }
+lm.sort(function (a, b) { return a - b })
+check('lucky levels: half of rolls x1.55 or less, about 1 in 1,600 are x100+ (' + bigs + ' in 200,000), never past the cap', lm[100000] < 1.6 && bigs > 80 && bigs < 180 &&
+  lm[lm.length - 1] <= global.FA.jackpot.levelCap, lm[100000].toFixed(2) + ' / ' + bigs)
+check('even a level-1 card can roll into the thousands with insane luck', global.FA_rollCard(function () { return 0.9999999 }, 0).level > 1000)
 check('village weaponsmiths get gear caches too (KubeJS-style id)', !!chestMods['minecraft:village/village_weaponsmith'])
 // Sealed Gear Caches: the deeper you open one, the better the gear
 var cq = function (danger) { var t = {}, g = new java.util.Random(3); for (var i = 0; i < 5000; i++) { var q = global.FA_cacheQuality(function () { return g.nextDouble() }, danger); t[q] = (t[q] || 0) + 1 } return t }

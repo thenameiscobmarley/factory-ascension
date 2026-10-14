@@ -103,6 +103,7 @@ ServerEvents.chestLootTables(event => {
   Object.keys(P).forEach(t => { add(t, 'kubejs:enchantment_pack', P[t][0]); add(t, 'kubejs:booster_box', P[t][1]) })
   let C = global.FA.caches.chests
   Object.keys(C).forEach(t => { add(t, 'kubejs:gear_cache', C[t][0]); add(t, 'kubejs:gear_cache', C[t][1]) })
+  let J = global.FA.jackpot
   Object.keys(pools).forEach(table => {
     // KubeJS adds the chests/ folder itself: 'minecraft:chests/simple_dungeon' -> 'minecraft:simple_dungeon'
     event.modify(table.replace(':chests/', ':'), loot => {
@@ -113,6 +114,18 @@ ServerEvents.chestLootTables(event => {
           if (e[1] < 1) pool.addEmpty(Math.round((1 - e[1]) * 1000))
         })
       })
+      // Jackpot: a rare huge stack (40 packs, a pile of caches...)
+      if (J.chestChance > 0) {
+        loot.addPool(pool => {
+          pool.rolls = 1
+          let total = J.chestStacks.reduce((a, j) => a + j[3], 0)
+          J.chestStacks.forEach(j => {
+            pool.addItem(j[0]).weight(Math.max(1, Math.round(J.chestChance * 100000 * j[3] / total)))
+              .addFunction({ function: 'minecraft:set_count', count: { type: 'minecraft:uniform', min: j[1], max: j[2] } })
+          })
+          pool.addEmpty(Math.round((1 - J.chestChance) * 100000))
+        })
+      }
     })
   })
 })

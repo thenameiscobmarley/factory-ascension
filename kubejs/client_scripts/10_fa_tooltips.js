@@ -128,7 +128,7 @@ ItemEvents.tooltip(event => {
     let e = global.FA.enchants[id]
     event.add('kubejs:tome_' + id, [
       e.ultimate ? Text.red('\u2604 ULTIMATE').bold(true) : e.mythic ? Text.lightPurple('\u2726 MYTHIC').bold(true) : e.type == 'fusion'
-        ? Text.darkAqua('\u2697 FUSION of ' + global.FA.enchants[e.parts[0]].name + ' + ' + global.FA.enchants[e.parts[1]].name) : Text.darkGray('Ascended'),
+        ? Text.darkAqua((e.triad ? '\u2756 TRIAD of ' : '\u2697 FUSION of ') + e.parts.map(pid => global.FA.enchants[pid].name).join(' + ')) : Text.darkGray('Ascended'),
       faColor(id)('Level 1: ' + global.FA_describe(id, 1)),
       Text.gray('Hold gear in your other hand and right-click to apply it'),
       Text.darkGray(e.maxLevel == 1 ? 'One-time enchant'
@@ -248,12 +248,12 @@ ItemEvents.tooltip(event => {
   Object.keys(FA.enchants).forEach(id => {
     let e = FA.enchants[id]
     let lore = e.ultimate ? 'A legendary technique, written in blood and lightning.' : e.mythic ? 'Its pages glow with something not of this world.'
-      : e.type == 'fusion' ? 'Two powers bound into one spine.' : 'Knowledge that grows without limit.'
+      : e.triad ? 'Three powers, one will.' : e.type == 'fusion' ? 'Two powers bound into one spine.' : 'Knowledge that grows without limit.'
     details('kubejs:tome_' + id, lore, () => {
       let lines = []
       if (e.type == 'fusion') {
-        lines.push(made('Tome of ' + FA.enchants[e.parts[0]].name + ' + Tome of ' + FA.enchants[e.parts[1]].name + ' + Ascension Core, heated mixer'))
-        lines.push(tip('Each half works at ' + pct(FA.fusionStrength || 0.6) + ' strength, in one enchant slot'))
+        lines.push(made(e.parts.map(pid => 'Tome of ' + FA.enchants[pid].name).join(' + ') + (e.triad ? ' + 2 Ascension Cores' : ' + Ascension Core') + ', heated mixer'))
+        lines.push(tip('Each part works at ' + pct(e.strength || FA.fusionStrength || 0.6) + ' strength, all in one enchant slot'))
       } else {
         let cat = global.FA_TOME_CATALYSTS[id] || []
         let extra = e.ultimate ? ' + 4 Mythic Fragments + 2 Ascended Souls' : e.mythic ? ' + 4 Mythic Fragments' : ''

@@ -22,7 +22,7 @@ cobble generators -> mineral clusters -> ores -> diamonds, rose quartz, steel
 
 ## Ascended enchants
 
-**286 enchants** (59 Ascended + 15 Mythic + 12 Ultimate + 200 Fusion), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
+**486 enchants** (59 Ascended + 15 Mythic + 12 Ultimate + 200 Fusion + 200 Triad), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
 factory can pay for. They count from **every equipped item**, both hands and all armor, so any enchant
 works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md](docs/ENCHANTS.md)**.
 
@@ -62,6 +62,13 @@ where you started. The others:
   If the target dies the combo still finishes; if you log out you're put back first; a failsafe returns you even if a step fails.
 - Combo hits never trigger other enchants or another Ultimate. Bosses still resist being frozen, launched or pulled.
 - Tomes need **2 Ascended Souls** (a new drop only Ascended bosses have) + 4 Mythic Fragments, superheated. 10x Essence per level.
+
+### ❖ Triad enchants (200)
+
+Three base enchants fused into one tome, each at 45% strength, all in one enchant slot: *Stormforged Requiem*
+(Berserk + Executioner + Sharpness), *Hallowed Aegis*, *Patient Vein*... 130 for weapons, 61 for armor, 9 for tools.
+Tome: the three parent tomes + 2 Ascension Cores in a heated mixer. Levels cost 3x the Essence. Their covers split into
+three bands with each parent's emblem. The full list is in [docs/ENCHANTS.md](docs/ENCHANTS.md).
 
 ### ⚗ Fusion enchants (200)
 
@@ -308,6 +315,14 @@ An Artifact is more than enchants. It keeps everything it had, and gains:
 **How to get one:** gear with 2,500 total enchant levels shows **[Awaken]** in `/ascension` (25,000 Essence + 1 Ascended
 Soul). Or get lucky: 15% of Mythic Relic drops come out as Artifacts, announced to the server.
 
+## Jackpots: the rare insane find
+
+- **Chests:** every chest the pack touches has a 1.5% jackpot roll for a huge stack: 10-40 Enchantment Packs, 4-16 Gear
+  Caches, 2-6 Booster Boxes, or 64-192 Ascension Cores.
+- **Enchant levels** on relics, gear caches and pack cards have a long lucky tail: most rolls are normal, about 1 in 40
+  is 10x higher, 1 in 1,600 is 100x higher, and with truly insane luck a level can reach 100,000.
+- Both are in the `jackpot` section of the config.
+
 ## Sealed Gear Caches: gear in chests
 
 Vanilla chests now hold **Sealed Gear Caches**: dungeons, mineshafts, temples, shipwrecks, outposts, village weaponsmiths,
@@ -474,12 +489,15 @@ Far-out mobs are tougher, but drop more.
 | Distance from spawn | Zone | Danger | Mobs | Loot |
 |---|---|---|---|---|
 | 0 - 1000 | Safe Lands | 0 | normal | normal |
-| 1000+ | The Frontier | 1+ | x1.3 health | x1.1 |
-| 3500 | The Wilds | 6 | x2.5 health, x1.9 damage | x1.6 |
-| 6000 | Dread Reaches | 11 | x3.8 health, x2.7 damage | x2.1 |
-| 11000 | The Abyss | 21 | x6.3 health, x4.2 damage | x3.1 |
-| 21000 | Nightmare | 41 | x11 health, x7 damage | x5.1 |
-| 41000+ | The Void Beyond | 81+ | x21+ health, x13+ damage | x9+ |
+| 1000+ | The Frontier | 1+ | x1.2 health, x1.1 damage | x1.1 |
+| 3500 | The Wilds | 6 | x3.2 health, x2.3 damage | x1.6 |
+| 6000 | Dread Reaches | 11 | x6.1 health, x4.1 damage | x2.1 |
+| 11000 | The Abyss | 21 | x13 health, x8.3 damage | x3.1 |
+| 21000 | Nightmare | 41 | x31 health, x19 damage | x5.1 |
+| 41000+ | The Void Beyond | 81+ | x76+ health, x46+ damage | x9+ |
+
+Mob toughness follows a **danger^1.35 curve** (`exponent` in the config): gentle near home, steeper the farther out you
+go, but not quadratic, so the deep zones are dangerous without being impossible to roam.
 
 - **Elites:** 1% of mobs per danger level (max 25%) spawn as named Elites, like `☠ Elite Zombie · Lv 23`.
   They have x3 health, x1.5 damage and x3 loot on top of the zone's numbers.
@@ -512,7 +530,7 @@ itself; it only counts once it's on gear.
 The enchants show in the item's tooltip right under its name, with what they do, e.g.
 `Ascended Sharpness 101  x11.10 damage`.
 
-Every one of the 286 enchant tomes has its own cover: each base enchant has an emblem that shows what it does
+Every one of the 486 enchant tomes has its own cover: each base enchant has an emblem that shows what it does
 (a sword for Sharpness, a spider for Bane, an hourglass for Chronos...), Mythic tomes get a gold frame and a glow,
 Ultimates a black-and-crimson double frame with a ribbon, and Fusion tomes split the cover between both parents'
 colors and emblems. The emblems are in `tools/tome_art.py`.
@@ -586,12 +604,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 51 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 53 checks of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 446 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 450 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

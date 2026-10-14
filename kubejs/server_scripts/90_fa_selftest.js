@@ -426,6 +426,27 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.setItemInHand('main_hand', sword)
   })
 
+  // ---- Jackpot chests and Triads ----
+  attempt('jackpots', () => {
+    let jackpots = 0, biggest = ''
+    for (let i = 0; i < 600; i++) server.runCommandSilent('loot spawn ' + (X - 14) + ' ' + (Y + 2) + ' ' + (Z + 14) + ' loot minecraft:chests/simple_dungeon')
+    let near = level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().move(-14, 0, 14).inflate(8))
+    for (let i = 0; i < near.size(); i++) {
+      let st = near.get(i).getItem()
+      let id = String(st.getId())
+      if ((id == 'kubejs:enchantment_pack' && st.getCount() >= 10) || (id == 'kubejs:gear_cache' && st.getCount() >= 4) ||
+        (id == 'kubejs:booster_box' && st.getCount() >= 2) || (id == 'kubejs:ascension_core' && st.getCount() >= 32)) {
+        jackpots++
+        biggest = st.getCount() + 'x ' + id.replace('kubejs:', '')
+      }
+      near.get(i).discard()
+    }
+    check('jackpot chests: ' + jackpots + ' huge stacks in 600 dungeon chests (e.g. ' + biggest + ')', jackpots > 0, jackpots)
+    let triads = Object.keys(global.FA.enchants).filter(id => global.FA.enchants[id].triad)
+    let missing = triads.filter(id => !server.getRecipeManager().byKey('kubejs:factory_ascension/tome_' + id).isPresent())
+    check(triads.length + ' Triad enchants, each with a tome recipe', triads.length == 200 && missing.length == 0, missing.slice(0, 3).join(', '))
+  })
+
   // ---- Selling, gear tiers, Waystones and blaze rod recipes ----
   attempt('selling', () => {
     player.getInventory().clearContent()

@@ -411,6 +411,214 @@ global.FA = {
     ['mending_trident', 'Mending Trident', 'restoration', 'impaling'],
     ['delving_rally', 'Delving Rally', 'excavation', 'second_wind']
   ],
+  // ---- Triad enchants: three base enchants fused into one tome ----
+  // Each does all three parents' effects at triadStrength of their power. Tome: the three parent tomes + 2 Ascension
+  // Cores in a heated mixer. Costs triadCostMultiplier x the Essence per level. [id, name, parent A, parent B, parent C]
+  // (No two parents of a Triad are also a Fusion pair, so the basin never mixes the recipes up.)
+  triadStrength: 0.45,
+  triadCostMultiplier: 3,
+  triads: [
+    ['triad_stormforged_requiem', 'Stormforged Requiem', 'berserk', 'executioner', 'sharpness'],
+    ['triad_spectral_bloodrite', 'Spectral Bloodrite', 'assassin', 'bane', 'berserk'],
+    ['triad_venomous_rend', 'Venomous Rend', 'cleave', 'power', 'venom'],
+    ['triad_cursed_bloodrite', 'Cursed Bloodrite', 'midas', 'raidbreaker', 'smite'],
+    ['triad_frenzied_tempest', 'Frenzied Tempest', 'impaling', 'lifesteal', 'power'],
+    ['triad_gilded_carnage', 'Gilded Carnage', 'cleave', 'impaling', 'plunder'],
+    ['triad_frenzied_rampage_song', 'Frenzied Rampage Song', 'lifesteal', 'midas', 'withering'],
+    ['triad_ashen_carnage', 'Ashen Carnage', 'enfeeble', 'gem_hunter', 'plunder'],
+    ['triad_searing_tempest', 'Searing Tempest', 'hellbane', 'second_wind', 'sharpness'],
+    ['triad_ironclad_ruin', 'Ironclad Ruin', 'cleave', 'giant_slayer', 'skyhunter'],
+    ['triad_bloodbound_rend', 'Bloodbound Rend', 'critical', 'giant_slayer', 'power'],
+    ['triad_feral_butchery', 'Feral Butchery', 'executioner', 'reaper', 'skyward'],
+    ['triad_wicked_fury', 'Wicked Fury', 'hellbane', 'impaling', 'second_wind'],
+    ['triad_howling_fury', 'Howling Fury', 'critical', 'lifesteal', 'skyhunter'],
+    ['triad_ashen_bloodrite', 'Ashen Bloodrite', 'hellbane', 'impaling', 'power'],
+    ['triad_venomous_execution', 'Venomous Execution', 'executioner', 'fire_aspect', 'withering'],
+    ['triad_nightfall_vendetta', 'Nightfall Vendetta', 'enfeeble', 'reaper', 'skyhunter'],
+    ['triad_crimson_ravage', 'Crimson Ravage', 'bane', 'enfeeble', 'gem_hunter'],
+    ['triad_shattered_butchery', 'Shattered Butchery', 'fire_aspect', 'skyhunter', 'venom'],
+    ['triad_nightfall_reckoning', 'Nightfall Reckoning', 'bane', 'enfeeble', 'fire_aspect'],
+    ['triad_grim_maelstrom', 'Grim Maelstrom', 'executioner', 'power', 'second_wind'],
+    ['triad_grim_tempest', 'Grim Tempest', 'frostbite', 'lifesteal', 'skyward'],
+    ['triad_ironclad_bloodrite', 'Ironclad Bloodrite', 'adrenaline', 'bane', 'executioner'],
+    ['triad_stormforged_calamity', 'Stormforged Calamity', 'berserk', 'sharpness', 'smite'],
+    ['triad_bloodbound_bloodrite', 'Bloodbound Bloodrite', 'cleave', 'smite', 'venom'],
+    ['triad_frenzied_requiem', 'Frenzied Requiem', 'assassin', 'fire_aspect', 'withering'],
+    ['triad_hollow_execution', 'Hollow Execution', 'lifesteal', 'second_wind', 'soul_eater'],
+    ['triad_searing_calamity', 'Searing Calamity', 'adrenaline', 'hellbane', 'plunder'],
+    ['triad_cursed_maelstrom', 'Cursed Maelstrom', 'enfeeble', 'frostbite', 'soul_eater'],
+    ['triad_moonlit_execution', 'Moonlit Execution', 'plunder', 'smite', 'withering'],
+    ['triad_ironclad_rampage_song', 'Ironclad Rampage Song', 'enfeeble', 'impaling', 'soul_eater'],
+    ['triad_spectral_warpath', 'Spectral Warpath', 'adrenaline', 'hellbane', 'withering'],
+    ['triad_savage_butchery', 'Savage Butchery', 'first_strike', 'giant_slayer', 'raidbreaker'],
+    ['triad_radiant_reckoning', 'Radiant Reckoning', 'berserk', 'fire_aspect', 'first_strike'],
+    ['triad_howling_deathknell', 'Howling Deathknell', 'gem_hunter', 'hellbane', 'skyhunter'],
+    ['triad_ashen_onslaught', 'Ashen Onslaught', 'cleave', 'second_wind', 'sharpness'],
+    ['triad_spectral_butchery', 'Spectral Butchery', 'adrenaline', 'assassin', 'raidbreaker'],
+    ['triad_thunderous_ravage', 'Thunderous Ravage', 'giant_slayer', 'power', 'venom'],
+    ['triad_nightfall_butchery', 'Nightfall Butchery', 'assassin', 'critical', 'skyhunter'],
+    ['triad_gilded_ruin', 'Gilded Ruin', 'assassin', 'giant_slayer', 'soul_eater'],
+    ['triad_howling_ruin', 'Howling Ruin', 'cleave', 'first_strike', 'reaper'],
+    ['triad_venomous_harrow', 'Venomous Harrow', 'enfeeble', 'impaling', 'power'],
+    ['triad_stormforged_rampage_song', 'Stormforged Rampage Song', 'critical', 'power', 'skyward'],
+    ['triad_shattered_bloodrite', 'Shattered Bloodrite', 'adrenaline', 'power', 'skyward'],
+    ['triad_wrathful_butchery', 'Wrathful Butchery', 'midas', 'skyhunter', 'smite'],
+    ['triad_wicked_verdict', 'Wicked Verdict', 'critical', 'power', 'raidbreaker'],
+    ['triad_crimson_slaughter', 'Crimson Slaughter', 'bane', 'venom', 'wisdom'],
+    ['triad_moonlit_verdict', 'Moonlit Verdict', 'adrenaline', 'skyhunter', 'withering'],
+    ['triad_shattered_calamity', 'Shattered Calamity', 'giant_slayer', 'power', 'reaper'],
+    ['triad_ashen_ravage', 'Ashen Ravage', 'bane', 'frostbite', 'wisdom'],
+    ['triad_nightfall_fury', 'Nightfall Fury', 'adrenaline', 'enfeeble', 'sharpness'],
+    ['triad_ironclad_vendetta', 'Ironclad Vendetta', 'first_strike', 'power', 'second_wind'],
+    ['triad_ashen_slaughter', 'Ashen Slaughter', 'adrenaline', 'hellbane', 'venom'],
+    ['triad_feral_harrow', 'Feral Harrow', 'enfeeble', 'midas', 'plunder'],
+    ['triad_stormforged_maelstrom', 'Stormforged Maelstrom', 'critical', 'sharpness', 'venom'],
+    ['triad_grim_harrow', 'Grim Harrow', 'adrenaline', 'assassin', 'enfeeble'],
+    ['triad_gilded_maelstrom', 'Gilded Maelstrom', 'impaling', 'reaper', 'soul_eater'],
+    ['triad_radiant_havoc', 'Radiant Havoc', 'executioner', 'frostbite', 'impaling'],
+    ['triad_howling_tempest', 'Howling Tempest', 'fire_aspect', 'skyhunter', 'wisdom'],
+    ['triad_feral_execution', 'Feral Execution', 'midas', 'reaper', 'sharpness'],
+    ['triad_frenzied_vendetta', 'Frenzied Vendetta', 'bane', 'critical', 'executioner'],
+    ['triad_ashen_calamity', 'Ashen Calamity', 'berserk', 'cleave', 'plunder'],
+    ['triad_howling_verdict', 'Howling Verdict', 'first_strike', 'second_wind', 'wisdom'],
+    ['triad_feral_warpath', 'Feral Warpath', 'adrenaline', 'lifesteal', 'sharpness'],
+    ['triad_savage_warpath', 'Savage Warpath', 'lifesteal', 'midas', 'power'],
+    ['triad_feral_deathknell', 'Feral Deathknell', 'bane', 'enfeeble', 'soul_eater'],
+    ['triad_cursed_vendetta', 'Cursed Vendetta', 'executioner', 'impaling', 'lifesteal'],
+    ['triad_venomous_slaughter', 'Venomous Slaughter', 'critical', 'second_wind', 'smite'],
+    ['triad_thunderous_deathknell', 'Thunderous Deathknell', 'first_strike', 'hellbane', 'raidbreaker'],
+    ['triad_searing_onslaught', 'Searing Onslaught', 'adrenaline', 'soul_eater', 'venom'],
+    ['triad_ironclad_warpath', 'Ironclad Warpath', 'enfeeble', 'lifesteal', 'raidbreaker'],
+    ['triad_searing_fury', 'Searing Fury', 'lifesteal', 'midas', 'reaper'],
+    ['triad_sundered_warpath', 'Sundered Warpath', 'cleave', 'raidbreaker', 'smite'],
+    ['triad_ironclad_slaughter', 'Ironclad Slaughter', 'giant_slayer', 'hellbane', 'soul_eater'],
+    ['triad_spectral_onslaught', 'Spectral Onslaught', 'berserk', 'power', 'skyhunter'],
+    ['triad_hollow_tempest', 'Hollow Tempest', 'berserk', 'skyhunter', 'venom'],
+    ['triad_radiant_rampage_song', 'Radiant Rampage Song', 'bane', 'first_strike', 'withering'],
+    ['triad_feral_rend', 'Feral Rend', 'adrenaline', 'fire_aspect', 'raidbreaker'],
+    ['triad_searing_eviscerator', 'Searing Eviscerator', 'executioner', 'first_strike', 'smite'],
+    ['triad_venomous_deathknell', 'Venomous Deathknell', 'bane', 'executioner', 'hellbane'],
+    ['triad_grim_bloodrite', 'Grim Bloodrite', 'enfeeble', 'plunder', 'reaper'],
+    ['triad_savage_carnage', 'Savage Carnage', 'adrenaline', 'assassin', 'skyward'],
+    ['triad_thunderous_fury', 'Thunderous Fury', 'assassin', 'cleave', 'hellbane'],
+    ['triad_ironclad_butchery', 'Ironclad Butchery', 'impaling', 'reaper', 'smite'],
+    ['triad_feral_massacre', 'Feral Massacre', 'frostbite', 'power', 'withering'],
+    ['triad_radiant_vendetta', 'Radiant Vendetta', 'power', 'reaper', 'skyward'],
+    ['triad_hollow_fury', 'Hollow Fury', 'frostbite', 'gem_hunter', 'raidbreaker'],
+    ['triad_wicked_massacre', 'Wicked Massacre', 'executioner', 'hellbane', 'skyward'],
+    ['triad_shattered_slaughter', 'Shattered Slaughter', 'cleave', 'raidbreaker', 'wisdom'],
+    ['triad_thunderous_massacre', 'Thunderous Massacre', 'power', 'reaper', 'soul_eater'],
+    ['triad_nightfall_deathknell', 'Nightfall Deathknell', 'power', 'skyhunter', 'venom'],
+    ['triad_howling_vendetta', 'Howling Vendetta', 'enfeeble', 'fire_aspect', 'skyward'],
+    ['triad_ironclad_rend', 'Ironclad Rend', 'impaling', 'lifesteal', 'raidbreaker'],
+    ['triad_stormforged_ravage', 'Stormforged Ravage', 'fire_aspect', 'frostbite', 'midas'],
+    ['triad_shattered_verdict', 'Shattered Verdict', 'fire_aspect', 'first_strike', 'giant_slayer'],
+    ['triad_cursed_deathknell', 'Cursed Deathknell', 'hellbane', 'reaper', 'sharpness'],
+    ['triad_radiant_execution', 'Radiant Execution', 'adrenaline', 'reaper', 'smite'],
+    ['triad_venomous_eviscerator', 'Venomous Eviscerator', 'cleave', 'critical', 'reaper'],
+    ['triad_nightfall_havoc', 'Nightfall Havoc', 'bane', 'impaling', 'plunder'],
+    ['triad_hollow_eviscerator', 'Hollow Eviscerator', 'bane', 'executioner', 'raidbreaker'],
+    ['triad_grim_massacre', 'Grim Massacre', 'assassin', 'critical', 'sharpness'],
+    ['triad_moonlit_reckoning', 'Moonlit Reckoning', 'critical', 'hellbane', 'skyward'],
+    ['triad_moonlit_vendetta', 'Moonlit Vendetta', 'giant_slayer', 'lifesteal', 'power'],
+    ['triad_crimson_carnage', 'Crimson Carnage', 'bane', 'lifesteal', 'withering'],
+    ['triad_ashen_verdict', 'Ashen Verdict', 'enfeeble', 'reaper', 'soul_eater'],
+    ['triad_radiant_slaughter', 'Radiant Slaughter', 'first_strike', 'power', 'sharpness'],
+    ['triad_ashen_havoc', 'Ashen Havoc', 'assassin', 'berserk', 'gem_hunter'],
+    ['triad_ashen_rampage_song', 'Ashen Rampage Song', 'enfeeble', 'lifesteal', 'second_wind'],
+    ['triad_savage_verdict', 'Savage Verdict', 'assassin', 'berserk', 'hellbane'],
+    ['triad_savage_onslaught', 'Savage Onslaught', 'bane', 'hellbane', 'smite'],
+    ['triad_thunderous_execution', 'Thunderous Execution', 'giant_slayer', 'power', 'withering'],
+    ['triad_hollow_calamity', 'Hollow Calamity', 'enfeeble', 'executioner', 'fire_aspect'],
+    ['triad_moonlit_fury', 'Moonlit Fury', 'bane', 'gem_hunter', 'skyhunter'],
+    ['triad_frenzied_massacre', 'Frenzied Massacre', 'fire_aspect', 'midas', 'reaper'],
+    ['triad_ironclad_calamity', 'Ironclad Calamity', 'critical', 'enfeeble', 'executioner'],
+    ['triad_wicked_butchery', 'Wicked Butchery', 'bane', 'lifesteal', 'power'],
+    ['triad_bloodbound_deathknell', 'Bloodbound Deathknell', 'first_strike', 'midas', 'reaper'],
+    ['triad_thunderous_verdict', 'Thunderous Verdict', 'cleave', 'enfeeble', 'smite'],
+    ['triad_crimson_deathknell', 'Crimson Deathknell', 'smite', 'venom', 'wisdom'],
+    ['triad_shattered_ravage', 'Shattered Ravage', 'adrenaline', 'berserk', 'plunder'],
+    ['triad_shattered_carnage', 'Shattered Carnage', 'bane', 'plunder', 'wisdom'],
+    ['triad_gilded_rend', 'Gilded Rend', 'adrenaline', 'fire_aspect', 'second_wind'],
+    ['triad_searing_deathknell', 'Searing Deathknell', 'frostbite', 'impaling', 'lifesteal'],
+    ['triad_grim_verdict', 'Grim Verdict', 'adrenaline', 'frostbite', 'reaper'],
+    ['triad_spectral_ruin', 'Spectral Ruin', 'cleave', 'frostbite', 'wisdom'],
+    ['triad_searing_requiem', 'Searing Requiem', 'critical', 'second_wind', 'skyhunter'],
+    ['triad_moonlit_tempest', 'Moonlit Tempest', 'berserk', 'gem_hunter', 'sharpness'],
+    ['triad_ironclad_eviscerator', 'Ironclad Eviscerator', 'berserk', 'power', 'venom'],
+    ['triad_radiant_carnage', 'Radiant Carnage', 'executioner', 'impaling', 'plunder'],
+    ['triad_bloodbound_calamity', 'Bloodbound Calamity', 'executioner', 'power', 'skyhunter'],
+    ['triad_unyielding_rampart', 'Unyielding Rampart', 'blast_ward', 'evasion', 'undying'],
+    ['triad_eternal_oath', 'Eternal Oath', 'blast_ward', 'fire_ward', 'wither_ward'],
+    ['triad_sworn_rampart', 'Sworn Rampart', 'featherweight', 'spellward', 'wither_ward'],
+    ['triad_granite_fortress', 'Granite Fortress', 'featherweight', 'renewal', 'retribution'],
+    ['triad_sworn_oath', 'Sworn Oath', 'arrow_ward', 'undying', 'vitality'],
+    ['triad_warded_oath', 'Warded Oath', 'blast_ward', 'retribution', 'spellward'],
+    ['triad_verdant_shroud', 'Verdant Shroud', 'blast_ward', 'featherweight', 'fire_ward'],
+    ['triad_silent_covenant', 'Silent Covenant', 'bulwark', 'protection', 'retribution'],
+    ['triad_sworn_mantle', 'Sworn Mantle', 'arrow_ward', 'fire_ward', 'renewal'],
+    ['triad_granite_citadel', 'Granite Citadel', 'blast_ward', 'featherweight', 'vitality'],
+    ['triad_ancient_aegis', 'Ancient Aegis', 'blast_ward', 'retribution', 'undying'],
+    ['triad_eternal_aegis', 'Eternal Aegis', 'featherweight', 'fire_ward', 'undying'],
+    ['triad_verdant_ward_song', 'Verdant Ward-Song', 'spellward', 'undying', 'vitality'],
+    ['triad_iron_shroud', 'Iron Shroud', 'evasion', 'spellward', 'wither_ward'],
+    ['triad_eternal_bastion', 'Eternal Bastion', 'blast_ward', 'evasion', 'wither_ward'],
+    ['triad_silent_bulwark_rite', 'Silent Bulwark Rite', 'retribution', 'spellward', 'vitality'],
+    ['triad_living_fortress', 'Living Fortress', 'arrow_ward', 'bulwark', 'vitality'],
+    ['triad_iron_fortress', 'Iron Fortress', 'fire_ward', 'undying', 'wither_ward'],
+    ['triad_living_citadel', 'Living Citadel', 'fire_ward', 'spellward', 'vitality'],
+    ['triad_verdant_rampart', 'Verdant Rampart', 'blast_ward', 'fire_ward', 'retribution'],
+    ['triad_silent_carapace', 'Silent Carapace', 'arrow_ward', 'blast_ward', 'bulwark'],
+    ['triad_warded_mantle', 'Warded Mantle', 'arrow_ward', 'blast_ward', 'retribution'],
+    ['triad_silent_oath', 'Silent Oath', 'blast_ward', 'bulwark', 'fire_ward'],
+    ['triad_silent_shroud', 'Silent Shroud', 'blast_ward', 'fire_ward', 'undying'],
+    ['triad_sentinel_vigil', 'Sentinel Vigil', 'bulwark', 'featherweight', 'wither_ward'],
+    ['triad_eternal_mantle', 'Eternal Mantle', 'blast_ward', 'protection', 'spellward'],
+    ['triad_silent_citadel', 'Silent Citadel', 'retribution', 'spellward', 'undying'],
+    ['triad_verdant_mantle', 'Verdant Mantle', 'evasion', 'retribution', 'undying'],
+    ['triad_hallowed_oath', 'Hallowed Oath', 'evasion', 'fire_ward', 'retribution'],
+    ['triad_sentinel_rampart', 'Sentinel Rampart', 'evasion', 'renewal', 'undying'],
+    ['triad_celestial_rampart', 'Celestial Rampart', 'arrow_ward', 'renewal', 'retribution'],
+    ['triad_unyielding_aegis', 'Unyielding Aegis', 'featherweight', 'fire_ward', 'protection'],
+    ['triad_iron_bulwark_rite', 'Iron Bulwark Rite', 'evasion', 'spellward', 'undying'],
+    ['triad_living_bastion', 'Living Bastion', 'renewal', 'retribution', 'undying'],
+    ['triad_eternal_carapace', 'Eternal Carapace', 'arrow_ward', 'retribution', 'spellward'],
+    ['triad_stalwart_bulwark_rite', 'Stalwart Bulwark Rite', 'blast_ward', 'featherweight', 'protection'],
+    ['triad_living_oath', 'Living Oath', 'featherweight', 'fire_ward', 'retribution'],
+    ['triad_unyielding_shroud', 'Unyielding Shroud', 'protection', 'retribution', 'spellward'],
+    ['triad_eternal_vigil', 'Eternal Vigil', 'arrow_ward', 'evasion', 'vitality'],
+    ['triad_unyielding_bastion', 'Unyielding Bastion', 'evasion', 'featherweight', 'wither_ward'],
+    ['triad_sworn_vigil', 'Sworn Vigil', 'arrow_ward', 'evasion', 'spellward'],
+    ['triad_celestial_mantle', 'Celestial Mantle', 'protection', 'undying', 'vitality'],
+    ['triad_silent_bastion', 'Silent Bastion', 'arrow_ward', 'bulwark', 'protection'],
+    ['triad_iron_sanctum', 'Iron Sanctum', 'protection', 'spellward', 'vitality'],
+    ['triad_celestial_vigil', 'Celestial Vigil', 'protection', 'spellward', 'undying'],
+    ['triad_sworn_citadel', 'Sworn Citadel', 'arrow_ward', 'retribution', 'vitality'],
+    ['triad_granite_bulwark_rite', 'Granite Bulwark Rite', 'arrow_ward', 'blast_ward', 'protection'],
+    ['triad_stalwart_vigil', 'Stalwart Vigil', 'renewal', 'retribution', 'spellward'],
+    ['triad_sworn_sanctum', 'Sworn Sanctum', 'arrow_ward', 'featherweight', 'protection'],
+    ['triad_granite_mantle', 'Granite Mantle', 'arrow_ward', 'protection', 'wither_ward'],
+    ['triad_granite_rampart', 'Granite Rampart', 'arrow_ward', 'renewal', 'spellward'],
+    ['triad_iron_bastion', 'Iron Bastion', 'featherweight', 'vitality', 'wither_ward'],
+    ['triad_iron_carapace', 'Iron Carapace', 'blast_ward', 'evasion', 'retribution'],
+    ['triad_celestial_carapace', 'Celestial Carapace', 'featherweight', 'spellward', 'undying'],
+    ['triad_stalwart_citadel', 'Stalwart Citadel', 'bulwark', 'featherweight', 'retribution'],
+    ['triad_unyielding_mantle', 'Unyielding Mantle', 'arrow_ward', 'protection', 'retribution'],
+    ['triad_silent_sanctum', 'Silent Sanctum', 'arrow_ward', 'featherweight', 'undying'],
+    ['triad_verdant_aegis', 'Verdant Aegis', 'fire_ward', 'retribution', 'vitality'],
+    ['triad_warded_fortress', 'Warded Fortress', 'renewal', 'spellward', 'undying'],
+    ['triad_verdant_oath', 'Verdant Oath', 'bulwark', 'evasion', 'renewal'],
+    ['triad_celestial_shroud', 'Celestial Shroud', 'arrow_ward', 'evasion', 'retribution'],
+    ['triad_lucky_windfall', 'Lucky Windfall', 'gem_hunter', 'midas', 'restoration'],
+    ['triad_deepdelvers_bounty', "Deepdelver's Bounty", 'midas', 'restoration', 'wisdom'],
+    ['triad_deepdelvers_toil', "Deepdelver's Toil", 'excavation', 'restoration', 'wisdom'],
+    ['triad_delvers_toil', "Delver's Toil", 'excavation', 'midas', 'restoration'],
+    ['triad_prospectors_windfall', "Prospector's Windfall", 'excavation', 'midas', 'wisdom'],
+    ['triad_deepdelvers_haul', "Deepdelver's Haul", 'excavation', 'magnetism', 'wisdom'],
+    ['triad_deepdelvers_windfall', "Deepdelver's Windfall", 'gem_hunter', 'magnetism', 'restoration'],
+    ['triad_gilded_bounty', 'Gilded Bounty', 'excavation', 'magnetism', 'restoration'],
+    ['triad_patient_vein', 'Patient Vein', 'magnetism', 'restoration', 'wisdom']
+  ],
 
   // ---- Danger: the farther from spawn, the nastier the mobs (and the better the loot) ----
   // Danger level = (distance from world spawn - safeRadius) / blocksPerLevel, no cap.
@@ -422,8 +630,11 @@ global.FA = {
     netherScale: 8,            // Nether distance counts x8, like Nether travel
     netherBonus: 3,            // the Nether is always at least this dangerous
     endBonus: 6,               // the End too (the main island is inside safeRadius of 0,0)
-    healthPerLevel: 0.25,      // mobs take damage / (1 + 0.25 * level), like having more health
-    damagePerLevel: 0.15,      // mobs deal x(1 + 0.15 * level) damage
+    // Mobs get tougher on a curve: x(1 + perLevel * level ^ exponent). 1.35 is gentle near home and steeper far out,
+    // but not quadratic (2), so the far zones stay roamable. Set exponent: 1 for a straight line.
+    exponent: 1.35,
+    healthPerLevel: 0.2,       // mobs take damage / (1 + 0.2 * level^1.35), like having more health
+    damagePerLevel: 0.12,      // mobs deal x(1 + 0.12 * level^1.35) damage
     lootPerLevel: 0.1,         // mob drops x(1 + 0.1 * level)
     xpPerLevel: 0.2,           // mob XP x(1 + 0.2 * level)
     // Elites: rare, named, much tougher, much better loot
@@ -622,6 +833,18 @@ global.FA = {
       { raw: 'squid_tentacle', rawName: 'Squid Tentacle', cooked: 'fried_calamari', cookedName: 'Fried Calamari', mobs: ['minecraft:squid', 'minecraft:glow_squid'], chance: 0.4, hunger: 5, saturation: 0.6, effect: ['minecraft:water_breathing', 60, 0] },
       { raw: 'hoglin_ribs', rawName: 'Hoglin Ribs', cooked: 'bbq_hoglin_ribs', cookedName: 'BBQ Hoglin Ribs', mobs: ['minecraft:hoglin'], chance: 0.35, hunger: 10, saturation: 0.9, effect: ['minecraft:fire_resistance', 45, 0] }
     ]
+  },
+
+  // ---- Jackpots: the rare insane find ----
+  // Relic and card enchant levels have a long lucky tail: most rolls are normal, a few are many times higher, and a
+  // sliver reach levelCap. levelAlpha sets how fat the tail is (lower = more huge rolls): with 1.6, a roll x10 higher
+  // happens about 1 in 40 times, x100 about 1 in 1,600, x10,000 about 1 in 2.5 million.
+  // Chests: chestChance per chest of a jackpot stack, one of chestStacks ([item, min, max, weight]).
+  jackpot: {
+    levelAlpha: 1.6,
+    levelCap: 100000,
+    chestChance: 0.015,
+    chestStacks: [['kubejs:enchantment_pack', 10, 40, 5], ['kubejs:gear_cache', 4, 16, 4], ['kubejs:booster_box', 2, 6, 1], ['kubejs:ascension_core', 64, 192, 3]]
   },
 
   // ---- Enchantment card packs: foil packs of tome "cards", and booster boxes of packs ----
@@ -901,6 +1124,11 @@ global.FA_STATE = { event: false, center: false }
 global.FA.fusions.forEach(f => {
   if (!global.FA.enchants[f[0]]) global.FA.enchants[f[0]] = { name: f[1], type: 'fusion', parts: [f[2], f[3]], costMult: global.FA.fusionCostMultiplier }
 })
+// Triads are fusions of three, a little weaker per part
+global.FA.triads.forEach(t => {
+  if (!global.FA.enchants[t[0]]) global.FA.enchants[t[0]] = { name: t[1], type: 'fusion', triad: true, parts: [t[2], t[3], t[4]],
+    strength: global.FA.triadStrength, costMult: global.FA.triadCostMultiplier }
+})
 
 // A parent enchant at a fusion's strength: same effect, scaled down
 global.FA_scalePart = (def, strength) => {
@@ -916,7 +1144,8 @@ let faPartCache = {}
 // The i-th effect of a fusion enchant (cached: they never change while the game runs)
 global.FA_fusionPart = (id, i) => {
   let key = id + '~' + i
-  if (!faPartCache[key]) faPartCache[key] = global.FA_scalePart(global.FA.enchants[global.FA.enchants[id].parts[i]], global.FA.fusionStrength)
+  let fe = global.FA.enchants[id]
+  if (!faPartCache[key]) faPartCache[key] = global.FA_scalePart(global.FA.enchants[fe.parts[i]], fe.strength || global.FA.fusionStrength)
   return faPartCache[key]
 }
 
@@ -1006,7 +1235,7 @@ global.FA_describeDef = (e, level) => {
     case 'heads': return pct(Math.min(1, e.perLevel * level)) + ' chance to drop mob heads'
     case 'fusion': {
       // The scaled-down parents are cached on the fusion (they never change while the game runs)
-      if (!e._scaled) e._scaled = e.parts.map(pid => global.FA_scalePart(global.FA.enchants[pid], global.FA.fusionStrength))
+      if (!e._scaled) e._scaled = e.parts.map(pid => global.FA_scalePart(global.FA.enchants[pid], e.strength || global.FA.fusionStrength))
       return e._scaled.map(p => global.FA_describeDef(p, level)).join(' + ')
     }
     case 'ultimate': return 'sneak + hit: ' + e.desc.charAt(0).toLowerCase() + e.desc.slice(1) + ' (' + global.FA_ultPower(e, level).toFixed(2) +
@@ -1058,8 +1287,8 @@ global.FA_zone = danger => {
 global.FA_dangerMult = (danger, elite) => {
   let d = global.FA.danger
   return {
-    health: (1 + d.healthPerLevel * danger) * (elite ? d.eliteHealth : 1),
-    damage: (1 + d.damagePerLevel * danger) * (elite ? d.eliteDamage : 1),
+    health: (1 + d.healthPerLevel * Math.pow(danger, d.exponent || 1)) * (elite ? d.eliteHealth : 1),
+    damage: (1 + d.damagePerLevel * Math.pow(danger, d.exponent || 1)) * (elite ? d.eliteDamage : 1),
     loot: (1 + d.lootPerLevel * danger) * (elite ? d.eliteLoot : 1),
     xp: (1 + d.xpPerLevel * danger) * (elite ? d.eliteLoot : 1)
   }
@@ -1260,7 +1489,7 @@ global.FA_makeRelic = (r, quality, danger) => {
   let normal = Object.keys(E).filter(id => suits(id) && !E[id].mythic)
   let mythics = Object.keys(E).filter(id => suits(id) && E[id].mythic)
   let base = (8 + 2 * Math.max(0, danger)) * Q.levelMult
-  let level = id => E[id].maxLevel ? 1 + Math.floor(r() * E[id].maxLevel) : Math.max(1, Math.round(base * (0.5 + r())))
+  let level = id => E[id].maxLevel ? 1 + Math.floor(r() * E[id].maxLevel) : Math.max(1, Math.min(global.FA.jackpot.levelCap, Math.round(base * (0.5 + r()) * global.FA_luckyMult(r))))
   let enchants = {}
   let count = Q.enchants[0] + Math.floor(r() * (Q.enchants[1] - Q.enchants[0] + 1))
   for (let i = 0; i < Q.mythicEnchants && mythics.length; i++) { let id = pick(mythics); enchants[id] = level(id) }
@@ -1358,6 +1587,12 @@ let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, 
 let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
 let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
 
+// A lucky multiplier: >= 1, usually small, very rarely huge (a Pareto tail, see jackpot)
+global.FA_luckyMult = rnd => {
+  let J = global.FA.jackpot
+  return Math.min(J.levelCap, Math.pow(Math.max(1e-12, 1 - rnd()), -1 / J.levelAlpha))
+}
+
 // One card from a pack: { rarity index, enchant id, level }. rnd: 0..1 random; minRarity: lowest allowed index.
 global.FA_rollCard = (rnd, minRarity) => {
   let P = global.FA.packs
@@ -1374,7 +1609,8 @@ global.FA_rollCard = (rnd, minRarity) => {
   let ids = Object.keys(E).filter(id => R.kind == 'ultimate' ? E[id].ultimate : R.kind == 'mythic' ? E[id].mythic : R.kind == 'fusion' ? E[id].type == 'fusion'
     : !E[id].mythic && !E[id].ultimate && E[id].type != 'fusion')
   let id = ids[Math.floor(rnd() * ids.length)]
-  let level = R.level[0] + Math.floor(rnd() * (R.level[1] - R.level[0] + 1))
+  let level = Math.round((R.level[0] + Math.floor(rnd() * (R.level[1] - R.level[0] + 1))) * global.FA_luckyMult(rnd))
+  level = Math.min(level, global.FA.jackpot.levelCap)
   if (E[id].maxLevel) level = Math.min(level, E[id].maxLevel)
   return { rarity: ri, id: id, level: Math.max(1, level) }
 }
@@ -1511,10 +1747,10 @@ global.FA_validate = cfg => {
       ok = false
     }
     if (e.type == 'vein' && e.blocks != 'ores' && e.blocks != 'logs') { problems.push('enchants.' + id + ".blocks must be 'ores' or 'logs'"); ok = false }
-    if (e.type == 'fusion' && !(e.parts && e.parts.length == 2 && e.parts[0] != e.parts[1] && e.parts.every(pid => {
+    if (e.type == 'fusion' && !(e.parts && (e.parts.length == 2 || (e.triad && e.parts.length == 3)) && e.parts.every((pid, i) => e.parts.indexOf(pid) == i) && e.parts.every(pid => {
       let parent = cfg.enchants[pid]
       return parent && !parent.mythic && !FA_NO_FUSE[parent.type]
-    }))) { problems.push('fusion "' + id + '" needs two different, non-Mythic parents that exist'); ok = false }
+    }))) { problems.push('fusion "' + id + '" needs ' + (e.triad ? 'three' : 'two') + ' different, non-Mythic parents that exist'); ok = false }
     if (e.type == 'ultimate' && (global.FA_ULTIMATE_MOVES.indexOf(e.move) < 0 || typeof e.desc != 'string')) {
       problems.push('ultimate "' + id + '" needs a known move (' + global.FA_ULTIMATE_MOVES.join(', ') + ') and a desc'); ok = false
     }

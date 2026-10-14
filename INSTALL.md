@@ -58,7 +58,7 @@ minecraft/kubejs/
                  90_fa_selftest.js
   client_scripts/10_fa_tooltips.js, 20_fa_jei.js
   data/kubejs/   (Ascendite ore worldgen: worldgen/ and forge/biome_modifier/)
-  assets/kubejs/textures/item/   (408 .png files)
+  assets/kubejs/textures/item/   (608 .png files)
   assets/kubejs/textures/block/  (56 .png files: altar, condenser, 51 Condensed Essence tiers, Ascendite ores + block)
   assets/kubejs/textures/models/armor/  (8 .png files: worn Ascendite, Voidsteel, Celestium and Ascendium armor)
 ```
@@ -74,12 +74,12 @@ minecraft/kubejs/
    /ascension essence add 1000
    ```
    Hold the tome in your main hand and the sword in your off hand (press **F** to swap), then right-click.
-   All 286 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
+   All 486 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
-4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 51 checks
+4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 53 checks
    with a fake player (Essence, a real tome right-click, leveled tomes and extracting, enchants, danger zones, Ascendite, mob food, Rock Hammers, gear condition, rare variants, glowing ores, the safe-zone center, /home, card packs, Artifacts, gems, rebirth,
-   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **51 / 51 passed**.
+   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **53 / 53 passed**.
    Any FAIL line says which part is broken.
 5. If something's missing, open the instance folder -> `logs/kubejs/` and look in
    `startup.log`, `server.log` and `client.log` for lines with `[Factory Ascension]` or `ERROR`.
