@@ -121,7 +121,7 @@ FakePos.prototype = {
 }
 var StartupEvents = { registry: function (type, fn) { handlers.registry.push({ type: type, fn: fn }) } }
 var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
-var BlockEvents = { placed: function (id, fn) { handlers.placed = fn }, broken: function (id, fn) { handlers.broken = fn } }
+var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn } }
 var ServerEvents = { recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn } }
 var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) } }
 // Several scripts can hook the same Forge event: keep them all and call each in turn
@@ -280,8 +280,11 @@ handlers.registry.forEach(function (r) {
   var list = r.type == 'item' ? created : r.type == 'block' ? createdBlocks : createdFluids
   r.fn({ create: function (id) { list.push(id); return builder } })
 })
-check('Ascension Altar block and Liquid Essence fluid registered', createdBlocks.join() == 'ascension_altar' && createdFluids.join() == 'liquid_essence')
-check('the altar has a block texture', new java.io.File('kubejs/assets/kubejs/textures/block/ascension_altar.png').exists())
+var condTiers = global.FA_condensedTiers()
+check('altar, condenser and 51 Condensed Essence blocks registered', createdBlocks.length == 2 + condTiers + 1 && createdBlocks.indexOf('essence_condenser') >= 0 &&
+  createdBlocks.indexOf('condensed_essence_50') >= 0 && createdFluids.join() == 'liquid_essence', createdBlocks.length)
+var missingBlockTex = createdBlocks.filter(function (b) { return !new java.io.File('kubejs/assets/kubejs/textures/block/' + b + '.png').exists() })
+check('every block has a texture', missingBlockTex.length == 0, missingBlockTex.join(','))
 var enchantCount = Object.keys(global.FA.enchants).length
 var mythics = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].mythic })
 check('74 enchants (59 + 15 Mythic)', enchantCount == 74 && mythics.length == 15, enchantCount + ' / ' + mythics.length)
@@ -608,7 +611,7 @@ check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
 print('\ntooltips')
 var advanced = null, simple = 0
 handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, addAdvanced: function (ing, f) { advanced = f } }) })
-check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == 3 + 1 + enchantCount + 1 + 1 + 4 + gemCount + 2, simple)
+check('tooltips for cores, blank tome, every tome, fragment and clusters', simple == Object.keys(global.FA.essenceValues).length + 1 + enchantCount + 1 + 1 + 4 + gemCount + 2 + (global.FA_condensedTiers() + 1) + 1, simple)
 var lines = { arr: ['Netherite Chestplate', 'When on body:'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
 advanced(chest, false, lines)
 check('enchants show right under the item name', /Ascended Protection 3,000/.test(lines.arr[1]), lines.arr.join(' | '))
@@ -1102,7 +1105,7 @@ server.getTickCount = function () { return 40 }
 server.getAllLevels = function () { return [world2] }
 server.getPlayerList = function () { return { getPlayers: function () { return [] }, getPlayerCount: function () { return 0 } } }
 var placer = makePlayer(server, 'placer')
-handlers.placed({ server: server, level: world2, block: { pos: altarPos }, player: placer, cancel: function () {} })
+handlers.placed['kubejs:ascension_altar']({ server: server, level: world2, block: { pos: altarPos }, player: placer, cancel: function () {} })
 check('placing an altar registers it with its owner', server.persistentData.getCompound('fa_altars').getString('minecraft:overworld|10|64|10') == 'placer')
 handlers.tick({ server: server })
 var spentMb = 0
@@ -1120,6 +1123,64 @@ check('a nearly empty tank pays for what it can and stops (level 25 costs 200 mB
 blocks = {}
 handlers.tick({ server: server })
 check('altars removed some other way are forgotten', !server.persistentData.getCompound('fa_altars').contains('minecraft:overworld|10|64|10'))
+
+print('\ncondensed essence')
+var names = []
+for (var ct = 0; ct <= condTiers; ct++) names.push(global.FA_condensedName(ct))
+check('51 tiers, each with its own name ending in (xN)', names.length == 51 && names[0] == 'Condensed Essence Block' && /^Absolute Essence Block \(x50\)$/.test(names[50]) &&
+  names.slice(1).every(function (n, i) { return n.indexOf('(x' + (i + 1) + ')') > 0 }) && names.filter(function (n, i) { return names.indexOf(n) != i }).length == 0, names[34])
+print('  sample: ' + [names[1], names[10], names[34], names[39], names[50]].join(' | '))
+check('one block = 1 bucket = 10 Essence, each tier = 9 of the last', global.FA_condensedValue(0) == 10 && global.FA_condensedValue(1) == 90 &&
+  near(global.FA_condensedValue(50), 10 * Math.pow(9, 50)))
+var condRecipesOk = true
+for (var ct2 = 1; ct2 <= condTiers; ct2++) {
+  var pack = byId('condense_' + ct2), unpack = recipes.filter(function (r) { return r.rid == 'kubejs:factory_ascension/uncondense_' + ct2 })[0]
+  if (!pack || pack.json.ingredients.length != 9 || pack.json.ingredients[0].item != global.FA_condensedId(ct2 - 1) || !unpack) condRecipesOk = false
+}
+check('every tier compacts 9 -> 1 and unpacks 1 -> 9, so nothing is gained either way', condRecipesOk)
+check('melting a block gives exactly its bucket back', byId('melt_condensed_essence').json.results[0].amount == 1000)
+check('Condensed Essence is worth exactly the fluid it was made from', global.FA_condensedValue(0) == global.FA.condensed.mbPerBlock / global.FA.altar.mbPerEssence)
+var hoarder = makePlayer(server, 'hoarder'); hoarder.sneaking = true
+handlers.rightClicked[global.FA_condensedId(50)]({ player: hoarder, item: stack(64), cancel: function () {} })
+check('absorbing a stack of 64 (x50) blocks: ~3.3e49 Essence, stored safely', near(faGetEssence(hoarder), 64 * global.FA_condensedValue(50)) && isFinite(faGetEssence(hoarder)), faGetEssence(hoarder))
+var richPick = gear('Rich Pick'); faSetLevel(richPick, 'sharpness', 1); hoarder.main = richPick
+faUpgrade(hoarder, 'sharpness', 100000)
+check('...and it spends like any Essence', faGetLevel(richPick, 'sharpness') == 100001)
+
+print('\ncondenser')
+function makeChest(slots) { var arr = []; for (var i = 0; i < slots; i++) arr.push(stack(0))
+  return { slots: arr, getSlots: function () { return arr.length }, getStackInSlot: function (i) { return arr[i] },
+    insertItem: function (i, it, sim) {
+      var cur = arr[i]
+      if (!cur.isEmpty() && cur.id != it.id) return it
+      var room = 64 - (cur.isEmpty() ? 0 : cur.count), n = Math.min(room, it.count)
+      if (!sim && n > 0) { if (cur.isEmpty()) { arr[i] = it.copyWithCount(n) } else cur.count += n }
+      return n == it.count ? stack(0) : it.copyWithCount(it.count - n)
+    } } }
+var chest = makeChest(2), ctank = makeTank(70500)
+var condPos = new FakePos(20, 64, 20), cblocks = { '20,64,20': 'kubejs:essence_condenser' }
+var world3 = {
+  dimension: function () { return { location: function () { return 'minecraft:overworld' } } },
+  isLoaded: function () { return true },
+  getBlockState: function (p2) { var b = cblocks[p2.x + ',' + p2.y + ',' + p2.z] || 'minecraft:air'; return { getBlock: function () { return b } } },
+  getBlockEntity: function (p2) { return p2.y == 65 ? { getCapability: function () { return capOf(chest) } } : p2.y == 63 ? { getCapability: function () { return capOf(ctank) } } : null },
+  addFreshEntity: function (e) { condDrops.push(e) }, getServer: function () { return server }
+}
+var condDrops = []
+server.getAllLevels = function () { return [world3] }
+handlers.placed['kubejs:essence_condenser']({ server: server, level: world3, block: { pos: condPos }, player: placer, cancel: function () {} })
+handlers.tick({ server: server })
+check('the condenser packs 64 buckets a second into blocks in the chest above', chest.slots[0].count == 64 && chest.slots[0].id == global.FA_condensedId(0) && ctank.drained == 64000, chest.slots[0].count + ' / ' + ctank.drained)
+handlers.tick({ server: server })
+check('it never drains part of a block (6,500 mB left -> 6 blocks, 500 mB stays)', chest.slots[1].count == 6 && ctank.mb == 500, chest.slots[1].count + ' / ' + ctank.mb)
+var fullChest = makeChest(1); fullChest.slots[0] = stack(64); fullChest.slots[0].id = 'minecraft:stone'; chest = fullChest; ctank = makeTank(5000)
+handlers.tick({ server: server })
+check('a full chest means no fluid is drained', ctank.drained == 0)
+chest = makeChest(1); ctank = makeTank(5000, 'water')
+handlers.tick({ server: server })
+check('a tank of the wrong fluid is ignored', ctank.drained == 0 && chest.slots[0].isEmpty())
+check('nothing was ever dropped on the ground', condDrops.length == 0)
+server.getAllLevels = function () { return [world2] }
 
 print('\nworld events')
 var evServer = makeServer()

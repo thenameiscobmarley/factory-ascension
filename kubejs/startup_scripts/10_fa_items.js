@@ -40,7 +40,8 @@ StartupEvents.registry('item', event => {
 
 // Liquid Essence: melted cores. Pipe it, tank it, feed it to an Ascension Altar, or drink a bucket for Essence.
 StartupEvents.registry('fluid', event => {
-  event.create('liquid_essence').displayName('Liquid Essence').thinTexture(0xB05CFF).bucketColor(0xB05CFF)
+  let color = global.FA.altar.color
+  event.create('liquid_essence').displayName('Liquid Essence').thinTexture(color).bucketColor(color)
 })
 
 // Ascension Altar: Depot on top, Liquid Essence tank or basin below = gear levels itself up
@@ -48,4 +49,17 @@ StartupEvents.registry('block', event => {
   event.create('ascension_altar').displayName('Ascension Altar').soundType('amethyst')
     .hardness(4).resistance(1200).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').lightLevel(0.6)
     .textureAll('kubejs:block/ascension_altar')
+
+  // Essence Condenser: Liquid Essence tank below -> Condensed Essence Blocks into the chest above
+  event.create('essence_condenser').displayName('Essence Condenser').soundType('metal')
+    .hardness(4).resistance(1200).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').lightLevel(0.4)
+    .textureAll('kubejs:block/essence_condenser')
+
+  // Condensed Essence Blocks: tier 0 plus (x1) .. (x50), each glowing a little brighter
+  let tiers = global.FA_condensedTiers()
+  for (let tier = 0; tier <= tiers; tier++) {
+    event.create('condensed_essence_' + tier).displayName(global.FA_condensedName(tier)).soundType('amethyst')
+      .hardness(1.5).resistance(6).tagBlock('minecraft:mineable/pickaxe').lightLevel(Math.min(1, 0.3 + tier / tiers * 0.7))
+      .textureAll('kubejs:block/condensed_essence_' + tier)
+  }
 })

@@ -50,6 +50,21 @@
     requestAnimationFrame(tick);
   })();
 
+  // ---------- Liquid Essence color + the density ladder (all from the config) ----------
+  const essenceHex = "#" + ("000000" + FA.altar.color.toString(16)).slice(-6);
+  document.documentElement.style.setProperty("--essence", essenceHex);
+  const tiers = global.FA_condensedTiers();
+  $("#ladderTop").textContent = global.FA_condensedName(tiers);
+  $("#ladder").innerHTML = Array.from({ length: tiers + 1 }, (_, t) => '<img src="' + tex("condensed_essence_" + t) + '" alt="' + esc(global.FA_condensedName(t)) +
+    '" title="' + esc(global.FA_condensedName(t)) + '" tabindex="0" data-t="' + t + '" loading="lazy" />').join("");
+  const ladderInfo = t => {
+    const buckets = Math.pow(FA.condensed.ratio, t) * FA.condensed.mbPerBlock / 1000;
+    $("#ladderRead").innerHTML = "<b>" + esc(global.FA_condensedName(t)) + "</b> · " + global.FA_num(buckets) + " buckets · " +
+      global.FA_num(global.FA_condensedValue(t)) + " Essence · a stack of 64: " + global.FA_num(64 * global.FA_condensedValue(t)) + " Essence";
+  };
+  ["mouseover", "focusin"].forEach(ev => $("#ladder").addEventListener(ev, e => { const i = e.target.closest("img"); if (i) ladderInfo(+i.dataset.t); }));
+  ladderInfo(tiers);
+
   // ---------- ticker ----------
   const tickerHtml = ids.map(id => '<span><img src="' + tex("tome_" + id) + '" alt="" />' + esc(E[id].name) + (E[id].mythic ? " ✦" : "") + "</span>").join("");
   $("#tickerA").innerHTML = tickerHtml;

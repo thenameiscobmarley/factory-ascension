@@ -70,6 +70,33 @@ ServerEvents.recipes(event => {
     A: 'minecraft:amethyst_block', D: 'kubejs:dense_ascension_core', O: 'minecraft:obsidian', B: 'create:brass_casing'
   }).id('kubejs:factory_ascension/ascension_altar')
 
+  // Essence Condenser
+  event.shaped('kubejs:essence_condenser', ['IGI', 'GDG', 'ITI'], {
+    I: 'create:brass_ingot', G: 'minecraft:tinted_glass', D: 'kubejs:dense_ascension_core', T: 'create:fluid_tank'
+  }).id('kubejs:factory_ascension/essence_condenser')
+
+  // Condensed Essence: each tier is `ratio` of the one below, both ways. Compacting automates it;
+  // the crafting grid works by hand. Tier 0 melts back into one block's worth of Liquid Essence.
+  let C = global.FA.condensed
+  let tiers = global.FA_condensedTiers()
+  for (let tier = 1; tier <= tiers; tier++) {
+    let lower = global.FA_condensedId(tier - 1)
+    let pack = []
+    for (let i = 0; i < C.ratio; i++) pack.push({ item: lower })
+    event.custom({ type: 'create:compacting', ingredients: pack, results: [{ item: global.FA_condensedId(tier) }] })
+      .id('kubejs:factory_ascension/condense_' + tier)
+    let grid = []
+    for (let i = 0; i < C.ratio; i++) grid.push(lower)
+    event.shapeless(global.FA_condensedId(tier), grid).id('kubejs:factory_ascension/craft_condensed_' + tier)
+    event.shapeless(Item.of(lower, C.ratio), [global.FA_condensedId(tier)]).id('kubejs:factory_ascension/uncondense_' + tier)
+  }
+  event.custom({
+    type: 'create:mixing',
+    ingredients: [{ item: global.FA_condensedId(0) }],
+    results: [{ fluid: 'kubejs:liquid_essence', amount: C.mbPerBlock }],
+    heatRequirement: 'heated'
+  }).id('kubejs:factory_ascension/melt_condensed_essence')
+
   // Gems: a chipped gem from a superheated mixer, then compact 4 -> 1 for each tier up
   let gemCatalysts = {
     bloodstone: ['minecraft:redstone', 4], sapphire: ['minecraft:lapis_lazuli', 4], garnet: ['minecraft:nether_wart', 4],

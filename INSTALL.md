@@ -54,8 +54,8 @@ minecraft/kubejs/
   server_scripts/10_fa_ascension.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js,
                  40_fa_progress.js, 45_fa_altar.js
   client_scripts/10_fa_tooltips.js
-  assets/kubejs/textures/item/  (102 .png files)
-  assets/kubejs/textures/block/ascension_altar.png
+  assets/kubejs/textures/item/   (102 .png files)
+  assets/kubejs/textures/block/  (53 .png files: altar, condenser, 51 Condensed Essence tiers)
 ```
 
 ## 7. Check it works

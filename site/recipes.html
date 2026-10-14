@@ -51,11 +51,12 @@
   var global = {};
   var FA_NAMES = {};
   var FA_RECIPE_FNS = [];
+  // Items and blocks both have names worth showing (blocks like Condensed Essence are items too)
   var StartupEvents = { registry: function (type, fn) {
-    if (type != "item") return;
+    if (type != "item" && type != "block") return;
     fn({ create: function (id) {
       var b = {}, full = "kubejs:" + id;
-      ["rarity", "glow", "maxStackSize"].forEach(function (m) { b[m] = function () { return b; }; });
+      ["rarity", "glow", "maxStackSize", "soundType", "hardness", "resistance", "requiresTool", "tagBlock", "lightLevel", "textureAll"].forEach(function (m) { b[m] = function () { return b; }; });
       b.displayName = function (n) { FA_NAMES[full] = n; return b; };
       return b;
     } });

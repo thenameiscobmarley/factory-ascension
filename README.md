@@ -102,6 +102,22 @@ Pipe it, store it in tanks, sneak-drink a bucket for 10 Essence, or feed an **As
 Once a second the altar buys levels for the gear on the depot, lowest enchant first (rolled ones too),
 up to 20 levels a second, at the normal Essence prices. Your factory levels your gear while you're away.
 
+## Condensed Essence (up to x50)
+
+An **Essence Condenser** packs Liquid Essence into blocks you can carry around by the stack:
+
+```
+[ chest / Item Vault ]   <- Condensed Essence Blocks come out here
+[ Essence Condenser ]
+[ tank or basin ]        <- Liquid Essence
+```
+
+Up to 64 blocks a second (1 block = 1 bucket = 10 Essence). Each denser tier is 9 of the one below, compacted by a
+Mechanical Press + Basin or crafted 3x3, and unpacked 1 → 9 in a crafting grid. There are 51 tiers, each with its own name:
+*Condensed Essence Block*, then *Dense (x1)*, *Compact (x2)*, ... *Neutronium (x34)*, *Event Horizon (x39)*, *Black Hole (x41)*,
+up to ***Absolute Essence Block (x50)***, which holds about 5 × 10⁴⁸ Essence. They're real placeable glowing blocks and stack to 64.
+Right-click one in the air to absorb it; sneak to absorb the whole stack. Tier 0 melts back into its bucket in a heated mixer.
+
 ## Milestones
 
 16 factory goals with rewards, like *Assembly Line* (1,000 Essence absorbed), *Megafactory* (100,000),
@@ -233,7 +249,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 240 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 252 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

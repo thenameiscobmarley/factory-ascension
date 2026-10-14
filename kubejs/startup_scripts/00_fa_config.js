@@ -180,9 +180,28 @@ global.FA = {
   // An Ascension Altar with a Create Depot on top and a tank or basin of Liquid Essence below
   // levels up the gear on the depot by itself: one level at a time, always the lowest enchant first.
   altar: {
+    color: 0xB05CFF,           // Liquid Essence color (fluid, bucket, website)
     mbPerEssence: 100,
     maxLevelsPerSecond: 20,    // per altar
     maxAltars: 256             // most altars the server tracks
+  },
+
+  // ---- Condensed Essence: fluid packed into blocks, for storing truly absurd amounts ----
+  // An Essence Condenser takes Liquid Essence from a tank below it and puts Condensed Essence Blocks into
+  // the chest or vault on top: 1 block = mbPerBlock mB. Each denser tier is `ratio` of the one below
+  // (compact them with a Mechanical Press + Basin, or craft 3x3), up to (x50). Right-click one in the air to
+  // absorb it; sneak to absorb the whole stack. Every tier stacks to 64.
+  condensed: {
+    mbPerBlock: 1000,          // 1 bucket per block = 10 Essence
+    ratio: 9,
+    blocksPerSecond: 64,       // per condenser
+    maxCondensers: 256,
+    // One name per dense tier, from (x1) to (x50): each one denser than the last
+    names: ['Dense', 'Compact', 'Packed', 'Heavy', 'Thickened', 'Solidified', 'Compressed', 'Pressurized', 'Crushed', 'Leaden',
+      'Ironclad', 'Weighted', 'Ponderous', 'Massive', 'Monolithic', 'Tectonic', 'Bedrock', 'Mantle', 'Core-Forged', 'Magmatic',
+      'Crystalline', 'Diamond-Pressed', 'Hyperdense', 'Ultradense', 'Degenerate', 'Collapsed', 'Plasma-Bound', 'Fused', 'Fusion', 'Stellar',
+      'Supergiant', 'Nova', 'White Dwarf', 'Neutronium', 'Pulsar', 'Magnetar', 'Quark', 'Strange Matter', 'Event Horizon', 'Singularity',
+      'Black Hole', 'Quasar', 'Galactic', 'Cluster', 'Supercluster', 'Dark Matter', 'Big Crunch', 'Primordial', 'Cosmic', 'Absolute']
   },
 
   // ---- Prestige (Rebirth) ----
@@ -544,6 +563,14 @@ global.FA_gemLevels = tier => global.FA.gems.tiers[tier - 1].levels
 global.FA_rebirthNeed = stars => global.FA.prestige.needLevels * (stars + 1)
 global.FA_starMult = stars => 1 + global.FA.prestige.bonusPerStar * stars
 
+// ---- Condensed Essence helpers ----
+// Tier 0 is the plain Condensed Essence Block; tiers 1..50 are the dense ones, "(x1)" .. "(x50)"
+global.FA_condensedTiers = () => global.FA.condensed.names.length
+global.FA_condensedId = tier => 'kubejs:condensed_essence_' + tier
+global.FA_condensedName = tier => tier == 0 ? 'Condensed Essence Block' : global.FA.condensed.names[tier - 1] + ' Essence Block (x' + tier + ')'
+// Essence in one block of a tier: (mbPerBlock / mbPerEssence) x ratio^tier
+global.FA_condensedValue = tier => global.FA.condensed.mbPerBlock / global.FA.altar.mbPerEssence * Math.pow(global.FA.condensed.ratio, tier)
+
 // Essence cost for a rolled enchant from level L to L+1
 global.FA_rollCost = (level, rarity) => Math.ceil(global.FA_cost(level) * global.FA.chaos.rarities[rarity].costMult)
 
@@ -659,6 +686,14 @@ global.FA_validate = cfg => {
     problems.push('altar settings are broken, reset to defaults')
     cfg.altar = { mbPerEssence: 100, maxLevelsPerSecond: 20, maxAltars: 256 }
   }
+  let cd = cfg.condensed
+  if (!(cd && okNum(cd.mbPerBlock, 1) && cd.mbPerBlock % 1 == 0 && okNum(cd.ratio, 2) && cd.ratio <= 9 && cd.ratio % 1 == 0 &&
+    okNum(cd.blocksPerSecond, 1) && okNum(cd.maxCondensers, 1) && cd.names && cd.names.length >= 1 && cd.names.length <= 100 &&
+    cd.names.every(n => typeof n == 'string' && n.length > 0) && cd.mbPerBlock % cfg.altar.mbPerEssence == 0)) {
+    // ratio must be 2..9 (the press compacts at most 9 items), and a block must hold whole Essence
+    problems.push('condensed settings are broken, reset to defaults')
+    cfg.condensed = { mbPerBlock: 1000, ratio: 9, blocksPerSecond: 64, maxCondensers: 256, names: ['Dense'] }
+  }
   let pr = cfg.prestige
   if (!(pr && okNum(pr.needLevels, 1) && okNum(pr.bonusPerStar, 0) && okNum(pr.maxStars, 0))) {
     problems.push('prestige settings are broken, reset to defaults')
@@ -709,3 +744,7 @@ global.FA_validate = cfg => {
 }
 
 global.FA_validate(global.FA).forEach(p => console.error('[Factory Ascension] config: ' + p))
+
+// Condensed Essence blocks can be absorbed like cores: add every tier to essenceValues
+// (after the config check, which only guards the core 1 : 9 : 81 values)
+for (let tier = 0; tier <= global.FA_condensedTiers(); tier++) global.FA.essenceValues[global.FA_condensedId(tier)] = global.FA_condensedValue(tier)

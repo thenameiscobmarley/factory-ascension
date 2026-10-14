@@ -51,7 +51,11 @@
 .it:hover { background: #ffffff08; } .it.is-active { border-color: var(--gold); background: #ffb84d12; }
 .it img, .ing img, .chain-head img, .base img, summary img { width: 24px; height: 24px; flex: none; }
 .dot { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: #ffffff12; color: var(--muted); font: 600 12px var(--mono); font-style: normal; flex: none; }
-.dot.fl { background: #4fa3ff30; color: #9fd0ff; border-radius: 50%; }
+/* Fluids: a glossy drop in the fluid's own color */
+.dot.fl { border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(circle at 35% 30%, #ffffffaa, var(--fc) 45%, color-mix(in srgb, var(--fc) 55%, #000) 100%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--fc) 60%, transparent); }
+.ing.fluid { border-color: color-mix(in srgb, var(--fc) 55%, transparent); background: color-mix(in srgb, var(--fc) 10%, #0d0b0a); }
+.ing.fluid b { color: color-mix(in srgb, var(--fc) 70%, #fff); }
 .chain-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
 .chain-head img { width: 64px; height: 64px; }
 .chain-head h2 { margin: 0; font: 400 44px/1 var(--display); letter-spacing: .02em; }

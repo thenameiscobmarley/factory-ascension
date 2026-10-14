@@ -231,6 +231,72 @@ def altar_block():
     return px
 
 
+def condensed_tiers():
+    """How many dense tiers the config names (the block list is generated from it)."""
+    text = open(CONFIG).read()
+    block = text[text.index("names: ['Dense'"):]
+    block = block[:block.index("]")]
+    return len(re.findall(r"'[^']+'", block))
+
+
+def condenser_block():
+    """Brass frame around a glass window of swirling essence."""
+    px = [[None] * N for _ in range(N)]
+    for y in range(N):
+        for x in range(N):
+            edge = x in (0, 1, 14, 15) or y in (0, 1, 14, 15)
+            if edge:
+                px[y][x] = lerp((200, 150, 60), (120, 80, 30), (x + y) / 30) + (255,)
+            else:
+                swirl = (math.sin(x * 0.9 + y * 0.5) + math.cos(y * 0.8 - x * 0.3)) / 4 + 0.5
+                px[y][x] = lerp((60, 20, 110), (190, 110, 255), swirl) + (255,)
+    for i in range(2, 14):
+        px[i][i] = (235, 210, 255, 255)
+    for x, y in ((0, 0), (15, 0), (0, 15), (15, 15), (7, 1), (8, 14)):
+        px[y][x] = (255, 220, 120, 255)
+    return px
+
+
+def condensed_block(tier, tiers):
+    """Denser tiers shift purple -> magenta -> gold -> white-hot -> cosmic black with stars."""
+    f = tier / max(1, tiers)
+    rnd = random.Random(1000 + tier)
+    if f < 0.35:
+        base = lerp((120, 50, 200), (210, 60, 170), f / 0.35)
+    elif f < 0.6:
+        base = lerp((210, 60, 170), (255, 180, 60), (f - 0.35) / 0.25)
+    elif f < 0.78:
+        base = lerp((255, 180, 60), (255, 245, 225), (f - 0.6) / 0.18)
+    else:
+        base = lerp((40, 10, 70), (6, 2, 14), (f - 0.78) / 0.22)
+    cosmic = f >= 0.78
+    dark = lerp(base, (0, 0, 0), 0.45)
+    light = lerp(base, (255, 255, 255), 0.45)
+    px = [[None] * N for _ in range(N)]
+    for y in range(N):
+        for x in range(N):
+            v = rnd.random()
+            px[y][x] = lerp(base, dark, v * 0.35) + (255,)
+    # Veins: more of them the denser it is
+    veins = 2 + int(f * 10)
+    for _ in range(veins):
+        x, y = rnd.randrange(N), rnd.randrange(N)
+        for _ in range(6 + int(f * 8)):
+            px[y][x] = (light if not cosmic else (190, 120, 255)) + (255,)
+            x = max(0, min(N - 1, x + rnd.choice((-1, 0, 1))))
+            y = max(0, min(N - 1, y + rnd.choice((-1, 0, 1))))
+    if cosmic:
+        for _ in range(4 + int(f * 10)):
+            px[rnd.randrange(N)][rnd.randrange(N)] = (255, 255, 255, 255)
+        for x, y in ((7, 7), (8, 7), (7, 8), (8, 8)):
+            px[y][x] = (255, 236, 180, 255)
+    # Frame
+    frame = lerp(base, (0, 0, 0), 0.6) if not cosmic else (120, 70, 200)
+    for i in range(N):
+        px[0][i] = px[N - 1][i] = px[i][0] = px[i][N - 1] = frame + (255,)
+    return px
+
+
 def fragment():
     """Jagged glowing shard."""
     px = blank()
@@ -314,7 +380,11 @@ def main():
             textures["gem_%s_%d" % (name, tier)] = outline(gem_item(color, tier), (20, 16, 24, 255))
     os.makedirs(BLOCK_OUT, exist_ok=True)
     png(os.path.join(BLOCK_OUT, "ascension_altar.png"), altar_block())
-    print("wrote block/ascension_altar.png")
+    png(os.path.join(BLOCK_OUT, "essence_condenser.png"), condenser_block())
+    tiers = condensed_tiers()
+    for tier in range(tiers + 1):
+        png(os.path.join(BLOCK_OUT, "condensed_essence_%d.png" % tier), condensed_block(tier, tiers))
+    print("wrote block/ascension_altar.png, essence_condenser.png and %d condensed essence blocks" % (tiers + 1))
     for name, px in textures.items():
         png(os.path.join(OUT, name + ".png"), px)
         print("wrote", name + ".png")

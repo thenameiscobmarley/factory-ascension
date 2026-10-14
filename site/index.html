@@ -44,7 +44,7 @@
     <div><b data-uv-count="74">0</b><small>enchants</small></div>
     <div><b data-uv-count="15">0</b><small>Mythic powers</small></div>
     <div><b>&infin;</b><small>level cap</small></div>
-    <div><b data-uv-count="240">0</b><small>safety checks</small></div>
+    <div><b data-uv-count="252">0</b><small>safety checks</small></div>
   </div>
 </header>
 
@@ -61,10 +61,20 @@
     <ol class="belt" data-uv-stagger="up">
       <li><img src="fa/items/common_mineral_cluster.png" alt="" /><b>Mine forever</b><span>Cobble generators feed mixers that make mineral clusters. Crush them for every ore, even diamonds and netherite.</span></li>
       <li><img src="fa/items/ascension_core.png" alt="" /><b>Assemble cores</b><span>A Create assembly line turns diamonds, rose quartz and lava into Ascension Cores.</span></li>
-      <li><img src="fa/items/ascension_singularity.png" alt="" /><b>Absorb Essence</b><span>Right-click cores into your Essence bank. Compress them 9:1 into Dense Cores and Singularities.</span></li>
+      <li><img src="fa/items/ascension_singularity.png" alt="" /><b>Absorb Essence</b><span>Right-click cores into your Essence bank, or melt them into <i class="essence-fluid">Liquid Essence</i> and pipe it to Altars and Condensers.</span></li>
       <li><img src="fa/items/tome_sharpness.png" alt="" /><b>Unlock enchants</b><span>Mix a tome, hold it next to any gear and right-click. Any enchant goes on any item.</span></li>
       <li><img src="fa/items/tome_wings.png" alt="" /><b>Ascend</b><span>Spend Essence on levels with no cap. Then go further out, where the mobs and the loot get scarier.</span></li>
     </ol>
+
+    <div class="ladder" data-uv-reveal>
+      <div class="ladder-head">
+        <span class="drop" aria-hidden="true"></span>
+        <div><b>Liquid Essence, condensed</b><span>An Essence Condenser packs it into blocks, and every tier is 9 of the last, all the way to <em id="ladderTop"></em>.
+          Hover a block to see how much is inside.</span></div>
+      </div>
+      <div class="ladder-row" id="ladder"></div>
+      <p class="ladder-read" id="ladderRead">&nbsp;</p>
+    </div>
   </div>
 </section>
 
@@ -192,7 +202,7 @@
   <span class="ok">ok</span>   exactly one tome used per unlock
   <span class="ok">ok</span>   a failed upgrade is rolled back (no free levels)
   <span class="ok">ok</span>   gear drops are never duplicated
-<b class="ok">all checks passed</b>  <span class="dim">(240)</span></pre>
+<b class="ok">all checks passed</b>  <span class="dim">(252)</span></pre>
   </div>
 </section>
 

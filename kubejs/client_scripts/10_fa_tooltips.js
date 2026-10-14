@@ -73,7 +73,7 @@ ItemEvents.tooltip(event => {
 
   Object.keys(global.FA.essenceValues).forEach(id => {
     event.add(id, [
-      Text.lightPurple('Right-click: +' + global.FA.essenceValues[id] + ' Essence'),
+      Text.lightPurple('Right-click in the air: +' + global.FA_num(global.FA.essenceValues[id]) + ' Essence'),
       Text.darkGray('Sneak + right-click absorbs the whole stack'),
       Text.darkGray('/ascension shows your Essence')
     ])
@@ -109,6 +109,19 @@ ItemEvents.tooltip(event => {
       ])
     }
   })
+  // Condensed Essence: how much is packed in, shown in buckets too
+  for (let tier = 0; tier <= global.FA_condensedTiers(); tier++) {
+    let buckets = Math.pow(global.FA.condensed.ratio, tier) * global.FA.condensed.mbPerBlock / 1000
+    event.add(global.FA_condensedId(tier), [
+      Text.darkGray('Holds ' + global.FA_num(buckets) + ' buckets of Liquid Essence'),
+      Text.darkGray(tier < global.FA_condensedTiers() ? global.FA.condensed.ratio + ' of these compact into ' + global.FA_condensedName(tier + 1) : 'The densest block there is')
+    ])
+  }
+  event.add('kubejs:essence_condenser', [
+    Text.lightPurple('Packs Liquid Essence into Condensed Essence Blocks'),
+    Text.gray('Liquid Essence tank or basin below, chest or vault on top'),
+    Text.darkGray('Up to ' + global.FA.condensed.blocksPerSecond + ' blocks a second')
+  ])
   event.add('kubejs:ascension_altar', [
     Text.lightPurple('Levels up gear on its own'),
     Text.gray('Create Depot on top, Liquid Essence tank or basin below'),

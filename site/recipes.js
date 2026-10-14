@@ -9,7 +9,7 @@
   const MACHINES = {
     "create:mixing": "Mechanical Mixer + Basin", "create:compacting": "Mechanical Press + Basin (compacting)", "create:crushing": "Crushing Wheels",
     "create:deploying": "Deployer", "create:sequenced_assembly": "Sequenced assembly line", "create:filling": "Spout", "create:pressing": "Mechanical Press",
-    shaped: "Crafting table", shapeless: "Crafting table"
+    shaped: "Crafting table", shapeless: "Crafting table", condenser: "Essence Condenser (tank below, chest on top)"
   };
   const HEAT = { heated: "Blaze Burner: heated", superheated: "Blaze Burner: superheated (blaze cake)" };
   // Where the raw materials come from, for the ends of every chain
@@ -21,6 +21,8 @@
     "tfmg:steel_ingot": "TFMG's steel line (blast furnace)", "minecraft:redstone": "Gem Mineral Cluster, crushed", "minecraft:lapis_lazuli": "Gem Mineral Cluster, crushed"
   };
   const tex = id => id.indexOf("kubejs:") === 0 && id.indexOf("fluid:") !== 0 ? "fa/items/" + id.slice(7) + ".png" : null;
+  // Fluids show in their real colors (Liquid Essence's comes from the pack config)
+  const FLUID_COLORS = { "fluid:kubejs:liquid_essence": "#" + ("000000" + global.FA.altar.color.toString(16)).slice(-6), "fluid:minecraft:lava": "#ff7a1a", "fluid:minecraft:water": "#3f76e4" };
 
   let index = {};
 
@@ -60,26 +62,34 @@
       }
     };
     FA_RECIPE_FNS.forEach(fn => { try { fn(ev); } catch (e) { console.error(e); } });
+    // Machines that aren't recipes in the pack's scripts, but make things all the same
+    add({ machine: "condenser", inputs: [{ id: "fluid:kubejs:liquid_essence", count: 1, amount: global.FA.condensed.mbPerBlock }], outputs: [{ id: "kubejs:condensed_essence_0", count: 1 }] });
   }
 
   // ---------- list ----------
   let selected = "kubejs:ascension_core", query = "";
   function renderList() {
-    const all = Object.keys(index).sort((a, b) => (b.indexOf("kubejs:") === 0) - (a.indexOf("kubejs:") === 0) || nameOf(a).localeCompare(nameOf(b)));
+    // Pack items first, Condensed Essence in density order after them, then everything else
+    const tier = id => { const m = /^kubejs:condensed_essence_(\d+)$/.exec(id); return m ? +m[1] : -1; };
+    const rank = id => id.indexOf("kubejs:") !== 0 ? 2 : tier(id) >= 0 ? 1 : 0;
+    const all = Object.keys(index).sort((a, b) => rank(a) - rank(b) || tier(a) - tier(b) || nameOf(a).localeCompare(nameOf(b)));
     const shown = all.filter(id => !query || nameOf(id).toLowerCase().includes(query) || id.includes(query));
     $("#items").innerHTML = shown.map(id => '<button role="option" class="it' + (id == selected ? " is-active" : "") + '" data-id="' + esc(id) + '">' + icon(id) +
       "<span>" + esc(nameOf(id)) + "</span></button>").join("") || '<p class="dim">Nothing matches.</p>';
   }
   function icon(id) {
     const t = tex(id);
-    return t ? '<img src="' + t + '" alt="" width="24" height="24" />' : '<i class="dot' + (id.indexOf("fluid:") === 0 ? " fl" : "") + '">' + esc(pretty(id).charAt(0)) + "</i>";
+    if (t) return '<img src="' + t + '" alt="" width="24" height="24" />';
+    if (id.indexOf("fluid:") === 0) return '<i class="dot fl" style="--fc:' + (FLUID_COLORS[id] || "#4fa3ff") + '"></i>';
+    return '<i class="dot">' + esc(pretty(id).charAt(0)) + "</i>";
   }
 
   // ---------- chain ----------
   const qty = x => x.amount ? x.amount + " mB" : (x.count > 1 ? x.count + "×" : "");
   function chip(x, depth) {
     const has = !!index[x.id];
-    return '<button class="ing' + (has ? " has" : "") + '" data-id="' + esc(x.id) + '"' + (has ? "" : " disabled") + ">" + icon(x.id) +
+    const fc = FLUID_COLORS[x.id];
+    return '<button class="ing' + (has ? " has" : "") + (fc ? " fluid" : "") + '"' + (fc ? ' style="--fc:' + fc + '"' : "") + ' data-id="' + esc(x.id) + '"' + (has ? "" : " disabled") + ">" + icon(x.id) +
       "<span>" + (qty(x) ? "<b>" + qty(x) + "</b> " : "") + esc(nameOf(x.id)) + (x.chance && x.chance < 1 ? " <em>" + Math.round(x.chance * 100) + "%</em>" : "") + "</span></button>";
   }
   function recipeCard(r) {
@@ -89,7 +99,7 @@
     return html;
   }
   // The recipe to show first: a factory recipe rather than crafting-table unpacking
-  const primary = recipes => recipes.find(r => r.machine != "shapeless") || recipes[0];
+  const primary = recipes => recipes.find(r => r.machine == "condenser") || recipes.find(r => r.machine != "shapeless") || recipes[0];
   function tree(id, depth, seen) {
     const recipes = index[id];
     if (!recipes) return '<p class="base">' + icon(id) + "<span><b>" + esc(nameOf(id)) + "</b> " + esc(BASE[id] || "Raw material") + "</span></p>";
@@ -120,6 +130,7 @@
   $("#tfmg").addEventListener("change", remods);
   $("#mek").addEventListener("change", remods);
 
+  addEventListener("hashchange", () => { const id = decodeURIComponent(location.hash.slice(1)); if (index[id] && id != selected) select(id); });
   run();
   const fromHash = decodeURIComponent(location.hash.slice(1));
   if (index[fromHash]) selected = fromHash;

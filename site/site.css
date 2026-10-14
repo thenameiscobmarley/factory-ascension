@@ -2,6 +2,7 @@
    Kept light on the GPU: no backdrop blur, no full-screen shaders, one small ember canvas. */
 
 :root {
+  --essence: #b05cff;   /* overwritten from the pack config by site.js */
   --bg: #0b0908; --bg2: #120e0c; --line: #ffffff14; --text: #f3ece6; --muted: #b3a79d; --dim: #7d726a;
   --lava: #ff5a1f; --gold: #ffb84d; --mythic: #c08cff; --ok: #7be38f;
   --display: "Bebas Neue", "Geist", sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
@@ -65,6 +66,22 @@ code { font: 500 .9em var(--mono); background: #ffffff10; padding: 1px 6px; bord
 .belt b { font: 400 28px/1 var(--display); letter-spacing: .02em; }
 .belt span { color: var(--muted); font-size: 15px; }
 @media (max-width: 900px) { .belt { grid-template-columns: 1fr; } .belt::before { display: none; } .belt li { grid-template-columns: 72px 1fr; column-gap: 16px; } .belt li img { grid-row: span 2; } }
+
+/* ---- Liquid Essence + the density ladder ---- */
+.essence-fluid { font-style: normal; color: var(--essence); text-shadow: 0 0 12px color-mix(in srgb, var(--essence) 60%, transparent); }
+.ladder { margin-top: 56px; padding: 22px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--essence) 35%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--essence) 10%, transparent), transparent); }
+.ladder-head { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+.ladder-head b { display: block; font: 400 30px/1 var(--display); letter-spacing: .02em; color: var(--essence); }
+.ladder-head span { color: var(--muted); font-size: 15px; } .ladder-head em { color: var(--text); font-style: normal; }
+.drop { flex: none; width: 34px; height: 42px; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(circle at 35% 30%, #ffffffcc, var(--essence) 45%, color-mix(in srgb, var(--essence) 50%, #000));
+  box-shadow: 0 0 24px color-mix(in srgb, var(--essence) 70%, transparent); animation: float 2.6s ease-in-out infinite alternate; }
+.ladder-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(26px, 1fr)); gap: 4px; }
+.ladder-row img { width: 100%; aspect-ratio: 1; border-radius: 3px; cursor: help; transition: transform .15s; }
+.ladder-row img:hover, .ladder-row img:focus { transform: scale(1.5); position: relative; z-index: 1; outline: 1px solid var(--essence); }
+.ladder-read { margin: 12px 0 0; font: 500 13px var(--mono); color: var(--muted); min-height: 1.4em; }
+.ladder-read b { color: var(--text); font-weight: 600; }
 
 /* ---- enchant browser ---- */
 .controls { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: end; margin-bottom: 18px; }
