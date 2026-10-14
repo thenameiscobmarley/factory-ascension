@@ -292,7 +292,8 @@ var missingBlockTex = createdBlocks.filter(function (b) { return !new java.io.Fi
 check('every block has a texture', missingBlockTex.length == 0, missingBlockTex.join(','))
 var enchantCount = Object.keys(global.FA.enchants).length
 var mythics = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].mythic })
-check('74 enchants (59 + 15 Mythic)', enchantCount == 74 && mythics.length == 15, enchantCount + ' / ' + mythics.length)
+var fusionIds = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].type == 'fusion' })
+check('274 enchants (59 + 15 Mythic + 200 Fusion)', enchantCount == 274 && mythics.length == 15 && fusionIds.length == 200, enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 check('items registered (4 core + blank + tomes + chaos + fragment + gems + 3 clusters)', created.length == 10 + enchantCount + gemCount, created.length)
 var File = java.io.File
@@ -1128,6 +1129,28 @@ check('a nearly empty tank pays for what it can and stops (level 25 costs 200 mB
 blocks = {}
 handlers.tick({ server: server })
 check('altars removed some other way are forgotten', !server.persistentData.getCompound('fa_altars').contains('minecraft:overworld|10|64|10'))
+
+print('\nfusions')
+var kb = global.FA.enchants.keen_bunker
+check('Keen Bunker fuses Ascended Sharpness + Blast Ward', kb && kb.type == 'fusion' && kb.parts.join() == 'sharpness,blast_ward')
+check('Fusion tomes are Tome A + Tome B + an Ascension Core, heated', byId('tome_keen_bunker').json.ingredients.map(function (i) { return i.item }).join() ==
+  'kubejs:tome_sharpness,kubejs:tome_blast_ward,kubejs:ascension_core' && byId('tome_keen_bunker').json.heatRequirement == 'heated')
+var fuser = makePlayer(server, 'fuser'), fuseSword = gear('Fused'); faSetLevel(fuseSword, 'keen_bunker', 100); fuser.main = fuseSword
+check('a fusion does each parent at 60%: Sharpness part at level 100 = x7 damage', near(hit(fuser, makeMob(), 10), 10 * (1 + 0.1 * 0.6 * 100)), hit(fuser, makeMob(), 10))
+check('...and its Blast Ward part works too', near(hit(null, fuser, 10, { tags: ['explosion'] }), 10 / (1 + 0.1 * 0.6 * 100)))
+check('Fusions cost 2x Essence per level', global.FA_cost(100, 'keen_bunker') == Math.ceil(0.05 * 101 * 2))
+var frosty2 = Object.keys(global.FA.enchants).filter(function (id) { var e = global.FA.enchants[id]; return e.type == 'fusion' && e.parts[0] == 'frostbite' })[0]
+check('scaled-down effects step up slower (Frostbite every ' + global.FA_fusionPart(frosty2, 0).ampEvery + ' levels instead of 5)', global.FA_fusionPart(frosty2, 0).ampEvery == 9)
+check('every fusion describes both halves', fusionIds.every(function (id) { var d = global.FA_describe(id, 10); return d.indexOf(' + ') > 0 && !/undefined|NaN/.test(d) }))
+var badFuse = JSON.parse(JSON.stringify(global.FA))
+badFuse.enchants.bad1 = { name: 'Bad One', type: 'fusion', parts: ['sharpness', 'wings'] }
+badFuse.enchants.bad2 = { name: 'Bad Two', type: 'fusion', parts: ['sharpness', 'sharpness'] }
+badFuse.enchants.bad3 = { name: 'Bad Three', type: 'fusion', parts: ['sharpness', 'swiftness'] }
+global.FA_validate(badFuse)
+check('fusions of Mythics, of the same enchant twice, or of attribute enchants are refused', !badFuse.enchants.bad1 && !badFuse.enchants.bad2 && !badFuse.enchants.bad3)
+var fusedTip = { arr: ['Fused'], add: function (i, t) { this.arr.splice(i, 0, t.s) } }
+advanced(fuseSword, false, fusedTip)
+print('  sample: ' + fusedTip.arr[1])
 
 print('\njei')
 check('JEI hides only the half-made assembly item', jei.hidden.join() == 'kubejs:incomplete_ascension_core')

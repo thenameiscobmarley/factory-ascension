@@ -124,6 +124,9 @@ code { font: 500 .9em var(--mono); background: #ffffff10; padding: 1px 6px; bord
 @property --a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 @keyframes orbit { to { --a: 360deg; } }
 .ench.is-mythic h3 { color: #e9d7ff; }
+.ench.is-fusion { border-color: #4fe3e833; } .ench.is-fusion h3 { color: #c9f7f9; }
+/* 274 cards: let the browser skip the ones that are scrolled away */
+.ench { content-visibility: auto; contain-intrinsic-size: auto 150px; }
 .empty { color: var(--muted); padding: 40px 0; }
 /* .ench sets display: grid, which would beat the hidden attribute, so hide filtered cards explicitly */
 [hidden] { display: none !important; }

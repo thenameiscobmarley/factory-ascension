@@ -9,7 +9,8 @@ let FA_TYPE_COLORS = {
   regen: 'green', passive: 'green', magnet: 'blue', repair: 'blue',
   attribute: 'white', mining: 'blue', eternal: 'lightPurple',
   flight: 'gold', chain_lightning: 'gold', gravity_well: 'gold', death_nova: 'gold', time_stop: 'gold', phoenix: 'gold',
-  projectile_teleport: 'gold', souls: 'gold', overkill: 'gold', rampage: 'gold', vein: 'gold', aura: 'gold', heads: 'gold', slam: 'gold'
+  projectile_teleport: 'gold', souls: 'gold', overkill: 'gold', rampage: 'gold', vein: 'gold', aura: 'gold', heads: 'gold', slam: 'gold',
+  fusion: 'darkAqua'
 }
 
 let FA_TIP_RARITY = { gray: 'gray', aqua: 'aqua', light_purple: 'lightPurple', gold: 'gold', red: 'red' }
@@ -83,7 +84,8 @@ ItemEvents.tooltip(event => {
   Object.keys(global.FA.enchants).forEach(id => {
     let e = global.FA.enchants[id]
     event.add('kubejs:tome_' + id, [
-      e.mythic ? Text.lightPurple('\u2726 MYTHIC').bold(true) : Text.darkGray('Ascended'),
+      e.mythic ? Text.lightPurple('\u2726 MYTHIC').bold(true) : e.type == 'fusion'
+        ? Text.darkAqua('\u2697 FUSION of ' + global.FA.enchants[e.parts[0]].name + ' + ' + global.FA.enchants[e.parts[1]].name) : Text.darkGray('Ascended'),
       faColor(id)('Level 1: ' + global.FA_describe(id, 1)),
       Text.gray('Hold gear in your other hand and right-click to unlock'),
       Text.darkGray(e.maxLevel == 1 ? 'One-time enchant'

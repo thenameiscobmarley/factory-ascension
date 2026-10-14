@@ -105,7 +105,7 @@
   ladderInfo(tiers);
 
   // ---------- ticker ----------
-  const tickerHtml = ids.map(id => '<span><img src="' + tex("tome_" + id) + '" alt="" />' + esc(E[id].name) + (E[id].mythic ? " ✦" : "") + "</span>").join("");
+  const tickerHtml = ids.filter(id => E[id].type != "fusion").map(id => '<span><img src="' + tex("tome_" + id) + '" alt="" />' + esc(E[id].name) + (E[id].mythic ? " ✦" : "") + "</span>").join("");
   $("#tickerA").innerHTML = tickerHtml;
   $("#tickerB").innerHTML = tickerHtml;
 
@@ -118,8 +118,9 @@
     ["Passive", ["regen", "passive", "magnet", "repair"]],
     ["Utility", ["attribute", "mining", "eternal"]]
   ];
-  const groupOf = id => E[id].mythic ? "Mythic" : (GROUPS.find(g => g[1].includes(E[id].type)) || ["Other"])[0];
-  const nice = item => item.replace(/^(minecraft|create|kubejs):/, "").replace(/_/g, " ");
+  const groupOf = id => E[id].mythic ? "Mythic" : E[id].type == "fusion" ? "Fusion" : (GROUPS.find(g => g[1].includes(E[id].type)) || ["Other"])[0];
+  const nice = item => item.indexOf("kubejs:tome_") === 0 && E[item.slice(12)] ? "Tome of " + E[item.slice(12)].name
+    : item.replace(/^(minecraft|create|kubejs):/, "").replace(/_/g, " ");
   const catalysts = id => {
     const r = FA_RECIPES[id];
     if (!r) return "";
@@ -142,7 +143,7 @@
   const toSlider = l => Math.round(Math.log10(l) / 5 * 1000);
   let level = 1, group = "All", query = "";
 
-  const chips = ["All"].concat(GROUPS.map(g => g[0]), ["Mythic"]);
+  const chips = ["All"].concat(GROUPS.map(g => g[0]), ["Mythic", "Fusion"]);
   $("#chips").innerHTML = chips.map(g => '<button class="uv-chip' + (g == "All" ? " is-active" : "") + '" role="tab" data-g="' + g + '">' + g +
     ' <small>' + (g == "All" ? ids.length : ids.filter(id => groupOf(id) == g).length) + "</small></button>").join("");
   $("#presets").innerHTML = PRESETS.map(p => '<button class="uv-btn uv-btn--sm uv-btn--ghost" data-l="' + p + '">' + global.FA_num(p) + "</button>").join("");
@@ -151,7 +152,7 @@
   const grid = $("#grid");
   grid.innerHTML = ids.map(id => {
     const e = E[id];
-    return '<article class="ench' + (e.mythic ? " is-mythic" : "") + '" data-id="' + id + '">' +
+    return '<article class="ench' + (e.mythic ? " is-mythic" : e.type == "fusion" ? " is-fusion" : "") + '" data-id="' + id + '">' +
       '<img src="' + tex("tome_" + id) + '" alt="" loading="lazy" width="48" height="48" />' +
       "<h3>" + (e.mythic ? "✦ " : "") + esc(e.name) + '<span class="lv"></span></h3>' +
       '<p class="what"></p><span class="cost"></span>' +
@@ -163,20 +164,37 @@
   const searchText = {};
   ids.forEach(id => { searchText[id] = (E[id].name + " " + E[id].type + " " + groupOf(id) + " " + catalysts(id) + " " + global.FA_describe(id, 100)).toLowerCase(); });
 
+  // Only cards near the screen get their text rewritten; the rest catch up when they scroll into view.
+  // With 274 cards that keeps dragging the level slider smooth.
+  const near = new Set();
+  const parts = new Map(cards.map(c => [c, { lv: c.querySelector(".lv"), what: c.querySelector(".what"), cost: c.querySelector(".cost") }]));
+  function paint(card) {
+    if (card._lv === level) return;
+    card._lv = level;
+    const id = card.dataset.id, e = E[id], p = parts.get(card);
+    const l = e.maxLevel ? Math.min(e.maxLevel, level) : level;
+    p.lv.textContent = e.maxLevel == 1 ? "" : global.FA_num(l);
+    p.what.textContent = global.FA_describe(id, l);
+    p.cost.textContent = global.FA_num(totalCost(id, l)) + " Essence to reach";
+  }
+  const cardIO = new IntersectionObserver(es => es.forEach(en => {
+    if (en.isIntersecting) { near.add(en.target); paint(en.target); } else near.delete(en.target);
+  }), { rootMargin: "600px 0px" });
+  cards.forEach(c => cardIO.observe(c));
+  let lastFilter = null;
   function render() {
     let shown = 0;
     $("#lvlOut").textContent = global.FA_num(level);
+    const filter = group + "|" + query;
     cards.forEach(card => {
-      const id = card.dataset.id, e = E[id];
+      const id = card.dataset.id;
       const ok = (group == "All" || groupOf(id) == group) && (!query || searchText[id].includes(query));
-      card.hidden = !ok;
+      if (filter !== lastFilter) card.hidden = !ok;
       if (!ok) return;
       shown++;
-      const l = e.maxLevel ? Math.min(e.maxLevel, level) : level;
-      card.querySelector(".lv").textContent = e.maxLevel == 1 ? "" : global.FA_num(l);
-      card.querySelector(".what").textContent = global.FA_describe(id, l);
-      card.querySelector(".cost").textContent = global.FA_num(totalCost(id, l)) + " Essence to reach";
+      if (near.has(card) || lastFilter === null) paint(card);
     });
+    lastFilter = filter;
     $("#count").textContent = shown ? shown + " of " + ids.length + " enchants" : "";
     if (!shown && !grid.querySelector(".empty")) grid.insertAdjacentHTML("beforeend", '<p class="empty">No enchants match that. Try "fire", "heal" or "diamond".</p>');
     if (shown) grid.querySelectorAll(".empty").forEach(n => n.remove());

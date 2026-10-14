@@ -21,7 +21,7 @@ cobble generators -> mineral clusters -> ores -> diamonds, rose quartz, steel
 
 ## Ascended enchants
 
-**74 enchants** (59 Ascended + 15 Mythic), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
+**274 enchants** (59 Ascended + 15 Mythic + 200 Fusion), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
 factory can pay for. They count from **every equipped item**, both hands and all armor, so any enchant
 works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md](docs/ENCHANTS.md)**.
 
@@ -34,6 +34,15 @@ works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md]
 | Passive | Renewal, Night Sight, Gills, Fireproof, Industrious, Leaping, Sustenance, Magnetism, Restoration |
 | Movement & utility | Swiftness, Reach, Stride, Frenzy, Lucky, Excavation, Eternal |
 | **✦ Mythic** | Wings, Thunderlord, Black Hole, Meteor, Chronos, Phoenix, Voidwalker, Soul Harvest, Overkill, Rampage, Vein Miner, Timber, Radiance, Headhunter, Gravity Slam |
+
+### ⚗ Fusion enchants (200)
+
+Two enchants fused into one tome: each Fusion does **both** parents' effects at 60% strength, in a single slot.
+*Keen Bunker* is Ascended Sharpness + Blast Ward. Names come from the two parents
+(an adjective from the first, a noun from the second): *Hallowed Pyre*, *Frozen Hoard*, *Grim Venom*, *Deathless Dagger*...
+The tome is the two parent tomes + an Ascension Core in a heated mixer, and Fusion levels cost 2x the Essence.
+Fusions are never made from Mythics or from enchants that need cleanup (attributes, passive effects, Eternal).
+The full list is a plain array in the config (`fusions`), so you can add, rename or remove them.
 
 ### ✦ Mythic enchants
 
@@ -249,7 +258,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 256 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 264 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

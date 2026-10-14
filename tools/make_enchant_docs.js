@@ -5,7 +5,7 @@ var console = { info: function () {}, error: function (m) { print(m) } }
 var recipes = {}
 var ServerEvents = {
   recipes: function (fn) {
-    fn({ custom: function (j) { if (/tome_/.test(j.results[0].item)) recipes[j.results[0].item.replace('kubejs:tome_', '')] = j.ingredients.slice(1).map(function (i) { return i.item }); return { id: function () {} } } })
+    fn({ custom: function (j) { if (/tome_/.test(j.results[0].item)) recipes[j.results[0].item.replace('kubejs:tome_', '')] = j.ingredients.map(function (i) { return i.item }).filter(function (i) { return i != 'kubejs:blank_ascension_tome' }); return { id: function () {} } } })
   }
 }
 load('kubejs/startup_scripts/00_fa_config.js')
@@ -18,9 +18,13 @@ var groups = [
   ['Defense', ['resist', 'vitality', 'retribution', 'dodge', 'undying']],
   ['Passive', ['regen', 'passive', 'magnet', 'repair']],
   ['Movement & utility', ['attribute', 'mining', 'eternal']],
-  ['Mythic', 'mythic']
+  ['Mythic', 'mythic'],
+  ['Fusion', 'fusion']
 ]
-function nice(id) { return id.replace(/^(minecraft|create):/, '').replace(/_/g, ' ') }
+function nice(id) {
+  if (id.indexOf('kubejs:tome_') === 0 && global.FA.enchants[id.slice(12)]) return 'Tome of ' + global.FA.enchants[id.slice(12)].name
+  return id.replace(/^(minecraft|create|kubejs):/, '').replace(/_/g, ' ')
+}
 function catalysts(id) {
   var counts = {}, order = []
   recipes[id].filter(function (i) { return i != 'kubejs:mythic_fragment' }).forEach(function (i) { if (!counts[i]) { counts[i] = 0; order.push(i) } counts[i]++ })
@@ -43,10 +47,14 @@ groups.forEach(function (g) {
       '(15% + 0.5% per danger level, max 75%), other danger-zone mobs rarely (0.2% per danger level, max 5%).',
       'Mythic levels cost ' + global.FA.mythicCostMultiplier + 'x the Essence.', '')
   }
+  if (g[1] == 'fusion') {
+    out.push('Two enchants fused into one tome: each Fusion does both of its parents\' effects at ' + Math.round(global.FA.fusionStrength * 100) + '% strength.',
+      'Tome: the two parent tomes + an Ascension Core in a **heated** mixer. Fusion levels cost ' + global.FA.fusionCostMultiplier + 'x the Essence.', '')
+  }
   out.push('| Enchant | Level 1 | Level 100 | Max | Tome catalysts |', '|---|---|---|---|---|')
   Object.keys(E).forEach(function (id) {
     var e = E[id]
-    if (g[1] == 'mythic' ? !e.mythic : (e.mythic || g[1].indexOf(e.type) < 0)) return
+    if (g[1] == 'mythic' ? !e.mythic : g[1] == 'fusion' ? e.type != 'fusion' : (e.mythic || e.type == 'fusion' || g[1].indexOf(e.type) < 0)) return
     var at100 = e.maxLevel ? '' : global.FA_describe(id, 100)
     out.push('| **' + e.name + '** | ' + global.FA_describe(id, 1) + ' | ' + at100 + ' | ' +
       (e.maxLevel ? e.maxLevel + ' (' + global.FA_describe(id, e.maxLevel) + ')' : 'none') + ' | ' + catalysts(id) + ' |')

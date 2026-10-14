@@ -1,6 +1,6 @@
 # Ascended enchants
 
-74 enchants. Levels have no cap unless a max is listed. Each enchant counts from every equipped item
+274 enchants. Levels have no cap unless a max is listed. Each enchant counts from every equipped item
 (both hands and all armor), so any enchant works on any gear.
 
 Unlock: hold a Tome in one hand and the gear in the other, right-click the tome.
@@ -123,3 +123,211 @@ Mythic levels cost 5x the Essence.
 | **Radiance** | burns enemies within 3 blocks for 2 damage/s | burns enemies within 13 blocks for 200 damage/s | none | beacon |
 | **Headhunter** | 1% chance to drop mob heads | 100% chance to drop mob heads | none | skeleton skull |
 | **Gravity Slam** | landing smashes nearby enemies for 1 damage per block fallen, no fall damage | landing smashes nearby enemies for 100 damage per block fallen, no fall damage | none | crying obsidian |
+
+## Fusion
+
+Two enchants fused into one tome: each Fusion does both of its parents' effects at 60% strength.
+Tome: the two parent tomes + an Ascension Core in a **heated** mixer. Fusion levels cost 2x the Essence.
+
+| Enchant | Level 1 | Level 100 | Max | Tome catalysts |
+|---|---|---|---|---|
+| **Hallowed Pyre** | x1.15 damage vs undead + sets targets on fire for 2.4s | x16.00 damage vs undead + sets targets on fire for 240s | none | Tome of Ascended Smite, Tome of Ascended Fire Aspect, ascension core |
+| **Crawling Vengeance** | x1.15 damage vs arthropods + reflect 3% of damage taken | x16.00 damage vs arthropods + reflect 300% of damage taken | none | Tome of Ascended Bane, Tome of Retribution, ascension core |
+| **Infernal Insight** | x1.12 damage in the Nether + x1.06 mob XP | x13.00 damage in the Nether + x7.00 mob XP | none | Tome of Hellbane, Tome of Wisdom, ascension core |
+| **Siegebreaking Anvil** | x1.15 damage vs raiders + repairs 0.6 durability/s on all gear | x16.00 damage vs raiders + repairs 60 durability/s on all gear | none | Tome of Raidbreaker, Tome of Restoration, ascension core |
+| **Skyborne Feather** | x1.12 damage vs airborne targets + -5.7% fall damage taken | x13.00 damage vs airborne targets + -85.7% fall damage taken | none | Tome of Skyhunter, Tome of Featherweight, ascension core |
+| **Merciless Venom** | x1.18 damage vs targets under 30% health + Poison 1 on hit (4s) | x19.00 damage vs targets under 30% health + Poison 6 on hit (4s) | none | Tome of Executioner, Tome of Venom, ascension core |
+| **Raging Rampart** | x1.18 damage while under 50% health + -2.9% melee damage taken | x19.00 damage while under 50% health + -75.0% melee damage taken | none | Tome of Berserk, Tome of Bulwark, ascension core |
+| **Shadowed Hoard** | x1.18 damage while sneaking + x1.03 mob loot | x19.00 damage while sneaking + x4.00 mob loot | none | Tome of Assassin, Tome of Plunder, ascension core |
+| **Precise Bloom** | 1% chance for x2.2 damage + +0.15 health per second | 50% chance for x2.2 damage + +15 health per second | none | Tome of Critical Edge, Tome of Renewal, ascension core |
+| **Sweeping Aegis** | 3% of each hit to nearby enemies + -2.3% damage taken | 300% of each hit to nearby enemies + -70.6% damage taken | none | Tome of Cleave, Tome of Ascended Protection, ascension core |
+| **Vampiric Purge** | heal 0.6% of damage dealt + x1.15 damage vs undead | heal 60% of damage dealt + x16.00 damage vs undead | none | Tome of Lifesteal, Tome of Ascended Smite, ascension core |
+| **Enervating Ward** | Weakness 1 on hit (5s) + -5.7% magic damage taken | Weakness 12 on hit (5s) + -85.7% magic damage taken | none | Tome of Enfeeble, Tome of Spellward, ascension core |
+| **Blighted Trident** | Wither 1 on hit (4s) + x1.15 damage vs wet targets | Wither 6 on hit (4s) + x16.00 damage vs wet targets | none | Tome of Withering, Tome of Ascended Impaling, ascension core |
+| **Soaring Shadowstep** | Levitation 1 on hit (2s) + 1% dodge chance | Levitation 6 on hit (2s) + 45% dodge chance | none | Tome of Skyward, Tome of Evasion, ascension core |
+| **Burning Volley** | sets targets on fire for 2.4s + x1.09 damage with projectiles | sets targets on fire for 240s + x10.00 damage with projectiles | none | Tome of Ascended Fire Aspect, Tome of Ascended Power, ascension core |
+| **Rallying Fortune** | heal 0.3 health per hit + +0.12 gold nuggets per kill | heal 30 health per hit + +12 gold nuggets per kill | none | Tome of Second Wind, Tome of Midas, ascension core |
+| **Frenzied Drill** | Speed 1 when you hit (3s) + x1.15 mining speed | Speed 5 when you hit (3s) + x16.00 mining speed | none | Tome of Adrenaline, Tome of Excavation, ascension core |
+| **Greedy Thirst** | x1.03 mob loot + heal 0.6% of damage dealt | x4.00 mob loot + heal 60% of damage dealt | none | Tome of Plunder, Tome of Lifesteal, ascension core |
+| **Soulbound Bunker** | heal 0.6 health per kill + -5.7% explosion damage taken | heal 60 health per kill + -85.7% explosion damage taken | none | Tome of Soul Eater, Tome of Blast Ward, ascension core |
+| **Gilded Updraft** | +0.12 gold nuggets per kill + Levitation 1 on hit (2s) | +12 gold nuggets per kill + Levitation 6 on hit (2s) | none | Tome of Midas, Tome of Skyward, ascension core |
+| **Gleaming Heart** | +0.01 emeralds per kill + +1.2 hidden health | +1.20 emeralds per kill + +120 hidden health | none | Tome of Gem Hunter, Tome of Vitality, ascension core |
+| **Warded Guillotine** | -2.3% damage taken + x1.18 damage vs targets under 30% health | -70.6% damage taken + x19.00 damage vs targets under 30% health | none | Tome of Ascended Protection, Tome of Executioner, ascension core |
+| **Fireproof Harvest** | -5.7% fire damage taken + heal 0.6 health per kill | -85.7% fire damage taken + heal 60 health per kill | none | Tome of Fire Ward, Tome of Soul Eater, ascension core |
+| **Weightless Lodestar** | -5.7% fall damage taken + pulls items within 2.6 blocks | -85.7% fall damage taken + pulls items within 32 blocks | none | Tome of Featherweight, Tome of Magnetism, ascension core |
+| **Blastproof Scythe** | -5.7% explosion damage taken + kills non-bosses under 0.6% health | -85.7% explosion damage taken + kills non-bosses under 50% health | none | Tome of Blast Ward, Tome of Reaper, ascension core |
+| **Spellproof Bane** | -5.7% magic damage taken + x1.15 damage vs arthropods | -85.7% magic damage taken + x16.00 damage vs arthropods | none | Tome of Spellward, Tome of Ascended Bane, ascension core |
+| **Unwithering Blight** | -5.7% wither damage taken + Wither 1 on hit (4s) | -85.7% wither damage taken + Wither 6 on hit (4s) | none | Tome of Wither Ward, Tome of Withering, ascension core |
+| **Hearty Falcon** | +1.2 hidden health + x1.12 damage vs airborne targets | +120 hidden health + x13.00 damage vs airborne targets | none | Tome of Vitality, Tome of Skyhunter, ascension core |
+| **Vengeful Rush** | reflect 3% of damage taken + Speed 1 when you hit (3s) | reflect 300% of damage taken + Speed 5 when you hit (3s) | none | Tome of Retribution, Tome of Adrenaline, ascension core |
+| **Deathless Dagger** | survive a killing blow every 300s + x1.18 damage while sneaking | survive a killing blow every 43s + x19.00 damage while sneaking | none | Tome of Undying, Tome of Assassin, ascension core |
+| **Verdant Gem** | +0.15 health per second + +0.01 emeralds per kill | +15 health per second + +1.20 emeralds per kill | none | Tome of Renewal, Tome of Gem Hunter, ascension core |
+| **Magnetic Edge** | pulls items within 2.6 blocks + x1.06 damage | pulls items within 32 blocks + x7.00 damage | none | Tome of Magnetism, Tome of Ascended Sharpness, ascension core |
+| **Mending Frost** | repairs 0.6 durability/s on all gear + Slowness 1 on hit (3s) | repairs 60 durability/s on all gear + Slowness 12 on hit (3s) | none | Tome of Restoration, Tome of Frostbite, ascension core |
+| **Delving Shield** | x1.15 mining speed + -5.7% projectile damage taken | x16.00 mining speed + -85.7% projectile damage taken | none | Tome of Excavation, Tome of Arrow Ward, ascension core |
+| **Hallowed Gem** | x1.15 damage vs undead + +0.01 emeralds per kill | x16.00 damage vs undead + +1.20 emeralds per kill | none | Tome of Ascended Smite, Tome of Gem Hunter, ascension core |
+| **Titanslaying Frost** | x1.09 damage vs bosses + Slowness 1 on hit (3s) | x10.00 damage vs bosses + Slowness 12 on hit (3s) | none | Tome of Giant Slayer, Tome of Frostbite, ascension core |
+| **Infernal Shield** | x1.12 damage in the Nether + -5.7% projectile damage taken | x13.00 damage in the Nether + -85.7% projectile damage taken | none | Tome of Hellbane, Tome of Arrow Ward, ascension core |
+| **Tidal Pyre** | x1.15 damage vs wet targets + sets targets on fire for 2.4s | x16.00 damage vs wet targets + sets targets on fire for 240s | none | Tome of Ascended Impaling, Tome of Ascended Fire Aspect, ascension core |
+| **Skyborne Vengeance** | x1.12 damage vs airborne targets + reflect 3% of damage taken | x13.00 damage vs airborne targets + reflect 300% of damage taken | none | Tome of Skyhunter, Tome of Retribution, ascension core |
+| **Merciless Insight** | x1.18 damage vs targets under 30% health + x1.06 mob XP | x19.00 damage vs targets under 30% health + x7.00 mob XP | none | Tome of Executioner, Tome of Wisdom, ascension core |
+| **Raging Anvil** | x1.18 damage while under 50% health + repairs 0.6 durability/s on all gear | x19.00 damage while under 50% health + repairs 60 durability/s on all gear | none | Tome of Berserk, Tome of Restoration, ascension core |
+| **Shadowed Feather** | x1.18 damage while sneaking + -5.7% fall damage taken | x19.00 damage while sneaking + -85.7% fall damage taken | none | Tome of Assassin, Tome of Featherweight, ascension core |
+| **Grim Venom** | kills non-bosses under 0.6% health + Poison 1 on hit (4s) | kills non-bosses under 50% health + Poison 6 on hit (4s) | none | Tome of Reaper, Tome of Venom, ascension core |
+| **Sweeping Rampart** | 3% of each hit to nearby enemies + -2.9% melee damage taken | 300% of each hit to nearby enemies + -75.0% melee damage taken | none | Tome of Cleave, Tome of Bulwark, ascension core |
+| **Vampiric Opening** | heal 0.6% of damage dealt + x1.18 damage vs full-health targets | heal 60% of damage dealt + x19.00 damage vs full-health targets | none | Tome of Lifesteal, Tome of First Strike, ascension core |
+| **Frozen Hoard** | Slowness 1 on hit (3s) + x1.03 mob loot | Slowness 12 on hit (3s) + x4.00 mob loot | none | Tome of Frostbite, Tome of Plunder, ascension core |
+| **Enervating Bloom** | Weakness 1 on hit (5s) + +0.15 health per second | Weakness 12 on hit (5s) + +15 health per second | none | Tome of Enfeeble, Tome of Renewal, ascension core |
+| **Blighted Precision** | Wither 1 on hit (4s) + 1% chance for x2.2 damage | Wither 6 on hit (4s) + 50% chance for x2.2 damage | none | Tome of Withering, Tome of Critical Edge, ascension core |
+| **Venomous Aegis** | Poison 1 on hit (4s) + -2.3% damage taken | Poison 6 on hit (4s) + -70.6% damage taken | none | Tome of Venom, Tome of Ascended Protection, ascension core |
+| **Soaring Purge** | Levitation 1 on hit (2s) + x1.15 damage vs undead | Levitation 6 on hit (2s) + x16.00 damage vs undead | none | Tome of Skyward, Tome of Ascended Smite, ascension core |
+| **Rallying Ward** | heal 0.3 health per hit + -5.7% magic damage taken | heal 30 health per hit + -85.7% magic damage taken | none | Tome of Second Wind, Tome of Spellward, ascension core |
+| **Frenzied Trident** | Speed 1 when you hit (3s) + x1.15 damage vs wet targets | Speed 5 when you hit (3s) + x16.00 damage vs wet targets | none | Tome of Adrenaline, Tome of Ascended Impaling, ascension core |
+| **Greedy Rally** | x1.03 mob loot + heal 0.3 health per hit | x4.00 mob loot + heal 30 health per hit | none | Tome of Plunder, Tome of Second Wind, ascension core |
+| **Soulbound Shadowstep** | heal 0.6 health per kill + 1% dodge chance | heal 60 health per kill + 45% dodge chance | none | Tome of Soul Eater, Tome of Evasion, ascension core |
+| **Sage Volley** | x1.06 mob XP + x1.09 damage with projectiles | x7.00 mob XP + x10.00 damage with projectiles | none | Tome of Wisdom, Tome of Ascended Power, ascension core |
+| **Gleaming Drill** | +0.01 emeralds per kill + x1.15 mining speed | +1.20 emeralds per kill + x16.00 mining speed | none | Tome of Gem Hunter, Tome of Excavation, ascension core |
+| **Warded Thirst** | -2.3% damage taken + heal 0.6% of damage dealt | -70.6% damage taken + heal 60% of damage dealt | none | Tome of Ascended Protection, Tome of Lifesteal, ascension core |
+| **Weightless Hellfire** | -5.7% fall damage taken + x1.12 damage in the Nether | -85.7% fall damage taken + x13.00 damage in the Nether | none | Tome of Featherweight, Tome of Hellbane, ascension core |
+| **Blastproof Updraft** | -5.7% explosion damage taken + Levitation 1 on hit (2s) | -85.7% explosion damage taken + Levitation 6 on hit (2s) | none | Tome of Blast Ward, Tome of Skyward, ascension core |
+| **Spellproof Guillotine** | -5.7% magic damage taken + x1.18 damage vs targets under 30% health | -85.7% magic damage taken + x19.00 damage vs targets under 30% health | none | Tome of Spellward, Tome of Executioner, ascension core |
+| **Unwithering Harvest** | -5.7% wither damage taken + heal 0.6 health per kill | -85.7% wither damage taken + heal 60 health per kill | none | Tome of Wither Ward, Tome of Soul Eater, ascension core |
+| **Stalwart Lodestar** | -2.9% melee damage taken + pulls items within 2.6 blocks | -75.0% melee damage taken + pulls items within 32 blocks | none | Tome of Bulwark, Tome of Magnetism, ascension core |
+| **Hearty Scythe** | +1.2 hidden health + kills non-bosses under 0.6% health | +120 hidden health + kills non-bosses under 50% health | none | Tome of Vitality, Tome of Reaper, ascension core |
+| **Elusive Bane** | 1% dodge chance + x1.15 damage vs arthropods | 45% dodge chance + x16.00 damage vs arthropods | none | Tome of Evasion, Tome of Ascended Bane, ascension core |
+| **Deathless Blight** | survive a killing blow every 300s + Wither 1 on hit (4s) | survive a killing blow every 43s + Wither 6 on hit (4s) | none | Tome of Undying, Tome of Withering, ascension core |
+| **Verdant Remedy** | +0.15 health per second + -5.7% wither damage taken | +15 health per second + -85.7% wither damage taken | none | Tome of Renewal, Tome of Wither Ward, ascension core |
+| **Magnetic Falcon** | pulls items within 2.6 blocks + x1.12 damage vs airborne targets | pulls items within 32 blocks + x13.00 damage vs airborne targets | none | Tome of Magnetism, Tome of Skyhunter, ascension core |
+| **Mending Rush** | repairs 0.6 durability/s on all gear + Speed 1 when you hit (3s) | repairs 60 durability/s on all gear + Speed 5 when you hit (3s) | none | Tome of Restoration, Tome of Adrenaline, ascension core |
+| **Delving Phylactery** | x1.15 mining speed + survive a killing blow every 300s | x16.00 mining speed + survive a killing blow every 43s | none | Tome of Excavation, Tome of Undying, ascension core |
+| **Keen Blight** | x1.06 damage + Wither 1 on hit (4s) | x7.00 damage + Wither 6 on hit (4s) | none | Tome of Ascended Sharpness, Tome of Withering, ascension core |
+| **Hallowed Remedy** | x1.15 damage vs undead + -5.7% wither damage taken | x16.00 damage vs undead + -85.7% wither damage taken | none | Tome of Ascended Smite, Tome of Wither Ward, ascension core |
+| **Titanslaying Rush** | x1.09 damage vs bosses + Speed 1 when you hit (3s) | x10.00 damage vs bosses + Speed 5 when you hit (3s) | none | Tome of Giant Slayer, Tome of Adrenaline, ascension core |
+| **Infernal Phylactery** | x1.12 damage in the Nether + survive a killing blow every 300s | x13.00 damage in the Nether + survive a killing blow every 43s | none | Tome of Hellbane, Tome of Undying, ascension core |
+| **Tidal Gem** | x1.15 damage vs wet targets + +0.01 emeralds per kill | x16.00 damage vs wet targets + +1.20 emeralds per kill | none | Tome of Ascended Impaling, Tome of Gem Hunter, ascension core |
+| **Swift Frost** | x1.18 damage vs full-health targets + Slowness 1 on hit (3s) | x19.00 damage vs full-health targets + Slowness 12 on hit (3s) | none | Tome of First Strike, Tome of Frostbite, ascension core |
+| **Merciless Shield** | x1.18 damage vs targets under 30% health + -5.7% projectile damage taken | x19.00 damage vs targets under 30% health + -85.7% projectile damage taken | none | Tome of Executioner, Tome of Arrow Ward, ascension core |
+| **Shadowed Vengeance** | x1.18 damage while sneaking + reflect 3% of damage taken | x19.00 damage while sneaking + reflect 300% of damage taken | none | Tome of Assassin, Tome of Retribution, ascension core |
+| **Grim Insight** | kills non-bosses under 0.6% health + x1.06 mob XP | kills non-bosses under 50% health + x7.00 mob XP | none | Tome of Reaper, Tome of Wisdom, ascension core |
+| **Sweeping Anvil** | 3% of each hit to nearby enemies + repairs 0.6 durability/s on all gear | 300% of each hit to nearby enemies + repairs 60 durability/s on all gear | none | Tome of Cleave, Tome of Restoration, ascension core |
+| **Vampiric Cleaver** | heal 0.6% of damage dealt + 3% of each hit to nearby enemies | heal 60% of damage dealt + 300% of each hit to nearby enemies | none | Tome of Lifesteal, Tome of Cleave, ascension core |
+| **Frozen Feather** | Slowness 1 on hit (3s) + -5.7% fall damage taken | Slowness 12 on hit (3s) + -85.7% fall damage taken | none | Tome of Frostbite, Tome of Featherweight, ascension core |
+| **Enervating Slayer** | Weakness 1 on hit (5s) + x1.09 damage vs bosses | Weakness 12 on hit (5s) + x10.00 damage vs bosses | none | Tome of Enfeeble, Tome of Giant Slayer, ascension core |
+| **Venomous Rampart** | Poison 1 on hit (4s) + -2.9% melee damage taken | Poison 6 on hit (4s) + -75.0% melee damage taken | none | Tome of Venom, Tome of Bulwark, ascension core |
+| **Soaring Opening** | Levitation 1 on hit (2s) + x1.18 damage vs full-health targets | Levitation 6 on hit (2s) + x19.00 damage vs full-health targets | none | Tome of Skyward, Tome of First Strike, ascension core |
+| **Burning Hoard** | sets targets on fire for 2.4s + x1.03 mob loot | sets targets on fire for 240s + x4.00 mob loot | none | Tome of Ascended Fire Aspect, Tome of Plunder, ascension core |
+| **Rallying Bloom** | heal 0.3 health per hit + +0.15 health per second | heal 30 health per hit + +15 health per second | none | Tome of Second Wind, Tome of Renewal, ascension core |
+| **Frenzied Precision** | Speed 1 when you hit (3s) + 1% chance for x2.2 damage | Speed 5 when you hit (3s) + 50% chance for x2.2 damage | none | Tome of Adrenaline, Tome of Critical Edge, ascension core |
+| **Greedy Aegis** | x1.03 mob loot + -2.3% damage taken | x4.00 mob loot + -70.6% damage taken | none | Tome of Plunder, Tome of Ascended Protection, ascension core |
+| **Soulbound Purge** | heal 0.6 health per kill + x1.15 damage vs undead | heal 60 health per kill + x16.00 damage vs undead | none | Tome of Soul Eater, Tome of Ascended Smite, ascension core |
+| **Sage Malaise** | x1.06 mob XP + Weakness 1 on hit (5s) | x7.00 mob XP + Weakness 12 on hit (5s) | none | Tome of Wisdom, Tome of Enfeeble, ascension core |
+| **Gilded Ward** | +0.12 gold nuggets per kill + -5.7% magic damage taken | +12 gold nuggets per kill + -85.7% magic damage taken | none | Tome of Midas, Tome of Spellward, ascension core |
+| **Warded Rally** | -2.3% damage taken + heal 0.3 health per hit | -70.6% damage taken + heal 30 health per hit | none | Tome of Ascended Protection, Tome of Second Wind, ascension core |
+| **Weightless Volley** | -5.7% fall damage taken + x1.09 damage with projectiles | -85.7% fall damage taken + x10.00 damage with projectiles | none | Tome of Featherweight, Tome of Ascended Power, ascension core |
+| **Blastproof Fortune** | -5.7% explosion damage taken + +0.12 gold nuggets per kill | -85.7% explosion damage taken + +12 gold nuggets per kill | none | Tome of Blast Ward, Tome of Midas, ascension core |
+| **Spellproof Thirst** | -5.7% magic damage taken + heal 0.6% of damage dealt | -85.7% magic damage taken + heal 60% of damage dealt | none | Tome of Spellward, Tome of Lifesteal, ascension core |
+| **Stalwart Hellfire** | -2.9% melee damage taken + x1.12 damage in the Nether | -75.0% melee damage taken + x13.00 damage in the Nether | none | Tome of Bulwark, Tome of Hellbane, ascension core |
+| **Hearty Updraft** | +1.2 hidden health + Levitation 1 on hit (2s) | +120 hidden health + Levitation 6 on hit (2s) | none | Tome of Vitality, Tome of Skyward, ascension core |
+| **Elusive Guillotine** | 1% dodge chance + x1.18 damage vs targets under 30% health | 45% dodge chance + x19.00 damage vs targets under 30% health | none | Tome of Evasion, Tome of Executioner, ascension core |
+| **Deathless Harvest** | survive a killing blow every 300s + heal 0.6 health per kill | survive a killing blow every 43s + heal 60 health per kill | none | Tome of Undying, Tome of Soul Eater, ascension core |
+| **Magnetic Scythe** | pulls items within 2.6 blocks + kills non-bosses under 0.6% health | pulls items within 32 blocks + kills non-bosses under 50% health | none | Tome of Magnetism, Tome of Reaper, ascension core |
+| **Mending Flamewall** | repairs 0.6 durability/s on all gear + -5.7% fire damage taken | repairs 60 durability/s on all gear + -85.7% fire damage taken | none | Tome of Restoration, Tome of Fire Ward, ascension core |
+| **Delving Bane** | x1.15 mining speed + x1.15 damage vs arthropods | x16.00 mining speed + x16.00 damage vs arthropods | none | Tome of Excavation, Tome of Ascended Bane, ascension core |
+| **Keen Harvest** | x1.06 damage + heal 0.6 health per kill | x7.00 damage + heal 60 health per kill | none | Tome of Ascended Sharpness, Tome of Soul Eater, ascension core |
+| **Hallowed Lodestar** | x1.15 damage vs undead + pulls items within 2.6 blocks | x16.00 damage vs undead + pulls items within 32 blocks | none | Tome of Ascended Smite, Tome of Magnetism, ascension core |
+| **Titanslaying Flamewall** | x1.09 damage vs bosses + -5.7% fire damage taken | x10.00 damage vs bosses + -85.7% fire damage taken | none | Tome of Giant Slayer, Tome of Fire Ward, ascension core |
+| **Siegebreaking Blight** | x1.15 damage vs raiders + Wither 1 on hit (4s) | x16.00 damage vs raiders + Wither 6 on hit (4s) | none | Tome of Raidbreaker, Tome of Withering, ascension core |
+| **Tidal Remedy** | x1.15 damage vs wet targets + -5.7% wither damage taken | x16.00 damage vs wet targets + -85.7% wither damage taken | none | Tome of Ascended Impaling, Tome of Wither Ward, ascension core |
+| **Swift Rush** | x1.18 damage vs full-health targets + Speed 1 when you hit (3s) | x19.00 damage vs full-health targets + Speed 5 when you hit (3s) | none | Tome of First Strike, Tome of Adrenaline, ascension core |
+| **Merciless Phylactery** | x1.18 damage vs targets under 30% health + survive a killing blow every 300s | x19.00 damage vs targets under 30% health + survive a killing blow every 43s | none | Tome of Executioner, Tome of Undying, ascension core |
+| **Piercing Gem** | x1.09 damage with projectiles + +0.01 emeralds per kill | x10.00 damage with projectiles + +1.20 emeralds per kill | none | Tome of Ascended Power, Tome of Gem Hunter, ascension core |
+| **Precise Frost** | 1% chance for x2.2 damage + Slowness 1 on hit (3s) | 50% chance for x2.2 damage + Slowness 12 on hit (3s) | none | Tome of Critical Edge, Tome of Frostbite, ascension core |
+| **Grim Shield** | kills non-bosses under 0.6% health + -5.7% projectile damage taken | kills non-bosses under 50% health + -85.7% projectile damage taken | none | Tome of Reaper, Tome of Arrow Ward, ascension core |
+| **Frozen Vengeance** | Slowness 1 on hit (3s) + reflect 3% of damage taken | Slowness 12 on hit (3s) + reflect 300% of damage taken | none | Tome of Frostbite, Tome of Retribution, ascension core |
+| **Enervating Fury** | Weakness 1 on hit (5s) + x1.18 damage while under 50% health | Weakness 12 on hit (5s) + x19.00 damage while under 50% health | none | Tome of Enfeeble, Tome of Berserk, ascension core |
+| **Blighted Insight** | Wither 1 on hit (4s) + x1.06 mob XP | Wither 6 on hit (4s) + x7.00 mob XP | none | Tome of Withering, Tome of Wisdom, ascension core |
+| **Venomous Anvil** | Poison 1 on hit (4s) + repairs 0.6 durability/s on all gear | Poison 6 on hit (4s) + repairs 60 durability/s on all gear | none | Tome of Venom, Tome of Restoration, ascension core |
+| **Soaring Cleaver** | Levitation 1 on hit (2s) + 3% of each hit to nearby enemies | Levitation 6 on hit (2s) + 300% of each hit to nearby enemies | none | Tome of Skyward, Tome of Cleave, ascension core |
+| **Burning Feather** | sets targets on fire for 2.4s + -5.7% fall damage taken | sets targets on fire for 240s + -85.7% fall damage taken | none | Tome of Ascended Fire Aspect, Tome of Featherweight, ascension core |
+| **Rallying Slayer** | heal 0.3 health per hit + x1.09 damage vs bosses | heal 30 health per hit + x10.00 damage vs bosses | none | Tome of Second Wind, Tome of Giant Slayer, ascension core |
+| **Greedy Rampart** | x1.03 mob loot + -2.9% melee damage taken | x4.00 mob loot + -75.0% melee damage taken | none | Tome of Plunder, Tome of Bulwark, ascension core |
+| **Soulbound Opening** | heal 0.6 health per kill + x1.18 damage vs full-health targets | heal 60 health per kill + x19.00 damage vs full-health targets | none | Tome of Soul Eater, Tome of First Strike, ascension core |
+| **Gilded Bloom** | +0.12 gold nuggets per kill + +0.15 health per second | +12 gold nuggets per kill + +15 health per second | none | Tome of Midas, Tome of Renewal, ascension core |
+| **Gleaming Precision** | +0.01 emeralds per kill + 1% chance for x2.2 damage | +1.20 emeralds per kill + 50% chance for x2.2 damage | none | Tome of Gem Hunter, Tome of Critical Edge, ascension core |
+| **Fireproof Purge** | -5.7% fire damage taken + x1.15 damage vs undead | -85.7% fire damage taken + x16.00 damage vs undead | none | Tome of Fire Ward, Tome of Ascended Smite, ascension core |
+| **Weightless Malaise** | -5.7% fall damage taken + Weakness 1 on hit (5s) | -85.7% fall damage taken + Weakness 12 on hit (5s) | none | Tome of Featherweight, Tome of Enfeeble, ascension core |
+| **Deflecting Trident** | -5.7% projectile damage taken + x1.15 damage vs wet targets | -85.7% projectile damage taken + x16.00 damage vs wet targets | none | Tome of Arrow Ward, Tome of Ascended Impaling, ascension core |
+| **Stalwart Volley** | -2.9% melee damage taken + x1.09 damage with projectiles | -75.0% melee damage taken + x10.00 damage with projectiles | none | Tome of Bulwark, Tome of Ascended Power, ascension core |
+| **Hearty Fortune** | +1.2 hidden health + +0.12 gold nuggets per kill | +120 hidden health + +12 gold nuggets per kill | none | Tome of Vitality, Tome of Midas, ascension core |
+| **Vengeful Drill** | reflect 3% of damage taken + x1.15 mining speed | reflect 300% of damage taken + x16.00 mining speed | none | Tome of Retribution, Tome of Excavation, ascension core |
+| **Elusive Thirst** | 1% dodge chance + heal 0.6% of damage dealt | 45% dodge chance + heal 60% of damage dealt | none | Tome of Evasion, Tome of Lifesteal, ascension core |
+| **Verdant Hellfire** | +0.15 health per second + x1.12 damage in the Nether | +15 health per second + x13.00 damage in the Nether | none | Tome of Renewal, Tome of Hellbane, ascension core |
+| **Magnetic Updraft** | pulls items within 2.6 blocks + Levitation 1 on hit (2s) | pulls items within 32 blocks + Levitation 6 on hit (2s) | none | Tome of Magnetism, Tome of Skyward, ascension core |
+| **Mending Heart** | repairs 0.6 durability/s on all gear + +1.2 hidden health | repairs 60 durability/s on all gear + +120 hidden health | none | Tome of Restoration, Tome of Vitality, ascension core |
+| **Delving Guillotine** | x1.15 mining speed + x1.18 damage vs targets under 30% health | x16.00 mining speed + x19.00 damage vs targets under 30% health | none | Tome of Excavation, Tome of Executioner, ascension core |
+| **Keen Bunker** | x1.06 damage + -5.7% explosion damage taken | x7.00 damage + -85.7% explosion damage taken | none | Tome of Ascended Sharpness, Tome of Blast Ward, ascension core |
+| **Crawling Updraft** | x1.15 damage vs arthropods + Levitation 1 on hit (2s) | x16.00 damage vs arthropods + Levitation 6 on hit (2s) | none | Tome of Ascended Bane, Tome of Skyward, ascension core |
+| **Titanslaying Heart** | x1.09 damage vs bosses + +1.2 hidden health | x10.00 damage vs bosses + +120 hidden health | none | Tome of Giant Slayer, Tome of Vitality, ascension core |
+| **Siegebreaking Harvest** | x1.15 damage vs raiders + heal 0.6 health per kill | x16.00 damage vs raiders + heal 60 health per kill | none | Tome of Raidbreaker, Tome of Soul Eater, ascension core |
+| **Tidal Lodestar** | x1.15 damage vs wet targets + pulls items within 2.6 blocks | x16.00 damage vs wet targets + pulls items within 32 blocks | none | Tome of Ascended Impaling, Tome of Magnetism, ascension core |
+| **Swift Flamewall** | x1.18 damage vs full-health targets + -5.7% fire damage taken | x19.00 damage vs full-health targets + -85.7% fire damage taken | none | Tome of First Strike, Tome of Fire Ward, ascension core |
+| **Raging Blight** | x1.18 damage while under 50% health + Wither 1 on hit (4s) | x19.00 damage while under 50% health + Wither 6 on hit (4s) | none | Tome of Berserk, Tome of Withering, ascension core |
+| **Piercing Remedy** | x1.09 damage with projectiles + -5.7% wither damage taken | x10.00 damage with projectiles + -85.7% wither damage taken | none | Tome of Ascended Power, Tome of Wither Ward, ascension core |
+| **Grim Phylactery** | kills non-bosses under 0.6% health + survive a killing blow every 300s | kills non-bosses under 50% health + survive a killing blow every 43s | none | Tome of Reaper, Tome of Undying, ascension core |
+| **Vampiric Gem** | heal 0.6% of damage dealt + +0.01 emeralds per kill | heal 60% of damage dealt + +1.20 emeralds per kill | none | Tome of Lifesteal, Tome of Gem Hunter, ascension core |
+| **Frozen Edge** | Slowness 1 on hit (3s) + x1.06 damage | Slowness 12 on hit (3s) + x7.00 damage | none | Tome of Frostbite, Tome of Ascended Sharpness, ascension core |
+| **Blighted Shield** | Wither 1 on hit (4s) + -5.7% projectile damage taken | Wither 6 on hit (4s) + -85.7% projectile damage taken | none | Tome of Withering, Tome of Arrow Ward, ascension core |
+| **Venomous Warbreaker** | Poison 1 on hit (4s) + x1.15 damage vs raiders | Poison 6 on hit (4s) + x16.00 damage vs raiders | none | Tome of Venom, Tome of Raidbreaker, ascension core |
+| **Burning Vengeance** | sets targets on fire for 2.4s + reflect 3% of damage taken | sets targets on fire for 240s + reflect 300% of damage taken | none | Tome of Ascended Fire Aspect, Tome of Retribution, ascension core |
+| **Rallying Fury** | heal 0.3 health per hit + x1.18 damage while under 50% health | heal 30 health per hit + x19.00 damage while under 50% health | none | Tome of Second Wind, Tome of Berserk, ascension core |
+| **Frenzied Insight** | Speed 1 when you hit (3s) + x1.06 mob XP | Speed 5 when you hit (3s) + x7.00 mob XP | none | Tome of Adrenaline, Tome of Wisdom, ascension core |
+| **Greedy Anvil** | x1.03 mob loot + repairs 0.6 durability/s on all gear | x4.00 mob loot + repairs 60 durability/s on all gear | none | Tome of Plunder, Tome of Restoration, ascension core |
+| **Soulbound Cleaver** | heal 0.6 health per kill + 3% of each hit to nearby enemies | heal 60 health per kill + 300% of each hit to nearby enemies | none | Tome of Soul Eater, Tome of Cleave, ascension core |
+| **Sage Feather** | x1.06 mob XP + -5.7% fall damage taken | x7.00 mob XP + -85.7% fall damage taken | none | Tome of Wisdom, Tome of Featherweight, ascension core |
+| **Gilded Slayer** | +0.12 gold nuggets per kill + x1.09 damage vs bosses | +12 gold nuggets per kill + x10.00 damage vs bosses | none | Tome of Midas, Tome of Giant Slayer, ascension core |
+| **Gleaming Venom** | +0.01 emeralds per kill + Poison 1 on hit (4s) | +1.20 emeralds per kill + Poison 6 on hit (4s) | none | Tome of Gem Hunter, Tome of Venom, ascension core |
+| **Weightless Hoard** | -5.7% fall damage taken + x1.03 mob loot | -85.7% fall damage taken + x4.00 mob loot | none | Tome of Featherweight, Tome of Plunder, ascension core |
+| **Blastproof Bloom** | -5.7% explosion damage taken + +0.15 health per second | -85.7% explosion damage taken + +15 health per second | none | Tome of Blast Ward, Tome of Renewal, ascension core |
+| **Deflecting Precision** | -5.7% projectile damage taken + 1% chance for x2.2 damage | -85.7% projectile damage taken + 50% chance for x2.2 damage | none | Tome of Arrow Ward, Tome of Critical Edge, ascension core |
+| **Stalwart Malaise** | -2.9% melee damage taken + Weakness 1 on hit (5s) | -75.0% melee damage taken + Weakness 12 on hit (5s) | none | Tome of Bulwark, Tome of Enfeeble, ascension core |
+| **Vengeful Trident** | reflect 3% of damage taken + x1.15 damage vs wet targets | reflect 300% of damage taken + x16.00 damage vs wet targets | none | Tome of Retribution, Tome of Ascended Impaling, ascension core |
+| **Elusive Rally** | 1% dodge chance + heal 0.3 health per hit | 45% dodge chance + heal 30 health per hit | none | Tome of Evasion, Tome of Second Wind, ascension core |
+| **Verdant Volley** | +0.15 health per second + x1.09 damage with projectiles | +15 health per second + x10.00 damage with projectiles | none | Tome of Renewal, Tome of Ascended Power, ascension core |
+| **Magnetic Fortune** | pulls items within 2.6 blocks + +0.12 gold nuggets per kill | pulls items within 32 blocks + +12 gold nuggets per kill | none | Tome of Magnetism, Tome of Midas, ascension core |
+| **Delving Thirst** | x1.15 mining speed + heal 0.6% of damage dealt | x16.00 mining speed + heal 60% of damage dealt | none | Tome of Excavation, Tome of Lifesteal, ascension core |
+| **Keen Shadowstep** | x1.06 damage + 1% dodge chance | x7.00 damage + 45% dodge chance | none | Tome of Ascended Sharpness, Tome of Evasion, ascension core |
+| **Crawling Fortune** | x1.15 damage vs arthropods + +0.12 gold nuggets per kill | x16.00 damage vs arthropods + +12 gold nuggets per kill | none | Tome of Ascended Bane, Tome of Midas, ascension core |
+| **Titanslaying Drill** | x1.09 damage vs bosses + x1.15 mining speed | x10.00 damage vs bosses + x16.00 mining speed | none | Tome of Giant Slayer, Tome of Excavation, ascension core |
+| **Infernal Thirst** | x1.12 damage in the Nether + heal 0.6% of damage dealt | x13.00 damage in the Nether + heal 60% of damage dealt | none | Tome of Hellbane, Tome of Lifesteal, ascension core |
+| **Siegebreaking Bunker** | x1.15 damage vs raiders + -5.7% explosion damage taken | x16.00 damage vs raiders + -85.7% explosion damage taken | none | Tome of Raidbreaker, Tome of Blast Ward, ascension core |
+| **Skyborne Updraft** | x1.12 damage vs airborne targets + Levitation 1 on hit (2s) | x13.00 damage vs airborne targets + Levitation 6 on hit (2s) | none | Tome of Skyhunter, Tome of Skyward, ascension core |
+| **Swift Heart** | x1.18 damage vs full-health targets + +1.2 hidden health | x19.00 damage vs full-health targets + +120 hidden health | none | Tome of First Strike, Tome of Vitality, ascension core |
+| **Raging Harvest** | x1.18 damage while under 50% health + heal 0.6 health per kill | x19.00 damage while under 50% health + heal 60 health per kill | none | Tome of Berserk, Tome of Soul Eater, ascension core |
+| **Piercing Lodestar** | x1.09 damage with projectiles + pulls items within 2.6 blocks | x10.00 damage with projectiles + pulls items within 32 blocks | none | Tome of Ascended Power, Tome of Magnetism, ascension core |
+| **Precise Flamewall** | 1% chance for x2.2 damage + -5.7% fire damage taken | 50% chance for x2.2 damage + -85.7% fire damage taken | none | Tome of Critical Edge, Tome of Fire Ward, ascension core |
+| **Sweeping Blight** | 3% of each hit to nearby enemies + Wither 1 on hit (4s) | 300% of each hit to nearby enemies + Wither 6 on hit (4s) | none | Tome of Cleave, Tome of Withering, ascension core |
+| **Vampiric Remedy** | heal 0.6% of damage dealt + -5.7% wither damage taken | heal 60% of damage dealt + -85.7% wither damage taken | none | Tome of Lifesteal, Tome of Wither Ward, ascension core |
+| **Frozen Falcon** | Slowness 1 on hit (3s) + x1.12 damage vs airborne targets | Slowness 12 on hit (3s) + x13.00 damage vs airborne targets | none | Tome of Frostbite, Tome of Skyhunter, ascension core |
+| **Venomous Dagger** | Poison 1 on hit (4s) + x1.18 damage while sneaking | Poison 6 on hit (4s) + x19.00 damage while sneaking | none | Tome of Venom, Tome of Assassin, ascension core |
+| **Soaring Gem** | Levitation 1 on hit (2s) + +0.01 emeralds per kill | Levitation 6 on hit (2s) + +1.20 emeralds per kill | none | Tome of Skyward, Tome of Gem Hunter, ascension core |
+| **Burning Edge** | sets targets on fire for 2.4s + x1.06 damage | sets targets on fire for 240s + x7.00 damage | none | Tome of Ascended Fire Aspect, Tome of Ascended Sharpness, ascension core |
+| **Rallying Frost** | heal 0.3 health per hit + Slowness 1 on hit (3s) | heal 30 health per hit + Slowness 12 on hit (3s) | none | Tome of Second Wind, Tome of Frostbite, ascension core |
+| **Frenzied Shield** | Speed 1 when you hit (3s) + -5.7% projectile damage taken | Speed 5 when you hit (3s) + -85.7% projectile damage taken | none | Tome of Adrenaline, Tome of Arrow Ward, ascension core |
+| **Greedy Warbreaker** | x1.03 mob loot + x1.15 damage vs raiders | x4.00 mob loot + x16.00 damage vs raiders | none | Tome of Plunder, Tome of Raidbreaker, ascension core |
+| **Soulbound Pyre** | heal 0.6 health per kill + sets targets on fire for 2.4s | heal 60 health per kill + sets targets on fire for 240s | none | Tome of Soul Eater, Tome of Ascended Fire Aspect, ascension core |
+| **Sage Vengeance** | x1.06 mob XP + reflect 3% of damage taken | x7.00 mob XP + reflect 300% of damage taken | none | Tome of Wisdom, Tome of Retribution, ascension core |
+| **Gilded Fury** | +0.12 gold nuggets per kill + x1.18 damage while under 50% health | +12 gold nuggets per kill + x19.00 damage while under 50% health | none | Tome of Midas, Tome of Berserk, ascension core |
+| **Gleaming Insight** | +0.01 emeralds per kill + x1.06 mob XP | +1.20 emeralds per kill + x7.00 mob XP | none | Tome of Gem Hunter, Tome of Wisdom, ascension core |
+| **Warded Anvil** | -2.3% damage taken + repairs 0.6 durability/s on all gear | -70.6% damage taken + repairs 60 durability/s on all gear | none | Tome of Ascended Protection, Tome of Restoration, ascension core |
+| **Fireproof Cleaver** | -5.7% fire damage taken + 3% of each hit to nearby enemies | -85.7% fire damage taken + 300% of each hit to nearby enemies | none | Tome of Fire Ward, Tome of Cleave, ascension core |
+| **Blastproof Slayer** | -5.7% explosion damage taken + x1.09 damage vs bosses | -85.7% explosion damage taken + x10.00 damage vs bosses | none | Tome of Blast Ward, Tome of Giant Slayer, ascension core |
+| **Deflecting Venom** | -5.7% projectile damage taken + Poison 1 on hit (4s) | -85.7% projectile damage taken + Poison 6 on hit (4s) | none | Tome of Arrow Ward, Tome of Venom, ascension core |
+| **Spellproof Rampart** | -5.7% magic damage taken + -2.9% melee damage taken | -85.7% magic damage taken + -75.0% melee damage taken | none | Tome of Spellward, Tome of Bulwark, ascension core |
+| **Unwithering Opening** | -5.7% wither damage taken + x1.18 damage vs full-health targets | -85.7% wither damage taken + x19.00 damage vs full-health targets | none | Tome of Wither Ward, Tome of First Strike, ascension core |
+| **Hearty Bloom** | +1.2 hidden health + +0.15 health per second | +120 hidden health + +15 health per second | none | Tome of Vitality, Tome of Renewal, ascension core |
+| **Vengeful Precision** | reflect 3% of damage taken + 1% chance for x2.2 damage | reflect 300% of damage taken + 50% chance for x2.2 damage | none | Tome of Retribution, Tome of Critical Edge, ascension core |
+| **Elusive Aegis** | 1% dodge chance + -2.3% damage taken | 45% dodge chance + -70.6% damage taken | none | Tome of Evasion, Tome of Ascended Protection, ascension core |
+| **Deathless Purge** | survive a killing blow every 300s + x1.15 damage vs undead | survive a killing blow every 43s + x16.00 damage vs undead | none | Tome of Undying, Tome of Ascended Smite, ascension core |
+| **Magnetic Ward** | pulls items within 2.6 blocks + -5.7% magic damage taken | pulls items within 32 blocks + -85.7% magic damage taken | none | Tome of Magnetism, Tome of Spellward, ascension core |
+| **Mending Trident** | repairs 0.6 durability/s on all gear + x1.15 damage vs wet targets | repairs 60 durability/s on all gear + x16.00 damage vs wet targets | none | Tome of Restoration, Tome of Ascended Impaling, ascension core |
+| **Delving Rally** | x1.15 mining speed + heal 0.3 health per hit | x16.00 mining speed + heal 30 health per hit | none | Tome of Excavation, Tome of Second Wind, ascension core |

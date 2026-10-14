@@ -54,7 +54,7 @@ minecraft/kubejs/
   server_scripts/10_fa_ascension.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js,
                  40_fa_progress.js, 45_fa_altar.js
   client_scripts/10_fa_tooltips.js, 20_fa_jei.js
-  assets/kubejs/textures/item/   (102 .png files)
+  assets/kubejs/textures/item/   (302 .png files)
   assets/kubejs/textures/block/  (53 .png files: altar, condenser, 51 Condensed Essence tiers)
 ```
 
@@ -69,7 +69,7 @@ minecraft/kubejs/
    /ascension essence add 1000
    ```
    Hold the tome in your main hand and the sword in your off hand (press **F** to swap), then right-click.
-   All 74 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
+   All 274 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
 4. If something's missing, open the instance folder -> `logs/kubejs/` and look in

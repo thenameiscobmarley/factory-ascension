@@ -13,7 +13,7 @@ StartupEvents.registry('item', event => {
   event.create('blank_ascension_tome').displayName('Blank Ascension Tome').rarity('uncommon')
   Object.keys(global.FA.enchants).forEach(id => {
     let e = global.FA.enchants[id]
-    event.create('tome_' + id).displayName((e.mythic ? 'Mythic Tome of ' : 'Tome of ') + e.name).rarity('epic').glow(true)
+    event.create('tome_' + id).displayName((e.mythic ? 'Mythic Tome of ' : e.type == 'fusion' ? 'Fusion Tome of ' : 'Tome of ') + e.name).rarity('epic').glow(true)
   })
 
   // Rolls a random enchant (rarity, name and effects) onto gear

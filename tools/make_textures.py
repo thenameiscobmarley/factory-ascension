@@ -231,6 +231,29 @@ def altar_block():
     return px
 
 
+def fusions():
+    """[(id, parent A, parent B)] from the config's fusions list."""
+    text = open(CONFIG).read()
+    return re.findall(r"^\s+\['([a-z0-9_]+)', '[^']+', '([a-z0-9_]+)', '([a-z0-9_]+)'\]", text, re.M)
+
+
+def fusion_book(pa, pb):
+    """Diagonally split cover: parent A top-left, parent B bottom-right, with a bright seam and a two-tone gem."""
+    px = book(pa[0], pa[1])
+    other = book(pb[0], pb[1])
+    for y in range(N):
+        for x in range(N):
+            if px[y][x][3] and x - 3 > y - 2 + 1 and other[y][x][3]:
+                px[y][x] = other[y][x]
+            if px[y][x][3] and 5 <= x <= 11 and x - 3 == y - 1:
+                px[y][x] = (230, 250, 255, 255)
+    for x, y in ((8, 6), (7, 7), (8, 7)):
+        px[y][x] = pa[1] + (255,)
+    for x, y in ((9, 7), (8, 8)):
+        px[y][x] = pb[1] + (255,)
+    return px
+
+
 def condensed_tiers():
     """How many dense tiers the config names (the block list is generated from it)."""
     text = open(CONFIG).read()
@@ -372,6 +395,9 @@ def main():
         raise SystemExit('could not read enchants from ' + CONFIG)
     for name, (cover, gem_color, mythic) in tomes.items():
         textures["tome_" + name] = outline(book(cover, gem_color, mythic), edge)
+    # Fusion tomes: a split cover, one half in each parent's colors
+    for fid, a, b in fusions():
+        textures["tome_" + fid] = outline(fusion_book(tomes[a], tomes[b]), edge)
     textures["mythic_fragment"] = outline(fragment(), (30, 8, 40, 255))
     textures["chaos_tome"] = outline(chaos_book(), edge)
     gems = gem_colors()

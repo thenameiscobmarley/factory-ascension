@@ -128,6 +128,214 @@ global.FA = {
     normalChanceCap: 0.05
   },
 
+  // ---- Fusion enchants: two enchants fused into one tome ----
+  // Each does both of its parents' effects at fusionStrength of their power. Tome: Tome A + Tome B + an Ascension Core
+  // in a heated mixer. Costs fusionCostMultiplier x the Essence per level. [id, name, parent A, parent B]
+  fusionStrength: 0.6,
+  fusionCostMultiplier: 2,
+  fusions: [
+    ['hallowed_pyre', 'Hallowed Pyre', 'smite', 'fire_aspect'],
+    ['crawling_vengeance', 'Crawling Vengeance', 'bane', 'retribution'],
+    ['infernal_insight', 'Infernal Insight', 'hellbane', 'wisdom'],
+    ['siegebreaking_anvil', 'Siegebreaking Anvil', 'raidbreaker', 'restoration'],
+    ['skyborne_feather', 'Skyborne Feather', 'skyhunter', 'featherweight'],
+    ['merciless_venom', 'Merciless Venom', 'executioner', 'venom'],
+    ['raging_rampart', 'Raging Rampart', 'berserk', 'bulwark'],
+    ['shadowed_hoard', 'Shadowed Hoard', 'assassin', 'plunder'],
+    ['precise_bloom', 'Precise Bloom', 'critical', 'renewal'],
+    ['sweeping_aegis', 'Sweeping Aegis', 'cleave', 'protection'],
+    ['vampiric_purge', 'Vampiric Purge', 'lifesteal', 'smite'],
+    ['enervating_ward', 'Enervating Ward', 'enfeeble', 'spellward'],
+    ['blighted_trident', 'Blighted Trident', 'withering', 'impaling'],
+    ['soaring_shadowstep', 'Soaring Shadowstep', 'skyward', 'evasion'],
+    ['burning_volley', 'Burning Volley', 'fire_aspect', 'power'],
+    ['rallying_fortune', 'Rallying Fortune', 'second_wind', 'midas'],
+    ['frenzied_drill', 'Frenzied Drill', 'adrenaline', 'excavation'],
+    ['greedy_thirst', 'Greedy Thirst', 'plunder', 'lifesteal'],
+    ['soulbound_bunker', 'Soulbound Bunker', 'soul_eater', 'blast_ward'],
+    ['gilded_updraft', 'Gilded Updraft', 'midas', 'skyward'],
+    ['gleaming_heart', 'Gleaming Heart', 'gem_hunter', 'vitality'],
+    ['warded_guillotine', 'Warded Guillotine', 'protection', 'executioner'],
+    ['fireproof_harvest', 'Fireproof Harvest', 'fire_ward', 'soul_eater'],
+    ['weightless_lodestar', 'Weightless Lodestar', 'featherweight', 'magnetism'],
+    ['blastproof_scythe', 'Blastproof Scythe', 'blast_ward', 'reaper'],
+    ['spellproof_bane', 'Spellproof Bane', 'spellward', 'bane'],
+    ['unwithering_blight', 'Unwithering Blight', 'wither_ward', 'withering'],
+    ['hearty_falcon', 'Hearty Falcon', 'vitality', 'skyhunter'],
+    ['vengeful_rush', 'Vengeful Rush', 'retribution', 'adrenaline'],
+    ['deathless_dagger', 'Deathless Dagger', 'undying', 'assassin'],
+    ['verdant_gem', 'Verdant Gem', 'renewal', 'gem_hunter'],
+    ['magnetic_edge', 'Magnetic Edge', 'magnetism', 'sharpness'],
+    ['mending_frost', 'Mending Frost', 'restoration', 'frostbite'],
+    ['delving_shield', 'Delving Shield', 'excavation', 'arrow_ward'],
+    ['hallowed_gem', 'Hallowed Gem', 'smite', 'gem_hunter'],
+    ['titanslaying_frost', 'Titanslaying Frost', 'giant_slayer', 'frostbite'],
+    ['infernal_shield', 'Infernal Shield', 'hellbane', 'arrow_ward'],
+    ['tidal_pyre', 'Tidal Pyre', 'impaling', 'fire_aspect'],
+    ['skyborne_vengeance', 'Skyborne Vengeance', 'skyhunter', 'retribution'],
+    ['merciless_insight', 'Merciless Insight', 'executioner', 'wisdom'],
+    ['raging_anvil', 'Raging Anvil', 'berserk', 'restoration'],
+    ['shadowed_feather', 'Shadowed Feather', 'assassin', 'featherweight'],
+    ['grim_venom', 'Grim Venom', 'reaper', 'venom'],
+    ['sweeping_rampart', 'Sweeping Rampart', 'cleave', 'bulwark'],
+    ['vampiric_opening', 'Vampiric Opening', 'lifesteal', 'first_strike'],
+    ['frozen_hoard', 'Frozen Hoard', 'frostbite', 'plunder'],
+    ['enervating_bloom', 'Enervating Bloom', 'enfeeble', 'renewal'],
+    ['blighted_precision', 'Blighted Precision', 'withering', 'critical'],
+    ['venomous_aegis', 'Venomous Aegis', 'venom', 'protection'],
+    ['soaring_purge', 'Soaring Purge', 'skyward', 'smite'],
+    ['rallying_ward', 'Rallying Ward', 'second_wind', 'spellward'],
+    ['frenzied_trident', 'Frenzied Trident', 'adrenaline', 'impaling'],
+    ['greedy_rally', 'Greedy Rally', 'plunder', 'second_wind'],
+    ['soulbound_shadowstep', 'Soulbound Shadowstep', 'soul_eater', 'evasion'],
+    ['sage_volley', 'Sage Volley', 'wisdom', 'power'],
+    ['gleaming_drill', 'Gleaming Drill', 'gem_hunter', 'excavation'],
+    ['warded_thirst', 'Warded Thirst', 'protection', 'lifesteal'],
+    ['weightless_hellfire', 'Weightless Hellfire', 'featherweight', 'hellbane'],
+    ['blastproof_updraft', 'Blastproof Updraft', 'blast_ward', 'skyward'],
+    ['spellproof_guillotine', 'Spellproof Guillotine', 'spellward', 'executioner'],
+    ['unwithering_harvest', 'Unwithering Harvest', 'wither_ward', 'soul_eater'],
+    ['stalwart_lodestar', 'Stalwart Lodestar', 'bulwark', 'magnetism'],
+    ['hearty_scythe', 'Hearty Scythe', 'vitality', 'reaper'],
+    ['elusive_bane', 'Elusive Bane', 'evasion', 'bane'],
+    ['deathless_blight', 'Deathless Blight', 'undying', 'withering'],
+    ['verdant_remedy', 'Verdant Remedy', 'renewal', 'wither_ward'],
+    ['magnetic_falcon', 'Magnetic Falcon', 'magnetism', 'skyhunter'],
+    ['mending_rush', 'Mending Rush', 'restoration', 'adrenaline'],
+    ['delving_phylactery', 'Delving Phylactery', 'excavation', 'undying'],
+    ['keen_blight', 'Keen Blight', 'sharpness', 'withering'],
+    ['hallowed_remedy', 'Hallowed Remedy', 'smite', 'wither_ward'],
+    ['titanslaying_rush', 'Titanslaying Rush', 'giant_slayer', 'adrenaline'],
+    ['infernal_phylactery', 'Infernal Phylactery', 'hellbane', 'undying'],
+    ['tidal_gem', 'Tidal Gem', 'impaling', 'gem_hunter'],
+    ['swift_frost', 'Swift Frost', 'first_strike', 'frostbite'],
+    ['merciless_shield', 'Merciless Shield', 'executioner', 'arrow_ward'],
+    ['shadowed_vengeance', 'Shadowed Vengeance', 'assassin', 'retribution'],
+    ['grim_insight', 'Grim Insight', 'reaper', 'wisdom'],
+    ['sweeping_anvil', 'Sweeping Anvil', 'cleave', 'restoration'],
+    ['vampiric_cleaver', 'Vampiric Cleaver', 'lifesteal', 'cleave'],
+    ['frozen_feather', 'Frozen Feather', 'frostbite', 'featherweight'],
+    ['enervating_slayer', 'Enervating Slayer', 'enfeeble', 'giant_slayer'],
+    ['venomous_rampart', 'Venomous Rampart', 'venom', 'bulwark'],
+    ['soaring_opening', 'Soaring Opening', 'skyward', 'first_strike'],
+    ['burning_hoard', 'Burning Hoard', 'fire_aspect', 'plunder'],
+    ['rallying_bloom', 'Rallying Bloom', 'second_wind', 'renewal'],
+    ['frenzied_precision', 'Frenzied Precision', 'adrenaline', 'critical'],
+    ['greedy_aegis', 'Greedy Aegis', 'plunder', 'protection'],
+    ['soulbound_purge', 'Soulbound Purge', 'soul_eater', 'smite'],
+    ['sage_malaise', 'Sage Malaise', 'wisdom', 'enfeeble'],
+    ['gilded_ward', 'Gilded Ward', 'midas', 'spellward'],
+    ['warded_rally', 'Warded Rally', 'protection', 'second_wind'],
+    ['weightless_volley', 'Weightless Volley', 'featherweight', 'power'],
+    ['blastproof_fortune', 'Blastproof Fortune', 'blast_ward', 'midas'],
+    ['spellproof_thirst', 'Spellproof Thirst', 'spellward', 'lifesteal'],
+    ['stalwart_hellfire', 'Stalwart Hellfire', 'bulwark', 'hellbane'],
+    ['hearty_updraft', 'Hearty Updraft', 'vitality', 'skyward'],
+    ['elusive_guillotine', 'Elusive Guillotine', 'evasion', 'executioner'],
+    ['deathless_harvest', 'Deathless Harvest', 'undying', 'soul_eater'],
+    ['magnetic_scythe', 'Magnetic Scythe', 'magnetism', 'reaper'],
+    ['mending_flamewall', 'Mending Flamewall', 'restoration', 'fire_ward'],
+    ['delving_bane', 'Delving Bane', 'excavation', 'bane'],
+    ['keen_harvest', 'Keen Harvest', 'sharpness', 'soul_eater'],
+    ['hallowed_lodestar', 'Hallowed Lodestar', 'smite', 'magnetism'],
+    ['titanslaying_flamewall', 'Titanslaying Flamewall', 'giant_slayer', 'fire_ward'],
+    ['siegebreaking_blight', 'Siegebreaking Blight', 'raidbreaker', 'withering'],
+    ['tidal_remedy', 'Tidal Remedy', 'impaling', 'wither_ward'],
+    ['swift_rush', 'Swift Rush', 'first_strike', 'adrenaline'],
+    ['merciless_phylactery', 'Merciless Phylactery', 'executioner', 'undying'],
+    ['piercing_gem', 'Piercing Gem', 'power', 'gem_hunter'],
+    ['precise_frost', 'Precise Frost', 'critical', 'frostbite'],
+    ['grim_shield', 'Grim Shield', 'reaper', 'arrow_ward'],
+    ['frozen_vengeance', 'Frozen Vengeance', 'frostbite', 'retribution'],
+    ['enervating_fury', 'Enervating Fury', 'enfeeble', 'berserk'],
+    ['blighted_insight', 'Blighted Insight', 'withering', 'wisdom'],
+    ['venomous_anvil', 'Venomous Anvil', 'venom', 'restoration'],
+    ['soaring_cleaver', 'Soaring Cleaver', 'skyward', 'cleave'],
+    ['burning_feather', 'Burning Feather', 'fire_aspect', 'featherweight'],
+    ['rallying_slayer', 'Rallying Slayer', 'second_wind', 'giant_slayer'],
+    ['greedy_rampart', 'Greedy Rampart', 'plunder', 'bulwark'],
+    ['soulbound_opening', 'Soulbound Opening', 'soul_eater', 'first_strike'],
+    ['gilded_bloom', 'Gilded Bloom', 'midas', 'renewal'],
+    ['gleaming_precision', 'Gleaming Precision', 'gem_hunter', 'critical'],
+    ['fireproof_purge', 'Fireproof Purge', 'fire_ward', 'smite'],
+    ['weightless_malaise', 'Weightless Malaise', 'featherweight', 'enfeeble'],
+    ['deflecting_trident', 'Deflecting Trident', 'arrow_ward', 'impaling'],
+    ['stalwart_volley', 'Stalwart Volley', 'bulwark', 'power'],
+    ['hearty_fortune', 'Hearty Fortune', 'vitality', 'midas'],
+    ['vengeful_drill', 'Vengeful Drill', 'retribution', 'excavation'],
+    ['elusive_thirst', 'Elusive Thirst', 'evasion', 'lifesteal'],
+    ['verdant_hellfire', 'Verdant Hellfire', 'renewal', 'hellbane'],
+    ['magnetic_updraft', 'Magnetic Updraft', 'magnetism', 'skyward'],
+    ['mending_heart', 'Mending Heart', 'restoration', 'vitality'],
+    ['delving_guillotine', 'Delving Guillotine', 'excavation', 'executioner'],
+    ['keen_bunker', 'Keen Bunker', 'sharpness', 'blast_ward'],
+    ['crawling_updraft', 'Crawling Updraft', 'bane', 'skyward'],
+    ['titanslaying_heart', 'Titanslaying Heart', 'giant_slayer', 'vitality'],
+    ['siegebreaking_harvest', 'Siegebreaking Harvest', 'raidbreaker', 'soul_eater'],
+    ['tidal_lodestar', 'Tidal Lodestar', 'impaling', 'magnetism'],
+    ['swift_flamewall', 'Swift Flamewall', 'first_strike', 'fire_ward'],
+    ['raging_blight', 'Raging Blight', 'berserk', 'withering'],
+    ['piercing_remedy', 'Piercing Remedy', 'power', 'wither_ward'],
+    ['grim_phylactery', 'Grim Phylactery', 'reaper', 'undying'],
+    ['vampiric_gem', 'Vampiric Gem', 'lifesteal', 'gem_hunter'],
+    ['frozen_edge', 'Frozen Edge', 'frostbite', 'sharpness'],
+    ['blighted_shield', 'Blighted Shield', 'withering', 'arrow_ward'],
+    ['venomous_warbreaker', 'Venomous Warbreaker', 'venom', 'raidbreaker'],
+    ['burning_vengeance', 'Burning Vengeance', 'fire_aspect', 'retribution'],
+    ['rallying_fury', 'Rallying Fury', 'second_wind', 'berserk'],
+    ['frenzied_insight', 'Frenzied Insight', 'adrenaline', 'wisdom'],
+    ['greedy_anvil', 'Greedy Anvil', 'plunder', 'restoration'],
+    ['soulbound_cleaver', 'Soulbound Cleaver', 'soul_eater', 'cleave'],
+    ['sage_feather', 'Sage Feather', 'wisdom', 'featherweight'],
+    ['gilded_slayer', 'Gilded Slayer', 'midas', 'giant_slayer'],
+    ['gleaming_venom', 'Gleaming Venom', 'gem_hunter', 'venom'],
+    ['weightless_hoard', 'Weightless Hoard', 'featherweight', 'plunder'],
+    ['blastproof_bloom', 'Blastproof Bloom', 'blast_ward', 'renewal'],
+    ['deflecting_precision', 'Deflecting Precision', 'arrow_ward', 'critical'],
+    ['stalwart_malaise', 'Stalwart Malaise', 'bulwark', 'enfeeble'],
+    ['vengeful_trident', 'Vengeful Trident', 'retribution', 'impaling'],
+    ['elusive_rally', 'Elusive Rally', 'evasion', 'second_wind'],
+    ['verdant_volley', 'Verdant Volley', 'renewal', 'power'],
+    ['magnetic_fortune', 'Magnetic Fortune', 'magnetism', 'midas'],
+    ['delving_thirst', 'Delving Thirst', 'excavation', 'lifesteal'],
+    ['keen_shadowstep', 'Keen Shadowstep', 'sharpness', 'evasion'],
+    ['crawling_fortune', 'Crawling Fortune', 'bane', 'midas'],
+    ['titanslaying_drill', 'Titanslaying Drill', 'giant_slayer', 'excavation'],
+    ['infernal_thirst', 'Infernal Thirst', 'hellbane', 'lifesteal'],
+    ['siegebreaking_bunker', 'Siegebreaking Bunker', 'raidbreaker', 'blast_ward'],
+    ['skyborne_updraft', 'Skyborne Updraft', 'skyhunter', 'skyward'],
+    ['swift_heart', 'Swift Heart', 'first_strike', 'vitality'],
+    ['raging_harvest', 'Raging Harvest', 'berserk', 'soul_eater'],
+    ['piercing_lodestar', 'Piercing Lodestar', 'power', 'magnetism'],
+    ['precise_flamewall', 'Precise Flamewall', 'critical', 'fire_ward'],
+    ['sweeping_blight', 'Sweeping Blight', 'cleave', 'withering'],
+    ['vampiric_remedy', 'Vampiric Remedy', 'lifesteal', 'wither_ward'],
+    ['frozen_falcon', 'Frozen Falcon', 'frostbite', 'skyhunter'],
+    ['venomous_dagger', 'Venomous Dagger', 'venom', 'assassin'],
+    ['soaring_gem', 'Soaring Gem', 'skyward', 'gem_hunter'],
+    ['burning_edge', 'Burning Edge', 'fire_aspect', 'sharpness'],
+    ['rallying_frost', 'Rallying Frost', 'second_wind', 'frostbite'],
+    ['frenzied_shield', 'Frenzied Shield', 'adrenaline', 'arrow_ward'],
+    ['greedy_warbreaker', 'Greedy Warbreaker', 'plunder', 'raidbreaker'],
+    ['soulbound_pyre', 'Soulbound Pyre', 'soul_eater', 'fire_aspect'],
+    ['sage_vengeance', 'Sage Vengeance', 'wisdom', 'retribution'],
+    ['gilded_fury', 'Gilded Fury', 'midas', 'berserk'],
+    ['gleaming_insight', 'Gleaming Insight', 'gem_hunter', 'wisdom'],
+    ['warded_anvil', 'Warded Anvil', 'protection', 'restoration'],
+    ['fireproof_cleaver', 'Fireproof Cleaver', 'fire_ward', 'cleave'],
+    ['blastproof_slayer', 'Blastproof Slayer', 'blast_ward', 'giant_slayer'],
+    ['deflecting_venom', 'Deflecting Venom', 'arrow_ward', 'venom'],
+    ['spellproof_rampart', 'Spellproof Rampart', 'spellward', 'bulwark'],
+    ['unwithering_opening', 'Unwithering Opening', 'wither_ward', 'first_strike'],
+    ['hearty_bloom', 'Hearty Bloom', 'vitality', 'renewal'],
+    ['vengeful_precision', 'Vengeful Precision', 'retribution', 'critical'],
+    ['elusive_aegis', 'Elusive Aegis', 'evasion', 'protection'],
+    ['deathless_purge', 'Deathless Purge', 'undying', 'smite'],
+    ['magnetic_ward', 'Magnetic Ward', 'magnetism', 'spellward'],
+    ['mending_trident', 'Mending Trident', 'restoration', 'impaling'],
+    ['delving_rally', 'Delving Rally', 'excavation', 'second_wind']
+  ],
+
   // ---- Danger: the farther from spawn, the nastier the mobs (and the better the loot) ----
   // Danger level = (distance from world spawn - safeRadius) / blocksPerLevel, no cap.
   // Only hostile, non-boss mobs scale. Being AFK changes nothing: it's all about where you are.
@@ -288,6 +496,30 @@ global.FA = {
   maxUpgradesPerCommand: 100000
 }
 
+// Fusion enchants become ordinary enchant entries (type 'fusion'), so tomes, upgrades, the altar, tooltips,
+// JEI and the website all handle them like any other enchant
+global.FA.fusions.forEach(f => {
+  if (!global.FA.enchants[f[0]]) global.FA.enchants[f[0]] = { name: f[1], type: 'fusion', parts: [f[2], f[3]], costMult: global.FA.fusionCostMultiplier }
+})
+
+// A parent enchant at a fusion's strength: same effect, scaled down
+global.FA_scalePart = (def, strength) => {
+  let p = {}
+  Object.keys(def).forEach(k => { p[k] = def[k] })
+  if (typeof p.perLevel == 'number') p.perLevel = p.perLevel * strength
+  if (typeof p.critMultiplier == 'number') p.critMultiplier = Math.round((1 + (p.critMultiplier - 1) * strength) * 100) / 100
+  if (p.type == 'dodge') p.cap = p.cap * strength
+  if (typeof p.ampEvery == 'number') p.ampEvery = Math.max(1, Math.ceil(p.ampEvery / strength))
+  return p
+}
+let faPartCache = {}
+// The i-th effect of a fusion enchant (cached: they never change while the game runs)
+global.FA_fusionPart = (id, i) => {
+  let key = id + '~' + i
+  if (!faPartCache[key]) faPartCache[key] = global.FA_scalePart(global.FA.enchants[global.FA.enchants[id].parts[i]], global.FA.fusionStrength)
+  return faPartCache[key]
+}
+
 // Readable numbers: 1234 -> "1,234", 12345678 -> "12.3M", 1e40 -> "1.00e+40"
 global.FA_num = n => {
   if (!isFinite(n)) return 'Infinity'
@@ -372,6 +604,11 @@ global.FA_describeDef = (e, level) => {
     case 'vein': return 'mines up to ' + num(Math.min(e.cap, e.perLevel * level)) + ' connected ' + e.blocks + ' at once (sneak for one)'
     case 'aura': return 'burns enemies within ' + global.FA_auraRadius(level) + ' blocks for ' + num(e.perLevel * level) + ' damage/s'
     case 'heads': return pct(Math.min(1, e.perLevel * level)) + ' chance to drop mob heads'
+    case 'fusion': {
+      // The scaled-down parents are cached on the fusion (they never change while the game runs)
+      if (!e._scaled) e._scaled = e.parts.map(pid => global.FA_scalePart(global.FA.enchants[pid], global.FA.fusionStrength))
+      return e._scaled.map(p => global.FA_describeDef(p, level)).join(' + ')
+    }
     case 'slam': return 'landing smashes nearby enemies for ' + num(e.perLevel * level) + ' damage per block fallen, no fall damage'
   }
   return ''
@@ -596,8 +833,10 @@ global.FA_TYPES = {
   mining: ['perLevel'], eternal: [], flight: [], chain_lightning: ['perLevel', 'radius'], gravity_well: ['perLevel', 'base', 'cap'],
   death_nova: ['perLevel'], time_stop: [], phoenix: ['cooldown', 'perLevel', 'minCooldown'], projectile_teleport: [],
   souls: ['perLevel'], overkill: ['perLevel', 'radius'], rampage: ['perLevel', 'maxStacks', 'seconds'], vein: ['perLevel', 'cap'],
-  aura: ['perLevel'], heads: ['perLevel'], slam: ['perLevel']
+  aura: ['perLevel'], heads: ['perLevel'], slam: ['perLevel'], fusion: []
 }
+// Fusions can't be made from these: they need cleanup when gear comes off, or they're one-offs
+let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, fusion: true }
 let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
 let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
 
@@ -633,6 +872,11 @@ global.FA_validate = cfg => {
       ok = false
     }
     if (e.type == 'vein' && e.blocks != 'ores' && e.blocks != 'logs') { problems.push('enchants.' + id + ".blocks must be 'ores' or 'logs'"); ok = false }
+    if (e.type == 'fusion' && !(e.parts && e.parts.length == 2 && e.parts[0] != e.parts[1] && e.parts.every(pid => {
+      let parent = cfg.enchants[pid]
+      return parent && !parent.mythic && !FA_NO_FUSE[parent.type]
+    }))) { problems.push('fusion "' + id + '" needs two different, non-Mythic parents that exist'); ok = false }
+    if (e.costMult !== undefined && !need(e.costMult, 'enchants.' + id + '.costMult', 1)) ok = false
     if (e.type == 'drop' && !/^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(String(e.item))) { problems.push('enchants.' + id + '.item is not an item id'); ok = false }
     if (['hit_effect', 'self_effect', 'passive'].indexOf(e.type) >= 0 && e.effect === undefined) { problems.push('enchants.' + id + '.effect is missing'); ok = false }
     if (e.effect !== undefined && !/^[A-Z_]+$/.test(String(e.effect))) { problems.push('enchants.' + id + '.effect must be a MobEffects field like NIGHT_VISION'); ok = false }
@@ -651,6 +895,7 @@ global.FA_validate = cfg => {
   }
   if (!okNum(cfg.costBase, 0.000001)) { problems.push('costBase reset to 0.05'); cfg.costBase = 0.05 }
   if (!okNum(cfg.costPower, 0)) { problems.push('costPower reset to 1'); cfg.costPower = 1 }
+  if (!okNum(cfg.fusionStrength, 0.01) || cfg.fusionStrength > 1) { problems.push('fusionStrength reset to 0.6'); cfg.fusionStrength = 0.6 }
   if (!okNum(cfg.mythicCostMultiplier, 1)) { problems.push('mythicCostMultiplier reset to 5'); cfg.mythicCostMultiplier = 5 }
   ;['maxExtraDropStacks', 'maxCleaveTargets', 'maxUpgradesPerCommand'].forEach(f => {
     if (!okNum(cfg[f], 1)) { problems.push(f + ' reset to 8'); cfg[f] = 8 }

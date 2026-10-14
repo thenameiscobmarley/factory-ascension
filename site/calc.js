@@ -14,6 +14,8 @@ var FA_CALC = (function () {
   function def(id) {
     var e = cfg().enchants[id];
     if (e) return e;
+    var f = /^(.+)~([01])$/.exec(id);
+    if (f && cfg().enchants[f[1]]) return global.FA_fusionPart(f[1], +f[2]);
     var m = /^r(\d+)_(\d+)$/.exec(id);
     if (!m) return null;
     return global.FA_rollEnchant(+m[1]).affixes[+m[2]] || null;
@@ -25,7 +27,12 @@ var FA_CALC = (function () {
     var stars = item.stars > 0 ? item.stars : 0;
     var mult = global.FA_starMult(stars);
     var e = item.e || {};
-    Object.keys(e).forEach(function (id) { if (cfg().enchants[id] && e[id] > 0) add(id, Math.floor(e[id] * mult)); });
+    Object.keys(e).forEach(function (id) {
+      var d = cfg().enchants[id];
+      if (!d || !(e[id] > 0)) return;
+      if (d.type == "fusion") { add(id + "~0", Math.floor(e[id] * mult)); add(id + "~1", Math.floor(e[id] * mult)); }
+      else add(id, Math.floor(e[id] * mult));
+    });
     (item.gems || []).slice(0, cfg().gems.sockets).forEach(function (g) {
       var type = cfg().gems.types[g[0]];
       if (type && g[1] >= 1 && g[1] <= 3) add(type.enchant, Math.floor(global.FA_gemLevels(g[1]) * mult));
@@ -87,7 +94,9 @@ var FA_CALC = (function () {
       } else if (d.type == "mining") {
         out.mining *= 1 + d.perLevel * L;
       }
-      out.lines.push({ id: id, name: cfg().enchants[id] ? cfg().enchants[id].name : null, level: L, text: global.FA_describeDef(d, L), mythic: !!d.mythic, rolled: !cfg().enchants[id] });
+      var fus = /^(.+)~[01]$/.exec(id);
+      out.lines.push({ id: id, name: cfg().enchants[id] ? cfg().enchants[id].name : fus && cfg().enchants[fus[1]] ? cfg().enchants[fus[1]].name : null,
+        level: L, text: global.FA_describeDef(d, L), mythic: !!d.mythic, rolled: !cfg().enchants[id] && !fus, fusion: !!fus });
     });
     out.effectiveHealth = 20 / out.taken;
     return out;

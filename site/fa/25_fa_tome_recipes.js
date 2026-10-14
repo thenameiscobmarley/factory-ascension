@@ -2,6 +2,7 @@
 // Blank tome: a deployer presses an Ascension Core into a book.
 // Enchant tomes: blank tome + a themed catalyst in a heated mixer.
 // Mythic tomes: also 4 Mythic Fragments, superheated.
+// Fusion tomes: the two parent tomes + an Ascension Core, heated.
 // Every tome has at least one catalyst no other tome uses, so the mixer never mixes them up.
 
 ServerEvents.recipes(event => {
@@ -105,6 +106,16 @@ ServerEvents.recipes(event => {
   }).id('kubejs:factory_ascension/chaos_tome')
 
   Object.keys(global.FA.enchants).forEach(id => {
+    let e = global.FA.enchants[id]
+    if (e.type == 'fusion') {
+      event.custom({
+        type: 'create:mixing',
+        ingredients: [{ item: 'kubejs:tome_' + e.parts[0] }, { item: 'kubejs:tome_' + e.parts[1] }, { item: 'kubejs:ascension_core' }],
+        results: [{ item: 'kubejs:tome_' + id }],
+        heatRequirement: 'heated'
+      }).id('kubejs:factory_ascension/tome_' + id)
+      return
+    }
     let items = catalysts[id]
     if (!items) {
       console.error('[Factory Ascension] no tome recipe for enchant "' + id + '"')

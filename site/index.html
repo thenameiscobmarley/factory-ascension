@@ -36,15 +36,15 @@
       Protection 3000 isn't a cheat. It's just a bigger factory.</p>
     <div class="cta" data-uv-reveal>
       <a class="uv-btn uv-btn--lg uv-btn--primary magnet" href="#install">Install it</a>
-      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="#enchants">Browse 74 enchants</a>
+      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="#enchants">Browse 274 enchants</a>
       <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="builder.html">Gear Builder</a>
     </div>
   </div>
   <div class="stats">
-    <div><b data-uv-count="74">0</b><small>enchants</small></div>
+    <div><b data-uv-count="274">0</b><small>enchants</small></div>
     <div><b data-uv-count="15">0</b><small>Mythic powers</small></div>
     <div><b>&infin;</b><small>level cap</small></div>
-    <div><b data-uv-count="256">0</b><small>safety checks</small></div>
+    <div><b data-uv-count="264">0</b><small>safety checks</small></div>
   </div>
 </header>
 
@@ -82,7 +82,7 @@
 <section class="sec" id="enchants">
   <div class="wrap">
     <p class="mono" data-uv-reveal>02 · Enchants</p>
-    <h2 class="uv-h2" data-uv-reveal>74 enchants. No ceiling.</h2>
+    <h2 class="uv-h2" data-uv-reveal>274 enchants. No ceiling.</h2>
     <p class="sub" data-uv-reveal>Drag the level and watch them scale. These numbers come straight from the pack's config, so they're exactly what you get in game.</p>
 
     <div class="controls">
@@ -203,7 +203,7 @@
   <span class="ok">ok</span>   exactly one tome used per unlock
   <span class="ok">ok</span>   a failed upgrade is rolled back (no free levels)
   <span class="ok">ok</span>   gear drops are never duplicated
-<b class="ok">all checks passed</b>  <span class="dim">(256)</span></pre>
+<b class="ok">all checks passed</b>  <span class="dim">(264)</span></pre>
   </div>
 </section>
 
@@ -246,7 +246,7 @@
     recipes: function (fn) {
       fn({ custom: function (j) {
         var out = j.results && j.results[0] && j.results[0].item;
-        if (out && out.indexOf("kubejs:tome_") === 0) FA_RECIPES[out.slice(12)] = { items: j.ingredients.slice(1).map(function (i) { return i.item; }), heat: j.heatRequirement };
+        if (out && out.indexOf("kubejs:tome_") === 0) FA_RECIPES[out.slice(12)] = { items: j.ingredients.map(function (i) { return i.item; }).filter(function (i) { return i != "kubejs:blank_ascension_tome"; }), heat: j.heatRequirement };
         return { id: function () {} };
       } });
     }

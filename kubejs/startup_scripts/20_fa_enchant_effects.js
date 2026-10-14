@@ -78,6 +78,15 @@ function faItemLevels(data) {
     let value = data.getInt(id)
     // Ignore broken values (only possible from hand-edited NBT) and cap totals, so nothing overflows
     if (value <= 0 || FA_RESERVED[id] && id != 'souls') continue
+    let e = global.FA.enchants[id]
+    if (e && e.type == 'fusion') {
+      // A fusion is its two parent effects, each a virtual enchant "<id>~0" / "<id>~1"
+      for (let i = 0; i < 2; i++) {
+        faRegisterVirtual(id + '~' + i, global.FA_fusionPart(id, i))
+        add(id + '~' + i, Math.floor(value * mult))
+      }
+      continue
+    }
     add(id, id == 'souls' ? value : Math.floor(value * mult))
   }
   // Gems: {"0": {type, tier}, ...}
