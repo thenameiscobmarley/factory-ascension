@@ -49,3 +49,13 @@ diamonds + polished rose quartz + lava (+ TFMG steel)
 ```
 
 Polished rose quartz: mix redstone + quartz into rose quartz, then deployers with sandpaper polish it.
+
+## Tome line
+
+```
+book + Ascension Core -> deployer -> Blank Ascension Tome
+blank tome + catalyst -> heated mixer -> Tome of <enchant>
+```
+
+Tomes are only used to unlock an enchant on a new piece of gear, so you need far fewer of them than cores.
+Most of the factory's output should be cores for Essence.

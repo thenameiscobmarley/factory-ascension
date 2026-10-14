@@ -1,75 +1,100 @@
 # Factory Ascension
 
-A Minecraft modpack setup (Forge 1.20.1) where your **Create factory is your power**.
-The bigger the factory grows, the more overpowered you get, with no level cap.
+A Minecraft modpack setup (Forge 1.20.1) where your **Create factory powers your gear**.
+The bigger the factory grows, the stronger your enchants get, with no level cap.
+Want **Protection 3000**? Build a factory big enough to pay for it.
 Mobs don't scale with time or distance, so you can explore freely and AFK safely.
+
+**Install:** follow [INSTALL.md](INSTALL.md).
 
 ## The loop
 
 ```
-cobble generators -> mineral clusters -> ores -> diamonds + rose quartz + steel
-      -> Ascension Cores (Create sequenced assembly)
-      -> right-click to absorb -> Ascension level up
-      -> more damage, less damage taken, more hearts, more mob loot
-      -> crush bosses and dungeons -> grow the factory -> repeat
+cobble generators -> mineral clusters -> ores -> diamonds, rose quartz, steel
+   -> Ascension Cores (Create assembly line) -> absorb into your Essence bank
+   -> Tomes unlock Ascended enchants on any gear -> spend Essence to level them up
+   -> crush bosses and dungeons -> grow the factory -> repeat
 ```
 
-Each level costs 12% more Essence than the last, so steady power needs a factory
-that keeps growing. The rewards never cap.
+## Ascended enchants
 
-## What the scripts add
+Separate from vanilla enchants (vanilla caps levels at 255), so levels go as high as your factory can pay for.
+They count from **every equipped item**, both hands and all armor, so you can put any enchant on any gear.
 
-| Feature | Details |
+| Enchant | Per level | At 3000 |
+|---|---|---|
+| Ascended Sharpness | +10% damage | x301 damage |
+| Ascended Protection | damage taken / (1 + 4%) | -99.2% damage taken |
+| Vitality | +2 hidden health (no extra hearts drawn) | +6,000 hidden health |
+| Lifesteal | heal 1% of damage dealt | heal 3000% |
+| Plunder | +5% mob drops | x151 loot |
+| Swiftness | +1% speed (max +50%) | +50% speed |
+| Retribution | reflect 5% of damage taken | reflect 15000% |
+| Excavation | +25% mining speed | x751 mining speed |
+| Eternal | item never breaks | (one level only) |
+
+Each level costs a bit more than the last: levels 1-20 cost 1 Essence each, level 3000 costs 151,
+and getting one enchant from 0 to 3000 takes about 226K Essence.
+
+## How to use it
+
+1. **Absorb cores:** right-click an Ascension Core for 1 Essence. Sneak + right-click absorbs the whole stack.
+   Dense Cores give 9 and Singularities give 81.
+2. **Unlock an enchant:** hold a Tome in one hand and gear in the other, then right-click the tome.
+   It costs the tome and 1 Essence.
+3. **Level it up:** hold the gear and type `/ascension`. Click **[+1] [+10] [+100] [+1000] [Max]**.
+
+The enchants show in the item's tooltip right under its name, with what they do, e.g.
+`Ascended Sharpness 101  x11.10 damage`.
+
+## Recipes (all automatable with Create)
+
+| Item | How |
 |---|---|
-| **Ascension Core** | Made on a Create assembly line: diamond + polished rose quartz + lava, pressed, 3 loops (+ steel with TFMG). Right-click for 1 Essence, sneak + right-click absorbs the whole stack. |
-| **Dense Core / Singularity** | 9 cores -> Dense (heated compacting), 9 Dense -> Singularity (superheated). Worth 9 and 81 Essence. Unpack in a crafting grid. |
-| **Ascension levels** | Per level: +15% damage dealt, damage taken / (1 + 5% per level), +1 heart, +1% speed (max +50%), +5% mob drops. |
-| **Renewable ores** | Cobblestone / gravel / blackstone -> mineral clusters -> crush for iron, copper, zinc, gold, redstone, lapis, diamonds, emeralds and modded metals (Mekanism, TFMG). Also renewable ancient debris. See [docs/FACTORY.md](docs/FACTORY.md). |
-| **`/ascension`** | Shows your level, Essence progress and bonuses. Ops can use `/ascension set <level>` and `/ascension reset`. |
-
-## Install
-
-1. Make a **Forge 1.20.1** instance (Prism Launcher works well) and add the mods in [MODLIST.md](MODLIST.md).
-2. Copy the scripts in:
-   ```sh
-   ./install.sh "/path/to/instance/minecraft"
-   ```
-   It only copies this pack's files and backs up anything it would overwrite.
-3. Launch. Check `logs/kubejs/startup.log` and `server.log` for lines starting with `[Factory Ascension]`.
+| Ascension Core | Sequenced assembly on a diamond: deploy polished rose quartz, (deploy TFMG steel), fill 250 mB lava, press. 3 loops |
+| Dense Core / Singularity | Compact 9 (heated) / 9 Dense (superheated). Unpack in a crafting grid |
+| Blank Ascension Tome | Deployer: Ascension Core onto a book |
+| Enchant Tomes | Heated mixer: blank tome + catalyst (see JEI) |
+| Ores, gems, netherite | Mineral clusters from cobblestone, gravel, blackstone. See [docs/FACTORY.md](docs/FACTORY.md) |
 
 ## Settings
 
-Everything is in `kubejs/startup_scripts/00_fa_config.js`: cost curve, rewards per level,
-loot cap, announcements. Edit it, then restart the game (startup scripts don't `/reload`).
-
-Max health past 1024 (about level 500) needs **AttributeFix**, which lifts vanilla's attribute caps.
+Everything is in `kubejs/startup_scripts/00_fa_config.js`: Essence values, the cost curve, what each
+enchant does per level, and safety limits. Edit it, then restart the game.
 
 ## Safety
 
-- Levels are saved per player in the world's KubeJS data. Nothing is written to player files.
-- Stat bonuses are temporary modifiers re-applied on login/respawn. Remove the scripts and they're gone, with no broken attributes left behind.
-- `/kill` and the void still kill you at any level.
-- Player death drops are never multiplied. Extra loot per kill is capped (`maxExtraDropStacks`) so high levels can't lag the server.
-- If absorbing a core ever fails, the items are given back.
+- Essence is saved per player in the world's KubeJS data. Enchant levels live on the item.
+- `/kill` and the void still kill you, whatever your Protection.
+- Player death drops are never multiplied. Extra loot per kill is capped so Plunder can't lag the server.
+- Retribution can't bounce damage back and forth forever between two players.
+- If absorbing cores fails, the items are given back. A tome is only used up when the unlock succeeds.
+- Only single unstackable items (tools, weapons, armor) can be enchanted, never a stack.
 - Recipes that use other mods only load when those mods are installed.
 - A broken hook logs one error and switches itself off instead of spamming the log.
+
+## Commands
+
+| Command | Who | What |
+|---|---|---|
+| `/ascension` | Everyone | Essence bank + upgrade menu for the held item |
+| `/ascension upgrade <enchant> <levels>` | Everyone | What the menu buttons run |
+| `/ascension essence add/set <n>` | Ops | Testing and server admin |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and checks recipes, levelling, combat and loot (36 checks):
+KubeJS API and checks recipes, Essence, tomes, upgrades, every enchant effect, loot and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
 java -jar rhino-1.7.15.jar -version 200 tools/test/harness.js
 ```
 
-The harness catches syntax and logic errors. It can't prove the real KubeJS / Minecraft
-calls behave the same, so the first in-game test is still the real check.
+It catches syntax and logic errors, but can't prove the real KubeJS / Minecraft calls behave
+the same. The in-game check in [INSTALL.md](INSTALL.md) is the real test.
 
-## Textures
-
-16x16 item textures are generated by `python3 tools/make_textures.py`.
+Textures are generated by `python3 tools/make_textures.py`.
 
 ## License
 

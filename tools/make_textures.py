@@ -125,6 +125,47 @@ def cluster(rock_light, rock_dark, specks, seed):
     return px
 
 
+def book(cover, gem_color):
+    """Closed book: colored cover, cream page edge, gem on the front."""
+    px = blank()
+    dark = lerp(cover, (0, 0, 0), 0.45)
+    light = lerp(cover, (255, 255, 255), 0.25)
+    for y in range(2, 14):
+        for x in range(3, 13):
+            col = cover
+            if x == 3 or y == 2:
+                col = light
+            if x <= 4:
+                col = dark  # spine
+            px[y][x] = col + (255,)
+    # Page edge along the bottom and right
+    for x in range(5, 13):
+        px[13][x] = (236, 226, 196, 255)
+    for y in range(3, 14):
+        px[y][12] = (236, 226, 196, 255)
+    # Gold corners
+    for x, y in ((11, 2), (5, 2), (11, 12)):
+        px[y][x] = (240, 200, 80, 255)
+    # Gem in the middle of the cover
+    for x, y in ((8, 6), (7, 7), (8, 7), (9, 7), (8, 8)):
+        px[y][x] = gem_color + (255,)
+    px[6][8] = lerp(gem_color, (255, 255, 255), 0.6) + (255,)
+    return px
+
+
+TOMES = {
+    "sharpness": ((150, 30, 35), (255, 90, 90)),
+    "protection": ((30, 90, 150), (120, 220, 255)),
+    "vitality": ((30, 120, 50), (120, 255, 120)),
+    "lifesteal": ((90, 10, 20), (220, 30, 50)),
+    "plunder": ((150, 120, 20), (255, 230, 80)),
+    "swiftness": ((140, 150, 160), (240, 250, 255)),
+    "retribution": ((150, 80, 20), (255, 170, 60)),
+    "excavation": ((40, 50, 140), (110, 140, 255)),
+    "eternal": ((80, 30, 120), (230, 140, 255)),
+}
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     edge = (24, 10, 36, 255)
@@ -140,6 +181,9 @@ def main():
         "exotic_mineral_cluster": outline(cluster((60, 55, 70), (25, 22, 30),
                                                   [(150, 200, 255), (170, 170, 190), (120, 255, 120), (210, 140, 255)], 3), (10, 8, 14, 255)),
     }
+    textures["blank_ascension_tome"] = outline(book((105, 70, 45), (190, 120, 255)), edge)
+    for name, (cover, gem_color) in TOMES.items():
+        textures["tome_" + name] = outline(book(cover, gem_color), edge)
     for name, px in textures.items():
         png(os.path.join(OUT, name + ".png"), px)
         print("wrote", name + ".png")

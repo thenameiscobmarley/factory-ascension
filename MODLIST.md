@@ -16,11 +16,10 @@ count and the version notes on each page. Create add-ons sometimes lag behind ne
 
 | Mod | Why |
 |---|---|
-| [Create: The Factory Must Grow](https://www.curseforge.com/minecraft/mc-mods/create-industry) | Steel, oil, engines. Adds steel to the Ascension Core recipe. Make sure the 1.20.1 build matches your Create version |
+| [Create: The Factory Must Grow](https://www.curseforge.com/minecraft/mc-mods/create-industry) | Steel, oil, engines. Adds steel to the Ascension Core recipe and metals to the Exotic cluster. Make sure the 1.20.1 build matches your Create version |
 | [Mekanism](https://www.curseforge.com/minecraft/mc-mods/mekanism) | MekaSuit, ore processing, extra metals for the Exotic cluster |
 | [Tinkers' Construct](https://www.curseforge.com/minecraft/mc-mods/tinkers-construct) | Build-your-own weapons from factory alloys |
 | [Create Enchantment Industry](https://www.curseforge.com/minecraft/mc-mods/create-enchantment-industry) | Liquid XP and automated enchanting. Check it supports your Create version |
-| [AttributeFix](https://www.curseforge.com/minecraft/mc-mods/attributefix) | Lifts vanilla's 1024 max-health cap for very high levels |
 
 ## Things to fight
 
@@ -37,3 +36,11 @@ count and the version notes on each page. Create add-ons sometimes lag behind ne
 |---|---|
 | [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) | Recipe lookup, shows all the Factory Ascension recipes |
 | [Jade](https://www.curseforge.com/minecraft/mc-mods/jade) | See what's inside machines |
+
+## Performance (recommended, especially on lower-end PCs)
+
+| Mod | Why |
+|---|---|
+| [Embeddium](https://www.curseforge.com/minecraft/mc-mods/embeddium) | Much faster rendering (Sodium for Forge) |
+| [ModernFix](https://www.curseforge.com/minecraft/mc-mods/modernfix) | Faster loading, less RAM |
+| [FerriteCore](https://www.curseforge.com/minecraft/mc-mods/ferritecore) | Less RAM |

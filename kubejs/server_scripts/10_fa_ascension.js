@@ -1,207 +1,237 @@
-// Factory Ascension - levels, Essence and player stats.
-// Progress is saved in the world's KubeJS data (server.persistentData), keyed by player UUID,
-// so it survives death, relogs and restarts. Stat bonuses are transient attribute modifiers:
-// they are re-applied on login/respawn and are never written into the player file, so
-// removing these scripts leaves no leftover stats behind.
+// Factory Ascension - Essence bank, tomes and the /ascension upgrade menu.
+//
+//   1. Absorb Ascension Cores -> Essence bank (saved per player in the world's KubeJS data)
+//   2. Tome in one hand + gear in the other, right-click the tome -> unlocks that enchant on the gear (uses the tome)
+//   3. Hold the gear, type /ascension -> click [+1] [+10] [+100] [Max] to spend Essence on levels
+//
+// Enchant levels are stored in the item's NBT ("FactoryAscension"), so they stay on the item
+// when it's dropped, stored or traded. Effects are in startup_scripts/20_fa_enchant_effects.js.
 
-const $FAAttributes = Java.loadClass('net.minecraft.world.entity.ai.attributes.Attributes')
-const $FAModifier = Java.loadClass('net.minecraft.world.entity.ai.attributes.AttributeModifier')
-const $FAOperation = Java.loadClass('net.minecraft.world.entity.ai.attributes.AttributeModifier$Operation')
+const FA_ITEM_TAG = 'FactoryAscension'
+const FA_MENU_STEPS = [1, 10, 100, 1000]
 
-const FA_HEALTH_MOD = 'factory_ascension_health'
-const FA_SPEED_MOD = 'factory_ascension_speed'
+// ---- Essence bank ----
 
-// ---- Saved data ----
-
-function faGetLevel(server, uuid) {
-  return server.persistentData.getInt('fa_level_' + uuid)
+function faGetEssence(player) {
+  return player.getServer().persistentData.getDouble('fa_essence_' + player.getStringUUID())
 }
 
-function faGetEssence(server, uuid) {
-  return server.persistentData.getDouble('fa_essence_' + uuid)
+function faSetEssence(player, value) {
+  player.getServer().persistentData.putDouble('fa_essence_' + player.getStringUUID(), Math.max(0, value))
 }
 
-function faSave(server, uuid, level, essence) {
-  server.persistentData.putInt('fa_level_' + uuid, level)
-  server.persistentData.putDouble('fa_essence_' + uuid, essence)
+// ---- Gear ----
+
+// Gear = any single, unstackable item (tools, weapons, armor, shields, Tinkers tools, ...)
+function faIsGear(stack) {
+  return !stack.isEmpty() && stack.getMaxStackSize() == 1 && stack.getCount() == 1
 }
 
-function faCost(level) {
-  return Math.ceil(global.FA.costBase * Math.pow(global.FA.costGrowth, level))
+// The item being enchanted: the main hand if it holds gear, otherwise the off hand
+function faTarget(player) {
+  let main = player.getMainHandItem()
+  if (faIsGear(main)) return main
+  let off = player.getOffhandItem()
+  if (faIsGear(off)) return off
+  return null
 }
 
-// ---- Numbers ----
+function faGetLevel(stack, id) {
+  let tag = stack.getTag()
+  return tag && tag.contains(FA_ITEM_TAG) ? tag.getCompound(FA_ITEM_TAG).getInt(id) : 0
+}
 
-const FA_UNITS = ['K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc']
+function faSetLevel(stack, id, level) {
+  let tag = stack.getOrCreateTag()
+  let data = tag.getCompound(FA_ITEM_TAG)
+  data.putInt(id, level)
+  tag.put(FA_ITEM_TAG, data)
+  if (id == 'eternal') tag.putBoolean('Unbreakable', true)
+}
 
-function faFmt(n) {
-  if (!isFinite(n)) return 'Infinity'
-  if (n < 10000) return String(Math.floor(n))
-  let i = -1
-  while (n >= 1000 && i < FA_UNITS.length - 1) {
-    n /= 1000
-    i++
+function faMaxLevel(id) {
+  let max = global.FA.enchants[id].maxLevel
+  return max ? max : 2147483647
+}
+
+// ---- Feedback ----
+
+function faSound(player, sound, pitch) {
+  player.getServer().runCommandSilent('execute at ' + player.getScoreboardName() +
+    ' run playsound ' + sound + ' player ' + player.getScoreboardName() + ' ~ ~ ~ 1 ' + pitch)
+}
+
+function faButton(label, command, hover) {
+  return Text.green('[' + label + ']').clickRunCommand(command).hover(Text.gray(hover))
+}
+
+// The /ascension menu: Essence bank, and the target item's enchants with upgrade buttons
+function faShowMenu(player) {
+  let essence = faGetEssence(player)
+  player.tell(Text.lightPurple('Essence: ').append(Text.white(global.FA_num(essence))).bold(true))
+
+  let gear = faTarget(player)
+  if (!gear) {
+    player.tell(Text.gray('Hold a weapon, tool or armor piece to see its Ascended enchants.'))
+    return 1
   }
-  if (n >= 1000) return (n * Math.pow(1000, i + 1)).toExponential(2)
-  return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + FA_UNITS[i]
-}
 
-function faPct(x) {
-  return Math.round(x * 100) + '%'
-}
+  player.tell(Text.gold('').append(gear.getHoverName()).append(Text.gray(':')))
+  let any = false
+  Object.keys(global.FA.enchants).forEach(id => {
+    let level = faGetLevel(gear, id)
+    if (level <= 0) return
+    any = true
 
-// ---- Stats ----
+    let line = Text.gold(' ' + global.FA.enchants[id].name + ' ' + global.FA_num(level) + ' ')
+      .append(Text.gray(global.FA_describe(id, level) + ' '))
+    if (level < faMaxLevel(id)) {
+      let cost = global.FA_cost(level)
+      FA_MENU_STEPS.forEach(step => {
+        line = line.append(faButton('+' + step, '/ascension upgrade ' + id + ' ' + step,
+          'Add ' + step + ' level' + (step > 1 ? 's' : '') + ' (next costs ' + global.FA_num(cost) + ' Essence)')).append(Text.gray(' '))
+      })
+      line = line.append(faButton('Max', '/ascension upgrade ' + id + ' ' + global.FA.maxUpgradesPerCommand,
+        'Spend as much Essence as possible'))
+    } else {
+      line = line.append(Text.darkGray('(max)'))
+    }
+    player.tell(line)
+  })
 
-// Replaces our named modifier on one attribute (removing first so it never stacks)
-function faSetModifier(player, attribute, name, amount, operation) {
-  let instance = player.getAttribute(attribute)
-  if (!instance) return
-  let old = []
-  let it = instance.getModifiers().iterator()
-  while (it.hasNext()) {
-    let mod = it.next()
-    if (mod.getName() == name) old.push(mod)
-  }
-  old.forEach(mod => instance.removeModifier(mod))
-  if (amount != 0) instance.addTransientModifier(new $FAModifier(name, amount, operation))
-}
-
-function faApplyStats(player, healToFull) {
-  let cfg = global.FA
-  let uuid = player.getStringUUID()
-  let level = faGetLevel(player.getServer(), uuid)
-  global.FA_LEVELS[uuid] = level
-
-  faSetModifier(player, $FAAttributes.MAX_HEALTH, FA_HEALTH_MOD, cfg.healthPerLevel * level, $FAOperation.ADDITION)
-  faSetModifier(player, $FAAttributes.MOVEMENT_SPEED, FA_SPEED_MOD,
-    Math.min(cfg.speedCap, cfg.speedPerLevel * level), $FAOperation.MULTIPLY_BASE)
-
-  if (healToFull || player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth())
-}
-
-function faSafeApply(player, healToFull) {
-  try {
-    faApplyStats(player, healToFull)
-  } catch (err) {
-    console.error('[Factory Ascension] could not apply stats to ' + player.getScoreboardName() + ': ' + err)
-  }
-}
-
-// ---- Levelling ----
-
-function faAddEssence(player, amount) {
-  let cfg = global.FA
-  let server = player.getServer()
-  let uuid = player.getStringUUID()
-  let start = faGetLevel(server, uuid)
-  let level = start
-  let essence = faGetEssence(server, uuid) + amount
-
-  while (level < cfg.maxLevel && essence >= faCost(level)) {
-    essence -= faCost(level)
-    level++
-  }
-  faSave(server, uuid, level, essence)
-
-  if (level > start) {
-    faApplyStats(player, cfg.healOnLevelUp)
-    faCelebrate(player, start, level)
-  }
-  player.displayClientMessage(
-    Text.lightPurple('+' + faFmt(amount) + ' Essence  ')
-      .append(Text.gray(faFmt(essence) + ' / ' + faFmt(faCost(level)) + ' to Ascension ' + (level + 1))),
-    true)
-}
-
-function faCelebrate(player, from, to) {
-  let server = player.getServer()
-  let name = player.getScoreboardName()
-  let gained = to - from
-
-  server.runCommandSilent('title ' + name + ' times 5 40 15')
-  server.runCommandSilent('title ' + name + ' subtitle {"text":"Ascension ' + to +
-    (gained > 1 ? '  (+' + gained + ')' : '') + '","color":"light_purple"}')
-  server.runCommandSilent('title ' + name + ' title {"text":"ASCENDED","color":"gold","bold":true}')
-  server.runCommandSilent('execute at ' + name + ' run playsound minecraft:ui.toast.challenge_complete player ' + name + ' ~ ~ ~ 1 1')
-  server.runCommandSilent('execute at ' + name + ' run particle minecraft:totem_of_undying ~ ~1 ~ 0.6 1 0.6 0.4 120 normal')
-
-  // Announce each time a multiple of announceEvery is crossed
-  let every = global.FA.announceEvery
-  if (every > 0 && Math.floor(to / every) > Math.floor(from / every)) {
-    server.tell(Text.gold(name).append(Text.yellow(' has reached Ascension ' + to + '!')))
-  }
-}
-
-function faShowStatus(player) {
-  let cfg = global.FA
-  let server = player.getServer()
-  let uuid = player.getStringUUID()
-  let level = faGetLevel(server, uuid)
-  let essence = faGetEssence(server, uuid)
-  let taken = 1 - 1 / (1 + cfg.damageTakenPerLevel * level)
-
-  player.tell(Text.gold('Ascension ' + level).bold(true))
-  player.tell(Text.gray('Essence: ').append(Text.lightPurple(faFmt(essence) + ' / ' + faFmt(faCost(level))))
-    .append(Text.gray(' to the next level')))
-  player.tell(Text.gray('Damage dealt: ').append(Text.red('x' + (1 + cfg.damageDealtPerLevel * level).toFixed(2)))
-    .append(Text.gray('   Damage taken: ')).append(Text.green('-' + faPct(taken))))
-  player.tell(Text.gray('Bonus health: ').append(Text.red('+' + faFmt(cfg.healthPerLevel * level / 2) + ' hearts'))
-    .append(Text.gray('   Speed: ')).append(Text.aqua('+' + faPct(Math.min(cfg.speedCap, cfg.speedPerLevel * level)))))
-  player.tell(Text.gray('Mob loot: ').append(Text.yellow('x' + (1 + cfg.lootPerLevel * level).toFixed(2))))
+  if (!any) player.tell(Text.gray(' No Ascended enchants yet. Hold a Tome in your other hand and right-click it.'))
   return 1
 }
 
-function faSetLevel(player, level) {
-  faSave(player.getServer(), player.getStringUUID(), level, 0)
-  faApplyStats(player, true)
-  return faShowStatus(player)
+// ---- Actions ----
+
+function faAbsorb(player, stack, id) {
+  let count = player.isShiftKeyDown() ? stack.getCount() : 1
+  if (count <= 0) return
+  stack.shrink(count)
+  try {
+    let gained = count * global.FA.essenceValues[id]
+    let total = faGetEssence(player) + gained
+    faSetEssence(player, total)
+    player.displayClientMessage(Text.lightPurple('+' + global.FA_num(gained) + ' Essence  ')
+      .append(Text.gray('(bank: ' + global.FA_num(total) + ')')), true)
+    faSound(player, 'minecraft:entity.experience_orb.pickup', 0.6)
+  } catch (err) {
+    // Hand the items back rather than lose them
+    player.give(Item.of(id, count))
+    console.error('[Factory Ascension] absorbing ' + id + ' failed, items returned: ' + err)
+  }
+}
+
+function faUnlock(player, tome, id, gear) {
+  let name = global.FA.enchants[id].name
+  if (!faIsGear(gear)) {
+    player.displayClientMessage(Text.red('Hold the gear you want to enchant in your other hand.'), true)
+    return
+  }
+  if (faGetLevel(gear, id) > 0) {
+    player.displayClientMessage(Text.yellow('That already has ' + name + '. Hold it and type /ascension to upgrade it.'), true)
+    return
+  }
+  let cost = global.FA_cost(0)
+  let essence = faGetEssence(player)
+  if (essence < cost) {
+    player.displayClientMessage(Text.red('Unlocking needs ' + global.FA_num(cost) + ' Essence. Absorb some Ascension Cores first.'), true)
+    return
+  }
+
+  faSetEssence(player, essence - cost)
+  faSetLevel(gear, id, 1)
+  tome.shrink(1)
+  faSound(player, 'minecraft:block.enchantment_table.use', 1)
+  player.tell(Text.gold(name + ' unlocked on ').append(gear.getHoverName()).append(Text.gold('! '))
+    .append(faButton('Upgrade', '/ascension', 'Open the upgrade menu')))
+}
+
+function faUpgrade(player, id, amount) {
+  let gear = faTarget(player)
+  let name = global.FA.enchants[id].name
+  if (!gear) {
+    player.tell(Text.red('Hold the item you want to upgrade.'))
+    return 0
+  }
+  let level = faGetLevel(gear, id)
+  if (level <= 0) {
+    player.tell(Text.red('This item has no ' + name + ' yet. Unlock it with a Tome of ' + name + ' first.'))
+    return 0
+  }
+
+  let essence = faGetEssence(player)
+  let max = faMaxLevel(id)
+  let added = 0
+  let spent = 0
+  while (added < amount && level < max) {
+    let cost = global.FA_cost(level)
+    if (essence - spent < cost) break
+    spent += cost
+    level++
+    added++
+  }
+
+  if (added == 0) {
+    player.tell(level >= max
+      ? Text.yellow(name + ' is already at its max level.')
+      : Text.red('Not enough Essence: the next level costs ' + global.FA_num(global.FA_cost(level)) + '.'))
+    return 0
+  }
+
+  faSetEssence(player, essence - spent)
+  faSetLevel(gear, id, level)
+  faSound(player, 'minecraft:block.enchantment_table.use', 1.4)
+  player.tell(Text.green('+' + global.FA_num(added) + ' ' + name + ' -> ' + global.FA_num(level) + '  ')
+    .append(Text.gray('(' + global.FA_describe(id, level) + ', spent ' + global.FA_num(spent) + ' Essence)')))
+  return 1
 }
 
 // ---- Events ----
 
 Object.keys(global.FA.essenceValues).forEach(id => {
   ItemEvents.rightClicked(id, event => {
-    let player = event.player
-    let stack = event.item
-    let count = player.isShiftKeyDown() ? stack.getCount() : 1
-    if (count <= 0) return
-
-    stack.shrink(count)
-    try {
-      faAddEssence(player, count * global.FA.essenceValues[id])
-    } catch (err) {
-      // Hand the items back rather than lose them
-      player.give(Item.of(id, count))
-      console.error('[Factory Ascension] absorbing ' + id + ' failed, items returned: ' + err)
-    }
+    faAbsorb(event.player, event.item, id)
     event.cancel()
   })
 })
 
-PlayerEvents.loggedIn(event => faSafeApply(event.player, false))
-PlayerEvents.respawned(event => faSafeApply(event.player, true))
-PlayerEvents.loggedOut(event => {
-  delete global.FA_LEVELS[event.player.getStringUUID()]
+Object.keys(global.FA.enchants).forEach(id => {
+  ItemEvents.rightClicked('kubejs:tome_' + id, event => {
+    // The tome enchants whatever is in the other hand
+    let player = event.player
+    let gear = String(event.hand) == 'MAIN_HAND' ? player.getOffhandItem() : player.getMainHandItem()
+    faUnlock(player, event.item, id, gear)
+    event.cancel()
+  })
 })
 
 ServerEvents.commandRegistry(event => {
   let { commands: Commands, arguments: Arguments } = event
 
-  event.register(Commands.literal('ascension')
-    .executes(ctx => faShowStatus(ctx.source.getPlayerOrException()))
-    .then(Commands.literal('set')
-      .requires(src => src.hasPermission(2))
-      .then(Commands.argument('level', Arguments.INTEGER.create(event))
-        .executes(ctx => faSetLevel(ctx.source.getPlayerOrException(),
-          Math.max(0, Math.min(global.FA.maxLevel, Arguments.INTEGER.getResult(ctx, 'level')))))))
-    .then(Commands.literal('reset')
-      .requires(src => src.hasPermission(2))
-      .executes(ctx => faSetLevel(ctx.source.getPlayerOrException(), 0))))
-})
+  let upgrade = Commands.literal('upgrade')
+  Object.keys(global.FA.enchants).forEach(id => {
+    upgrade = upgrade.then(Commands.literal(id)
+      .then(Commands.argument('amount', Arguments.INTEGER.create(event))
+        .executes(ctx => faUpgrade(ctx.source.getPlayerOrException(), id,
+          Math.max(1, Math.min(global.FA.maxUpgradesPerCommand, Arguments.INTEGER.getResult(ctx, 'amount')))))))
+  })
 
-// After /reload, re-apply stats to everyone already online
-try {
-  if (Utils.server) Utils.server.getPlayerList().getPlayers().forEach(p => faSafeApply(p, false))
-} catch (err) {
-  console.error('[Factory Ascension] reload re-apply failed: ' + err)
-}
+  let essenceCmd = (name, apply) => Commands.literal(name)
+    .then(Commands.argument('amount', Arguments.INTEGER.create(event))
+      .executes(ctx => {
+        let player = ctx.source.getPlayerOrException()
+        faSetEssence(player, apply(faGetEssence(player), Arguments.INTEGER.getResult(ctx, 'amount')))
+        return faShowMenu(player)
+      }))
+
+  event.register(Commands.literal('ascension')
+    .executes(ctx => faShowMenu(ctx.source.getPlayerOrException()))
+    .then(upgrade)
+    // Op-only, for testing and server admins
+    .then(Commands.literal('essence')
+      .requires(src => src.hasPermission(2))
+      .then(essenceCmd('add', (old, n) => old + n))
+      .then(essenceCmd('set', (old, n) => n))))
+})
