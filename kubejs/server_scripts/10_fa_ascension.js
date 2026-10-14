@@ -103,6 +103,28 @@ function faShowMenu(player) {
   return 1
 }
 
+// /ascension danger: how dangerous it is right where you stand
+function faShowDanger(player) {
+  let d = global.FA.danger
+  if (!d.enabled) {
+    player.tell(Text.gray('Danger scaling is turned off.'))
+    return 1
+  }
+  let danger = global.FA_dangerLevel(player.level(), player.getX(), player.getZ())
+  let zone = global.FA_zone(danger)
+  let m = global.FA_dangerMult(danger, false)
+  let elite = Math.min(d.eliteChanceCap, d.eliteChancePerLevel * danger)
+  player.tell(Text.gold(zone.name + '  ').append(Text.gray('Danger ' + danger)).bold(true))
+  if (danger == 0) {
+    player.tell(Text.gray(' Mobs are normal here. Danger starts ' + d.safeRadius + ' blocks from world spawn.'))
+    return 1
+  }
+  player.tell(Text.gray(' Mobs: ').append(Text.red('x' + m.health.toFixed(1) + ' health, x' + m.damage.toFixed(1) + ' damage')))
+  player.tell(Text.gray(' Rewards: ').append(Text.yellow('x' + m.loot.toFixed(1) + ' loot, x' + m.xp.toFixed(1) + ' XP')))
+  player.tell(Text.gray(' Elites: ').append(Text.lightPurple(Math.round(elite * 100) + '% of mobs')))
+  return 1
+}
+
 // ---- Actions ----
 
 function faAbsorb(player, stack, id) {
@@ -229,6 +251,7 @@ ServerEvents.commandRegistry(event => {
   event.register(Commands.literal('ascension')
     .executes(ctx => faShowMenu(ctx.source.getPlayerOrException()))
     .then(upgrade)
+    .then(Commands.literal('danger').executes(ctx => faShowDanger(ctx.source.getPlayerOrException())))
     // Op-only, for testing and server admins
     .then(Commands.literal('essence')
       .requires(src => src.hasPermission(2))

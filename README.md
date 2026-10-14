@@ -3,7 +3,8 @@
 A Minecraft modpack setup (Forge 1.20.1) where your **Create factory powers your gear**.
 The bigger the factory grows, the stronger your enchants get, with no level cap.
 Want **Protection 3000**? Build a factory big enough to pay for it.
-Mobs don't scale with time or distance, so you can explore freely and AFK safely.
+Mobs get scarier **the farther you go from spawn**, with better loot to match. Time doesn't matter,
+so going AFK is always safe.
 
 **Install:** follow [INSTALL.md](INSTALL.md).
 
@@ -37,6 +38,28 @@ Vitality +6,000 hidden health, Plunder x151 loot, Excavation x751 mining speed.
 Each level costs a bit more than the last: levels 1-20 cost 1 Essence each, level 3000 costs 151,
 and getting one enchant from 0 to 3000 takes about 226K Essence.
 
+## Danger zones
+
+Near spawn, mobs are normal. Past 1000 blocks, every 500 blocks adds a **danger level**, with no cap.
+Crossing into a new zone shows its name on screen. Far-out mobs are tougher, but drop more.
+
+| Distance from spawn | Zone | Danger | Mobs | Loot |
+|---|---|---|---|---|
+| 0 - 1000 | Safe Lands | 0 | normal | normal |
+| 1000+ | The Frontier | 1+ | x1.3 health | x1.1 |
+| 3500 | The Wilds | 6 | x2.5 health, x1.9 damage | x1.6 |
+| 6000 | Dread Reaches | 11 | x3.8 health, x2.7 damage | x2.1 |
+| 11000 | The Abyss | 21 | x6.3 health, x4.2 damage | x3.1 |
+| 21000 | Nightmare | 41 | x11 health, x7 damage | x5.1 |
+| 41000+ | The Void Beyond | 81+ | x21+ health, x13+ damage | x9+ |
+
+- **Elites:** 1% of mobs per danger level (max 25%) spawn as named Elites, like `☠ Elite Zombie · Lv 23`.
+  They have x3 health, x1.5 damage and x3 loot on top of the zone's numbers.
+- **The Nether** counts distance x8 and is always at least danger 3. **The End** is always at least danger 6.
+- Only hostile, non-boss mobs scale. Boss fights from other mods stay as their makers designed them.
+- `/ascension danger` shows the danger where you're standing.
+- Every number is in the `danger` section of `00_fa_config.js`. Set `enabled: false` to turn it off.
+
 ## How to use it
 
 1. **Absorb cores:** right-click an Ascension Core for 1 Essence. Sneak + right-click absorbs the whole stack.
@@ -66,7 +89,8 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Safety
 
 - Essence is saved per player in the world's KubeJS data. Enchant levels live on the item.
-- `/kill` and the void still kill you, whatever your Protection.
+- `/kill` and the void still kill you, whatever your Protection, and still kill scaled mobs too.
+- A mob's danger level is saved on the mob, so it never changes or rolls again after a reload.
 - Player death drops are never multiplied. Extra loot per kill is capped so Plunder can't lag the server.
 - Cleave and Retribution damage can't trigger more enchants, so there are no chain reactions or infinite loops.
 - Cleave only hits hostile mobs, never players, pets or villagers. Reaper never executes bosses.
@@ -82,12 +106,13 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 |---|---|---|
 | `/ascension` | Everyone | Essence bank + upgrade menu for the held item |
 | `/ascension upgrade <enchant> <levels>` | Everyone | What the menu buttons run |
+| `/ascension danger` | Everyone | Danger level, zone and mob multipliers where you stand |
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 100 checks: recipes, Essence, tomes, upgrades, every enchant type, loot and tooltips:
+KubeJS API and runs 119 checks: recipes, Essence, tomes, upgrades, every enchant type, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

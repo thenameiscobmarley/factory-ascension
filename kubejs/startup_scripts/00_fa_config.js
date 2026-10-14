@@ -100,6 +100,39 @@ global.FA = {
     eternal:      { name: 'Eternal', type: 'eternal', maxLevel: 1 }
   },
 
+  // ---- Danger: the farther from spawn, the nastier the mobs (and the better the loot) ----
+  // Danger level = (distance from world spawn - safeRadius) / blocksPerLevel, no cap.
+  // Only hostile, non-boss mobs scale. Being AFK changes nothing: it's all about where you are.
+  danger: {
+    enabled: true,
+    safeRadius: 1000,          // normal mobs within this many blocks of world spawn
+    blocksPerLevel: 500,       // +1 danger level every 500 blocks past that
+    netherScale: 8,            // Nether distance counts x8, like Nether travel
+    netherBonus: 3,            // the Nether is always at least this dangerous
+    endBonus: 6,               // the End too (the main island is inside safeRadius of 0,0)
+    healthPerLevel: 0.25,      // mobs take damage / (1 + 0.25 * level), like having more health
+    damagePerLevel: 0.15,      // mobs deal x(1 + 0.15 * level) damage
+    lootPerLevel: 0.1,         // mob drops x(1 + 0.1 * level)
+    xpPerLevel: 0.2,           // mob XP x(1 + 0.2 * level)
+    // Elites: rare, named, much tougher, much better loot
+    eliteChancePerLevel: 0.01, // 1% per level...
+    eliteChanceCap: 0.25,      // ...up to 25% of mobs
+    eliteHealth: 3,
+    eliteDamage: 1.5,
+    eliteLoot: 3,
+    maxLevel: 0,               // 0 = no cap
+    // Zone names shown when you cross into them, by minimum danger level (title colors are Minecraft color names)
+    zones: [
+      { from: 0, name: 'Safe Lands', color: 'green' },
+      { from: 1, name: 'The Frontier', color: 'yellow' },
+      { from: 5, name: 'The Wilds', color: 'gold' },
+      { from: 10, name: 'Dread Reaches', color: 'red' },
+      { from: 20, name: 'The Abyss', color: 'dark_red' },
+      { from: 40, name: 'Nightmare', color: 'dark_purple' },
+      { from: 80, name: 'The Void Beyond', color: 'dark_gray' }
+    ]
+  },
+
   // ---- Safety limits (not power caps) ----
   maxExtraDropStacks: 8,       // most extra item stacks one kill can spawn, so loot enchants can't lag the server
   maxCleaveTargets: 16,
@@ -173,6 +206,51 @@ global.FA_describe = (id, level) => {
     case 'eternal': return 'never breaks'
   }
   return ''
+}
+
+// ---- Danger helpers ----
+
+// Danger level at a position in a level (world). Overworld: distance from world spawn.
+// Nether: distance from 0,0 x netherScale. Everything else: distance from 0,0.
+global.FA_dangerLevel = (level, x, z) => {
+  let d = global.FA.danger
+  if (!d.enabled) return 0
+  let dim = String(level.dimension().location())
+  let dist
+  let bonus = 0
+  if (dim == 'minecraft:overworld') {
+    let spawn = level.getSharedSpawnPos()
+    dist = Math.sqrt(Math.pow(x - spawn.getX(), 2) + Math.pow(z - spawn.getZ(), 2))
+  } else {
+    dist = Math.sqrt(x * x + z * z)
+    if (dim == 'minecraft:the_nether') {
+      dist *= d.netherScale
+      bonus = d.netherBonus
+    } else if (dim == 'minecraft:the_end') {
+      bonus = d.endBonus
+    }
+  }
+  let danger = Math.max(0, Math.floor((dist - d.safeRadius) / d.blocksPerLevel) + 1) + bonus
+  if (dist < d.safeRadius) danger = bonus
+  return d.maxLevel > 0 ? Math.min(d.maxLevel, danger) : danger
+}
+
+global.FA_zone = danger => {
+  let zones = global.FA.danger.zones
+  let zone = zones[0]
+  zones.forEach(z => { if (danger >= z.from) zone = z })
+  return zone
+}
+
+// Multipliers for a mob at a danger level (elite = the rare named kind)
+global.FA_dangerMult = (danger, elite) => {
+  let d = global.FA.danger
+  return {
+    health: (1 + d.healthPerLevel * danger) * (elite ? d.eliteHealth : 1),
+    damage: (1 + d.damagePerLevel * danger) * (elite ? d.eliteDamage : 1),
+    loot: (1 + d.lootPerLevel * danger) * (elite ? d.eliteLoot : 1),
+    xp: (1 + d.xpPerLevel * danger) * (elite ? d.eliteLoot : 1)
+  }
 }
 
 // Essence cost to go from level L to L+1

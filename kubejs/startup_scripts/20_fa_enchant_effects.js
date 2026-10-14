@@ -64,6 +64,14 @@ function faE(id) {
   return global.FA.enchants[id]
 }
 
+// Danger data saved on a scaled mob: {level, elite}, or null for normal mobs and players
+function faDanger(entity) {
+  if (!entity || !(entity instanceof $FALiving) || entity instanceof $FAPlayer) return null
+  let data = entity.getPersistentData()
+  if (!data.contains('fa_danger')) return null
+  return global.FA_dangerMult(data.getInt('fa_danger'), data.getBoolean('fa_elite'))
+}
+
 // ---- Conditions ----
 
 function faIsBoss(entity) {
@@ -163,8 +171,14 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingHurtEvent', ev
       if (level > 0 && Math.random() < global.FA_chance(level)) scaled *= faE(id).critMultiplier
     })
 
-    // ---- Victim's defenses (/kill and the void ignore them, so nobody gets stuck immortal) ----
+    // ---- Danger: far-out mobs hit harder and take longer to kill ----
     let bypass = source.is($FADamageTypeTags.BYPASSES_INVULNERABILITY)
+    let attackerDanger = faDanger(attacker)
+    if (attackerDanger) scaled *= attackerDanger.damage
+    let victimDanger = faDanger(victim)
+    if (victimDanger && !bypass) scaled /= victimDanger.health
+
+    // ---- Victim's defenses (/kill and the void ignore them, so nobody gets stuck immortal) ----
     if (!bypass) {
       faIds('resist').forEach(id => {
         let level = V[id] || 0
@@ -271,6 +285,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingExperienceDrop
     let levels = faLevels(event.getAttackingPlayer())
     let mult = 1
     faIds('xp').forEach(id => { mult += faE(id).perLevel * (levels[id] || 0) })
+    let danger = faDanger(event.getEntity())
+    if (danger) mult *= danger.xp
     if (mult > 1) event.setDroppedExperience(Math.min(2000000000, Math.round(event.getDroppedExperience() * mult)))
   } catch (err) {
     faWarnOnce('wisdom', err)
@@ -288,7 +304,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     // Never touch a player's death drops
     if (event.getEntity() instanceof $FAPlayer) return
     let levels = faLevels(event.getSource().getEntity())
-    if (Object.keys(levels).length == 0) return
+    let danger = faDanger(event.getEntity())
+    if (Object.keys(levels).length == 0 && !danger) return
 
     let budget = global.FA.maxExtraDropStacks
     let drops = event.getDrops()
@@ -306,9 +323,10 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
       }
     }
 
-    // Plunder: multiply what dropped
+    // Plunder and danger: multiply what dropped
     let mult = 1
     faIds('plunder').forEach(id => { mult += faE(id).perLevel * (levels[id] || 0) })
+    if (danger) mult *= danger.loot
     let it = drops.iterator()
     while (it.hasNext()) {
       let itemEntity = it.next()
@@ -388,12 +406,78 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingEquipmentChang
   }
 })
 
-// ---- Every second: Renewal, passive effects, Magnetism, Restoration ----
+// ---- Danger: tag hostile mobs when they first spawn ----
+// The level is saved on the mob (persistent data), so it keeps it across saves and reloads.
+
+ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', event => {
+  try {
+    let d = global.FA.danger
+    if (!d.enabled || event.loadedFromDisk()) return
+    let mob = event.getEntity()
+    let level = event.getLevel()
+    if (level.isClientSide() || !(mob instanceof $FAEnemy) || !(mob instanceof $FALiving) || faIsBoss(mob)) return
+    let data = mob.getPersistentData()
+    if (data.contains('fa_danger')) return
+
+    let danger = global.FA_dangerLevel(level, mob.getX(), mob.getZ())
+    if (danger <= 0) return
+    data.putInt('fa_danger', danger)
+
+    if (Math.random() < Math.min(d.eliteChanceCap, d.eliteChancePerLevel * danger)) {
+      data.putBoolean('fa_elite', true)
+      mob.setCustomName(Text.red('\u2620 Elite ').append(mob.getType().getDescription()).append(Text.gray(' \u00b7 Lv ' + danger)))
+      mob.setCustomNameVisible(true)
+    }
+  } catch (err) {
+    faWarnOnce('danger spawn', err)
+  }
+})
+
+// ---- Danger: tell players when they cross into a new zone ----
+
+let faLastDanger = {}
+// Minecraft color names -> KubeJS Text helpers, for the action bar
+let FA_TEXT_COLORS = { green: 'green', yellow: 'yellow', gold: 'gold', red: 'red', dark_red: 'darkRed', dark_purple: 'darkPurple', dark_gray: 'gray' }
+
+function faDangerNotice(player) {
+  let uuid = player.getStringUUID()
+  let danger = global.FA_dangerLevel(player.level(), player.getX(), player.getZ())
+  let last = faLastDanger[uuid]
+  faLastDanger[uuid] = danger
+  if (last === undefined || last == danger) return
+
+  let zone = global.FA_zone(danger)
+  let m = global.FA_dangerMult(danger, false)
+  let server = player.getServer()
+  let name = player.getScoreboardName()
+
+  if (zone !== global.FA_zone(last)) {
+    let deeper = danger > last
+    server.runCommandSilent('title ' + name + ' times 10 60 20')
+    server.runCommandSilent('title ' + name + ' subtitle {"text":"Danger ' + danger +
+      (danger > 0 ? '  \u00b7  mobs x' + m.health.toFixed(1) + ' tougher, x' + m.loot.toFixed(1) + ' loot' : '  \u00b7  mobs are normal here') +
+      '","color":"gray"}')
+    server.runCommandSilent('title ' + name + ' title {"text":"' + zone.name + '","color":"' + zone.color + '"}')
+    server.runCommandSilent('execute at ' + name + ' run playsound ' +
+      (deeper ? 'minecraft:ambient.cave' : 'minecraft:block.beacon.activate') + ' player ' + name + ' ~ ~ ~ 1 ' + (deeper ? 0.6 : 1.2))
+  } else {
+    let color = FA_TEXT_COLORS[zone.color] || 'gray'
+    player.displayClientMessage(Text[color]('\u26a0 Danger ' + danger + '  \u00b7  mobs: x' + m.health.toFixed(1) + ' health, x' +
+      m.damage.toFixed(1) + ' damage, x' + m.loot.toFixed(1) + ' loot'), true)
+  }
+}
+
+// ---- Every second: danger zones, Renewal, passive effects, Magnetism, Restoration ----
 
 ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$PlayerTickEvent', event => {
   try {
     let player = event.player
     if (String(event.phase) != 'END' || player.level().isClientSide() || player.tickCount % 20 != 0 || !player.isAlive()) return
+    try {
+      faDangerNotice(player)
+    } catch (err) {
+      faWarnOnce('danger zones', err)
+    }
     let levels = faLevels(player)
     if (Object.keys(levels).length == 0) return
 

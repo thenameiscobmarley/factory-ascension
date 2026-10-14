@@ -42,6 +42,7 @@ Compound.prototype = {
   putInt: function (k, v) { this.d[k] = v | 0 },
   putDouble: function (k, v) { this.d[k] = v },
   putBoolean: function (k, v) { this.d[k] = v },
+  getBoolean: function (k) { return !!this.d[k] },
   put: function (k, v) { this.d[k] = v },
   getAllKeys: function () { return javaList(Object.keys(this.d)) }
 }
@@ -145,6 +146,11 @@ function makePlayer(server, uuid) {
 var gameTime = 1000
 function livingBits(o, maxHealth) {
   o.hp = maxHealth; o.maxHp = maxHealth; o.hurtBy = []; o.effects = o.effects || []; o.fire = 0
+  o.pdata = new Compound(); o.x = 0; o.z = 0
+  o.getPersistentData = function () { return this.pdata }
+  o.setCustomName = function (n) { this.customName = n.s }
+  o.setCustomNameVisible = function (v) { this.nameVisible = v }
+  o.getType = function () { return { getDescription: function () { return fakeText('Zombie') } } }
   o.mobType = MobType.UNDEFINED; o.ground = true; o.wet = false; o.dim = 'minecraft:overworld'; o.boss = false; o.nearby = []
   o.isAlive = function () { return true }
   o.getHealth = function () { return this.hp }
@@ -163,12 +169,13 @@ function livingBits(o, maxHealth) {
     return {
       dimension: function () { return { location: function () { return self.dim } } },
       getGameTime: function () { return gameTime },
+      getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
       isClientSide: function () { return false },
       getEntitiesOfClass: function (cls, box) { var l = self.nearby.filter(function (e) { return e instanceof cls }); return { size: function () { return l.length }, get: function (i) { return l[i] } } }
     }
   }
   o.getBoundingBox = function () { return { inflate: function () { return 'box' } } }
-  o.getX = o.getY = o.getZ = function () { return 0 }
+  o.getX = function () { return this.x }; o.getZ = function () { return this.z }; o.getY = function () { return 64 }
   o.damageSources = function () { return { thorns: function () { return 'thorns' }, playerAttack: function () { return 'playerAttack' } } }
   o.getAllSlots = o.getAllSlots || function () { return javaList([]) }
   return o
@@ -439,7 +446,7 @@ var eater = hero({ soul_eater: 5 })
 death({ getSource: function () { return src(eater) } })
 check('Soul Eater heals 5 per kill', eater.healed == 5)
 var xpHook = handlers.forge['LivingExperienceDropEvent']
-var xpEv = { xp: 10, getAttackingPlayer: function () { return hero({ wisdom: 10 }) }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
+var xpEv = { xp: 10, getEntity: function () { return makeMob() }, getAttackingPlayer: function () { return hero({ wisdom: 10 }) }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
 xpHook(xpEv)
 check('Wisdom 10 doubles XP', xpEv.xp == 20)
 var dropsHook = handlers.forge['LivingDropsEvent']
@@ -494,7 +501,7 @@ camper.armor.forEach(function (s) { s.isDamageableItem = s.isDamageableItem || f
 var loose = new ItemEntityClass(); loose.hasPickUpDelay = function () { return false }; loose.teleportTo = function () { this.moved = true }
 var thrown = new ItemEntityClass(); thrown.hasPickUpDelay = function () { return true }; thrown.teleportTo = function () { this.moved = true }
 camper.nearby = [loose, thrown]
-camper.tickCount = 40; camper.getX = camper.getY = camper.getZ = function () { return 0 }
+camper.tickCount = 40
 tick({ phase: 'END', player: camper })
 check('Renewal 8 heals 2 per second', camper.healed == 2)
 check('Night Sight keeps night vision (20s, no flicker)', camper.effects.some(function (e) { return e.effect == 'night_vision' && e.ticks == 400 }))
@@ -530,6 +537,69 @@ Object.keys(E).forEach(function (id) {
   var top = E[id].maxLevel || 3000
   print('  ' + E[id].name + ' ' + top + ': ' + global.FA_describe(id, top))
 })
+
+// ---------------- Danger ----------------
+print('\ndanger')
+var join = handlers.forge['EntityJoinLevelEvent']
+function spawn(mob2, x, opts) {
+  opts = opts || {}
+  mob2.x = x
+  if (opts.dim) mob2.dim = opts.dim
+  join({ loadedFromDisk: function () { return !!opts.fromDisk }, getEntity: function () { return mob2 }, getLevel: function () { return mob2.level() } })
+  return mob2
+}
+Math.random = function () { return 0.5 }
+check('mobs near spawn stay normal', !spawn(makeMob(), 500).pdata.contains('fa_danger'))
+var far = spawn(makeMob(), 6000)
+check('6000 blocks out = danger 11', far.pdata.getInt('fa_danger') == 11, far.pdata.getInt('fa_danger'))
+check('mobs loaded from a save are not re-rolled', !spawn(makeMob(), 6000, { fromDisk: true }).pdata.contains('fa_danger'))
+var farBoss = makeMob(); farBoss.boss = true
+check('bosses never scale', !spawn(farBoss, 6000).pdata.contains('fa_danger'))
+check('passive mobs never scale', !spawn(makeMob(LivingClass), 6000).pdata.contains('fa_danger'))
+check('Nether: 1000 blocks counts as 8000, +3 bonus = 18', spawn(makeMob(), 1000, { dim: 'minecraft:the_nether' }).pdata.getInt('fa_danger') == 18)
+check('the End is always at least danger 6', spawn(makeMob(), 0, { dim: 'minecraft:the_end' }).pdata.getInt('fa_danger') == 6)
+Math.random = function () { return 0 }
+var elite = spawn(makeMob(), 6000)
+check('elites get a visible name with their level', elite.pdata.getBoolean('fa_elite') && elite.nameVisible && /Elite Zombie .* Lv 11/.test(elite.customName), elite.customName)
+Math.random = realRandom
+
+var plainHero = makePlayer(server, 'plain')
+check('danger 11 mob deals x2.65 damage', near(hit(far, plainHero, 10), 26.5), hit(far, plainHero, 10))
+check('danger 11 mob takes damage / 3.75', near(hit(plainHero, far, 37.5), 10))
+check('elite takes another /3', near(hit(plainHero, elite, 112.5), 10))
+check('/kill still works on scaled mobs', hit(null, far, 50, { bypass: true }) == 50)
+var tenMob = makeMob(); tenMob.pdata.putInt('fa_danger', 10)
+var d6 = dropEvent(plainHero, tenMob, [stack(4)]); dropsHook(d6)
+check('danger 10 doubles drops even without Plunder', totalCount(d6) == 8, totalCount(d6))
+var xpEv2 = { xp: 10, getEntity: function () { return tenMob }, getAttackingPlayer: function () { return plainHero }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
+xpHook(xpEv2)
+check('danger 10 triples XP', xpEv2.xp == 30)
+
+var explorer = makePlayer(server, 'explorer')
+explorer.tickCount = 20
+server.commands = []
+tick({ phase: 'END', player: explorer })
+explorer.x = 6000
+tick({ phase: 'END', player: explorer })
+check('crossing into a new zone shows its title', server.commands.some(function (c) { return /Dread Reaches/.test(c) }), server.commands.join(' | '))
+check('going deeper plays a cave sound', server.commands.some(function (c) { return /ambient.cave/.test(c) }))
+server.commands = []; explorer.bar = []
+explorer.x = 6600
+tick({ phase: 'END', player: explorer })
+check('a new level inside the same zone shows on the action bar only', server.commands.length == 0 && /Danger 12/.test(explorer.bar[0]), explorer.bar[0])
+explorer.x = 0
+tick({ phase: 'END', player: explorer })
+check('heading home shows Safe Lands', server.commands.some(function (c) { return /Safe Lands/.test(c) }))
+explorer.messages = []
+explorer.x = 6000
+faShowDanger(explorer)
+check('/ascension danger explains the area', explorer.messages.length == 4 && /Dread Reaches/.test(explorer.messages[0].s), explorer.messages.map(function (t) { return t.s }).join(' | '))
+print('  sample: ' + explorer.messages.map(function (t) { return t.s }).join(' |'))
+var zones = [0, 1000, 3500, 6000, 11000, 21000, 41000, 100000].map(function (x) {
+  var lvl = global.FA_dangerLevel(explorer.level(), x, 0)
+  return x + 'b: ' + global.FA_zone(lvl).name + ' (' + lvl + ', mobs x' + global.FA_dangerMult(lvl, false).health.toFixed(1) + ')'
+})
+print('  ' + zones.join('\n  '))
 
 print('\n' + (failures ? failures + ' FAILED' : 'all checks passed'))
 if (failures) java.lang.System.exit(1)
