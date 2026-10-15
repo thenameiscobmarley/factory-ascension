@@ -197,6 +197,7 @@ public class FactoryAscension {
     public FactoryAscension() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, dev.factoryascension.client.FAClientConfig.SPEC);
+        net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, FACommonConfig.SPEC);
         FAMobs.register(bus);   // first: its spawn eggs go into ITEMS before ITEMS is registered
         MinecraftForge.EVENT_BUS.addListener(FAMobs::onDetonate);
         BLOCKS.register(bus);

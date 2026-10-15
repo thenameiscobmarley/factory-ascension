@@ -826,6 +826,20 @@ Anything with tiers has a gold **⬆ Upgrade** line saying what the next tier ne
 engine parts. Every mob part has its own line, raw and cooked. With the Full download the mod's blocks, glass and spawn
 eggs have details too (eggs say where the mob lives, what it drops, and boss rules).
 
+## Keeping your world safe
+
+- **Backups (Full download):** every time a world closes, the mod zips it into `backups/factoryascension/` in your game
+  folder, keeping the last 3 per world (`config/factoryascension-common.toml`). To restore one, unzip it into `saves/`.
+- **Forgot a mod?** Each world remembers the mods that added its blocks and items. If one is missing when it loads,
+  chat says *"Oops, it looks like you've forgotten to install (mod name). Save last files so you don't lose
+  progress?"* with **[Save last files]** (quit, install it, and where the backups are) and **[Keep playing anyway]**.
+- **The mod's own jar missing:** the scripts register placeholder crates under all of its block and item names, so
+  Minecraft doesn't delete them from the world or your inventory. Install the jar again and they're back. What was
+  stored inside its machines needs the backup.
+- **Freeze safety net:** an entity whose position or speed becomes broken (NaN or infinite) is removed before mobs
+  look for it, so it can't freeze the server. If a tick ever runs over 10 seconds anyway, the mod writes what it was
+  doing to `logs/factoryascension-freeze.txt`.
+
 ## Quest book (FTB Quests)
 
 The downloads include an FTB Quests quest book (FTB Quests, FTB Library and FTB Teams are in the CurseForge mod list):
@@ -903,7 +917,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 516 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 520 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

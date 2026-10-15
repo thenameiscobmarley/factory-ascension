@@ -424,6 +424,24 @@ def condensed_tiers():
     return len(re.findall(r"'[^']+'", block))
 
 
+def placeholder():
+    """Stand-in for a Factory Ascension block or item while the mod's jar is missing: a wooden crate with a gold '?'."""
+    px = [[None] * N for _ in range(N)]
+    for y in range(N):
+        for x in range(N):
+            c = (150, 104, 60) if (y // 4) % 2 == 0 else (132, 90, 50)
+            if x in (0, N - 1) or y in (0, N - 1) or x == y or x == N - 1 - y:
+                c = (90, 60, 34)
+            px[y][x] = c + (255,)
+    q = ["0110", "1001", "0001", "0010", "0100", "0000", "0100"]
+    for j, row in enumerate(q):
+        for i, ch in enumerate(row):
+            if ch == "1":
+                for dx in (0, 1):
+                    px[4 + j][5 + i * 1 + dx] = (255, 214, 80, 255)
+    return px
+
+
 def condenser_block():
     """Steel frame with gold corners around a window of teal-and-violet swirling essence (bright, never
     purple-and-black, which reads as a missing texture)."""
@@ -918,6 +936,8 @@ def main():
             textures["gem_%s_%d" % (name, tier)] = outline(gem_item(color, tier), (20, 16, 24, 255))
     os.makedirs(BLOCK_OUT, exist_ok=True)
     ascendite_textures(textures)
+    png(os.path.join(BLOCK_OUT, "fa_placeholder.png"), placeholder())
+    png(os.path.join(OUT, "fa_placeholder.png"), placeholder())
     png(os.path.join(BLOCK_OUT, "ascension_altar.png"), altar_block())
     png(os.path.join(BLOCK_OUT, "essence_condenser.png"), condenser_block())
     tiers = condensed_tiers()

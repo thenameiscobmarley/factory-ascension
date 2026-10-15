@@ -206,3 +206,19 @@ if (typeof BlockEvents != 'undefined' && BlockEvents.modification) {
     })
   })
 }
+
+// ---- Placeholders: the Factory Ascension mod's blocks and items, registered by the scripts only when its jar is ----
+// missing (an install that forgot the jar). Minecraft would otherwise drop every one of them from the world and from
+// inventories as they load. These keep them (with their data) until the jar is back. What's stored inside the mod's
+// machines can't be kept this way: that's what the mod's world backups are for (backups/factoryascension/).
+if (!Platform.isLoaded('factoryascension') && global.FA_MOD_CONTENT) {
+  let C = global.FA_MOD_CONTENT
+  let label = id => (C.names[id] || id) + ' (needs the Factory Ascension mod)'
+  StartupEvents.registry('block', event => {
+    C.blocks.forEach(id => event.create('factoryascension:' + id).displayName(label(id)).hardness(-1).resistance(3600000)
+      .textureAll('kubejs:block/fa_placeholder'))
+  })
+  StartupEvents.registry('item', event => {
+    C.items.forEach(id => event.create('factoryascension:' + id).displayName(label(id)).texture('kubejs:item/fa_placeholder'))
+  })
+}

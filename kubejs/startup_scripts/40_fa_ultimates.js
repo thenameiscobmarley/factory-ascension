@@ -59,13 +59,21 @@ function faLook(fx, fy, fz, tx, ty, tz) {
 
 // Where the target is (or was, if it already died)
 function faAim(c) {
-  if (c.target && c.target.isAlive()) { c.tx = c.target.getX(); c.ty = c.target.getY(); c.tz = c.target.getZ() }
+  if (c.target && c.target.isAlive() && isFinite(c.target.getX()) && isFinite(c.target.getY()) && isFinite(c.target.getZ())) {
+    c.tx = c.target.getX(); c.ty = c.target.getY(); c.tz = c.target.getZ()
+  }
   return { x: c.tx, y: c.ty, z: c.tz }
 }
 
 // Teleport the player to a point, facing the target
 function faBlink(c, x, y, z) {
+  // Never teleport to a broken (NaN/infinite) spot or far from where the combo started: a player at an impossible
+  // position makes nearby mobs try to load chunks that never load, which freezes the server
+  if (!isFinite(x) || !isFinite(y) || !isFinite(z)) return
+  let ox = c.origin.x, oz = c.origin.z
+  if ((x - ox) * (x - ox) + (z - oz) * (z - oz) > 128 * 128 || Math.abs(y - c.origin.y) > 128) return
   let t = faAim(c)
+  if (!isFinite(t.x) || !isFinite(t.y) || !isFinite(t.z)) t = { x: x, y: y, z: z + 1 }
   let look = faLook(x, y + 1.6, z, t.x, t.y + 1, t.z)
   c.player.setPositionAndRotation(x, y, z, look.yaw, look.pitch)   // teleportTo is ambiguous in KubeJS
   c.player.fallDistance = 0

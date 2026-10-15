@@ -444,6 +444,7 @@ let faPhoenixReady = {}
 let faChronosReady = {}
 
 function faSecondaryHit(target, source, amount) {
+  if (!(amount > 0)) return   // NaN or nothing: never deal a broken amount
   faSecondary = true
   try {
     target.attack(source, Math.min(amount, FA_MAX_FLOAT))

@@ -39,6 +39,9 @@ var Ingredient = { all: 'ALL' }
 var Fluid = { of: function (id, amount) { return { fluid: id, amount: amount, getAmount: function () { return this.amount } } } }
 var Platform = { isLoaded: function (m) { return m == 'tfmg' || m == 'mekanism' } }
 
+// The mods that have items and blocks "in the game" for the missing-mod guard (tests change this list)
+var installedContentMods = ['minecraft', 'kubejs', 'create', 'factoryascension']
+var fakeModRegistry = { getKeys: function () { return javaList(installedContentMods.map(function (m) { return { getNamespace: function () { return m } } })) } }
 function Compound() { this.d = {} }
 Compound.prototype = {
   contains: function (k) { return k in this.d },
@@ -95,6 +98,7 @@ var Java = {
       'net.minecraft.tags.BlockTags': { LOGS: 'logs' },
       'net.minecraftforge.common.Tags$Blocks': { ORES: 'ores' },
       'net.minecraft.server.level.ServerBossEvent': FakeBossBar,
+      'net.minecraftforge.registries.ForgeRegistries': { ITEMS: fakeModRegistry, BLOCKS: fakeModRegistry },
       'net.minecraft.world.BossEvent$BossBarColor': { RED: 'red' },
       'net.minecraft.world.BossEvent$BossBarOverlay': { NOTCHED_10: 'n10' },
       'net.minecraft.world.level.levelgen.Heightmap$Types': { MOTION_BLOCKING: 'mb' },
@@ -332,9 +336,9 @@ RaiderClass.prototype = Object.create(EnemyClass.prototype)
 PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
-;['startup_scripts/00_fa_config.js', 'startup_scripts/01_fa_conflicts.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
+;['startup_scripts/00_fa_config.js', 'startup_scripts/01_fa_conflicts.js', 'startup_scripts/03_fa_mod_ids.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
   'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/72_fa_mod_mobs.js', 'startup_scripts/76_fa_skinwalkers.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js', 'startup_scripts/97_fa_mod.js',
-  'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
+  'server_scripts/05_fa_mod_guard.js', 'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js', 'server_scripts/47_fa_legendary.js', 'server_scripts/48_fa_rooms.js',
   'client_scripts/05_fa_mob_info.js', 'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
@@ -345,15 +349,16 @@ var E = global.FA.enchants
 
 // ---------------- Items & textures ----------------
 print('\nitems')
-var created = [], createdBlocks = [], createdFluids = []
+var created = [], createdBlocks = [], createdFluids = [], placeholders = []
 var builder = {}
 ;['displayName', 'rarity', 'glow', 'maxStackSize', 'thinTexture', 'bucketColor', 'soundType', 'hardness', 'resistance', 'requiresTool',
-  'tagBlock', 'lightLevel', 'textureAll', 'maxDamage', 'model', 'notSolid', 'renderType'].forEach(function (m) { builder[m] = function () { return builder } })
+  'tagBlock', 'lightLevel', 'textureAll', 'maxDamage', 'model', 'notSolid', 'renderType', 'texture'].forEach(function (m) { builder[m] = function () { return builder } })
 var gearTiers = {}, foodDefs = {}
 handlers.registry.forEach(function (r) {
   var list = r.type == 'item' ? created : r.type == 'block' ? createdBlocks : createdFluids
   r.fn({ create: function (id, type) {
-    list.push(id)
+    // Another namespace = a placeholder for the mod's own blocks and items (registered when its jar is missing)
+    if (id.indexOf(':') >= 0) placeholders.push(id); else list.push(id)
     var b = {}
     Object.keys(builder).forEach(function (m) { b[m] = function () { return b } })
     b.tier = function (t) { gearTiers[id] = { type: type, tier: t }; return b }
@@ -605,7 +610,7 @@ var clicks = []
 p.messages.forEach(function (t) { clicks = clicks.concat(t.clicks || []) })
 check('menu has clickable upgrade buttons', clicks.indexOf('/ascension upgrade protection 100') >= 0, clicks.join(','))
 print('  sample: ' + p.messages[2].s)
-check('commands registered (/ascension, /home, /sethome, /ascension sell, /ascension detach, /ascension legendary)', handlers.commands.length == 5)
+check('commands registered (/ascension, /home, /sethome, /ascension sell, /ascension detach, /ascension legendary, /ascension modguard)', handlers.commands.length == 6)
 
 // ---------------- Effects ----------------
 print('\ndamage')
@@ -2109,6 +2114,33 @@ check('the scripts\' block models never use the mod jar\'s textures (the Half do
   ['ascension_altar', 'essence_condenser'].every(function (b) { return readFile('kubejs/assets/kubejs/models/block/' + b + '.json').indexOf('factoryascension:') < 0 }))
 check('the Enchantment Pack model only tilts by angles Minecraft accepts (0, 22.5, 45)',
   JSON.parse(readFile('kubejs/assets/kubejs/models/item/enchantment_pack.json')).elements.every(function (e) { return !e.rotation || [0, 22.5, -22.5, 45, -45].indexOf(e.rotation.angle) >= 0 }))
+
+// ---------------- Missing-mod guard ----------------
+print('\nmod guard')
+var phIds = global.FA_MOD_CONTENT.blocks.concat(global.FA_MOD_CONTENT.items).map(function (i) { return 'factoryascension:' + i })
+check('without the jar, every mod block and item (' + phIds.length + ') gets a placeholder, so worlds keep them',
+  phIds.length >= 50 && phIds.every(function (i) { return placeholders.indexOf(i) >= 0 }), phIds.filter(function (i) { return placeholders.indexOf(i) < 0 }).slice(0, 5).join())
+Platform.getInfo = function (id) { return { getName: function () { return id == 'factoryascension' ? 'Factory Ascension' : id } } }
+var guardIsLoaded0 = Platform.isLoaded
+Platform.isLoaded = function (m) { return installedContentMods.indexOf(m) >= 0 }
+var guardServer = makeServer()
+handlers.loaded({ server: guardServer })
+var seenMods = guardServer.persistentData.getCompound('fa_mods_seen')
+check('a world remembers the mods that added its blocks and items (not Minecraft or KubeJS)',
+  seenMods.getString('factoryascension') == 'Factory Ascension' && seenMods.contains('create') && !seenMods.contains('minecraft') && global.FA_missingMods().length == 0)
+installedContentMods = ['minecraft', 'kubejs', 'create']
+handlers.loaded({ server: guardServer })
+check('opened without the mod jar: it notices (even with the placeholders in its namespace)', global.FA_missingMods().join() == 'factoryascension')
+var forgetful = makePlayer(guardServer, 'forgetful')
+handlers.loggedIn.forEach(function (fn) { fn({ player: forgetful }) })
+var guardText = forgetful.messages.map(function (t) { return t.s }).join(' ')
+var guardClicks = []
+forgetful.messages.forEach(function (t) { guardClicks = guardClicks.concat(t.clicks || []) })
+check('chat says "Oops, it looks like you\'ve forgotten to install Factory Ascension. Save last files..." with both buttons',
+  /forgotten to install/.test(guardText) && /Factory Ascension/.test(guardText) && /Save last files/.test(guardText) &&
+  guardClicks.indexOf('/ascension modguard save') >= 0 && guardClicks.indexOf('/ascension modguard ignore') >= 0, guardText)
+installedContentMods = ['minecraft', 'kubejs', 'create', 'factoryascension']
+Platform.isLoaded = guardIsLoaded0
 
 // ---------------- Legendary stars ----------------
 print('\nlegendary')
