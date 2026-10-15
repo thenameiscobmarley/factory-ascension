@@ -287,6 +287,11 @@ blue, Ascendium crimson and molten orange). Numbers are in the `gearTiers` secti
 | 4 Ascendite ingots + 4 redstone + 1 lapis | crafting grid, from day one |
 | 4 Ascension Shards | crafting grid, or a Mechanical Press over a basin |
 | 2 Ascendite ingots + 1 redstone + 250 mB lava | heated mixer (automates) |
+| 8 Ascendite nuggets + 1 redstone | Mechanical Mixer with **no heat**: the early automated way |
+
+**Early automated cores (no Blaze Burner, runs on a Modular Engine):** cobblestone → Mechanical Press over a basin →
+Raw Ascendite → Millstone (Crushed Raw Ascendite, 25% chance of a shard) → Encased Fan through water (9 nuggets +
+50% redstone) → Mechanical Mixer (8 nuggets + 1 redstone → 1 core). Shards press into cores on the side.
 
 The original diamond assembly line still works. All the numbers are in the `ascendite` section of `00_fa_config.js`.
 
@@ -627,7 +632,8 @@ Mythic Fragments, Dense Cores, a Booster Box and Gear Caches, and a part with a 
 
 - **Connected glass** in four kinds (Factory, Ascendite, Gilded, Smoked): put panes of the same kind together and the
   frames between them disappear, so a wall of it reads as one big window. It's done with block models, not render code,
-  so nothing can conflict with it.
+  so nothing can conflict with it. Recipe: 8 Glass around the center item, makes 8. Factory: Andesite Alloy,
+  Ascendite: an Ascendite Nugget, Gilded: a Gold Nugget, Smoked: Coal (config `machines.glass`).
 - **Shiny Reflections**: torches, lanterns, glowstone and the sun glint off gold, diamond, iron, copper, quartz, glass,
   ice, amethyst, polished stone and the mod's own glass and machines, and the glints slide across the surface as you
   move, the way a mirror image would. No shaders: twice a second it lists the shiny faces and lights near you, and each
@@ -736,6 +742,10 @@ colors and emblems. The emblems are in `tools/tome_art.py`.
 
 Every item the pack adds has a flavor line, and **Hold Shift** for details: where it comes from, its exact recipe,
 and what it's for. Tomes also show what the enchant does at levels 10, 100 and 1,000 and the Essence it takes to get there.
+Anything with tiers has a gold **⬆ Upgrade** line saying what the next tier needs: cores, gems, Condensed Essence, gear
+(Ascendite → Voidsteel → Celestium → Ascendium), Rock Hammers, Room TNT, foils, the Vault, the Super Smelter and the
+engine parts. Every mob part has its own line, raw and cooked. With the Full download the mod's blocks, glass and spawn
+eggs have details too (eggs say where the mob lives, what it drops, and boss rules).
 
 ## Recipes (all automatable with Create)
 
@@ -808,7 +818,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 461 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 494 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

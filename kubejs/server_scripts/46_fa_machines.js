@@ -19,6 +19,9 @@ if (Platform.isLoaded(FA_MOD)) {
   ServerEvents.recipes(event => {
     let R = global.FA.machines.recipes
     Object.keys(R).forEach(b => event.shaped(FA_MOD + ':' + b, R[b][0], R[b][1]).id('kubejs:factory_ascension/machine_' + b))
+    let GL = global.FA.machines.glass
+    Object.keys(GL).forEach(g => event.shaped(Item.of(FA_MOD + ':' + g, 8), ['GGG', 'GCG', 'GGG'], { G: 'minecraft:glass', C: GL[g] })
+      .id('kubejs:factory_ascension/glass_' + g))
   })
 
   // Placed machines are remembered (per world) like Altars, so they run while their chunk is loaded

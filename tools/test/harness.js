@@ -334,7 +334,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
   'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js', 'server_scripts/48_fa_rooms.js',
-  'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
+  'client_scripts/05_fa_mob_info.js', 'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
   load('kubejs/' + f)
   print('loaded ' + f)
 })
@@ -463,8 +463,11 @@ check('no basin recipe (mixing or compacting) is a subset of another', clash.len
 // More ways to make Ascension Cores, none of them sequenced assembly
 var coreWays = recipes.filter(function (r) { return r.rid != 'kubejs:factory_ascension/ascension_core' &&
   (r.json.out == 'kubejs:ascension_core' || (r.json.results && r.json.results.length == 1 && r.json.results[0].item == 'kubejs:ascension_core')) })
-check('Ascension Cores have 5 more recipes without sequenced assembly', coreWays.length == 5 && coreWays.every(function (r) { return r.json.type != 'create:sequenced_assembly' }),
+check('Ascension Cores have 6 more recipes without sequenced assembly, one with no heat at all', coreWays.length == 6 && coreWays.every(function (r) { return r.json.type != 'create:sequenced_assembly' }) && coreWays.some(function (r) { return r.json.type == 'create:mixing' && !r.json.heatRequirement }),
   coreWays.map(function (r) { return r.rid }).join(','))
+var mill = byId('mill_raw_ascendite')
+check('a Millstone grinds Raw Ascendite, with a chance of a shard (early, no heat)', mill && mill.json.type == 'create:milling' &&
+  mill.json.results.some(function (r) { return r.item == 'kubejs:ascension_shard' && r.chance == global.FA.ascendite.millShardChance }))
 check('Ascendite ores and raw ore smelt into ingots', ['raw_ascendite', 'crushed_raw_ascendite', 'ascendite_ore', 'deepslate_ascendite_ore'].every(function (id) {
   return recipes.some(function (r) { return r.json.type == 'smelting' && r.json.input == 'kubejs:' + id && r.json.out == 'kubejs:ascendite_ingot' }) }))
 check('every Ascendite tool and armor piece has a recipe', gearIds.every(function (id) { return !!byId(id) }))
@@ -810,9 +813,18 @@ check('Excavation 4 = x2 mining speed', near(bs.speed, 16), bs.speed)
 
 // ---------------- Tooltips ----------------
 print('\ntooltips')
-var advanced = null, simple = 0, detailTips = {}, shiftDown = false
+var advanced = null, simple = 0, detailTips = {}, shiftDown = false, detailLore = {}
+// Register the tooltips as the Full download would (the mod's blocks and eggs too)
+var tipIsLoaded = Platform.isLoaded
+Platform.isLoaded = function (m) { return m == 'factoryascension' || tipIsLoaded(m) }
 handlers.tooltip.forEach(function (fn) { fn({ add: function () { simple++ }, isShift: function () { return shiftDown },
   addAdvanced: function (ing, f) { if (ing === Ingredient.all) advanced = f; else detailTips[ing] = f } }) })
+Platform.isLoaded = tipIsLoaded
+// Every item and block of the mod (from its lang file) has details too
+var modLang = JSON.parse(readFile('mod/src/main/resources/assets/factoryascension/lang/en_us.json'))
+var modItems = Object.keys(modLang).filter(function (k) { return /^(item|block)\.factoryascension\.[a-z_]+$/.test(k) }).map(function (k) { return 'factoryascension:' + k.split('.')[2] })
+var modNoDetails = modItems.filter(function (id) { return !detailTips[id] })
+check('every mod block and spawn egg has a detail tooltip (' + modItems.length + ')', modItems.length >= 49 && modNoDetails.length == 0, modNoDetails.slice(0, 8).join(', '))
 // Every pack item gets a flavor line plus Shift details, and none of them print undefined or NaN
 var allPackItems = created.concat(createdBlocks).map(function (x) { return 'kubejs:' + x }).concat(['kubejs:liquid_essence_bucket'])
 var noDetails = allPackItems.filter(function (id) { return !detailTips[id] })
@@ -828,6 +840,16 @@ Object.keys(detailTips).forEach(function (id) {
   var short = renderTip(id, false), long = renderTip(id, true)
   if (short.length != 2 || !/Shift/.test(short[1]) || long.length < 2 || long.concat(short).some(function (l) { return /undefined|NaN|null|\[object/.test(l) })) badTips.push(id + ': ' + long.join(' / '))
 })
+shiftDown = false
+// Every food has its own flavor line, raw and cooked
+var foodLines = []
+global.FA.mobFood.foods.forEach(function (fd) { foodLines.push(renderTip('kubejs:' + fd.raw, false)[0], renderTip('kubejs:' + fd.cooked, false)[0]) })
+var foodDupes = foodLines.filter(function (l, i) { return foodLines.indexOf(l) != i })
+check('every food has its own description (' + foodLines.length + ' lines, none repeated)', foodDupes.length == 0, foodDupes.slice(0, 3).join(' | '))
+var upgradeTips = ['kubejs:ascension_core', 'kubejs:ascendite_ingot', 'kubejs:ascendite_sword', 'kubejs:voidsteel_chestplate', 'kubejs:rock_hammer',
+  'factoryascension:ascension_vault', 'factoryascension:super_smelter', 'factoryascension:engine_core'].filter(function (id) { return !/Upgrade/.test(renderTip(id, true).join(' ')) })
+check('tiered items say what their next tier needs', upgradeTips.length == 0, upgradeTips.join(', '))
+print('  sample Shift details: ' + renderTip('factoryascension:super_smelter', true).join(' | '))
 shiftDown = false
 check('detail tooltips: a hint without Shift, real details with it, no undefined/NaN', badTips.length == 0, badTips.slice(0, 3).join(' || '))
 print('  sample Shift details: ' + renderTip('kubejs:tome_sharpness', true).join(' | '))

@@ -799,6 +799,11 @@ global.FA = {
     shardsPerCore: 4,          // Ascension Shards -> 1 Ascension Core (crafting grid)
     hauntChance: 0.3,          // Encased Fan through soul fire: Crushed Raw Iron -> Crushed Raw Ascendite (renewable)
     pressCobble: 9,            // Mechanical Press over a Basin: this much cobblestone -> 1 Raw Ascendite (Create allows at most 9)
+    // Early automated cores, no Blaze Burner needed (the Modular Engine runs all of it):
+    // cobblestone -> press -> Raw Ascendite -> Millstone -> Crushed (+ a shard) -> fan through water -> nuggets + redstone
+    // -> an unheated Mechanical Mixer: mixerNuggets Ascendite Nuggets + 1 Redstone -> 1 Ascension Core
+    millShardChance: 0.25,     // Millstone: Raw Ascendite -> Crushed Raw Ascendite + this chance of an Ascension Shard
+    mixerNuggets: 8,           // unheated mixer: this many Ascendite Nuggets + 1 Redstone -> 1 Ascension Core (at most 8: Create mixes up to 9 items)
     // Between iron and diamond. Mines diamonds; levels well with Ascended enchants like any gear.
     tools: { uses: 900, speed: 7.5, attackDamageBonus: 2.5, level: 2, enchantability: 18 },
     armor: {
@@ -1074,6 +1079,8 @@ global.FA = {
       rpm: [16, 32, 64, 128, 256],   // speed with 0, 1, 2, 3, 4+ Gearboxes (same SU, faster shaft)
       fuelMultiplier: 1        // fuel lasts this many times its furnace burn time (1 coal = 80 s)
     },
+    // Connected glass: 8 Glass around the center item -> 8 of that glass (crafting grid)
+    glass: { factory_glass: 'create:andesite_alloy', ascendite_glass: 'kubejs:ascendite_nugget', gilded_glass: 'minecraft:gold_nugget', smoked_glass: 'minecraft:coal' },
     recipes: {
       ascension_vault: [['ABA', 'CDC', 'ABA'], { A: 'kubejs:ascendite_ingot', B: 'kubejs:ascendite_block', C: 'minecraft:chest', D: 'kubejs:dense_ascension_core' }],
       card_binder: [['LBL', 'BCB', 'AAA'], { L: 'minecraft:leather', B: 'minecraft:book', C: 'kubejs:ascension_core', A: 'kubejs:ascendite_ingot' }],

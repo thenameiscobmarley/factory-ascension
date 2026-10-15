@@ -507,7 +507,8 @@
     [ES.cogwheelsPerAlloy > 0, "Cogwheels in bulk", "8 planks around an Andesite Alloy = " + ES.cogwheelsPerAlloy + " cogwheels"],
     [ES.shaftsPerAlloy > 0, "Shafts in bulk", "Andesite Alloy + a stick = " + ES.shaftsPerAlloy + " shafts"],
     [true, "Andesite Alloy, brass, a Blaze Burner", "Ascendite makes them early: no Nether trip, no sequenced assembly"],
-    [true, "Ascension Cores by hand", "from day one, from amethyst, or from Ascension Shards"]
+    [true, "Ascension Cores by hand", "from day one, from amethyst, or from Ascension Shards"],
+    [true, "Automated cores, no heat", "cobblestone, press, Millstone, a fan through water, then " + FA.ascendite.mixerNuggets + " nuggets + redstone in a Mechanical Mixer"]
   ].filter(x => x[0]).map(x => '<li class="slot-card"><b>' + x[1] + "</b><span>" + esc(x[2]) + "</span></li>").join("");
 
   // ---------- MACHINES: Factory Room TNT (shape from global.FA_roomPlan / FA_roomKind, like the game) ----------

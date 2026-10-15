@@ -263,7 +263,7 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       drops.get(i).discard()
     }
     check('mining Ascendite ore drops Raw Ascendite', raw >= 1, raw)
-    let recipeIds = ['core_by_hand', 'core_from_shards', 'core_mixing', 'core_compacting', 'starter_brass', 'starter_precision_mechanism', 'ascendite_pickaxe', 'press_cobblestone_ascendite']
+    let recipeIds = ['core_by_hand', 'core_from_shards', 'core_mixing', 'core_compacting', 'core_mixing_unheated', 'mill_raw_ascendite', 'starter_brass', 'starter_precision_mechanism', 'ascendite_pickaxe', 'press_cobblestone_ascendite']
     let missing = recipeIds.filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent())
     check('the cheaper core recipes and starter recipes are loaded', missing.length == 0, missing.join(', '))
     // The ore feature is in the world's worldgen registry: place one vein into a block of stone and look for ore
@@ -547,7 +547,8 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       em.connected() && em.rpm() == engine.rpm() && Math.abs(em.su() - engine.su()) <= 1 && em.burnerLit() && em.coils() == 1 && !lone.connected())
     let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
       'engine_gearbox', 'engine_burner'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
-    check('the mod blocks have recipes', recipes.length == 0, recipes.join(', '))
+      .concat(Object.keys(global.FA.machines.glass).map(g => 'glass_' + g).filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent()))
+    check('the mod blocks and its 4 glasses have recipes', recipes.length == 0, recipes.join(', '))
   })
 
   // ---- The mod's mobs, connected glass and creeper blasts (Full download only) ----

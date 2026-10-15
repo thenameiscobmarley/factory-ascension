@@ -18,6 +18,89 @@ let FA_TIP_RARITY = { gray: 'gray', aqua: 'aqua', light_purple: 'lightPurple', g
 let FA_GRADE_COLORS = { dark_gray: 'darkGray', gray: 'gray', white: 'white', green: 'green', aqua: 'aqua', gold: 'gold' }
 const $FATipArmor = Java.loadClass('net.minecraft.world.item.ArmorItem')
 
+// One flavor line for every mob part, raw and cooked (raw id: [raw, cooked]). The harness checks they're all here and all different.
+let FA_FOOD_LORE = {
+  pig_eyes: ['They are still looking at you.', 'Crunchy, and you can see in the dark now.'],
+  pig_brain: ['Not much going on in there.', 'Smart food for a busy miner.'],
+  cow_tongue: ['It moos, faintly, when you squeeze it.', 'Fills you up like a whole steak dinner.'],
+  cow_heart: ['Big, red and still warm.', 'Seared on the outside, pure strength inside.'],
+  sheep_liver: ['Smells like wet wool.', 'A shepherd\'s secret for healing up.'],
+  chicken_feet: ['Scratchy little toes.', 'Fried crisp. You feel lighter on your feet.'],
+  rabbit_leg: ['Lucky, but not for the rabbit.', 'Hop to it.'],
+  spider_legs: ['Eight of them. Some still kicking.', 'Like crab legs, if crabs lived in caves.'],
+  zombie_brain: ['Grey, soft and full of grudges.', 'Cooking it gets the rot out. Mostly.'],
+  marrow_bone: ['Rattles when you shake it.', 'A thick broth that makes your own bones feel tougher.'],
+  creeper_heart: ['It hisses if you hold it too long.', 'Smoked slowly so it doesn\'t go off.'],
+  squid_tentacle: ['Slimy and still squirming.', 'Golden rings with a squeeze of seawater.'],
+  hoglin_ribs: ['A whole rack, bristles and all.', 'Slow-cooked over nether fire. Messy and worth it.'],
+  ender_gland: ['It blinks out of your hand sometimes.', 'Seared until it stops teleporting.'],
+  blaze_core: ['Too hot to hold for long.', 'Charred black, still glowing in the middle.'],
+  ghast_membrane: ['Thin as paper, and it cries.', 'Crispy like a chip. Light as air.'],
+  slime_core: ['It wobbles. A lot.', 'Fried until it stops bouncing.'],
+  magma_core: ['Drips little blobs of lava.', 'Seared dark, it keeps you cool in the Nether.'],
+  witch_wart: ['Warty, green and whispering.', 'Roasted, it tastes of luck and herbs.'],
+  guardian_spine: ['Spiky, and it stares at you.', 'Grilled with the spikes off. Ocean flavor.'],
+  phantom_wing: ['Smells like a night without sleep.', 'Crispy, and you drift down like a feather.'],
+  withered_marrow: ['Black and dry as ash.', 'Blackened even more. Tough food for tough fights.'],
+  piglin_snout: ['Snorts at you when you look away.', 'Roasted crisp. Piglins would not approve.'],
+  mite_carapace: ['A tiny shell that skitters.', 'Toasted like a nut. Good for busy hands.'],
+  shulker_tongue: ['It hides in its shell when poked.', 'Seared tender. Your skin feels like armor.'],
+  illager_heart: ['Cold, and it hums a raid horn.', 'Charred over a campfire, like a captain\'s feast.'],
+  vex_wisp: ['Buzzing, flickering, annoying.', 'Sizzled until it stops whining.'],
+  ravager_flank: ['Enough meat for a whole village.', 'A feast that makes you hit like a ravager.'],
+  warden_heart: ['It beats in the dark, loud as thunder.', 'Seared slowly. You feel twice as alive.'],
+  strider_leg: ['Long, wobbly and still warm from the lava.', 'Grilled on the hot side. Never feel the heat again.'],
+  dragon_heart: ['It still beats, and the End trembles.', 'Seared with dragon fire. The greatest meal there is.'],
+  wither_spine: ['Three skulls\' worth of spite.', 'Charred so hard nothing can hurt you.'],
+  bat_wing: ['Leathery and squeaky.', 'Fried crisp. The dark doesn\'t seem so dark.'],
+  horse_haunch: ['A proper haunch. Smells of hay.', 'Roasted and juicy. You feel like galloping.'],
+  llama_shank: ['It tried to spit at you.', 'Spiced like a trader\'s campfire dinner.'],
+  goat_shank: ['Tough as a mountain rock.', 'Roasted on the peak. Jump like a goat.'],
+  fox_haunch: ['Sly, even now.', 'Roasted with berries. Quick on your feet.'],
+  wolf_haunch: ['Lean, and it still growls.', 'Grilled rare. You feel the pack\'s strength.'],
+  bear_paw: ['Huge, furry and cold.', 'Roasted in the snow. Nothing knocks you over.'],
+  panda_paw: ['Smells faintly of bamboo.', 'Braised in bamboo. Restful and healing.'],
+  turtle_fin: ['Salty and leathery.', 'A slow soup. You can breathe the sea.'],
+  frog_legs: ['Croaks when you pick it up.', 'Fried golden. Spring in your step.'],
+  camel_hump: ['It sloshes. Mostly water and fat.', 'Roasted slowly. Keeps you full across a desert.'],
+  sniffer_snout: ['Still sniffing for seeds.', 'Roasted. It smells luck for you now.'],
+  bee_stinger: ['Careful. Pointy end out.', 'Dipped in honey. Sweet and soothing.'],
+  rusty_gizzard: ['Full of grit, gears and rust.', 'Grilled clean. Your hands feel quicker.'],
+  glowing_brain: ['Glows teal and hums a little.', 'Seared until the glow sinks into your eyes.'],
+  ember_heart: ['Smoulders in your palm.', 'Smouldering still. Fire won\'t touch you.'],
+  frozen_heart: ['Frost creeps up your arm.', 'Thawed by the fire. Cold resolve, warm belly.'],
+  miners_lung: ['Coughs up coal dust.', 'Smoked dark. You swing a pickaxe twice as fast.'],
+  void_marrow: ['Floats a little off your palm.', 'Blackened until it stops floating. You won\'t fall hard.'],
+  glowing_marrow: ['Bones with a teal shine.', 'Roasted. You feel solid as Ascendite.'],
+  crystal_fang: ['Sharp as amethyst, because it is.', 'Toasted. It rings when you bite it.'],
+  charged_gland: ['Crackles and makes your hair stand up.', 'Sizzled. You feel quick as lightning.'],
+  cinder_gland: ['Leaves ash on your fingers.', 'Charred twice. Flames slide right off you.'],
+  glowing_creeper_heart: ['Ticks quietly. Teal sparks.', 'Smoked slowly. A shield of extra hearts.'],
+  frost_core: ['A snowball that never melts.', 'Thawed out. You feel like a glacier.'],
+  essence_gel: ['Purple, wobbly and full of power.', 'Candied like a jelly sweet. Heals fast.'],
+  copper_gel: ['Turns your fingers green.', 'Fried. It tastes like a penny, in a good way.'],
+  ore_mite_shell: ['Little flecks of ore in the shell.', 'Toasted. Your luck goes up.'],
+  wisp_core: ['A tiny teal flame that won\'t go out.', 'Seared. Your feet feel light and fast.'],
+  void_eye: ['It stares back. From very far away.', 'Seared. Now you can see in the dark.'],
+  raider_heart: ['Beats like a war drum.', 'Charred. Hit as hard as a raider.'],
+  ember_wings: ['Warm, and they smell like a campfire.', 'Hot wings. Actually hot. Fireproof hot.'],
+  copper_tongue: ['Green and metallic. Moo.', 'Grilled copper-brown. Work twice as fast.'],
+  bog_heart: ['Squelches. Smells like a swamp.', 'Smoked over peat. Breathe underwater.'],
+  wraith_dust_gland: ['Leaks sand everywhere.', 'Roasted in desert heat. Fire can\'t touch you.'],
+  thunder_core: ['Rumbles like a storm far away.', 'Charged and crackling. Run like lightning.'],
+  brass_marrow: ['Heavy, shiny and clanks.', 'Roasted. You feel armored in brass.'],
+  shadow_marrow: ['It pulls the light out of the room.', 'Blackened. The dark is your friend now.'],
+  weaver_spinneret: ['Still spinning thread.', 'Toasted. You bounce like on a web.'],
+  moss_gel: ['Green, squishy, smells like a lush cave.', 'Fried like a fritter. Fresh and earthy.'],
+  glow_mite_shell: ['Glows in your pocket.', 'Toasted. You glow a little afterwards.'],
+  storm_core: ['Static jumps from it to your hand.', 'Seared in a lightning strike. Electric taste.'],
+  treasure_heart: ['It jingles. There\'s gold in it.', 'Gilded and rich. Tastes like a treasure hoard.'],
+  colossus_heart: ['A rusted engine of a heart. Huge.', 'Forged, not cooked. Food fit for a giant.'],
+  brood_gland: ['Venom drips from it.', 'Seared until the venom cooks off. Mostly.'],
+  kings_marrow: ['Bone from a crowned king. Cold as a tomb.', 'Roasted for a royal feast.'],
+  tyrant_core: ['A furnace of teal fire in your hand.', 'Quenched in water. The fire is yours now.']
+}
+
 // "+12% damage" / "-3% damage taken" from a multiplier
 function faPct(mult, what) {
   let p = Math.round((mult - 1) * 1000) / 10
@@ -214,6 +297,8 @@ ItemEvents.tooltip(event => {
   let from = s => Text.gray('Found: ').append(Text.white(s))
   let use = s => Text.gray('Used for: ').append(Text.white(s))
   let tip = s => Text.darkGray(s)
+  // The next tier up, and what it takes
+  let up = s => Text.gold('\u2b06 Upgrade: ').append(Text.white(s))
   let ess = n => global.FA_num(n) + ' Essence'
   let mb = FA.altar.mbPerEssence
   let A = FA.ascendite
@@ -230,16 +315,21 @@ ItemEvents.tooltip(event => {
     made('a diamond on a sequenced assembly line (rose quartz' + (Platform.isLoaded('tfmg') ? ', steel' : '') + ', 250 mB lava, press) x3'),
     tip('  or 4 Ascendite Ingots + 4 Redstone + Lapis (crafting grid)'),
     tip('  or ' + A.shardsPerCore + ' Ascension Shards (crafting grid, or pressed in a Basin)'),
-    tip('  or 2 Ascendite Ingots + Redstone + 250 mB Lava (heated mixer)')
+    tip('  or 2 Ascendite Ingots + Redstone + 250 mB Lava (heated mixer)'),
+    tip('  or ' + A.mixerNuggets + ' Ascendite Nuggets + Redstone (Mechanical Mixer, no heat: the early automated way)'),
+    tip('  Early line: Cobblestone -> Press -> Raw Ascendite -> Millstone -> fan through water -> Mixer')
   ]
   details('kubejs:ascension_core', 'Hums with the power of a whole factory.', () => coreWays.concat([
-    use('Essence, Blank Tomes, Fusion and Chaos Tomes, Liquid Essence (' + mb + ' mB each)')]))
+    use('Essence, Blank Tomes, Fusion and Chaos Tomes, Liquid Essence (' + mb + ' mB each)'),
+    up('9 of them -> a Dense Ascension Core (Basin under a Mechanical Press, heated)')]))
   details('kubejs:dense_ascension_core', "Nine cores crushed into one. It's warm to the touch.", () => [
     made('9 Ascension Cores pressed in a heated Basin'), tip('Unpack back into 9 in a crafting grid'),
-    use('the Ascension Altar, the Essence Condenser, ' + 9 * mb + ' mB of Liquid Essence')])
+    use('the Ascension Altar, the Essence Condenser, ' + 9 * mb + ' mB of Liquid Essence'),
+    up('9 of them -> an Ascension Singularity (Basin under a Mechanical Press, superheated)')])
   details('kubejs:ascension_singularity', 'A pinpoint of pure progress. Do not drop.', () => [
     made('9 Dense Cores pressed in a superheated Basin'), tip('Unpack into 9 Dense Cores in a crafting grid'),
-    use(ess(81) + ' in one click, or a stack of them for ' + ess(81 * 64))])
+    use(ess(81) + ' in one click, or a stack of them for ' + ess(81 * 64)),
+    tip('The top core tier. For more, melt them into Liquid Essence and condense it into blocks.')])
   details('kubejs:incomplete_ascension_core', 'Not done yet. Keep it moving.', () => [
     tip('Half-made by the sequenced assembly line. Feed it back to the start until it pops out finished.')])
 
@@ -308,7 +398,8 @@ ItemEvents.tooltip(event => {
         tier == 1 ? made('Diamond + 250 mB Lava + ' + T.catalyst[1] + 'x ' + faItemName(T.catalyst[0]) + ', superheated mixer')
           : made('4 ' + FA.gems.tiers[tier - 2].name + ' ' + T.name + ' pressed in a ' + (tier == 3 ? 'superheated' : 'heated') + ' Basin'),
         tip('Each socketed gem adds its levels on top of the ' + FA.enchants[T.enchant].name + ' levels you bought'),
-        tip(tier < 3 ? '4 of these press into one ' + FA.gems.tiers[tier].name + ' ' + T.name : 'Worth ' + global.FA_gemLevels(3) / global.FA_gemLevels(1) + ' Chipped gems in one socket')])
+        tier < 3 ? up('4 of these -> one ' + FA.gems.tiers[tier].name + ' ' + T.name + ' (Basin under a Press, ' + (tier == 2 ? 'superheated' : 'heated') + '): +' + global.FA_gemLevels(tier + 1) + ' levels')
+          : tip('The top gem tier: worth ' + global.FA_gemLevels(3) / global.FA_gemLevels(1) + ' Chipped gems in one socket')])
     }
   })
 
@@ -337,7 +428,21 @@ ItemEvents.tooltip(event => {
     details(global.FA_condensedId(tier), tier == 0 ? 'An ocean of essence in one block.' : 'Heavier than it has any right to be.', () => [
       made(tier == 0 ? 'an Essence Condenser' : FA.condensed.ratio + ' of the tier below, pressed in a Basin or in a crafting grid'),
       Text.gray('Worth: ').append(Text.lightPurple(ess(global.FA_condensedValue(tier)))).append(Text.darkGray(' (right-click to absorb)')),
-      tip(tier == 0 ? 'Melts back into ' + FA.condensed.mbPerBlock + ' mB in a heated mixer' : 'Unpacks into ' + FA.condensed.ratio + ' of the tier below')])
+      tip(tier == 0 ? 'Melts back into ' + FA.condensed.mbPerBlock + ' mB in a heated mixer' : 'Unpacks into ' + FA.condensed.ratio + ' of the tier below'),
+      tier < global.FA_condensedTiers() ? up(FA.condensed.ratio + ' of them -> ' + global.FA_condensedName(tier + 1) + ' (Basin under a Press, or a crafting grid)')
+        : tip('The top tier there is')])
+  }
+
+  // Gear tiers in order, and how each tier's ingot is made
+  let tierMade = {
+    voidsteel: 'Diamond + 2 Ascendite Ingots + Obsidian in a heated mixer (makes 2)',
+    celestium: 'Netherite Ingot + 2 Voidsteel Ingots + a Dense Ascension Core, superheated (makes 2)',
+    ascendium: '2 Celestium Ingots + an Ascension Singularity + 4 Mythic Fragments + 1,000 mB Liquid Essence, superheated'
+  }
+  let tierOrder = ['ascendite'].concat(Object.keys(FA.gearTiers))
+  let nextTier = t => {
+    let n = tierOrder[tierOrder.indexOf(t) + 1]
+    return n ? up(FA.gearTiers[n].name + ' gear, from ' + FA.gearTiers[n].name + ' Ingots: ' + tierMade[n]) : tip('The top gear tier')
   }
 
   // Ascendite
@@ -348,18 +453,18 @@ ItemEvents.tooltip(event => {
     tip('Silk Touch keeps the ore. Crushing it gives extra ore, XP and sometimes a shard.')]))
   details('kubejs:raw_ascendite', 'Heavy, cold, and faintly humming.', () => [
     from('mining Ascendite Ore, or pressing ' + A.pressCobble + ' Cobblestone in a Basin (Mechanical Press)'),
-    use('smelting into an Ingot, or crushing (Crushed Raw Ascendite + XP, sometimes a shard)')])
+    use('smelting into an Ingot, crushing (Crushed Raw Ascendite + XP, sometimes a shard), or a Millstone (' + pct(A.millShardChance) + ' shard chance)')])
   details('kubejs:crushed_raw_ascendite', 'Ground fine, ready for the furnace or the wash.', () => [
-    made('crushing Raw Ascendite or its ore, or blowing Crushed Raw Iron through soul fire (' + pct(A.hauntChance) + ')'),
+    made('crushing or milling Raw Ascendite or its ore, or blowing Crushed Raw Iron through soul fire (' + pct(A.hauntChance) + ')'),
     use('smelting into an Ingot, or washing (fan through water) into 9 Nuggets + Redstone (50%)')])
   details('kubejs:ascendite_ingot', 'Lighter than iron, tougher than it looks.', () => [
     made('smelting Raw or Crushed Ascendite, or 9 Nuggets'),
-    use('Ascendite tools and armor, Ascension Cores, Precision Mechanisms, Blocks of Ascendite')])
+    use('Ascendite tools and armor, Ascension Cores, Precision Mechanisms, Blocks of Ascendite'), nextTier('ascendite')])
   details('kubejs:ascendite_nugget', 'A little goes a long way.', () => [
     made('washing Crushed Raw Ascendite (9 each), or splitting an Ingot'),
-    use('2 Brass from 1 Copper + 1 Zinc, double Andesite Alloy' + (Platform.isLoaded('tfmg') ? ', early TFMG Steel (heated mixer)' : ''))])
+    use('Ascension Cores (' + A.mixerNuggets + ' + Redstone in a Mechanical Mixer, no heat), 2 Brass from 1 Copper + 1 Zinc, double Andesite Alloy' + (Platform.isLoaded('tfmg') ? ', early TFMG Steel (heated mixer)' : ''))])
   details('kubejs:ascension_shard', 'A sliver of crystallized ascension.', () => [
-    from('mining Ascendite Ore (' + pct(O.shardChance) + ', more with Fortune), and sometimes from crushing it'),
+    from('mining Ascendite Ore (' + pct(O.shardChance) + ', more with Fortune), crushing it, or milling Raw Ascendite (' + pct(A.millShardChance) + ')'),
     use(A.shardsPerCore + ' make an Ascension Core (crafting grid, or pressed in a Basin)')])
   details('kubejs:ascendite_block', 'A solid block of teal metal.', () => [
     made('9 Ascendite Ingots'), use('a Blaze Burner without catching a blaze (+ Empty Blaze Burner + Magma Block), beacon bases')])
@@ -367,7 +472,7 @@ ItemEvents.tooltip(event => {
   ;['sword', 'pickaxe', 'axe', 'shovel', 'hoe'].forEach(g => details('kubejs:ascendite_' + g, 'Forged from Ascendite: light, sharp, and ready to ascend.', () => [
     Text.gray('Tier: ').append(Text.aqua('between iron and diamond')).append(Text.darkGray('  ' + T.uses + ' durability, ' + (T.level >= 2 ? 'mines diamonds' : 'mines iron'))),
     made('Ascendite Ingots + Sticks, like iron tools. Repair with Ascendite Ingots in an anvil.'),
-    tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
+    tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click'), nextTier('ascendite')]))
   // Attachments
   let fitsText = { helmet: 'Helmets', chest: 'Chestplates', legs: 'Leggings', boots: 'Boots', weapon: 'Weapons (swords, axes...)', bow: 'Bows and crossbows', tool: 'Pickaxes, shovels and hoes' }
   FA.attachments.list.forEach(at => details('kubejs:attachment_' + at.id, 'Some assembly required.', () => [
@@ -382,7 +487,8 @@ ItemEvents.tooltip(event => {
     Text.gray('Foil: ').append(Text.gold(f.name + ', x' + f.mult + ' level')).append(Text.darkGray('  (#' + (i + 1) + ' of ' + FA.foils.types.length + ')')),
     Text.gray('Use: ').append(Text.white('hold an enchant tome in your other hand and right-click this')),
     tip('A tome with a foil goes on gear at its level x ' + f.mult + ', and its cover shows the foil. A better foil replaces a worse one.'),
-    made(itemList(f.recipe) + ' (crafting grid)')]))
+    made(itemList(f.recipe) + ' (crafting grid)'),
+    FA.foils.types[i + 1] ? up('the ' + FA.foils.types[i + 1].name + ' Foil (x' + FA.foils.types[i + 1].mult + '): ' + itemList(FA.foils.types[i + 1].recipe)) : tip('The best foil there is')]))
 
   // Card packs
   let PK = FA.packs
@@ -409,7 +515,8 @@ ItemEvents.tooltip(event => {
       tip('Floor, walls and roof lined with ' + faItemName(st.shell) + ', ' + faItemName(st.light) + ' set into the roof every ' + RC.lightSpacing + ' blocks'),
       tip('Never breaks bedrock, chests or machines' + (RC.collectOres ? '. Ores it blasts through drop in the middle of the room' : '')),
       made(i == 0 ? 'TNT, 4 ' + faItemName(st.shell) + ', 2 ' + faItemName(st.light) + ' (crafting grid)'
-        : sz.craft + ' of the ' + RC.sizes[i - 1].size[0] + 'x' + RC.sizes[i - 1].size[1] + ' ' + st.name + ' TNT')])
+        : sz.craft + ' of the ' + RC.sizes[i - 1].size[0] + 'x' + RC.sizes[i - 1].size[1] + ' ' + st.name + ' TNT'),
+      RC.sizes[i + 1] ? up(RC.sizes[i + 1].craft + ' of these -> a ' + RC.sizes[i + 1].size[0] + 'x' + RC.sizes[i + 1].size[1] + ' room (crafting grid)') : tip('The biggest room size')])
   }))
 
   // Polishing Cloth
@@ -430,30 +537,26 @@ ItemEvents.tooltip(event => {
       tip('Smashes: ' + rockNames),
       tip('Cobblestone: gravel, flint, iron, copper, zinc and gold nuggets, coal, sometimes Raw Ascendite'),
       tip(T.uses + ' uses' + (T.luck != 1 ? ', x' + T.luck + ' luck on every drop' : '') + ', ' + (T.cooldown / 20).toFixed(2) + 's between smashes'),
-      made(hid.indexOf('ascendite') >= 0 ? '5 Ascendite Ingots + 2 Sticks' : '5 Iron Ingots + 2 Sticks')])
+      made(hid.indexOf('ascendite') >= 0 ? '5 Ascendite Ingots + 2 Sticks' : '5 Iron Ingots + 2 Sticks'),
+      hid.indexOf('ascendite') >= 0 ? tip('The best hammer') : up('the Ascendite Rock Hammer: 5 Ascendite Ingots + 2 Sticks (more uses, more luck, faster)')])
   })
 
   // Higher gear tiers
-  let tierMade = {
-    voidsteel: 'Diamond + 2 Ascendite Ingots + Obsidian in a heated mixer (makes 2)',
-    celestium: 'Netherite Ingot + 2 Voidsteel Ingots + a Dense Ascension Core, superheated (makes 2)',
-    ascendium: '2 Celestium Ingots + an Ascension Singularity + 4 Mythic Fragments + 1,000 mB Liquid Essence, superheated'
-  }
   let tierPlace = { voidsteel: 'between diamond and netherite', celestium: 'stronger than netherite', ascendium: 'far beyond netherite (endgame)' }
   let tierLore = { voidsteel: 'Darker than night, lighter than it looks.', celestium: 'It catches starlight even underground.', ascendium: 'Still warm from the forge that made it.' }
   Object.keys(FA.gearTiers).forEach(t => {
     let G = FA.gearTiers[t], GT = G.tools, GA = G.armor
-    details('kubejs:' + t + '_ingot', tierLore[t], () => [made(tierMade[t]), use(G.name + ' tools and armor (' + tierPlace[t] + ')')])
+    details('kubejs:' + t + '_ingot', tierLore[t], () => [made(tierMade[t]), use(G.name + ' tools and armor (' + tierPlace[t] + ')'), nextTier(t)])
     ;['sword', 'pickaxe', 'axe', 'shovel', 'hoe'].forEach(g => details('kubejs:' + t + '_' + g, tierLore[t], () => [
       Text.gray('Tier: ').append(Text.aqua(tierPlace[t])).append(Text.darkGray('  ' + GT.uses + ' durability, +' + GT.attackDamageBonus + ' damage bonus')),
       made(G.name + ' Ingots + Sticks, like iron tools. Repair with ' + G.name + ' Ingots in an anvil.'),
-      tip('Takes Ascended enchants like any gear')]))
+      tip('Takes Ascended enchants like any gear'), nextTier(t)]))
     let GP = GA.protection, slotIx = { boots: 0, leggings: 1, chestplate: 2, helmet: 3 }
     Object.keys(slotIx).forEach(g => details('kubejs:' + t + '_' + g, tierLore[t], () => [
       Text.gray('This piece: ').append(Text.aqua(GP[slotIx[g]] + ' armor, ' + GA.toughness + ' toughness'))
         .append(Text.darkGray('  (all 4 pieces: ' + (GP[0] + GP[1] + GP[2] + GP[3]) + ' armor, ' + 4 * GA.toughness + ' toughness)')),
       made(G.name + ' Ingots, like iron armor. Repair with ' + G.name + ' Ingots in an anvil.'),
-      tip('Takes Ascended enchants like any gear')]))
+      tip('Takes Ascended enchants like any gear'), nextTier(t)]))
   })
 
   // Mob food
@@ -461,19 +564,18 @@ ItemEvents.tooltip(event => {
   let pretty = id => String(id).replace(/^[a-z0-9_]+:/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
   let roman = n => ['I', 'II', 'III', 'IV', 'V'][n] || String(n + 1)
   let tomesNeeding = item => Object.keys(global.FA_TOME_CATALYSTS).filter(t => global.FA_TOME_CATALYSTS[t].indexOf(item) >= 0).map(t => FA.enchants[t].name)
-  let rawLore = ['Smells awful. Definitely cook this.', 'Still twitching a little.', 'Who would eat this raw?']
-  let cookedLore = ['Crispy outside, surprisingly good inside.', 'Somehow it tastes like adventure.', 'Grandma would be proud.']
   MF.foods.forEach((fd, i) => {
     let mobs = fd.mobs.map(pretty).join(', ')
     let needs = item => {
       let t = tomesNeeding(item)
       return t.length ? [use('the ' + t.join(', ') + ' tome' + (t.length > 1 ? 's' : ''))] : []
     }
-    details('kubejs:' + fd.raw, rawLore[i % rawLore.length], () => [
+    let L = FA_FOOD_LORE[fd.raw] || ['Smells awful. Definitely cook this.', 'Crispy outside, surprisingly good inside.']
+    details('kubejs:' + fd.raw, L[0], () => [
       from(mobs + ' (' + pct(fd.chance) + ', +' + pct(MF.lootingBonus) + ' per Looting level)'),
       Text.red('Raw: ' + MF.raw.sickness.map(e => pretty(e[0]) + ' ' + roman(e[2]) + (e[3] < 1 ? ' (' + pct(e[3]) + ')' : '')).join(', ')),
       tip('Cook it in a furnace, smoker or campfire: ' + fd.cookedName)].concat(needs('kubejs:' + fd.raw)))
-    details('kubejs:' + fd.cooked, cookedLore[i % cookedLore.length], () => [
+    details('kubejs:' + fd.cooked, L[1], () => [
       Text.green('+' + fd.hunger + ' hunger, ' + pretty(fd.effect[0]) + (fd.effect[2] > 0 ? ' ' + roman(fd.effect[2]) : '') + ' for ' + fd.effect[1] + 's'),
       made('cooking ' + fd.rawName + ', or kill the ' + fd.mobs.map(pretty)[0] + ' while it burns'),
       tip('You can eat it even when full')].concat(needs('kubejs:' + fd.cooked)))
@@ -485,7 +587,80 @@ ItemEvents.tooltip(event => {
     Text.gray('This piece: ').append(Text.aqua(P[slots[g]] + ' armor, ' + A.armor.toughness + ' toughness'))
       .append(Text.darkGray('  (all 4 pieces: ' + total + ' armor, ' + 4 * A.armor.toughness + ' toughness)')),
     made('Ascendite Ingots, like iron armor. Repair with Ascendite Ingots in an anvil.'),
-    tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click')]))
+    tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click'), nextTier('ascendite')]))
+  // ---- The Factory Ascension mod's blocks and spawn eggs (Full download) ----
+  if (Platform.isLoaded('factoryascension')) {
+    let M = FA.machines, EN = M.engine
+    // "4 Iron Ingot, 2 Shaft" from a shaped recipe in the config
+    let shapedList = r => itemList(r[0].join('').split('').filter(c => c != ' ').map(c => r[1][c]))
+    let block = (id, lore, lines) => details('factoryascension:' + id, lore, () => lines().concat([made(shapedList(M.recipes[id]) + ' (crafting grid)')]))
+    let tierSteps = (ups, what) => ups.map((u, i) => up('tier ' + (i + 2) + ' (' + what(i + 1) + '): right-click it with ' + u[1] + ' ' + faItemName(u[0])))
+
+    block('ascension_vault', 'Room for everything you will ever loot.', () => [
+      use('a storage chest with a search bar, a Sort button and a scroll bar. Hoppers and Create funnels work.'),
+      tip('Starts at 108 slots. Breaking it drops what is inside.')].concat(tierSteps(M.vaultUpgrades, t => 108 * (t + 1) + ' slots')))
+    block('super_smelter', 'A furnace that never learned to wait.', () => [
+      use('smelting a whole batch at once. Shaft in the back: the faster it spins, the faster it goes'),
+      tip('Tier 1: ' + M.smelter.tiers[0][0] + ' items at once. A batch takes ' + (M.smelter.cookTicksAt64Rpm / 20) + 's at 64 RPM. Needs at least ' + M.smelter.minRpm + ' RPM.')]
+      .concat(tierSteps(M.smelter.upgrades, t => M.smelter.tiers[t][0] + ' items at once')))
+    block('salvager', 'One adventurer\'s junk is another\'s cores.', () => [
+      use('/ascension sell as a machine: loot in the top row, Ascension Cores out of the bottom row'),
+      tip(M.salvager.itemsPerRun + ' items every ' + M.salvager.seconds + 's at the same prices. What it can\'t sell passes straight through.'),
+      tip(M.salvager.artifacts ? 'It will grind up Artifacts too.' : 'It never grinds up an Artifact.')])
+    block('tome_fusion_table', 'Two books go in. One better book comes out.', () => [
+      use('merging copies of one tome (their levels add up), or making a Fusion or Triad from its parent tomes'),
+      tip('A Fusion costs ' + M.fusionTable.fusionCores + ' core, a Triad ' + M.fusionTable.triadCores + '. It shows the result before you commit.')])
+    block('card_binder', 'Every collector needs a binder.', () => [
+      use('holding 54 tome cards. Shows how much of the collection you have'), tip('Floats your best card above the block')])
+    block('essence_forge', 'Gear goes in plain and comes out legendary.', () => [
+      use('levelling the gear in its slot from its Liquid Essence tank (16 buckets), once a second'),
+      tip('Same rules as the Ascension Altar. Pipe or pour the Liquid Essence in.')])
+    block('pack_opener', 'Somebody has to open all those packs.', () => [
+      use('opening Enchantment Packs (and Booster Boxes), one every ' + M.openerSeconds + 's, into 27 output slots'),
+      tip('Hoppers work. It flips the cards on its screen.')])
+
+    // Modular Engine
+    let speeds = EN.rpm.join(', ')
+    block('engine_core', 'The beating heart of your first factory.', () => [
+      use('Create power from day one: put a shaft on its front face'),
+      tip('Coils, Gearboxes and Burners touching it (or each other) make the engine. Up to ' + EN.maxModules + ' modules.'),
+      tip('Right-click it for the engine screen: speed, power, modules and what to add next'),
+      up('more power: +1 Coil (+' + EN.suPerCoil + ' SU) and a Burner for every ' + EN.coilsPerBurner + ' Coils'),
+      up('more speed: +1 Gearbox (' + speeds + ' RPM)')])
+    block('engine_coil', 'Copper wound tight around a spark.', () => [
+      use('+' + EN.suPerCoil + ' SU of stress capacity, while a lit Burner powers it'),
+      tip('Each lit Burner powers ' + EN.coilsPerBurner + ' Coils. Its screen shows how many are powered.'),
+      up('add more Coils: every one is +' + EN.suPerCoil + ' SU (up to ' + EN.maxModules + ' modules in all)')])
+    block('engine_gearbox', 'Same power, faster shaft.', () => [
+      use('speed: each Gearbox takes the engine to its next speed (' + speeds + ' RPM)'),
+      tip('The SU stays the same at any speed. Its screen shows the speed ladder.'),
+      up('add another Gearbox for the next speed, up to ' + EN.rpm[EN.rpm.length - 1] + ' RPM with ' + (EN.rpm.length - 1))])
+    block('engine_burner', 'Feed it coal and it will feed your factory.', () => [
+      use('burning any furnace fuel to power ' + EN.coilsPerBurner + ' Coils' + (EN.fuelMultiplier != 1 ? ' (fuel lasts x' + EN.fuelMultiplier + ')' : '')),
+      tip('Right-click with fuel to fill it, or open its screen. Hoppers and chutes fill it. Spare Burners wait.'),
+      up('one more Burner for every ' + EN.coilsPerBurner + ' more Coils')])
+
+    // Connected glass
+    let glassLore = { factory_glass: 'Clean steel-framed panes for any factory.', ascendite_glass: 'Teal-tinted, with an Ascendite frame.',
+      gilded_glass: 'Warm glass trimmed in gold.', smoked_glass: 'Dark glass: see out, not in.' }
+    Object.keys(M.glass).forEach(g => details('factoryascension:' + g, glassLore[g] || 'Clear as day.', () => [
+      tip('Connects to the same glass next to it: one big pane, framed only round the edge'),
+      made('8 Glass around ' + faItemName(M.glass[g]) + ' (crafting grid, makes 8)')]))
+
+    // Spawn eggs: where the mob lives, what it does, what it drops
+    Object.keys(global.FA_MOB_INFO).forEach(id => {
+      let info = global.FA_MOB_INFO[id], boss = FA.modMobs.bosses[id], min = FA.modMobs.minDanger[id] || 0
+      let parts = MF.foods.filter(fd => fd.mobs.indexOf('factoryascension:' + id) >= 0)
+      details('factoryascension:' + id + '_spawn_egg', info.what, () => {
+        let lines = [from(info.where + (min > 0 && info.where.indexOf('danger') < 0 ? ', danger ' + min + '+' : ''))]
+        parts.forEach(fd => lines.push(Text.gray('Part: ').append(Text.white(fd.rawName + ' (' + pct(fd.chance) + ')')).append(Text.darkGray(', cooks into ' + fd.cookedName))))
+        if (boss) lines.push(Text.red('Boss: ').append(Text.white('boss bar, minions at 2/3 and 1/3 health, enrages at 1/4')),
+          tip(pct(boss.chance) + ' of its spawns go through, never within ' + boss.spacing + ' blocks of another'))
+        lines.push(tip('Right-click a block to spawn one (Creative, or on a spawner)'))
+        return lines
+      })
+    })
+  }
 })
 
 // Display name of any item, for recipe lines

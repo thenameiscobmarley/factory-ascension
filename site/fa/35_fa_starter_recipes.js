@@ -180,6 +180,19 @@ ServerEvents.recipes(event => {
     results: [{ item: 'kubejs:ascension_core' }],
     heatRequirement: 'heated'
   }).id(id('core_mixing'))
+  // Early automation, no heat: a Millstone grinds Raw Ascendite (with a chance of a shard), and an unheated
+  // Mechanical Mixer turns washed nuggets + redstone into cores. Cobblestone -> cores on engine power alone.
+  event.custom({
+    type: 'create:milling',
+    ingredients: [{ item: 'kubejs:raw_ascendite' }],
+    results: [{ item: 'kubejs:crushed_raw_ascendite' }, { item: 'kubejs:ascension_shard', chance: A.millShardChance }],
+    processingTime: 150
+  }).id(id('mill_raw_ascendite'))
+  event.custom({
+    type: 'create:mixing',
+    ingredients: many({ item: 'kubejs:ascendite_nugget' }, Math.min(8, A.mixerNuggets)).concat([{ item: 'minecraft:redstone' }]),
+    results: [{ item: 'kubejs:ascension_core' }]
+  }).id(id('core_mixing_unheated'))
   // Shards press into a core too (Mechanical Press + Basin, no heat), so a crushing line can feed it
   event.custom({
     type: 'create:compacting',
