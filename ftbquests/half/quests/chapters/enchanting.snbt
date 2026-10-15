@@ -1,0 +1,269 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "enchanting"
+	group: ""
+	icon: "kubejs:blank_ascension_tome"
+	id: "2218ACE80C232364"
+	order_index: 2
+	quest_links: [ ]
+	quests: [
+		{
+			dependencies: [ ]
+			description: [
+				"A Deployer presses an Ascension Core into a Book."
+			]
+			icon: "kubejs:blank_ascension_tome"
+			id: "CF1E16023F3423B7"
+			rewards: [
+				{
+					count: 4
+					id: "84E5361E4B7C7C38"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "220BE4ABC9A6D54A"
+					item: "kubejs:blank_ascension_tome"
+					type: "item"
+				}
+			]
+			title: "A Blank Tome"
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"CF1E16023F3423B7"
+			]
+			description: [
+				"Mix a Blank Tome with a catalyst in a heated Basin. Hover a tome (hold Shift) for its recipe."
+				"Enchants have no level cap: level them with Essence in /ascension."
+			]
+			icon: "kubejs:tome_sharpness"
+			id: "C3D9CA75F7D1F8DE"
+			rewards: [
+				{
+					id: "5D4567F84B6A7FF9"
+					type: "xp_levels"
+					xp_levels: 10
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "2FA15540EA56D53A"
+					item: "kubejs:tome_sharpness"
+					type: "item"
+				}
+			]
+			title: "Knowledge Without Limit"
+			x: 2.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"C3D9CA75F7D1F8DE"
+			]
+			description: [
+				"Gems add levels on top of what you bought. 4 Chipped press into 1 Flawless, 4 Flawless into 1 Perfect."
+			]
+			icon: "kubejs:gem_garnet_1"
+			id: "CB1E353401EB24E7"
+			rewards: [
+				{
+					count: 8
+					id: "62A5E5877A9C2C32"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "D7B901CFE85169EF"
+					item: "kubejs:gem_garnet_1"
+					type: "item"
+				}
+			]
+			title: "Socket It"
+			x: 4.0d
+			y: 2.0d
+		}
+		{
+			dependencies: [ ]
+			description: [
+				"Attachments add effects to gear. The powered ones run on batteries you carry: recharge them in a crafting grid or a Mechanical Mixer."
+			]
+			icon: "kubejs:attachment_electric_spike_wrap"
+			id: "EBF5A5A355C3C0CA"
+			rewards: [
+				{
+					count: 1
+					id: "F2D83F1E31C3C65F"
+					item: "kubejs:copper_battery"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "BB9FB4C4D3705C85"
+					item: "kubejs:attachment_electric_spike_wrap"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "57D7AD8EE9600156"
+					item: "kubejs:copper_battery"
+					type: "item"
+				}
+			]
+			title: "Bolt-On Power"
+			x: 6.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"C3D9CA75F7D1F8DE"
+			]
+			description: [
+				"A Foil Sheet multiplies the level a tome puts on gear. Right-click one with the tome in your other hand."
+			]
+			icon: "kubejs:foil_sheet_gold"
+			id: "ADA7E55D410A6D17"
+			rewards: [
+				{
+					count: 1
+					id: "3FD4EB882A234641"
+					item: "kubejs:foil_sheet_silver"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "A6C4CFD094877054"
+					item: "kubejs:foil_sheet_gold"
+					type: "item"
+				}
+			]
+			title: "Shiny!"
+			x: 2.0d
+			y: 2.0d
+		}
+		{
+			dependencies: [
+				"ADA7E55D410A6D17"
+			]
+			description: [
+				"Ten cased foils go past Celestial: Ruby (x15) all the way to Eclipse (x100). Each is made from the one before it."
+			]
+			icon: "kubejs:foil_sheet_ruby"
+			id: "C3ADC818B0427181"
+			rewards: [
+				{
+					count: 4
+					id: "1A02D65243F0B046"
+					item: "kubejs:mythic_fragment"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "8E1DA3EDE55C2BFE"
+					item: "kubejs:foil_sheet_ruby"
+					type: "item"
+				}
+			]
+			title: "Collector's Case"
+			x: 2.0d
+			y: 4.0d
+		}
+		{
+			dependencies: [ ]
+			description: [
+				"Put gear in the Ascension Workbench and press Star Up: the first Legendary star adds a legendary effect."
+				"Tick this when your gear has its first star."
+			]
+			icon: "minecraft:nether_star"
+			id: "219CAE9C0D46942B"
+			rewards: [
+				{
+					count: 4
+					id: "8102C9201A7E8D44"
+					item: "kubejs:dense_ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					id: "5937D4B97CD539F8"
+					type: "checkmark"
+				}
+			]
+			title: "Legendary"
+			x: 6.0d
+			y: -1.0d
+		}
+		{
+			dependencies: [
+				"219CAE9C0D46942B"
+			]
+			description: [
+				"Every star adds another legendary effect and makes every level on the gear count for more."
+			]
+			icon: "minecraft:nether_star"
+			id: "6A4DF853BDC8C818"
+			rewards: [
+				{
+					count: 1
+					id: "E5DE1269A70CD9A8"
+					item: "kubejs:ascension_singularity"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					id: "1A8B7BB3D2332A63"
+					type: "checkmark"
+				}
+			]
+			title: "Five Stars"
+			x: 8.0d
+			y: -1.0d
+		}
+		{
+			dependencies: [
+				"6A4DF853BDC8C818"
+			]
+			description: [
+				"Ten stars. The whole server hears about it."
+			]
+			icon: "minecraft:nether_star"
+			id: "36A8C237CDDE86E0"
+			rewards: [
+				{
+					count: 2
+					id: "A91320E04BFC41ED"
+					item: "kubejs:ascended_soul"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					id: "37118904A93E412B"
+					type: "checkmark"
+				}
+			]
+			title: "Ascended Legendary"
+			x: 10.0d
+			y: -1.0d
+		}
+	]
+	title: "Gear and Enchanting"
+}

@@ -54,6 +54,8 @@ def build(full, curseforge, jar):
         if curseforge:
             z.writestr('manifest.json', json.dumps(manifest(full), indent=2))
         add_tree(z, os.path.join(ROOT, 'kubejs'), base + 'kubejs')
+        # The FTB Quests quest book (tools/make_quests.py): the Half one skips the mod's blocks
+        add_tree(z, os.path.join(ROOT, 'ftbquests', 'full' if full else 'half', 'quests'), base + 'config/ftbquests/quests')
         if full:
             z.write(jar, base + 'mods/' + os.path.basename(jar))
         if not curseforge:

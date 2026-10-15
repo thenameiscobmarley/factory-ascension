@@ -18,7 +18,7 @@ ASSETS = os.path.join(RES, "assets", "factoryascension")
 DATA = os.path.join(RES, "data", "factoryascension")
 S = 32
 BLOCKS = ["ascension_vault", "card_binder", "essence_forge", "pack_opener", "salvager", "tome_fusion_table", "super_smelter",
-          "engine_core", "engine_coil", "engine_gearbox", "engine_burner", "storage_terminal"]
+          "engine_core", "engine_coil", "engine_gearbox", "engine_burner", "storage_terminal", "ascension_workbench", "mini_crusher"]
 gear_art.MATERIALS.setdefault("copper", ((255, 196, 150), (200, 110, 62), (96, 44, 24)))
 
 
@@ -422,11 +422,106 @@ def linker_item():
     return px
 
 
+def bench_top():
+    """The workbench top: dark wood with a gold-ringed teal rune circle (where gear is enchanted)."""
+    px = canvas()
+    plate(px, 0, 0, S, S, "wood")
+    for y in range(3, S, 7):
+        for x in range(S):
+            px[y][x] = _shade("wood", 0.78) + (255,)
+    import math
+    for y in range(S):
+        for x in range(S):
+            d = math.hypot(x - 15.5, y - 15.5)
+            if 10 <= d < 11.5:
+                px[y][x] = _shade("gold", 0.3) + (255,)
+            elif 6.5 <= d < 7.5 or (d < 10 and abs((math.degrees(math.atan2(y - 15.5, x - 15.5)) % 72) - 36) < 3):
+                px[y][x] = _shade("teal", 0.3) + (255,)
+    gem(px, 16, 16, 2)
+    frame(px)
+    return px
+
+
+def bench_front():
+    """The workbench front: two drawers with gold pulls."""
+    px = canvas()
+    plate(px, 0, 0, S, S, "wood")
+    frame(px)
+    for y0 in (6, 18):
+        plate(px, 4, y0, 24, 9, "steel_dk")
+        frame_rect = [(x, y0) for x in range(4, 28)]
+        for x in range(13, 19):
+            px[y0 + 4][x] = _shade("gold", 0.3) + (255,)
+    return px
+
+
+def bench_side():
+    px = canvas()
+    plate(px, 0, 0, S, S, "wood")
+    frame(px)
+    rivets(px)
+    return px
+
+
+def crusher_front():
+    """Mini Crusher front: a window onto two small toothed crushing wheels."""
+    import math
+    px = side()
+    plate(px, 5, 6, 22, 16, "steel_dk")
+    frame(px, "gold", 5)
+    for cx in (11.5, 20.5):
+        for y in range(7, 21):
+            for x in range(6, 26):
+                d = math.hypot(x - cx, y - 13.5)
+                a = math.atan2(y - 13.5, x - cx)
+                if d < 4.2 + (1.0 if math.cos(a * 8) > 0.3 else 0):
+                    px[y][x] = _shade("iron", 0.2 + d / 10) + (255,)
+                if d < 1.6:
+                    px[y][x] = _shade("steel_dk", 0.7) + (255,)
+    plate(px, 9, 24, 14, 4, "steel_dk")              # output chute
+    return px
+
+
+def crusher_top():
+    """A small hopper mouth."""
+    px = top()
+    plate(px, 8, 8, 16, 16, "steel_dk")
+    for k in range(10, 22, 3):
+        for j in range(10, 22):
+            px[j][k] = _shade("iron", 0.35) + (255,)
+    return px
+
+
+def crusher_motor():
+    """The motor housing on the side: copper windings behind a grille, a teal power light."""
+    px = side()
+    plate(px, 6, 6, 20, 20, "copper")
+    for y in range(8, 24, 3):
+        for x in range(8, 24):
+            px[y][x] = _shade("steel_dk", 0.6) + (255,)
+    gem(px, 22, 9, 1)
+    return px
+
+
+def opener_pack():
+    import item_models
+    return item_models.pack_face()
+
+
+def terminal_keys():
+    px = canvas()
+    plate(px, 0, 0, S, S, "steel_dk")
+    for y in range(4, 28, 6):
+        for x in range(3, 29, 5):
+            plate(px, x, y, 4, 4, "teal" if (x + y) % 3 == 0 else "steel")
+    return px
+
+
 FACES = {
     "ascension_vault": {"front": vault_front, "side": side, "top": top},
     "card_binder": {"front": binder_side, "side": binder_side, "top": binder_top},
     "essence_forge": {"front": forge_front, "side": side, "top": forge_top},
-    "pack_opener": {"front": opener_front, "side": side, "top": top},
+    "pack_opener": {"front": opener_front, "side": side, "top": top, "pack": opener_pack},
     "salvager": {"front": salvager_front, "side": side, "top": salvager_top},
     "tome_fusion_table": {"front": fusion_side, "side": fusion_side, "top": fusion_top},
     "super_smelter": {"front": smelter_front, "front_lit": lambda: smelter_front(True), "back": smelter_back, "side": side, "top": smelter_top},
@@ -434,12 +529,14 @@ FACES = {
     "engine_coil": {"side": coil_side, "top": engine_top},
     "engine_gearbox": {"side": gearbox_side, "top": engine_top},
     "engine_burner": {"side": burner_side, "side_lit": lambda: burner_side(True), "top": burner_top},
-    "storage_terminal": {"front": terminal_front, "side": side, "top": terminal_top},
+    "ascension_workbench": {"front": bench_front, "side": bench_side, "top": bench_top},
+    "mini_crusher": {"front": crusher_front, "side": crusher_motor, "top": crusher_top},
+    "storage_terminal": {"front": terminal_front, "side": side, "top": terminal_top, "keys": terminal_keys},
 }
 NAMES = {"ascension_vault": "Ascension Vault", "card_binder": "Card Binder", "essence_forge": "Essence Forge", "pack_opener": "Pack Opener",
          "salvager": "Salvager", "tome_fusion_table": "Tome Fusion Table", "super_smelter": "Super Smelter",
          "engine_core": "Modular Engine Core", "engine_coil": "Engine Coil Module", "engine_gearbox": "Engine Gearbox Module",
-         "engine_burner": "Engine Burner Module", "storage_terminal": "Universal Storage Terminal"}
+         "engine_burner": "Engine Burner Module", "storage_terminal": "Universal Storage Terminal", "ascension_workbench": "Ascension Workbench", "mini_crusher": "Mini Crusher"}
 FACINGS = (("north", 0), ("east", 90), ("south", 180), ("west", 270))
 
 
@@ -449,9 +546,42 @@ def cube(north, south, side, up, down=None):
                                                            "west": t(side), "up": t(up), "down": t(down or up)}}
 
 
+def shaped_model(b, variant=""):
+    """A block's 3D model: its parts, its own face textures and the shared materials."""
+    t = "factoryascension:block/"
+    tex = {k: t + b + "_" + k for k in FACES[b]}
+    if variant:
+        for k in list(tex):
+            if k + variant in FACES[b]:
+                tex[k + variant] = t + b + "_" + k + variant
+    tex.update({"mat_" + m: t + "mat_" + m for m in MATERIALS})
+    tex["particle"] = tex.get("side", tex.get("top"))
+    m = {"parent": "minecraft:block/block", "textures": tex, "elements": shape(b, variant)}
+    if any(e["faces"].get(f, {}).get("texture") == "#mat_glass" for e in m["elements"] for f in e["faces"]):
+        m["render_type"] = "minecraft:translucent"
+    return m
+
+
 def models(b):
     """{model name: model json} for a block, and its blockstate variants."""
     t = "factoryascension:block/"
+    if shape(b) is not None:
+        lit = {"super_smelter": "_lit", "engine_burner": "_lit"}.get(b)
+        m = {b: shaped_model(b)}
+        if lit:
+            m[b + lit] = shaped_model(b, lit)
+        if b == "super_smelter":
+            return m, {"facing=%s,lit=%s" % (d, l): {"model": t + b + ("_lit" if l == "true" else ""), **({"y": r} if r else {})}
+                       for d, r in FACINGS for l in ("false", "true")}
+        if b == "engine_burner":
+            return m, {"lit=false": {"model": t + b}, "lit=true": {"model": t + b + "_lit"}}
+        if b in ("engine_coil", "engine_gearbox"):
+            return m, {"": {"model": t + b}}
+        if b == "ascension_workbench":
+            m[b + "_side"] = shaped_model(b, "_side")
+            return m, {"facing=%s,main=%s" % (d, mn): {"model": t + b + ("" if mn == "true" else "_side"), **({"y": r} if r else {})}
+                       for d, r in FACINGS for mn in ("true", "false")}
+        return m, {"facing=%s" % d: {"model": t + b, **({"y": r} if r else {})} for d, r in FACINGS}
     if b == "super_smelter":
         m = {b: cube(b + "_front", b + "_back", b + "_side", b + "_top"), b + "_lit": cube(b + "_front_lit", b + "_back", b + "_side", b + "_top")}
         v = {"facing=%s,lit=%s" % (d, lit): {"model": t + b + ("_lit" if lit == "true" else ""), **({"y": r} if r else {})}
@@ -467,6 +597,142 @@ def models(b):
         return {b: col(b + "_side"), b + "_lit": col(b + "_side_lit")}, {"lit=false": {"model": t + b}, "lit=true": {"model": t + b + "_lit"}}
     return {b: {"parent": "minecraft:block/orientable", "textures": {"front": t + b + "_front", "side": t + b + "_side", "top": t + b + "_top"}}}, \
         {"facing=%s" % d: {"model": t + b, **({"y": r} if r else {})} for d, r in FACINGS}
+
+
+# ---- 3D block models: every machine is built from parts (boxes), not a plain cube ----
+# Texture keys: the block's own faces (front, side, top, back, ...) and shared materials (mat_<name>).
+MATERIALS = ["steel", "steel_dk", "gold", "teal", "wood", "copper", "iron", "gem", "cloth", "fire", "glass"]
+
+
+def material(mat):
+    px = canvas()
+    if mat == "glass":
+        for y in range(S):
+            for x in range(S):
+                edge = x in (0, S - 1) or y in (0, S - 1)
+                px[y][x] = (_shade("teal", 0.1) + (200,)) if edge else ((200, 236, 245, 70) if (x - y) % 13 > 1 else (255, 255, 255, 150))
+        return px
+    plate(px, 0, 0, S, S, mat)
+    if mat == "wood":
+        for y in range(3, S, 6):
+            for x in range(S):
+                px[y][x] = _shade("wood", 0.75) + (255,)
+    return px
+
+
+FACE_KEYS = {"n": "north", "s": "south", "e": "east", "w": "west", "u": "up", "d": "down"}
+
+
+def E(frm, to, tex, rot=None):
+    """One part. tex: a texture key for every face, or {face letter or '*': key}. UVs follow the part's position, so a
+    part shows the matching piece of its texture (a door panel shows the middle of the front)."""
+    faces = {}
+    for k, name in FACE_KEYS.items():
+        key = tex if isinstance(tex, str) else tex.get(k, tex.get("*"))
+        if key:
+            faces[name] = {"texture": "#" + key}
+    el = {"from": list(frm), "to": list(to), "faces": faces}
+    if rot:
+        el["rotation"] = {"origin": rot[2] if len(rot) > 2 else [8, 8, 8], "axis": rot[0], "angle": rot[1]}
+    return el
+
+
+def corners(x0, x1, y0, y1, w, tex):
+    """Four posts at the corners of a w-wide square frame."""
+    return [E((x, y0, z), (x + w, y1, z + w), tex) for x in (x0, x1 - w) for z in (x0, x1 - w)]
+
+
+def shape(b, variant=""):
+    """The parts of block b (variant: "_lit" for the lit look). Front faces north."""
+    F = {"*": "side", "n": "front", "u": "top", "d": "mat_steel_dk"}
+    if b == "ascension_vault":
+        return [E((0, 0, 0), (16, 1, 16), "mat_steel_dk"), E((1, 1, 1), (15, 15, 15), F),
+                E((0.5, 15, 0.5), (15.5, 16, 15.5), {"*": "mat_gold", "u": "top"}),
+                E((3, 3, 0.4), (13, 13, 1), {"*": "mat_steel", "n": "front"}),
+                E((7, 7, -0.1), (9, 9, 0.4), "mat_gold"),
+                E((12.6, 4, 0.2), (13.6, 6, 1), "mat_gold"), E((12.6, 10, 0.2), (13.6, 12, 1), "mat_gold")] + \
+            [E((x, 1, 0.5), (x + 1.5, 15, 2), "mat_gold") for x in (0.5, 14)]
+    if b == "card_binder":
+        return [E((3, 0, 3), (13, 2, 13), "mat_wood"), E((6, 2, 6), (10, 9, 10), {"*": "side", "u": "mat_wood"}),
+                E((1, 9, 1), (15, 11, 15), {"*": "mat_wood", "u": "top"}, ("x", -22.5, [8, 9, 8])),
+                E((7.5, 11, 1.5), (8.5, 11.6, 14.5), "mat_gold", ("x", -22.5, [8, 9, 8]))]
+    if b == "essence_forge":
+        return [E((1, 0, 1), (15, 3, 15), {"*": "side", "u": "mat_steel_dk"}), E((3, 3, 3), (13, 9, 13), "mat_glass"),
+                E((4, 3, 4), (12, 8, 12), "mat_gem"),
+                E((0, 9, 2), (16, 14, 14), {"*": "side", "n": "front", "u": "top", "d": "mat_steel_dk"}),
+                E((2, 14, 5), (14, 15, 11), "mat_steel_dk")] + corners(1, 15, 3, 9, 1.5, "mat_gold")
+    if b == "pack_opener":
+        return [E((1, 0, 1), (15, 11, 15), {"*": "side", "n": "front", "u": "top", "d": "mat_steel_dk"}),
+                E((2, 11, 2), (14, 13, 14), "mat_steel_dk"), E((4, 13, 6.5), (12, 14, 9.5), "mat_gold"),
+                E((5, 13, 7.25), (11, 18, 8.75), {"*": "mat_gem", "n": "pack", "s": "pack"})]
+    if b == "salvager":
+        return [E((1, 0, 1), (15, 10, 15), {"*": "side", "n": "front", "d": "mat_steel_dk", "u": "top"}),
+                E((0, 10, 0), (16, 15, 2), "mat_steel"), E((0, 10, 14), (16, 15, 16), "mat_steel"),
+                E((0, 10, 2), (2, 15, 14), "mat_steel"), E((14, 10, 2), (16, 15, 14), "mat_steel"),
+                E((0, 14.5, 0), (16, 15.5, 1), "mat_gold"), E((6, 10, -0.5), (10, 12, 0.5), "mat_gold")]
+    if b == "tome_fusion_table":
+        return [E((0, 9, 0), (16, 12, 16), {"*": "side", "u": "top", "d": "mat_wood"}),
+                E((1, 6, 1), (15, 9, 15), "mat_wood")] + corners(1, 15, 0, 9, 2, "mat_wood") + \
+            [E((2, 12, 11), (6, 13.5, 14), "mat_cloth"), E((10, 12, 11), (14, 13.5, 14), "mat_teal"),
+             E((7.5, 12, 1.5), (8.5, 14, 2.5), "mat_gem")]
+    if b == "super_smelter":
+        front = "front" + variant
+        return [E((0, 0, 1), (16, 14, 15), {"*": "side", "n": front, "s": "back", "u": "top", "d": "mat_steel_dk"}),
+                E((2, 12, 0.2), (14, 13.5, 1), "mat_steel_dk"), E((10, 14, 10), (14, 16, 14), "mat_steel_dk"),
+                E((9.5, 15.5, 9.5), (14.5, 16.5, 14.5), "mat_gold"), E((0, 0, 0), (2, 3, 1), "mat_gold"), E((14, 0, 0), (16, 3, 1), "mat_gold")]
+    if b == "engine_core":
+        return [E((1, 1, 1), (15, 15, 15), {"*": "side", "n": "front", "u": "top", "d": "top"}),
+                E((3, 3, -0.5), (13, 13, 1), {"*": "mat_copper", "n": "front"})] + corners(0, 16, 0, 16, 2, "mat_copper")
+    if b == "engine_coil":
+        return [E((3, 1.5, 3), (13, 14.5, 13), "side"), E((1, 0, 1), (15, 1.5, 15), {"*": "mat_iron", "u": "mat_iron"}),
+                E((1, 14.5, 1), (15, 16, 15), {"*": "mat_iron", "u": "top"})] + corners(1, 15, 1.5, 14.5, 1, "mat_steel_dk")
+    if b == "engine_gearbox":
+        return [E((1, 1, 1), (15, 15, 15), {"*": "side", "u": "top", "d": "top"})] + corners(0, 16, 0, 16, 2, "mat_copper")
+    if b == "engine_burner":
+        return [E((1, 0, 1), (15, 13, 15), {"*": "side" + variant, "u": "top", "d": "mat_steel_dk"}),
+                E((6, 13, 6), (10, 16, 10), "mat_steel_dk"), E((5.5, 15.5, 5.5), (10.5, 16.5, 10.5), "mat_copper")]
+    if b == "ascension_workbench":
+        top = [E((0, 12, 0), (16, 15, 16), {"*": "side", "n": "mat_wood", "u": "top", "d": "mat_wood"})]
+        if variant == "_side":
+            # The left half: legs on the far corners, a pegboard of tools behind, a lamp
+            return top + [E((x, 0, z), (x + 2, 12, z + 2), "mat_wood") for x in (0,) for z in (0, 14)] + \
+                [E((0, 4, 1), (16, 12, 15), {"*": "side", "n": "front"}),
+                 E((1, 15, 14), (15, 26, 15.5), "mat_wood"), E((3, 18, 13.5), (4, 24, 14), "mat_iron"), E((6, 20, 13.5), (9, 23, 14), "mat_gold"),
+                 E((11, 17, 13.5), (12, 25, 14), "mat_steel"), E((12.5, 15, 3), (14, 20, 4.5), "mat_steel_dk"), E((11.5, 19, 2), (15, 21, 5.5), "mat_gold")]
+        # The right half: legs, a vise, the rune circle
+        return top + [E((x, 0, z), (x + 2, 12, z + 2), "mat_wood") for x in (14,) for z in (0, 14)] + \
+            [E((2, 15, 9), (7, 18, 13), "mat_steel"), E((3, 18, 10), (6, 19, 12), "mat_gold"), E((4, 15, 7.5), (5, 16.5, 9), "mat_iron")]
+    if b == "mini_crusher":
+        return [E((2, 0, 2), (14, 2, 14), "mat_steel_dk"), E((3, 2, 3), (13, 11, 13), {"*": "mat_steel", "n": "front", "u": "mat_steel_dk"}),
+                E((2, 11, 2), (14, 13, 14), "mat_gold"), E((3, 13, 3), (13, 16, 13), {"*": "mat_steel", "u": "top"}),
+                E((13, 3, 4), (16, 10, 12), {"*": "mat_copper", "e": "side"}), E((0, 4, 6), (3, 9, 10), "mat_iron"),
+                E((6, 0.5, -0.5), (10, 3, 3), "mat_steel_dk")]
+    if b == "storage_terminal":
+        return [E((1, 0, 3), (15, 7, 15), {"*": "side", "u": "mat_steel_dk", "d": "mat_steel_dk"}),
+                E((2, 7, 6), (14, 8, 13), {"*": "mat_steel_dk", "u": "keys"}), E((6, 7, 2), (10, 9, 4), "mat_steel"),
+                E((1, 7, 1), (15, 16, 3), {"*": "mat_steel", "n": "front"}, ("x", 22.5, [8, 7, 3])),
+                E((2, 15.5, 2.5), (14, 16, 3), "mat_teal", ("x", 22.5, [8, 7, 3]))]
+    return None
+
+
+def kubejs_block_models():
+    """3D models for the pack's own KubeJS blocks (10_fa_items.js points them here with .model())."""
+    out = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "models", "block")
+    t = "factoryascension:block/mat_"
+    altar = {"parent": "minecraft:block/block", "render_type": "minecraft:cutout",
+             "textures": {"particle": "kubejs:block/ascension_altar", "a": "kubejs:block/ascension_altar", "gold": t + "gold",
+                          "gem": "minecraft:block/amethyst_block", "crystal": "minecraft:block/amethyst_cluster"},
+             "elements": [E((0, 0, 0), (16, 3, 16), "a"), E((4, 3, 4), (12, 13, 12), "a"), E((1, 13, 1), (15, 16, 15), "a"),
+                          E((3.5, 12, 3.5), (12.5, 13, 12.5), "gold"), E((0.5, 2.5, 0.5), (15.5, 3.5, 15.5), "gold")] +
+                         [E((x, 3, z), (x + 2, 8, z + 2), "gem") for x in (1, 13) for z in (1, 13)]}
+    cond = {"parent": "minecraft:block/block", "render_type": "minecraft:translucent",
+            "textures": {"particle": "kubejs:block/essence_condenser", "c": "kubejs:block/essence_condenser", "glass": t + "glass",
+                         "core": "kubejs:block/condensed_essence_0", "gold": t + "gold"},
+            "elements": [E((0, 0, 0), (16, 2, 16), "c"), E((0, 14, 0), (16, 16, 16), "c"), E((4, 2, 4), (12, 14, 12), "core"),
+                         E((1, 2, 1), (15, 14, 15), "glass")] + corners(0, 16, 2, 14, 2, "c") +
+                        [E((3, 13.5, 3), (13, 14.2, 13), "gold")]}
+    for name, m in (("ascension_altar_3d", altar), ("essence_condenser_3d", cond)):
+        write_json(os.path.join(out, name + ".json"), m)
 
 
 # ---- Connected glass: 16 frame textures per kind (a frame edge only where nothing matching is next to it) ----
@@ -532,6 +798,9 @@ def write_json(path, obj):
 def main():
     tex = os.path.join(ASSETS, "textures", "block")
     os.makedirs(tex, exist_ok=True)
+    for m in MATERIALS:
+        make_textures.png(os.path.join(tex, "mat_%s.png" % m), material(m))
+    kubejs_block_models()
     for b, faces in FACES.items():
         for face, draw in faces.items():
             make_textures.png(os.path.join(tex, "%s_%s.png" % (b, face)), draw())
@@ -540,9 +809,12 @@ def main():
             write_json(os.path.join(ASSETS, "models", "block", name + ".json"), model)
         write_json(os.path.join(ASSETS, "models", "item", b + ".json"), {"parent": "factoryascension:block/" + b})
         write_json(os.path.join(ASSETS, "blockstates", b + ".json"), {"variants": variants})
+        conds = [{"condition": "minecraft:survives_explosion"}]
+        if b == "ascension_workbench":   # two halves, one drop
+            conds.append({"condition": "minecraft:block_state_property", "block": "factoryascension:" + b, "properties": {"main": "true"}})
         write_json(os.path.join(DATA, "loot_tables", "blocks", b + ".json"), {
             "type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "factoryascension:" + b}],
-                                                  "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
+                                                  "conditions": conds}]})
     write_json(os.path.join(RES, "data", "minecraft", "tags", "blocks", "mineable", "pickaxe.json"),
                {"replace": False, "values": ["factoryascension:" + b for b in BLOCKS]})
     write_json(os.path.join(RES, "data", "minecraft", "tags", "blocks", "needs_iron_tool.json"),
@@ -558,6 +830,12 @@ def main():
     lang.update({
         "gui.factoryascension.search": "Search...",
         "gui.factoryascension.terminal_links": "%s chests",
+        "gui.factoryascension.bench_apply": "Apply",
+        "gui.factoryascension.crusher_motor": "Motor",
+        "gui.factoryascension.crusher_no_battery": "No battery",
+        "gui.factoryascension.bench_star": "Star Up",
+        "gui.factoryascension.bench_legendary": "%s (%s / %s stars)",
+        "gui.factoryascension.bench_max": "Fully legendary!",
         "gui.factoryascension.linker_bound": "Linker set to this terminal (%s chests linked). Now right-click chests to link them.",
         "gui.factoryascension.linker_unbound": "Right-click a Universal Storage Terminal first to set the linker",
         "gui.factoryascension.linker_lost": "The linker's terminal isn't here (broken, unloaded or another dimension)",

@@ -11,6 +11,14 @@ if (Platform.isLoaded('factoryascension')) {
   $FAModConfig.setEngine(M.engine.suPerCoil, M.engine.coilsPerBurner, M.engine.maxModules, M.engine.fuelMultiplier)
   M.engine.rpm.forEach((r, i) => $FAModConfig.setEngineRpm(i, r))
   $FAModConfig.setStorage(M.storage.range, M.storage.maxLinks)
+  let MC = M.miniCrusher
+  $FAModConfig.setMiniCrusher(MC.ticksPerItem, MC.chargePerItem)
+  MC.motors.forEach(m => $FAModConfig.addMotor('kubejs:' + m.id, m.speed))
+  global.FA.attachments.batteries.forEach(b => $FAModConfig.addBattery('kubejs:' + b.id))
+  let LG = global.FA.legendary
+  $FAModConfig.setLegendary(LG.maxStars)
+  LG.costs.forEach((cost, star) => cost.forEach(c => $FAModConfig.addLegendCost(star, c[0], c[1])))
+  LG.grades.forEach(g => $FAModConfig.addLegendGrade(g[0]))
   $FAModConfig.setSalvager(Math.max(1, Math.round(M.salvager.seconds * 20)))
 
   ForgeEvents.onEvent('dev.factoryascension.event.MachineEvent', event => {

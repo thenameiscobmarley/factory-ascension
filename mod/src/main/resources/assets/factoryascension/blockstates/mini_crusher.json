@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "factoryascension:block/mini_crusher"
+    },
+    "facing=east": {
+      "model": "factoryascension:block/mini_crusher",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "factoryascension:block/mini_crusher",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "factoryascension:block/mini_crusher",
+      "y": 270
+    }
+  }
+}

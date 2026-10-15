@@ -1,0 +1,220 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "danger"
+	group: ""
+	icon: "minecraft:iron_sword"
+	id: "222B3E11200D82D6"
+	order_index: 3
+	quest_links: [ ]
+	quests: [
+		{
+			dependencies: [ ]
+			description: [
+				"Travel past 1,000 blocks from your home and fight. Mobs out there are tougher, and loot drops grow exponentially with distance."
+			]
+			icon: "minecraft:iron_sword"
+			id: "1470DD417C59099B"
+			rewards: [
+				{
+					count: 1
+					id: "871D031509E5728C"
+					item: "kubejs:enchantment_pack"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					entity: "minecraft:zombie"
+					id: "DB69A197DD954646"
+					type: "kill"
+					value: 10L
+				}
+			]
+			title: "The Frontier"
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"1470DD417C59099B"
+			]
+			description: [
+				"Danger-zone kills drop them, Elites most of all. 4 of them make a Mythic tome."
+			]
+			icon: "kubejs:mythic_fragment"
+			id: "5E43EFB7FFAF223D"
+			rewards: [
+				{
+					count: 1
+					id: "C64A13C24DB216C3"
+					item: "kubejs:gear_cache"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 4L
+					id: "59E2F1262645C4B4"
+					item: "kubejs:mythic_fragment"
+					type: "item"
+				}
+			]
+			title: "Mythic Fragments"
+			x: 2.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"1470DD417C59099B"
+			]
+			description: [
+				"The pack's own mobs live out in the danger zones. Each one drops its own part: cook it for a buff."
+			]
+			icon: "factoryascension:rust_walker_spawn_egg"
+			id: "0983DB005A9F86CD"
+			rewards: [
+				{
+					count: 16
+					id: "DF5EC7B67F18FD2E"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					entity: "factoryascension:rust_walker"
+					id: "7B65486E7C6189C2"
+					type: "kill"
+					value: 3L
+				}
+				{
+					entity: "factoryascension:ascendite_husk"
+					id: "3D2534508D366732"
+					type: "kill"
+					value: 3L
+				}
+			]
+			title: "Strange Wildlife"
+			x: 2.0d
+			y: 2.0d
+		}
+		{
+			dependencies: [
+				"0983DB005A9F86CD"
+			]
+			description: [
+				"A boss, deep out (danger 8+). It slams, calls minions and enrages at a quarter health."
+			]
+			icon: "factoryascension:rust_colossus_spawn_egg"
+			id: "149F958A33BAED02"
+			rewards: [
+				{
+					count: 1
+					id: "EE9E036032CD457B"
+					item: "kubejs:ascended_soul"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					entity: "factoryascension:rust_colossus"
+					id: "A0F74ECFF0A86FD4"
+					type: "kill"
+					value: 1L
+				}
+			]
+			title: "The Rust Colossus"
+			x: 4.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"0983DB005A9F86CD"
+			]
+			description: [
+				"A spider the size of a house, in the forests (danger 8+)."
+			]
+			icon: "factoryascension:broodmother_spawn_egg"
+			id: "E63BE2875C038CB1"
+			rewards: [
+				{
+					count: 1
+					id: "1600BD029DF1C8F6"
+					item: "kubejs:ascended_soul"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					entity: "factoryascension:broodmother"
+					id: "1281D8BD7D5FC36D"
+					type: "kill"
+					value: 1L
+				}
+			]
+			title: "The Broodmother"
+			x: 4.0d
+			y: 3.0d
+		}
+		{
+			dependencies: [
+				"149F958A33BAED02"
+			]
+			description: [
+				"Volleys of wither arrows (danger 12+)."
+			]
+			icon: "factoryascension:hollow_king_spawn_egg"
+			id: "69420CA5A85E3443"
+			rewards: [
+				{
+					count: 2
+					id: "56FE74407C165B7C"
+					item: "kubejs:ascended_soul"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					entity: "factoryascension:hollow_king"
+					id: "DCE3560D0B352438"
+					type: "kill"
+					value: 1L
+				}
+			]
+			title: "The Hollow King"
+			x: 6.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"E63BE2875C038CB1"
+			]
+			description: [
+				"Rings of fireballs in the Nether (danger 10+)."
+			]
+			icon: "factoryascension:wisp_tyrant_spawn_egg"
+			id: "C5996ED4EED346F3"
+			rewards: [
+				{
+					count: 2
+					id: "E0BA4ECCC982E7E3"
+					item: "kubejs:ascended_soul"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					entity: "factoryascension:wisp_tyrant"
+					id: "8CA3C08AAB148E5C"
+					type: "kill"
+					value: 1L
+				}
+			]
+			title: "The Wisp Tyrant"
+			x: 6.0d
+			y: 3.0d
+		}
+	]
+	title: "Danger Zones"
+}

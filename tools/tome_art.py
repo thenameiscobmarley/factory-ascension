@@ -504,8 +504,11 @@ def _rainbow(t):
     return tuple(int(c * 255) for c in colorsys.hsv_to_rgb(t % 1.0, 0.7, 1.0))
 
 
-def foil_overlay(foil):
-    """32x32 RGBA overlay for one foil, covering the tome's front cover. Better foils are bolder and busier."""
+def foil_overlay(foil, art=None):
+    """32x32 RGBA overlay for one foil, covering the tome's front cover. Better foils are bolder and busier.
+    art: (main rgb, deep rgb) for the cased foils, drawn as a faceted gem pattern in those colors."""
+    if art:
+        return _cased_overlay(foil, art)
     import random
     rnd = random.Random(foil)
     px = [[(0, 0, 0, 0)] * S for _ in range(S)]
@@ -561,9 +564,45 @@ def foil_overlay(foil):
     return px
 
 
-def foil_sheet(foil):
+def _cased_overlay(foil, art):
+    """Cased foils: a double border, diamond facets that catch the light, and sparkles, all in the foil's colors."""
+    import random, math
+    rnd = random.Random(foil)
+    main, deep = art
+    px = [[(0, 0, 0, 0)] * S for _ in range(S)]
+    fx0, fx1, fy0, fy1 = SPINE + 1, X1, Y0, Y1
+    cx, cy = (fx0 + fx1) / 2.0, (fy0 + fy1) / 2.0
+    for y in range(fy0, fy1 + 1):
+        for x in range(fx0, fx1 + 1):
+            edge = min(x - fx0, fx1 - x, y - fy0, fy1 - y)
+            if edge == 0:
+                px[y][x] = tuple(min(255, c + 60) for c in main) + (250,)
+            elif edge == 1:
+                px[y][x] = tuple(deep) + (240,)
+            elif edge == 2:
+                px[y][x] = tuple(main) + (230,)
+            else:
+                # Facets: a diamond lattice, lit on its upper-left sides
+                u, v = (x - cx) + (y - cy), (x - cx) - (y - cy)
+                fu, fv = (u / 5.0) % 1.0, (v / 5.0) % 1.0
+                lit = (fu < 0.5) != (fv < 0.5)
+                t = 0.35 + 0.4 * (fu if lit else 1 - fv)
+                c = tuple(int(deep[i] + (main[i] - deep[i]) * t) for i in range(3))
+                if min(fu, fv, 1 - fu, 1 - fv) < 0.08:
+                    c = tuple(min(255, ch + 70) for ch in main)
+                ray = (math.cos(math.atan2(y - cy, x - cx) * 6) + 1) / 2
+                px[y][x] = c + (int(120 + 70 * ray),)
+    for _ in range(9):
+        x, y = rnd.randint(fx0 + 3, fx1 - 3), rnd.randint(fy0 + 3, fy1 - 3)
+        px[y][x] = (255, 255, 255, 255)
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            px[y + dy][x + dx] = tuple(min(255, c + 90) for c in main) + (200,)
+    return px
+
+
+def foil_sheet(foil, art=None):
     """A Foil Sheet icon: a slightly curled sheet showing the foil's finish."""
-    over = foil_overlay(foil)
+    over = foil_overlay(foil, art)
     px = [[(0, 0, 0, 0)] * S for _ in range(S)]
     for y in range(4, 28):
         for x in range(6, 26):

@@ -12,6 +12,8 @@
     "factoryascension:engine_coil",
     "factoryascension:engine_gearbox",
     "factoryascension:engine_burner",
-    "factoryascension:storage_terminal"
+    "factoryascension:storage_terminal",
+    "factoryascension:ascension_workbench",
+    "factoryascension:mini_crusher"
   ]
 }

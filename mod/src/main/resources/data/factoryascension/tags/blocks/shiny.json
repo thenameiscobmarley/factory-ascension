@@ -66,6 +66,273 @@
     "factoryascension:gilded_glass",
     "factoryascension:smoked_glass",
     "factoryascension:ascension_vault",
-    "factoryascension:essence_forge"
+    "factoryascension:essence_forge",
+    "minecraft:raw_iron_block",
+    "minecraft:raw_copper_block",
+    "minecraft:weathered_copper",
+    "minecraft:oxidized_copper",
+    "minecraft:exposed_cut_copper",
+    "minecraft:weathered_cut_copper",
+    "minecraft:oxidized_cut_copper",
+    "minecraft:waxed_exposed_copper",
+    "minecraft:waxed_weathered_copper",
+    "minecraft:waxed_oxidized_copper",
+    "minecraft:tinted_glass",
+    "minecraft:beacon",
+    "minecraft:polished_blackstone_bricks",
+    "minecraft:prismarine_bricks",
+    "minecraft:smooth_sandstone",
+    "minecraft:smooth_red_sandstone",
+    "minecraft:white_glazed_terracotta",
+    "minecraft:orange_glazed_terracotta",
+    "minecraft:magenta_glazed_terracotta",
+    "minecraft:light_blue_glazed_terracotta",
+    "minecraft:yellow_glazed_terracotta",
+    "minecraft:lime_glazed_terracotta",
+    "minecraft:pink_glazed_terracotta",
+    "minecraft:gray_glazed_terracotta",
+    "minecraft:light_gray_glazed_terracotta",
+    "minecraft:cyan_glazed_terracotta",
+    "minecraft:purple_glazed_terracotta",
+    "minecraft:blue_glazed_terracotta",
+    "minecraft:brown_glazed_terracotta",
+    "minecraft:green_glazed_terracotta",
+    "minecraft:red_glazed_terracotta",
+    "minecraft:black_glazed_terracotta",
+    "factoryascension:card_binder",
+    "factoryascension:pack_opener",
+    "factoryascension:salvager",
+    "factoryascension:tome_fusion_table",
+    "factoryascension:super_smelter",
+    "factoryascension:engine_core",
+    "factoryascension:engine_coil",
+    "factoryascension:engine_gearbox",
+    "factoryascension:engine_burner",
+    "factoryascension:storage_terminal",
+    "factoryascension:ascension_workbench",
+    {
+      "id": "kubejs:ascension_altar",
+      "required": false
+    },
+    {
+      "id": "kubejs:essence_condenser",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_0",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_1",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_2",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_3",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_4",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_5",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_6",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_7",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_8",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_9",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_10",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_11",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_12",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_13",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_14",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_15",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_16",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_17",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_18",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_19",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_20",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_21",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_22",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_23",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_24",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_25",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_26",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_27",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_28",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_29",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_30",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_31",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_32",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_33",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_34",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_35",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_36",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_37",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_38",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_39",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_40",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_41",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_42",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_43",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_44",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_45",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_46",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_47",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_48",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_49",
+      "required": false
+    },
+    {
+      "id": "kubejs:condensed_essence_50",
+      "required": false
+    },
+    {
+      "id": "create:andesite_casing",
+      "required": false
+    },
+    {
+      "id": "create:railway_casing",
+      "required": false
+    },
+    {
+      "id": "create:industrial_iron_block",
+      "required": false
+    }
   ]
 }

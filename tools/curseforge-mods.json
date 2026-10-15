@@ -55,6 +55,24 @@
    "projectID": 531761,
    "fileID": 8969708,
    "file": "balm-forge-1.20.1-7.3.44.jar"
+  },
+  {
+   "slug": "ftb-quests-forge",
+   "projectID": 289412,
+   "fileID": 8078538,
+   "file": "ftb-quests-forge-2001.4.22.jar"
+  },
+  {
+   "slug": "ftb-library-forge",
+   "projectID": 404465,
+   "fileID": 8226927,
+   "file": "ftb-library-forge-2001.2.13.jar"
+  },
+  {
+   "slug": "ftb-teams-forge",
+   "projectID": 404468,
+   "fileID": 7499810,
+   "file": "ftb-teams-forge-2001.3.2.jar"
   }
  ]
 }

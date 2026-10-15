@@ -1,0 +1,96 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "collecting"
+	group: ""
+	icon: "kubejs:enchantment_pack"
+	id: "4A891159C8F4F696"
+	order_index: 4
+	quest_links: [ ]
+	quests: [
+		{
+			dependencies: [ ]
+			description: [
+				"Packs of tome cards turn up in chests and danger-zone loot. Right-click to open: the last card is Rare or better."
+			]
+			icon: "kubejs:enchantment_pack"
+			id: "79C084A6E7E8E6BC"
+			rewards: [
+				{
+					count: 1
+					id: "2251111CFCC28B85"
+					item: "kubejs:enchantment_pack"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "2F8EE23686D29525"
+					item: "kubejs:enchantment_pack"
+					type: "item"
+				}
+			]
+			title: "Rip It Open"
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"79C084A6E7E8E6BC"
+			]
+			description: [
+				"12 packs in one box. Only in the best chests and Epic+ loot."
+			]
+			icon: "kubejs:booster_box"
+			id: "47F8564B48F1F180"
+			rewards: [
+				{
+					count: 1
+					id: "A3E7036AD3E49BA0"
+					item: "kubejs:foil_sheet_holo"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "8E38C0FC26AAEF21"
+					item: "kubejs:booster_box"
+					type: "item"
+				}
+			]
+			title: "A Whole Box"
+			x: 2.0d
+			y: -1.0d
+		}
+		{
+			dependencies: [ ]
+			description: [
+				"Factory Room TNT blasts out a lit, lined room in front of you."
+			]
+			icon: "kubejs:room_tnt_quartz_16"
+			id: "E81115BD81D6282B"
+			rewards: [
+				{
+					count: 4
+					id: "3D6536E3A65B26FA"
+					item: "minecraft:tnt"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "69646C98404E66E2"
+					item: "kubejs:room_tnt_quartz_16"
+					type: "item"
+				}
+			]
+			title: "Instant Basement"
+			x: 0.0d
+			y: 3.0d
+		}
+	]
+	title: "Collecting and Storage"
+}

@@ -166,6 +166,23 @@ ItemEvents.tooltip(event => {
           .append(Text.darkGray('  ' + effect)))
       }
     }
+    // Legendary stars (Ascension Workbench): the grade, its ten stars, and each star's legendary effect
+    let legend = data.getInt('legend')
+    if (legend > 0 && global.FA.legendary.enabled) {
+      let LG = global.FA.legendary, grade = LG.grades[Math.min(legend, LG.grades.length - 1)]
+      let gc = { gold: 'gold', light_purple: 'lightPurple', red: 'red', aqua: 'aqua', gray: 'gray' }[grade[1]] || 'gold'
+      text.add(line++, Text[gc](global.FA_legendStars(legend) + ' ' + grade[0].toUpperCase()).bold(true)
+        .append(Text.darkGray('  levels x' + global.FA_legendMult(legend).toFixed(1))))
+      if (data.contains('legendfx')) {
+        let fx = data.getCompound('legendfx')
+        for (let i = 0; i < LG.maxStars; i++) {
+          if (!fx.contains(String(i))) continue
+          let e = fx.getCompound(String(i)), eid = String(e.getString('id'))
+          if (global.FA.enchants[eid]) text.add(line++, Text[gc]('  \u2726 Legendary ' + global.FA.enchants[eid].name + ' ' + global.FA_num(e.getInt('level')))
+            .append(Text.darkGray('  ' + global.FA_describe(eid, e.getInt('level')))))
+        }
+      }
+    }
     if (stars > 0) text.add(line++, Text.yellow('\u2605'.repeat(Math.min(stars, 10)) + (stars > 10 ? ' x' + stars : '') + '  ')
       .append(Text.darkGray('levels count x' + global.FA_starMult(stars).toFixed(2))))
     Object.keys(global.FA.enchants).forEach(id => {
@@ -482,6 +499,14 @@ ItemEvents.tooltip(event => {
     made(itemList(at.recipe) + ' (crafting grid)')].concat(at.charge ? [Text.yellow('\u26a1 Powered: ').append(Text.white('uses ' + at.charge + ' charge each time, from a battery you carry (' +
       FA.attachments.batteries.map(b => b.name).join(', ') + ')'))] : [])))
 
+  // Mini Crusher motors
+  let MCm = FA.machines.miniCrusher
+  let motorLore = ['It hums. It spins. It crushes.', 'Teal sparks fly when it spins up.', 'It spins so fast it sings.']
+  MCm.motors.forEach((m, i) => details('kubejs:' + m.id, motorLore[i] || 'Spins.', () => [
+    Text.gray('Use: ').append(Text.white('put it in a Mini Crusher\'s motor slot: crushes at x' + m.speed + ' speed')),
+    made(itemList(m.recipe[0].join('').split('').filter(c => c != ' ').map(c => m.recipe[1][c])) + ' (crafting grid)'),
+    MCm.motors[i + 1] ? up('the ' + MCm.motors[i + 1].name + ' (x' + MCm.motors[i + 1].speed + ') is made from this one') : tip('The fastest motor')]))
+
   // Batteries
   let batteryLore = ['Two copper plates and a lot of hope.', 'Hums quietly with teal light.', 'A whole storm in a glass jar.']
   FA.attachments.batteries.forEach((b, i) => details('kubejs:' + b.id, batteryLore[i] || 'Fully charged.', item => [
@@ -496,8 +521,11 @@ ItemEvents.tooltip(event => {
 
   // Foil Sheets
   FA.foils.types.forEach((f, i) => details('kubejs:foil_sheet_' + f.id, ['Cheap shine, honest work.', 'Polished to a mirror.', 'Every collector wants one.', 'It shifts color as you turn it.',
-    'Splits light into every color.', 'A whole night sky, pressed thin.', 'It drinks the light around it.', 'Forged from the light of a dying star.'][i] || 'Shiny.', () => [
-    Text.gray('Foil: ').append(Text.gold(f.name + ', x' + f.mult + ' level')).append(Text.darkGray('  (#' + (i + 1) + ' of ' + FA.foils.types.length + ')')),
+    'Splits light into every color.', 'A whole night sky, pressed thin.', 'It drinks the light around it.', 'Forged from the light of a dying star.',
+    'Sealed in red glass, never touched by hand.', 'Deep blue, like looking into the sea.', 'Green fire frozen behind glass.', 'Honey-gold light, trapped forever.',
+    'The northern lights, in a box.', 'Black glass that hums when you hold it.', 'Still warm. The case is fireproof.', 'Frost creeps across the case.',
+    'A galaxy being born behind the glass.', 'The sun, swallowed. Only the crown remains.'][i] || 'Shiny.', () => [
+    Text.gray('Foil: ').append(Text.gold(f.name + ', x' + f.mult + ' level')).append(Text.darkGray('  (#' + (i + 1) + ' of ' + FA.foils.types.length + (f.cased ? ', collector case' : '') + ')')),
     Text.gray('Use: ').append(Text.white('hold an enchant tome in your other hand and right-click this')),
     tip('A tome with a foil goes on gear at its level x ' + f.mult + ', and its cover shows the foil. A better foil replaces a worse one.'),
     made(itemList(f.recipe) + ' (crafting grid)'),
@@ -652,6 +680,24 @@ ItemEvents.tooltip(event => {
       use('burning any furnace fuel to power ' + EN.coilsPerBurner + ' Coils' + (EN.fuelMultiplier != 1 ? ' (fuel lasts x' + EN.fuelMultiplier + ')' : '')),
       tip('Right-click with fuel to fill it, or open its screen. Hoppers and chutes fill it. Spare Burners wait.'),
       up('one more Burner for every ' + EN.coilsPerBurner + ' more Coils')])
+
+    // Mini Crusher
+    let MCR = M.miniCrusher
+    block('mini_crusher', 'All the crushing, none of the wheels.', () => [
+      use('crushing like Create\'s Crushing Wheels (or a Millstone), in one block with no rotation'),
+      tip('Needs a motor in its motor slot and a battery in its battery slot: ' + MCR.chargePerItem + ' charge per item'),
+      tip('Hoppers and funnels feed it from any side (batteries go in the battery slot) and take results out'),
+      up('a faster motor: ' + MCR.motors.map(m => m.name + ' x' + m.speed).join(', '))])
+
+    // Ascension Workbench
+    let LG = FA.legendary
+    block('ascension_workbench', 'Where good gear becomes legendary.', () => [
+      use('putting tomes, gems, attachments, Chaos Tomes and Polishing Cloths on gear: gear on top, the item below, Apply'),
+      tip('Two blocks wide. It says what Apply will do before you press it.'),
+      Text.gold('\u2605 Legendary stars: ').append(Text.white('Star Up adds a star, up to ' + LG.maxStars + '. Each star adds a legendary effect')),
+      tip('  (a random enchant that suits the gear, level ' + LG.effectLevels[0] + ' at star 1 up to ' + global.FA_num(LG.effectLevels[LG.maxStars - 1]) + ' at star ' + LG.maxStars + ')'),
+      tip('  and makes every level on the item count x' + (1 + LG.bonusPerStar).toFixed(1) + ' per star (x' + global.FA_legendMult(LG.maxStars).toFixed(1) + ' at ' + LG.maxStars + ')'),
+      up('star 1: ' + LG.costs[0].map(c => c[1] + ' ' + faItemName(c[0])).join(', ') + ' ... star ' + LG.maxStars + ': ' + LG.costs[LG.maxStars - 1].map(c => c[1] + ' ' + faItemName(c[0])).join(', '))])
 
     // Universal Storage Terminal and its linker
     let ST = M.storage

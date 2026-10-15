@@ -1,0 +1,82 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "factory_power"
+	group: ""
+	icon: "kubejs:ascension_core"
+	id: "A7814D499DEAE6FA"
+	order_index: 1
+	quest_links: [ ]
+	quests: [
+		{
+			dependencies: [ ]
+			description: [
+				"A Mechanical Press over a Basin squeezes 9 cobblestone into Raw Ascendite."
+			]
+			icon: "create:mechanical_press"
+			id: "1E71E81074FC16FD"
+			rewards: [
+				{
+					count: 8
+					id: "2FD8953E1DF238CF"
+					item: "kubejs:raw_ascendite"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "2AEFDE4DFDC382A0"
+					item: "create:mechanical_press"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "7393C2EF7B71FEAA"
+					item: "create:basin"
+					type: "item"
+				}
+			]
+			title: "Cobblestone Into Ore"
+			x: 2.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"1E71E81074FC16FD"
+			]
+			description: [
+				"Raw Ascendite -> Millstone -> fan through water -> 8 nuggets + 1 redstone in a Mechanical Mixer (no heat) = an Ascension Core."
+				"All of it runs on the Modular Engine."
+			]
+			icon: "create:mechanical_mixer"
+			id: "550CACD5455EFBE3"
+			rewards: [
+				{
+					count: 8
+					id: "35803850866DD5DA"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "6D74B0331328F528"
+					item: "create:millstone"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "C65B682475AC3C2D"
+					item: "create:mechanical_mixer"
+					type: "item"
+				}
+			]
+			title: "Cores on Autopilot"
+			x: 4.0d
+			y: 1.0d
+		}
+	]
+	title: "Factory Power"
+}

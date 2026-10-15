@@ -778,6 +778,9 @@ def ascendite_textures(textures):
     for name, draw in gear_art.ATTACHMENTS.items():
         px = draw()
         textures["attachment_" + name] = Outlined(px, px, (10, 12, 20, 255))
+    for name, draw in gear_art.MOTORS.items():
+        px = draw()
+        textures[name] = Outlined(px, px, (10, 12, 20, 255))
     for name, draw in gear_art.BATTERIES.items():
         px = draw()
         textures[name] = Outlined(px, px, (10, 12, 20, 255))
@@ -866,9 +869,12 @@ def main():
     foil_ids = re.findall(r"\{ id: '(\w+)', name: '[^']*', mult: [\d.]+", open(CONFIG).read())
     if len(foil_ids) < 8:
         raise SystemExit('could not read foils from ' + CONFIG)
+    foil_art = {}
+    for m in re.finditer(r"\{ id: '(\w+)', name: '[^']*', mult: [\d.]+.*?art: \[\[([\d, ]+)\], \[([\d, ]+)\]\]", open(CONFIG).read()):
+        foil_art[m.group(1)] = (tuple(int(v) for v in m.group(2).split(',')), tuple(int(v) for v in m.group(3).split(',')))
     for f in foil_ids:
-        png(os.path.join(OUT, "foil_overlay_" + f + ".png"), tome_art.foil_overlay(f))
-        sheet = tome_art.foil_sheet(f)
+        png(os.path.join(OUT, "foil_overlay_" + f + ".png"), tome_art.foil_overlay(f, foil_art.get(f)))
+        sheet = tome_art.foil_sheet(f, foil_art.get(f))
         textures["foil_sheet_" + f] = Outlined(sheet, sheet, edge)
     write_tome_models([n[5:] for n in textures if n.startswith("tome_")], foil_ids)
     seen = {}

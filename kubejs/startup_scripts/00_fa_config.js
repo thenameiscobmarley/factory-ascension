@@ -723,6 +723,34 @@ global.FA = {
     maxStars: 0                // 0 = no cap
   },
 
+  // ---- Legendary stars: Fallout 76-style grades for gear, from no stars to 10, made at the Ascension Workbench ----
+  // Each star adds one legendary effect (a random enchant that suits the gear, at effectLevels[star - 1]) and makes
+  // every level on the item count x(1 + bonusPerStar x stars), on top of Rebirth stars. costs[star - 1]: what that star
+  // takes from your inventory ([item, count]). The workbench is also where tomes, gems, attachments, Chaos Tomes and
+  // Polishing Cloths go on gear.
+  legendary: {
+    enabled: true,
+    maxStars: 10,
+    bonusPerStar: 0.1,
+    effectLevels: [10, 25, 50, 100, 200, 400, 800, 1500, 3000, 6000],
+    // Grade names and colors by star count (index = stars)
+    grades: [['Plain', 'gray'], ['Legendary', 'gold'], ['Legendary', 'gold'], ['Legendary', 'gold'], ['Epic Legendary', 'light_purple'],
+      ['Epic Legendary', 'light_purple'], ['Epic Legendary', 'light_purple'], ['Mythic Legendary', 'red'], ['Mythic Legendary', 'red'],
+      ['Mythic Legendary', 'red'], ['Ascended Legendary', 'aqua']],
+    costs: [
+      [['kubejs:ascension_core', 16], ['kubejs:ascension_shard', 8]],
+      [['kubejs:dense_ascension_core', 4], ['kubejs:mythic_fragment', 1]],
+      [['kubejs:dense_ascension_core', 8], ['kubejs:mythic_fragment', 2]],
+      [['kubejs:dense_ascension_core', 16], ['kubejs:mythic_fragment', 4], ['kubejs:voidsteel_ingot', 4]],
+      [['kubejs:ascension_singularity', 1], ['kubejs:mythic_fragment', 6], ['kubejs:voidsteel_ingot', 8]],
+      [['kubejs:ascension_singularity', 2], ['kubejs:mythic_fragment', 8], ['kubejs:celestium_ingot', 4]],
+      [['kubejs:ascension_singularity', 4], ['kubejs:ascended_soul', 1], ['kubejs:celestium_ingot', 8]],
+      [['kubejs:ascension_singularity', 8], ['kubejs:ascended_soul', 2], ['kubejs:ascendium_ingot', 2]],
+      [['kubejs:ascension_singularity', 16], ['kubejs:ascended_soul', 4], ['kubejs:ascendium_ingot', 4]],
+      [['kubejs:ascension_singularity', 32], ['kubejs:ascended_soul', 8], ['kubejs:ascendium_ingot', 8], ['minecraft:nether_star', 1]]
+    ]
+  },
+
   // ---- Gear sets: wear several pieces with the same enchant for a bonus ----
   // pieces = equipped items (hands + armor) that have the set's enchant.
   sets: [
@@ -790,12 +818,12 @@ global.FA = {
         engine: 0,             // Modular Engine parts, connected glass, Storage Linker (Full download)
         ascenditeGear: 1, attachments: 1, packs: 1, denseCore: 1, baseTomes: 1,
         voidsteel: 2, fusionTomes: 2, chaos: 2, machines: 2,   // machines: the mod's other blocks
-        celestium: 3, triadTomes: 3, singularity: 3, bigMachines: 3,   // bigMachines: Ascension Vault, Essence Forge
+        celestium: 3, triadTomes: 3, singularity: 3, bigMachines: 3,   // bigMachines: Ascension Vault, Essence Forge, Ascension Workbench
         ascendium: 4, mythicTomes: 4, souls: 4,
         ultimateTomes: 5,
         gems: [1, 2, 3],       // Chipped, Flawless, Perfect
         roomTnt: [0, 1, 2],    // 16, 32, 50
-        foils: [0, 0, 1, 1, 2, 3, 4, 5],
+        foils: [0, 0, 1, 1, 2, 3, 4, 5, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],   // the 10 cased foils are Legendary / Mythic
         condensedPerTier: 10,  // Condensed Essence: blocks 0-9 -> Uncommon, 10-19 -> Rare ... 40+ -> Mythic
         relics: { rare: 2, epic: 3, legendary: 4, mythic: 5 }
       },
@@ -959,7 +987,29 @@ global.FA = {
       { id: 'prismatic', name: 'Prismatic', mult: 3, weight: 6, color: 'light_purple', recipe: ['minecraft:paper', 'minecraft:diamond', 'minecraft:red_dye', 'minecraft:yellow_dye', 'minecraft:lime_dye', 'minecraft:light_blue_dye', 'minecraft:purple_dye'] },
       { id: 'galaxy', name: 'Galaxy', mult: 5, weight: 3, color: 'dark_purple', recipe: ['minecraft:paper', 'kubejs:voidsteel_ingot', 'minecraft:ender_eye', 'kubejs:mythic_fragment'] },
       { id: 'void', name: 'Void', mult: 8, weight: 0.8, color: 'dark_gray', recipe: ['minecraft:paper', 'kubejs:celestium_ingot', 'minecraft:crying_obsidian', 'kubejs:mythic_fragment', 'kubejs:mythic_fragment'] },
-      { id: 'celestial', name: 'Celestial', mult: 12, weight: 0.2, color: 'gold', recipe: ['minecraft:paper', 'kubejs:ascendium_ingot', 'kubejs:ascension_singularity', 'minecraft:nether_star'] }
+      { id: 'celestial', name: 'Celestial', mult: 12, weight: 0.2, color: 'gold', recipe: ['minecraft:paper', 'kubejs:ascendium_ingot', 'kubejs:ascension_singularity', 'minecraft:nether_star'] },
+      // Cased foils: collector-grade foils sealed in a tinted clear case (cased: true). Each is made from the one before it.
+      // art: [main rgb, deep rgb] for the case tint and the foil's pattern (tools/tome_art.py, tools/item_models.py).
+      { id: 'ruby', name: 'Ruby', mult: 15, weight: 0.12, color: 'red', cased: true, art: [[255, 70, 90], [120, 10, 34]],
+        recipe: ['kubejs:foil_sheet_celestial', 'minecraft:tinted_glass', 'minecraft:glass_pane', 'minecraft:glass_pane', 'minecraft:redstone_block', 'kubejs:mythic_fragment'] },
+      { id: 'sapphire', name: 'Sapphire', mult: 18, weight: 0.09, color: 'blue', cased: true, art: [[90, 140, 255], [20, 30, 120]],
+        recipe: ['kubejs:foil_sheet_ruby', 'minecraft:tinted_glass', 'minecraft:lapis_block', 'kubejs:mythic_fragment'] },
+      { id: 'emerald', name: 'Emerald', mult: 22, weight: 0.07, color: 'green', cased: true, art: [[80, 240, 130], [10, 100, 50]],
+        recipe: ['kubejs:foil_sheet_sapphire', 'minecraft:tinted_glass', 'minecraft:emerald_block', 'kubejs:mythic_fragment'] },
+      { id: 'amber', name: 'Amber', mult: 27, weight: 0.05, color: 'gold', cased: true, art: [[255, 190, 60], [150, 70, 10]],
+        recipe: ['kubejs:foil_sheet_emerald', 'minecraft:tinted_glass', 'minecraft:honey_block', 'minecraft:gold_block', 'kubejs:mythic_fragment'] },
+      { id: 'aurora', name: 'Aurora', mult: 33, weight: 0.035, color: 'aqua', cased: true, art: [[110, 255, 220], [120, 60, 200]],
+        recipe: ['kubejs:foil_sheet_amber', 'minecraft:tinted_glass', 'minecraft:prismarine_crystals', 'minecraft:amethyst_block', 'kubejs:ascended_soul'] },
+      { id: 'obsidian', name: 'Obsidian', mult: 40, weight: 0.025, color: 'dark_purple', cased: true, art: [[150, 80, 230], [24, 10, 40]],
+        recipe: ['kubejs:foil_sheet_aurora', 'minecraft:tinted_glass', 'minecraft:crying_obsidian', 'minecraft:crying_obsidian', 'kubejs:ascended_soul'] },
+      { id: 'inferno', name: 'Inferno', mult: 50, weight: 0.016, color: 'red', cased: true, art: [[255, 130, 30], [150, 20, 10]],
+        recipe: ['kubejs:foil_sheet_obsidian', 'minecraft:tinted_glass', 'minecraft:magma_block', 'minecraft:blaze_rod', 'kubejs:ascended_soul'] },
+      { id: 'glacier', name: 'Glacier', mult: 62, weight: 0.01, color: 'aqua', cased: true, art: [[210, 245, 255], [60, 140, 200]],
+        recipe: ['kubejs:foil_sheet_inferno', 'minecraft:tinted_glass', 'minecraft:blue_ice', 'minecraft:blue_ice', 'kubejs:ascension_singularity'] },
+      { id: 'nebula', name: 'Nebula', mult: 80, weight: 0.006, color: 'light_purple', cased: true, art: [[255, 120, 230], [50, 20, 110]],
+        recipe: ['kubejs:foil_sheet_glacier', 'minecraft:tinted_glass', 'minecraft:nether_star', 'kubejs:ascension_singularity'] },
+      { id: 'eclipse', name: 'Eclipse', mult: 100, weight: 0.003, color: 'dark_gray', cased: true, art: [[255, 220, 120], [10, 8, 14]],
+        recipe: ['kubejs:foil_sheet_nebula', 'minecraft:tinted_glass', 'minecraft:nether_star', 'minecraft:dragon_breath', 'kubejs:ascendium_ingot'] }
     ],
     // Chance a pack card comes foiled, by card rarity (Common .. Secret Rare); foil quality leans up with rarity
     cardChance: [0.08, 0.15, 0.3, 1, 1, 1],
@@ -1109,6 +1159,21 @@ global.FA = {
       rpm: [16, 32, 64, 128, 256],   // speed with 0, 1, 2, 3, 4+ Gearboxes (same SU, faster shaft)
       fuelMultiplier: 1        // fuel lasts this many times its furnace burn time (1 coal = 80 s)
     },
+    // Mini Crusher: Create's crushing (and milling) recipes without the big crushing wheels or any rotation. It needs a
+    // motor in its motor slot (the motor sets the speed) and a battery (attachments.batteries) in its battery slot.
+    miniCrusher: {
+      ticksPerItem: 100,       // at speed x1 (Create's own processing time is used if a recipe sets one)
+      chargePerItem: 2,        // battery charge per item crushed
+      // Motors: crafted (shaped recipe), speed multiplies how fast it crushes
+      motors: [
+        { id: 'electric_motor', name: 'Electric Motor', speed: 1,
+          recipe: [['ICI', 'CRC', 'ISI'], { I: 'minecraft:iron_ingot', C: 'minecraft:copper_ingot', R: 'minecraft:redstone', S: 'create:shaft' }] },
+        { id: 'ascendite_motor', name: 'Ascendite Motor', speed: 2,
+          recipe: [['ACA', 'CMC', 'AGA'], { A: 'kubejs:ascendite_ingot', C: 'minecraft:copper_ingot', M: 'kubejs:electric_motor', G: 'create:cogwheel' }] },
+        { id: 'essence_motor', name: 'Essence Motor', speed: 4,
+          recipe: [['VDV', 'DMD', 'VPV'], { V: 'kubejs:voidsteel_ingot', D: 'kubejs:dense_ascension_core', M: 'kubejs:ascendite_motor', P: 'create:precision_mechanism' }] }
+      ]
+    },
     // Universal Storage Terminal: link chests to it with a Storage Linker, then use it as one big chest.
     // range: how far a linked chest may be from the terminal (0 = any distance in the same dimension).
     storage: { range: 128, maxLinks: 128 },
@@ -1129,6 +1194,10 @@ global.FA = {
       engine_burner: [['III', 'IFI', 'BBB'], { I: 'minecraft:iron_ingot', F: 'minecraft:furnace', B: 'minecraft:bricks' }],
       // Storage: early too (Ascendite, chests and a core)
       storage_terminal: [['IGI', 'CEC', 'IRI'], { I: 'kubejs:ascendite_ingot', G: 'minecraft:glass_pane', C: 'minecraft:chest', E: 'kubejs:ascension_core', R: 'minecraft:comparator' }],
+      // The Ascension Workbench (two blocks wide): where gear gets its tomes, gems, attachments and Legendary stars
+      ascension_workbench: [['GTG', 'WCW', 'I I'], { G: 'kubejs:ascendite_ingot', T: 'minecraft:smithing_table', W: 'minecraft:crafting_table', C: 'kubejs:ascension_core', I: 'minecraft:iron_block' }],
+      // The Mini Crusher: no crushing wheels, just iron, flint, a hopper and a casing
+      mini_crusher: [['IHI', 'FCF', 'IBI'], { I: 'minecraft:iron_ingot', H: 'minecraft:hopper', F: 'minecraft:flint', C: 'create:andesite_casing', B: 'minecraft:iron_block' }],
       storage_linker: [['  A', ' N ', 'I  '], { A: 'minecraft:amethyst_shard', N: 'kubejs:ascendite_nugget', I: 'kubejs:ascendite_ingot' }]
     }
   },
@@ -1898,6 +1967,9 @@ global.FA_gemLevels = tier => global.FA.gems.tiers[tier - 1].levels
 // Total levels an item needs before its next Rebirth
 global.FA_rebirthNeed = stars => global.FA.prestige.needLevels * (stars + 1)
 global.FA_starMult = stars => 1 + global.FA.prestige.bonusPerStar * stars
+global.FA_legendMult = stars => 1 + global.FA.legendary.bonusPerStar * Math.max(0, Math.min(global.FA.legendary.maxStars, stars))
+// "★★★☆☆☆☆☆☆☆" for a star count out of maxStars
+global.FA_legendStars = stars => '\u2605'.repeat(stars) + '\u2606'.repeat(Math.max(0, global.FA.legendary.maxStars - stars))
 
 // ---- Condensed Essence helpers ----
 // Tier 0 is the plain Condensed Essence Block; tiers 1..50 are the dense ones, "(x1)" .. "(x50)"
@@ -1927,7 +1999,8 @@ global.FA_meteorPool = () => {
     'polishing_cloth', 'rock_hammer', 'ascendite_rock_hammer', 'liquid_essence_bucket'].map(k))
   put(P.food, [].concat.apply([], FA.mobFood.foods.map(fd => [k(fd.raw), k(fd.cooked)])))
   put(P.ascenditeGear, gear('ascendite').filter(id => id != k('ascendite_ingot')))
-  put(P.attachments, FA.attachments.list.map(a => k('attachment_' + a.id)).concat(FA.attachments.batteries.map(b => k(b.id))))
+  put(P.attachments, FA.attachments.list.map(a => k('attachment_' + a.id)).concat(FA.attachments.batteries.map(b => k(b.id)))
+    .concat(FA.machines.miniCrusher.motors.map(m => k(m.id))))
   put(P.packs, [k('enchantment_pack'), k('gear_cache')])
   put(P.denseCore, [k('dense_ascension_core')])
   put(P.baseTomes, tomes(e => !e.mythic && !e.ultimate && e.type != 'fusion'))
@@ -1948,9 +2021,9 @@ global.FA_meteorPool = () => {
   for (let t = 0; t <= global.FA_condensedTiers(); t++) put(Math.min(5, 1 + Math.floor(t / P.condensedPerTier)), [global.FA_condensedId(t)])
   Object.keys(P.relics).forEach(q => put(P.relics[q], [{ relic: q }]))
   if (mod) {
-    put(P.engine, ['engine_core', 'engine_coil', 'engine_gearbox', 'engine_burner', 'storage_linker'].concat(Object.keys(FA.machines.glass)).map(b => 'factoryascension:' + b))
+    put(P.engine, ['engine_core', 'engine_coil', 'engine_gearbox', 'engine_burner', 'storage_linker', 'mini_crusher'].concat(Object.keys(FA.machines.glass)).map(b => 'factoryascension:' + b))
     put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
-    put(P.bigMachines, ['ascension_vault', 'essence_forge'].map(b => 'factoryascension:' + b))
+    put(P.bigMachines, ['ascension_vault', 'essence_forge', 'ascension_workbench'].map(b => 'factoryascension:' + b))
   }
   global.FA.events.meteorShower.extra.forEach(x => put(x[1], [x[0]]))
   return tiers
@@ -2371,6 +2444,12 @@ global.FA_validate = cfg => {
     cfg.condensed = { mbPerBlock: 1000, ratio: 9, blocksPerSecond: 64, maxCondensers: 256, names: ['Dense'] }
   }
   let pr = cfg.prestige
+  let lg = cfg.legendary
+  if (lg && lg.enabled && !(okNum(lg.maxStars, 1) && okNum(lg.bonusPerStar, 0) && lg.effectLevels && lg.effectLevels.length >= lg.maxStars &&
+    lg.costs && lg.costs.length >= lg.maxStars && lg.grades && lg.grades.length > lg.maxStars && lg.costs.every(c => c.every(x => typeof x[0] == 'string' && okNum(x[1], 1))))) {
+    problems.push('legendary star settings are broken, Legendary stars were switched off')
+    lg.enabled = false
+  }
   if (!(pr && okNum(pr.needLevels, 1) && okNum(pr.bonusPerStar, 0) && okNum(pr.maxStars, 0))) {
     problems.push('prestige settings are broken, reset to defaults')
     cfg.prestige = { needLevels: 1000, bonusPerStar: 0.25, maxStars: 0 }

@@ -44,8 +44,24 @@ function faNow(entity) {
 // True if an entity of normal size could stand at x, y, z (air at feet and head)
 function faClear(level, x, y, z) {
   let fx = Math.floor(x), fy = Math.floor(y), fz = Math.floor(z)
-  return level.getBlockState(new $FABlockPos(fx, fy, fz)).isAir() && level.getBlockState(new $FABlockPos(fx, fy + 1, fz)).isAir()
+  let pos = new $FABlockPos(fx, fy, fz)
+  // Never read a block in a chunk that isn't loaded: that would make the game generate it on the spot, and new chunks
+  // bring new mobs (and their hordes), which could chain into a freeze deep in the danger zones
+  if (!faLoaded(level, pos)) return false
+  return level.getBlockState(pos).isAir() && level.getBlockState(new $FABlockPos(fx, fy + 1, fz)).isAir()
 }
+
+// Is this spot in a fully loaded chunk that's ticking entities? (Checking never loads anything.)
+function faLoaded(level, pos) {
+  try {
+    if (!level.isLoaded(pos)) return false
+    return level.isPositionEntityTicking ? level.isPositionEntityTicking(pos) : true
+  } catch (err) {
+    return false
+  }
+}
+global.FA_loaded = (level, pos) => faLoaded(level, pos)
+
 
 const FA_TAG = 'FactoryAscension'
 const FA_MAX_FLOAT = 3.0e38
@@ -88,15 +104,16 @@ function faIds(type) {
 
 const FA_MAX_TOTAL = 2000000000
 // Keys inside FactoryAscension that aren't enchant levels
-const FA_RESERVED = { stars: true, souls: true, gems: true, rolled: true, relic: true }
+const FA_RESERVED = { stars: true, souls: true, gems: true, rolled: true, relic: true, legend: true, legendfx: true }
 
-// Everything one item adds: its enchant levels, gems and rolled enchants, all x its Prestige stars.
+// Everything one item adds: its enchant levels, gems, rolled enchants and Legendary effects, all x its Prestige
+// (Rebirth) stars and its Legendary stars.
 // Souls are raw counts and never multiplied.
 function faItemLevels(data) {
   let own = {}
   let add = (id, value) => { if (value > 0) own[id] = Math.min(FA_MAX_TOTAL, (own[id] || 0) + value) }
   let stars = data.getInt('stars')
-  let mult = global.FA_starMult(stars > 0 ? stars : 0)
+  let mult = global.FA_starMult(stars > 0 ? stars : 0) * (global.FA.legendary.enabled ? global.FA_legendMult(data.getInt('legend')) : 1)
   let keys = data.getAllKeys().iterator()
   while (keys.hasNext()) {
     let id = String(keys.next())
@@ -126,6 +143,16 @@ function faItemLevels(data) {
     }
   }
   faRolledLevels(data, own, mult)
+  // Legendary effects: {"0": {id, level}, ...}, one per Legendary star
+  if (global.FA.legendary.enabled && data.contains('legendfx')) {
+    let fx = data.getCompound('legendfx')
+    let it = fx.getAllKeys().iterator()
+    while (it.hasNext()) {
+      let e = fx.getCompound(String(it.next()))
+      let id = String(e.getString('id'))
+      if (global.FA.enchants[id] && global.FA.enchants[id].type != 'fusion') add(id, Math.floor(e.getInt('level') * mult))
+    }
+  }
   return own
 }
 
@@ -1091,7 +1118,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.level.BlockEvent$BreakEvent', even
       if (!startBlock.hasTag(ores ? 'forge:ores' : 'minecraft:logs')) return
       let startId = String(startBlock.id)
       // Ores: only the same block (so deepslate and stone ores stay separate). Logs: any log.
-      let matches = pos => { let b = world.getBlock(pos); return ores ? String(b.id) == startId : b.hasTag('minecraft:logs') }
+      let matches = pos => { if (!world.isLoaded(pos)) return false; let b = world.getBlock(pos); return ores ? String(b.id) == startId : b.hasTag('minecraft:logs') }
 
       let start = event.getPos()
       let limit = Math.min(e.cap, e.perLevel * level)

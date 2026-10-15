@@ -34,13 +34,31 @@ import java.util.List;
  * slide across the surface as you move, the way a mirror image would. No shaders: twice a second it lists the exposed
  * shiny faces and the lights near you; every frame, for each face and light it finds where the light's mirror image
  * lands on the face from your eye and draws a small additive glint there.
+ * Every block has its own shine (Shine): metals tint their glints in their own color and brushed metals stretch them
+ * into streaks, gems twinkle with star sparkles, glass and ice catch more light at grazing angles, and the sun's
+ * highlight is sharp on gems and polished stone, broad on metal.
  */
 @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public final class ShinyReflections {
     static final TagKey<Block> SHINY = BlockTags.create(new ResourceLocation(FactoryAscension.MODID, "shiny"));
 
-    private record Face(double cx, double cy, double cz, Direction dir, float shine, boolean sky) {
+    private record Face(double cx, double cy, double cz, Direction dir, Shine shine, boolean sky, int seed) {
     }
+
+    /**
+     * How one block shines. strength: overall; r g b: the tint its reflections take (white = the light's own color);
+     * size: glint radius; sharp: how tight the sun's highlight is; sparkle: gems twinkle with four-point stars;
+     * streak: brushed metal stretches glints along the face; fresnel: glass and ice glow more at grazing angles.
+     */
+    record Shine(float strength, float r, float g, float b, float size, float sharp, boolean sparkle, float streak, float fresnel) {
+        static Shine metal(float r, float g, float b, float streak) { return new Shine(1.05f, r, g, b, 0.15f, 18, false, streak, 0); }
+        static Shine gem(float r, float g, float b) { return new Shine(1.1f, r, g, b, 0.1f, 64, true, 0, 0.2f); }
+        static Shine glassy(float r, float g, float b) { return new Shine(0.85f, r, g, b, 0.22f, 40, false, 0, 0.9f); }
+        static Shine stone(float r, float g, float b, float k) { return new Shine(k, r, g, b, 0.18f, 28, false, 0, 0.3f); }
+        Shine dull(float k) { return new Shine(strength * k, r, g, b, size, sharp, sparkle, streak, fresnel); }
+    }
+
+    private static final java.util.Map<Block, Shine> SHINES = new java.util.HashMap<>();
 
     private record Light(double x, double y, double z, float power, float r, float g, float b) {
     }
@@ -74,12 +92,49 @@ public final class ShinyReflections {
         scan(mc.level, mc.player.blockPosition());
     }
 
-    private static float shininess(BlockState state) {
-        var key = ForgeRegistries.BLOCKS.getKey(state.getBlock());
-        String id = key == null ? "" : key.getPath();
-        if (id.contains("glass") || id.contains("ice")) return 0.85f;
-        if (id.contains("polished") || id.contains("smooth") || id.contains("calcite") || id.contains("prismarine") || id.contains("obsidian")) return 0.5f;
-        return 1.0f;   // metals, gems, quartz, the mod's machines
+    static Shine shine(BlockState state) {
+        return SHINES.computeIfAbsent(state.getBlock(), ShinyReflections::shineOf);
+    }
+
+    /** Each block's own shine: the mod's blocks by name, everything else by what it's made of. */
+    private static Shine shineOf(Block block) {
+        var key = ForgeRegistries.BLOCKS.getKey(block);
+        String ns = key == null ? "" : key.getNamespace(), id = key == null ? "" : key.getPath();
+        if (ns.equals(FactoryAscension.MODID) || ns.equals("kubejs")) {
+            switch (id) {
+                case "ascension_vault", "tome_fusion_table", "card_binder", "ascension_workbench", "gilded_glass": return Shine.metal(1f, 0.82f, 0.42f, 0.4f);
+                case "essence_forge", "pack_opener", "ascension_altar": return Shine.gem(0.82f, 0.55f, 1f);
+                case "salvager", "factory_glass": return Shine.metal(0.88f, 0.92f, 1f, 0.6f);
+                case "super_smelter": return Shine.metal(1f, 0.62f, 0.32f, 0.5f);
+                case "engine_core", "engine_coil", "engine_burner": return Shine.metal(1f, 0.62f, 0.42f, 0.7f);
+                case "engine_gearbox": return Shine.metal(1f, 0.85f, 0.45f, 0.2f);
+                case "storage_terminal", "ascendite_glass", "ascendite_block": return Shine.gem(0.4f, 1f, 0.9f);
+                case "smoked_glass": return Shine.glassy(0.62f, 0.62f, 0.75f);
+                case "essence_condenser": return Shine.glassy(0.8f, 0.6f, 1f);
+                default:
+                    if (id.startsWith("condensed_essence")) return Shine.gem(0.85f, 0.55f, 1f);
+            }
+        }
+        if (id.contains("oxidized") || id.contains("weathered")) return Shine.metal(0.45f, 0.95f, 0.8f, 0.3f).dull(0.55f);
+        if (id.contains("copper")) return Shine.metal(1f, 0.6f, 0.4f, id.contains("cut") ? 0.8f : 0.4f);
+        if (id.contains("gold")) return Shine.metal(1f, 0.84f, 0.38f, 0.35f);
+        if (id.contains("netherite")) return Shine.metal(0.72f, 0.62f, 0.7f, 0.5f).dull(0.75f);
+        if (id.contains("iron") || id.contains("zinc") || id.contains("steel")) return Shine.metal(0.9f, 0.94f, 1f, 0.7f);
+        if (id.contains("brass")) return Shine.metal(1f, 0.8f, 0.45f, 0.5f);
+        if (id.contains("diamond")) return Shine.gem(0.6f, 1f, 1f);
+        if (id.contains("emerald")) return Shine.gem(0.4f, 1f, 0.55f);
+        if (id.contains("amethyst")) return Shine.gem(0.85f, 0.6f, 1f);
+        if (id.contains("lapis")) return Shine.gem(0.45f, 0.6f, 1f).dull(0.6f);
+        if (id.contains("quartz")) return new Shine(0.95f, 1f, 1f, 1f, 0.1f, 64, false, 0, 0.2f);
+        if (id.contains("ice")) return Shine.glassy(0.75f, 0.9f, 1f);
+        if (id.contains("glass")) return Shine.glassy(0.94f, 0.98f, 1f);
+        if (id.contains("crying")) return Shine.stone(0.75f, 0.45f, 1f, 0.65f);
+        if (id.contains("obsidian")) return Shine.stone(0.7f, 0.55f, 0.95f, 0.55f);
+        if (id.contains("prismarine") || id.contains("sea_lantern")) return Shine.stone(0.55f, 1f, 0.9f, 0.6f);
+        if (id.contains("glazed")) return Shine.stone(1f, 1f, 1f, 0.6f);
+        if (id.contains("calcite") || id.contains("smooth")) return Shine.stone(1f, 1f, 1f, 0.45f);
+        if (id.contains("polished")) return Shine.stone(1f, 0.98f, 0.95f, 0.5f);
+        return Shine.metal(1f, 1f, 1f, 0.3f);
     }
 
     private static float[] lightColor(BlockState state) {
@@ -110,13 +165,14 @@ public final class ShinyReflections {
                         lit.add(new Light(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, emit / 15f, c[0], c[1], c[2]));
                     }
                     if (Math.abs(dx) > r || Math.abs(dy) > r || Math.abs(dz) > r || !state.is(SHINY) || found.size() > 8000) continue;
-                    float shine = shininess(state);
+                    Shine shine = shine(state);
                     for (Direction d : Direction.values()) {
                         BlockPos n = pos.relative(d);
                         BlockState ns = level.getBlockState(n);
                         if (!(ns.isAir() || (!ns.canOcclude() && !ns.is(state.getBlock())))) continue;
                         boolean sky = level.getBrightness(LightLayer.SKY, n) >= 12;
-                        found.add(new Face(pos.getX() + 0.5 + d.getStepX() * 0.5, pos.getY() + 0.5 + d.getStepY() * 0.5, pos.getZ() + 0.5 + d.getStepZ() * 0.5, d, shine, sky));
+                        found.add(new Face(pos.getX() + 0.5 + d.getStepX() * 0.5, pos.getY() + 0.5 + d.getStepY() * 0.5, pos.getZ() + 0.5 + d.getStepZ() * 0.5, d, shine, sky,
+                            (int) (pos.asLong() * 31 + d.ordinal())));
                     }
                 }
         double px = center.getX(), py = center.getY(), pz = center.getZ();
@@ -145,6 +201,7 @@ public final class ShinyReflections {
         boolean day = sy > 0;
         if (!day) { sx = -sx; sy = -sy; }
         float sunPower = day ? 0.7f : 0.25f;
+        float time = (level.getGameTime() % 24000L + event.getPartialTick()) / 20f;
 
         for (Face f : faces) {
             if (budget <= 0) break;
@@ -152,6 +209,12 @@ public final class ShinyReflections {
             double vx = cam.x - f.cx, vy = cam.y - f.cy, vz = cam.z - f.cz;
             double side = vx * nx + vy * ny + vz * nz;
             if (side <= 0.02) continue;                         // seen from behind
+            Shine sh = f.shine;
+            // Glass and ice: brighter the flatter you look across them
+            double cos = side / Math.sqrt(vx * vx + vy * vy + vz * vz);
+            float fres = (float) (1 + sh.fresnel() * Math.pow(1 - cos, 3) * 2.5);
+            // Gems twinkle, each face on its own beat
+            float twinkle = sh.sparkle() ? (float) (0.65 + 0.35 * Math.sin(time * 3.1 + (f.seed & 1023) * 0.37)) : 1f;
             for (Light l : lights) {
                 if (budget <= 0) break;
                 double lx = l.x - f.cx, ly = l.y - f.cy, lz = l.z - f.cz;
@@ -168,9 +231,12 @@ public final class ShinyReflections {
                 double ox = hx - f.cx, oy = hy - f.cy, oz = hz - f.cz;
                 if (Math.abs(ox) > 0.5 || Math.abs(oy) > 0.5 || Math.abs(oz) > 0.5) continue;
                 double path = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                float a = (float) (f.shine * l.power * strength * 0.85 / (1 + path * path / 90));
+                float a = (float) (sh.strength() * fres * twinkle * l.power * strength * 0.85 / (1 + path * path / 90));
                 if (a < 0.03f) continue;
-                glint(vc, m, cam, f, hx, hy, hz, 0.1 + 0.1 * f.shine, l.r, l.g, l.b, Math.min(1f, a));
+                // The reflection takes the block's color (gold glints gold), mixed with the light's own
+                float r = l.r * (0.35f + 0.65f * sh.r()), g = l.g * (0.35f + 0.65f * sh.g()), b = l.b * (0.35f + 0.65f * sh.b());
+                glint(vc, m, cam, f, hx, hy, hz, sh.size(), sh.streak(), r, g, b, Math.min(1f, a));
+                if (sh.sparkle() && a > 0.25f) star(vc, m, cam, f, hx, hy, hz, sh.size() * 2.6, Math.min(1f, a * twinkle), r, g, b);
                 budget--;
             }
             if (skyLit && f.sky && budget > 0) {
@@ -179,10 +245,12 @@ public final class ShinyReflections {
                 if (sd > 0) {
                     double rx = -sx + 2 * sd * nx, ry = -sy + 2 * sd * ny, rz = 2 * sd * nz;
                     double vlen = Math.sqrt(vx * vx + vy * vy + vz * vz);
-                    double spec = Math.pow(Math.max(0, (rx * vx + ry * vy + rz * vz) / vlen), 32);
-                    float a = (float) (spec * f.shine * sunPower * strength);
+                    double spec = Math.pow(Math.max(0, (rx * vx + ry * vy + rz * vz) / vlen), sh.sharp());
+                    float a = (float) (spec * sh.strength() * fres * twinkle * sunPower * strength);
                     if (a > 0.04f) {
-                        glint(vc, m, cam, f, f.cx, f.cy, f.cz, 0.32, 1f, day ? 0.95f : 0.85f, day ? 0.85f : 1f, Math.min(1f, a));
+                        float r = (0.4f + 0.6f * sh.r()), g = (day ? 0.95f : 0.85f) * (0.4f + 0.6f * sh.g()), b = (day ? 0.85f : 1f) * (0.4f + 0.6f * sh.b());
+                        glint(vc, m, cam, f, f.cx, f.cy, f.cz, 0.18 + 0.12 * (32 / sh.sharp()), sh.streak(), r, g, b, Math.min(1f, a));
+                        if (sh.sparkle()) star(vc, m, cam, f, f.cx, f.cy, f.cz, 0.45, Math.min(1f, a), r, g, b);
                         budget--;
                     }
                 }
@@ -191,8 +259,9 @@ public final class ShinyReflections {
         buffers.endBatch(RenderType.lightning());
     }
 
-    /** A soft glint on the face around (x, y, z): bright in the middle, fading to its edges, kept inside the face. */
-    private static void glint(VertexConsumer vc, Matrix4f m, Vec3 cam, Face f, double x, double y, double z, double size, float r, float g, float b, float a) {
+    /** A soft glint on the face around (x, y, z): bright in the middle, fading to its edges, kept inside the face.
+     * streak > 0 stretches it along the face (brushed metal). */
+    private static void glint(VertexConsumer vc, Matrix4f m, Vec3 cam, Face f, double x, double y, double z, double size, double streak, float r, float g, float b, float a) {
         int nx = f.dir.getStepX(), ny = f.dir.getStepY(), nz = f.dir.getStepZ();
         // Two in-plane axes u, v with u x v = n (so the quads face outward)
         double ux = ny != 0 ? 1 : nz != 0 ? 1 : 0, uy = 0, uz = nx != 0 ? 1 : 0;
@@ -202,7 +271,8 @@ public final class ShinyReflections {
         // Keep it on the face
         double cu = clamp((x - f.cx) * ux + (y - f.cy) * uy + (z - f.cz) * uz, s), cv = clamp((x - f.cx) * vx + (y - f.cy) * vy + (z - f.cz) * vz, s);
         double px = f.cx + cu * ux + cv * vx + nx * 0.004 - cam.x, py = f.cy + cu * uy + cv * vy + ny * 0.004 - cam.y, pz = f.cz + cu * uz + cv * vz + nz * 0.004 - cam.z;
-        double[][] ring = {{s, 0}, {s, s}, {0, s}, {-s, s}, {-s, 0}, {-s, -s}, {0, -s}, {s, -s}};
+        double sv = Math.min(0.5, s * (1 + streak * 2.2));
+        double[][] ring = {{s, 0}, {s * 0.7, sv * 0.7}, {0, sv}, {-s * 0.7, sv * 0.7}, {-s, 0}, {-s * 0.7, -sv * 0.7}, {0, -sv}, {s * 0.7, -sv * 0.7}};
         for (int i = 0; i < 8; i += 2) {
             double[] p1 = ring[i], p2 = ring[i + 1], p3 = ring[(i + 2) % 8];
             put(vc, m, px, py, pz, 0, 0, ux, uy, uz, vx, vy, vz, r, g, b, a);
@@ -210,6 +280,26 @@ public final class ShinyReflections {
             put(vc, m, px, py, pz, p2[0], p2[1], ux, uy, uz, vx, vy, vz, r, g, b, 0);
             put(vc, m, px, py, pz, p3[0], p3[1], ux, uy, uz, vx, vy, vz, r, g, b, 0);
         }
+    }
+
+    /** A four-point star sparkle (two thin crossed diamonds) for gems. */
+    private static void star(VertexConsumer vc, Matrix4f m, Vec3 cam, Face f, double x, double y, double z, double len, float a, float r, float g, float b) {
+        int nx = f.dir.getStepX(), ny = f.dir.getStepY(), nz = f.dir.getStepZ();
+        double ux = ny != 0 ? 1 : nz != 0 ? 1 : 0, uy = 0, uz = nx != 0 ? 1 : 0;
+        if (nx != 0) { ux = 0; uz = 1; }
+        double vx = ny * uz - nz * uy, vy = nz * ux - nx * uz, vz = nx * uy - ny * ux;
+        double L = Math.min(len, 0.5), w = L * 0.12;
+        double cu = clamp((x - f.cx) * ux + (y - f.cy) * uy + (z - f.cz) * uz, L), cv = clamp((x - f.cx) * vx + (y - f.cy) * vy + (z - f.cz) * vz, L);
+        double px = f.cx + cu * ux + cv * vx + nx * 0.006 - cam.x, py = f.cy + cu * uy + cv * vy + ny * 0.006 - cam.y, pz = f.cz + cu * uz + cv * vz + nz * 0.006 - cam.z;
+        float wr = Math.min(1f, r + 0.3f), wg = Math.min(1f, g + 0.3f), wb = Math.min(1f, b + 0.3f);
+        put(vc, m, px, py, pz, L, 0, ux, uy, uz, vx, vy, vz, wr, wg, wb, 0);
+        put(vc, m, px, py, pz, 0, w, ux, uy, uz, vx, vy, vz, wr, wg, wb, a);
+        put(vc, m, px, py, pz, -L, 0, ux, uy, uz, vx, vy, vz, wr, wg, wb, 0);
+        put(vc, m, px, py, pz, 0, -w, ux, uy, uz, vx, vy, vz, wr, wg, wb, a);
+        put(vc, m, px, py, pz, w, 0, ux, uy, uz, vx, vy, vz, wr, wg, wb, a);
+        put(vc, m, px, py, pz, 0, L, ux, uy, uz, vx, vy, vz, wr, wg, wb, 0);
+        put(vc, m, px, py, pz, -w, 0, ux, uy, uz, vx, vy, vz, wr, wg, wb, a);
+        put(vc, m, px, py, pz, 0, -L, ux, uy, uz, vx, vy, vz, wr, wg, wb, 0);
     }
 
     private static double clamp(double v, double s) {

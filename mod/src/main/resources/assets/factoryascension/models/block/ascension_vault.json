@@ -1,8 +1,310 @@
 {
-  "parent": "minecraft:block/orientable",
+  "parent": "minecraft:block/block",
   "textures": {
     "front": "factoryascension:block/ascension_vault_front",
     "side": "factoryascension:block/ascension_vault_side",
-    "top": "factoryascension:block/ascension_vault_top"
-  }
+    "top": "factoryascension:block/ascension_vault_top",
+    "mat_steel": "factoryascension:block/mat_steel",
+    "mat_steel_dk": "factoryascension:block/mat_steel_dk",
+    "mat_gold": "factoryascension:block/mat_gold",
+    "mat_teal": "factoryascension:block/mat_teal",
+    "mat_wood": "factoryascension:block/mat_wood",
+    "mat_copper": "factoryascension:block/mat_copper",
+    "mat_iron": "factoryascension:block/mat_iron",
+    "mat_gem": "factoryascension:block/mat_gem",
+    "mat_cloth": "factoryascension:block/mat_cloth",
+    "mat_fire": "factoryascension:block/mat_fire",
+    "mat_glass": "factoryascension:block/mat_glass",
+    "particle": "factoryascension:block/ascension_vault_side"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_steel_dk"
+        },
+        "south": {
+          "texture": "#mat_steel_dk"
+        },
+        "east": {
+          "texture": "#mat_steel_dk"
+        },
+        "west": {
+          "texture": "#mat_steel_dk"
+        },
+        "up": {
+          "texture": "#mat_steel_dk"
+        },
+        "down": {
+          "texture": "#mat_steel_dk"
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "to": [
+        15,
+        15,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#mat_steel_dk"
+        }
+      }
+    },
+    {
+      "from": [
+        0.5,
+        15,
+        0.5
+      ],
+      "to": [
+        15.5,
+        16,
+        15.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        3,
+        0.4
+      ],
+      "to": [
+        13,
+        13,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "south": {
+          "texture": "#mat_steel"
+        },
+        "east": {
+          "texture": "#mat_steel"
+        },
+        "west": {
+          "texture": "#mat_steel"
+        },
+        "up": {
+          "texture": "#mat_steel"
+        },
+        "down": {
+          "texture": "#mat_steel"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        7,
+        -0.1
+      ],
+      "to": [
+        9,
+        9,
+        0.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    },
+    {
+      "from": [
+        12.6,
+        4,
+        0.2
+      ],
+      "to": [
+        13.6,
+        6,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    },
+    {
+      "from": [
+        12.6,
+        10,
+        0.2
+      ],
+      "to": [
+        13.6,
+        12,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    },
+    {
+      "from": [
+        0.5,
+        1,
+        0.5
+      ],
+      "to": [
+        2.0,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    },
+    {
+      "from": [
+        14,
+        1,
+        0.5
+      ],
+      "to": [
+        15.5,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    }
+  ]
 }

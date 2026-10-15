@@ -585,8 +585,42 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       l1 == 'LINKED' && l2 == 'LINKED' && l3 == 'NOT_STORAGE' && n0 == 54 && viaTerminal == 'minecraft:gold_ingot' &&
       String(first.getId()) == 'minecraft:gold_ingot' && String(second.getId()) == 'minecraft:iron_ingot' && second.getCount() == 50 && tm.capacity() == 54 && tm.links() == 2,
       [l1, l2, l3, n0, viaTerminal, first.getId(), second.getId(), second.getCount(), tm.capacity(), tm.links()].join(' '))
+    // Mini Crusher: Raw Ascendite + an Electric Motor + a Copper Battery -> Create's crushing results, using charge
+    let crushPos = place(X + 28, Y, Z + 16, 'factoryascension:mini_crusher')
+    let crusher = level.getBlockEntity(crushPos)
+    crusher.items().setStackInSlot(0, Item.of('kubejs:raw_ascendite', 2))
+    crusher.items().setStackInSlot(5, Item.of('kubejs:electric_motor'))
+    crusher.items().setStackInSlot(6, Item.of('kubejs:copper_battery'))
+    for (let t = 0; t < 260; t++) crusher.serverTick()
+    let crushedOut = []
+    for (let o = 1; o <= 4; o++) { let st = crusher.items().getStackInSlot(o); if (!st.isEmpty()) crushedOut.push(st.getCount() + ' ' + st.getId()) }
+    let crushCharge = crusher.items().getStackInSlot(6).getDamageValue()
+    check('Mini Crusher: a motor and a battery crush Raw Ascendite (' + crushedOut.join(', ') + '), using ' + crushCharge + ' charge',
+      crushedOut.some(x => x.indexOf('kubejs:crushed_raw_ascendite') >= 0) && crushCharge >= global.FA.machines.miniCrusher.chargePerItem, crushedOut.join(', ') + ' / ' + crushCharge)
+    // Ascension Workbench: two halves; Apply puts an attachment on a sword, Star Up adds a Legendary star
+    let benchPos = place(X + 26, Y, Z + 16, 'minecraft:air')
+    level.getBlock(benchPos).set('factoryascension:ascension_workbench', { facing: 'north', main: 'true' })
+    let benchSidePos = place(X + 25, Y, Z + 16, 'minecraft:air')
+    level.getBlock(benchSidePos).set('factoryascension:ascension_workbench', { facing: 'north', main: 'false' })
+    let bench = level.getBlockEntity(benchPos)
+    bench.faItems().setStackInSlot(0, Item.of('minecraft:iron_sword'))
+    bench.faItems().setStackInSlot(1, Item.of('kubejs:attachment_vampire_fangs'))
+    bench.request('bench_apply', player)
+    let benchSword = bench.faItems().getStackInSlot(0)
+    let benchFanged = global.FA_attachIds(benchSword).indexOf('vampire_fangs') >= 0 && bench.faItems().getStackInSlot(1).isEmpty()
+    global.FA.legendary.costs[0].forEach((c, i) => player.getInventory().setItem(30 + i, Item.of(c[0], c[1])))
+    bench.request('bench_star', player)
+    let benchStars = global.FA_legendOf(bench.faItems().getStackInSlot(0))
+    bench.faItems().setStackInSlot(1, Item.of('kubejs:attachment_headlamp'))
+    bench.request('bench_preview', null)
+    let benchRefused = !bench.canApply() && String(bench.status()).length > 0
+    level.getBlock(benchPos).set('minecraft:air')
+    let benchSideGone = String(level.getBlock(benchSidePos).id) == 'minecraft:air'
+    check('Ascension Workbench: Apply attaches Vampire Fangs, Star Up adds Legendary star ' + benchStars + ', a Headlamp is refused ("' + bench.status() + '"), and both halves go together',
+      benchFanged && benchStars == 1 && benchRefused && benchSideGone, [benchFanged, benchStars, benchRefused, benchSideGone].join(' '))
+    global.FA.legendary.costs[0].forEach((c, i) => player.getInventory().setItem(30 + i, Item.of('minecraft:air')))
     let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
-      'engine_gearbox', 'engine_burner', 'storage_terminal', 'storage_linker'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
+      'engine_gearbox', 'engine_burner', 'storage_terminal', 'storage_linker', 'ascension_workbench', 'mini_crusher'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
       .concat(Object.keys(global.FA.machines.glass).map(g => 'glass_' + g).filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent()))
     check('the mod blocks and its 4 glasses have recipes', recipes.length == 0, recipes.join(', '))
   })

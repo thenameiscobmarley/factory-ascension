@@ -79,7 +79,7 @@ StartupEvents.registry('item', event => {
   })
 
   // Foil Sheets: apply a foil to a tome (config: foils)
-  global.FA.foils.types.forEach((f, i) => event.create('foil_sheet_' + f.id).displayName(f.name + ' Foil Sheet')
+  global.FA.foils.types.forEach((f, i) => event.create('foil_sheet_' + f.id).displayName(f.name + (f.cased ? ' Foil Case' : ' Foil Sheet'))
     .rarity(i < 2 ? 'common' : i < 4 ? 'uncommon' : i < 6 ? 'rare' : 'epic').glow(i >= 3))
 
   // Enchantment card packs (foil) and booster boxes of them (config: packs)
@@ -90,6 +90,8 @@ StartupEvents.registry('item', event => {
 
   // Attachments: add-ons for gear (config: attachments)
   global.FA.attachments.list.forEach(at => event.create('attachment_' + at.id).displayName(at.name).rarity('uncommon').maxStackSize(16))
+  // Mini Crusher motors (config: machines.miniCrusher.motors). Registered with or without the mod, so recipes and quests stay valid.
+  global.FA.machines.miniCrusher.motors.forEach((m, i) => event.create(m.id).displayName(m.name).rarity(['common', 'uncommon', 'rare'][Math.min(i, 2)]).maxStackSize(16))
   // Batteries: their durability bar is their charge (config: attachments.batteries)
   global.FA.attachments.batteries.forEach((b, i) => event.create(b.id).displayName(b.name).rarity(['common', 'uncommon', 'rare'][Math.min(i, 2)]).maxDamage(b.charge))
 
@@ -162,12 +164,12 @@ StartupEvents.registry('fluid', event => {
 StartupEvents.registry('block', event => {
   event.create('ascension_altar').displayName('Ascension Altar').soundType('amethyst')
     .hardness(4).resistance(1200).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').lightLevel(0.6)
-    .textureAll('kubejs:block/ascension_altar')
+    .textureAll('kubejs:block/ascension_altar').model('kubejs:block/ascension_altar_3d').notSolid().renderType('cutout')
 
   // Essence Condenser: Liquid Essence tank below -> Condensed Essence Blocks into the chest above
   event.create('essence_condenser').displayName('Essence Condenser').soundType('metal')
     .hardness(4).resistance(1200).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').lightLevel(0.4)
-    .textureAll('kubejs:block/essence_condenser')
+    .textureAll('kubejs:block/essence_condenser').model('kubejs:block/essence_condenser_3d').notSolid().renderType('translucent')
 
   // Condensed Essence Blocks: tier 0 plus (x1) .. (x50), each glowing a little brighter
   let tiers = global.FA_condensedTiers()

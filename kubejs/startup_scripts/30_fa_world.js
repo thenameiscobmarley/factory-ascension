@@ -56,6 +56,7 @@ function faMeteor(server, player) {
   for (let n = 0; n < M.perWave; n++) {
     let x = Math.floor(player.getX() + (Math.random() * 2 - 1) * M.radius)
     let z = Math.floor(player.getZ() + (Math.random() * 2 - 1) * M.radius)
+    if (!global.FA_loaded(level, new $FABlockPos(x, Math.floor(player.getY()), z))) continue   // never land in (and so load) an unloaded chunk
     let y = level.getHeight($FAHeightmap.MOTION_BLOCKING, x, z) + 30
     let danger = Math.max(0, global.FA_dangerLevel(level, x, z, player))
     let roll = global.FA_meteorRoll(Math.random, danger, faMeteorPool)

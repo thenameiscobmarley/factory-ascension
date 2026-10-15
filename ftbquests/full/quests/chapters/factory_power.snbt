@@ -1,0 +1,252 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "factory_power"
+	group: ""
+	icon: "factoryascension:engine_core"
+	id: "A7814D499DEAE6FA"
+	order_index: 1
+	quest_links: [ ]
+	quests: [
+		{
+			dependencies: [ ]
+			description: [
+				"Power from day one: an Engine Core, a Coil and a Burner touching it. Put a shaft on the core's front face."
+				"Right-click any part for its screen."
+			]
+			icon: "factoryascension:engine_core"
+			id: "CE1708D670779055"
+			rewards: [
+				{
+					count: 32
+					id: "CB657245C337EBDA"
+					item: "minecraft:coal"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "34076D2A314F535E"
+					item: "factoryascension:engine_core"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "8505EFEC0244CA3B"
+					item: "factoryascension:engine_coil"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "68CEA47024D4D0BD"
+					item: "factoryascension:engine_burner"
+					type: "item"
+				}
+			]
+			title: "The Modular Engine"
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"CE1708D670779055"
+			]
+			description: [
+				"Each Gearbox takes the engine to its next speed: 16, 32, 64, 128, 256 RPM. Same power, faster shaft."
+			]
+			icon: "factoryascension:engine_gearbox"
+			id: "44B97A24D5FECC64"
+			rewards: [
+				{
+					count: 16
+					id: "B87D240353A1D4A4"
+					item: "create:shaft"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 2L
+					id: "11C88C67CA7E5C75"
+					item: "factoryascension:engine_gearbox"
+					type: "item"
+				}
+			]
+			title: "Faster!"
+			x: 2.0d
+			y: -1.0d
+		}
+		{
+			dependencies: [
+				"CE1708D670779055"
+			]
+			description: [
+				"A Mechanical Press over a Basin squeezes 9 cobblestone into Raw Ascendite."
+			]
+			icon: "create:mechanical_press"
+			id: "1E71E81074FC16FD"
+			rewards: [
+				{
+					count: 8
+					id: "2FD8953E1DF238CF"
+					item: "kubejs:raw_ascendite"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "2AEFDE4DFDC382A0"
+					item: "create:mechanical_press"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "7393C2EF7B71FEAA"
+					item: "create:basin"
+					type: "item"
+				}
+			]
+			title: "Cobblestone Into Ore"
+			x: 2.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"1E71E81074FC16FD"
+			]
+			description: [
+				"Raw Ascendite -> Millstone -> fan through water -> 8 nuggets + 1 redstone in a Mechanical Mixer (no heat) = an Ascension Core."
+				"All of it runs on the Modular Engine."
+			]
+			icon: "create:mechanical_mixer"
+			id: "550CACD5455EFBE3"
+			rewards: [
+				{
+					count: 8
+					id: "35803850866DD5DA"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "6D74B0331328F528"
+					item: "create:millstone"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "C65B682475AC3C2D"
+					item: "create:mechanical_mixer"
+					type: "item"
+				}
+			]
+			title: "Cores on Autopilot"
+			x: 4.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"CE1708D670779055"
+			]
+			description: [
+				"No crushing wheels needed: put a motor and a charged battery in a Mini Crusher and it runs Create's crushing recipes."
+			]
+			icon: "factoryascension:mini_crusher"
+			id: "0C6F016438A94945"
+			rewards: [
+				{
+					count: 1
+					id: "6DF56611917C2E4F"
+					item: "kubejs:copper_battery"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "E42108ABF7D32BC9"
+					item: "factoryascension:mini_crusher"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "4AFE82F87ADBCD92"
+					item: "kubejs:electric_motor"
+					type: "item"
+				}
+			]
+			title: "Crushing, Small"
+			x: 0.0d
+			y: 3.0d
+		}
+		{
+			dependencies: [
+				"CE1708D670779055"
+			]
+			description: [
+				"Smelts a whole batch at once, faster the faster it spins. Upgrade it with Voidsteel, Celestium and Ascendium."
+			]
+			icon: "factoryascension:super_smelter"
+			id: "B55AA7E0DAED9B69"
+			rewards: [
+				{
+					count: 16
+					id: "9F14E8CA0CF83E08"
+					item: "kubejs:ascendite_ingot"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "4AFF53CA53F2A91C"
+					item: "factoryascension:super_smelter"
+					type: "item"
+				}
+			]
+			title: "The Super Smelter"
+			x: 2.0d
+			y: 3.0d
+		}
+		{
+			dependencies: [
+				"CE1708D670779055"
+			]
+			description: [
+				"Right-click the terminal with the Storage Linker, then right-click chests to link them. The terminal opens them all as one searchable chest."
+			]
+			icon: "factoryascension:storage_terminal"
+			id: "D82A14CA58C8F7B9"
+			rewards: [
+				{
+					count: 8
+					id: "1EB7A0FB8E014F9A"
+					item: "minecraft:chest"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "FBC5DA0B2F604776"
+					item: "factoryascension:storage_terminal"
+					type: "item"
+				}
+				{
+					count: 1L
+					id: "FCC66C0947DFF971"
+					item: "factoryascension:storage_linker"
+					type: "item"
+				}
+			]
+			title: "One Big Chest"
+			x: 4.0d
+			y: -1.0d
+		}
+	]
+	title: "Factory Power"
+}

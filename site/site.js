@@ -480,6 +480,8 @@
     ["card_binder", "Card Binder", "Holds 54 tome cards, counts your collection, and floats your best card above the block.", { f: "side", s: "side", t: "top" }],
     ["essence_forge", "Essence Forge", "Gear in the slot, Liquid Essence piped into its 16-bucket tank: it levels the gear like the Ascension Altar, once a second."],
     ["pack_opener", "Pack Opener", "Hopper in Enchantment Packs: it opens one every " + (M.openerSeconds == 1 ? "second" : M.openerSeconds + " seconds") + " into 27 slots and flips the cards on screen."],
+    ["ascension_workbench", "Ascension Workbench", "Two blocks wide. Gear on top, a tome, gem, attachment or Chaos Tome below, Apply. Star Up adds Legendary stars, up to " + FA.legendary.maxStars + ": each one a legendary effect and more power."],
+    ["mini_crusher", "Mini Crusher", "Create's crushing recipes with no crushing wheels and no rotation: a motor (x" + M.miniCrusher.motors.map(m => m.speed).join(", x") + " speed) and a battery for power."],
     ["storage_terminal", "Universal Storage Terminal", "Link up to " + M.storage.maxLinks + " chests to it with a Storage Linker" + (M.storage.range > 0 ? " (within " + M.storage.range + " blocks)" : "") +
       " and use them as one big chest: search, Sort across every chest, scroll, shift-click in and out. Hoppers can feed it."],
     ["engine_core", "Engine Core", "The heart of a Modular Engine. Its front face is the shaft output. Right-click it for the engine's screen: speed, power, modules and what to add next.", { f: "front", s: "side", t: "top" }],

@@ -19,6 +19,7 @@ if (Platform.isLoaded(FA_MOD)) {
   ServerEvents.recipes(event => {
     let R = global.FA.machines.recipes
     Object.keys(R).forEach(b => event.shaped(FA_MOD + ':' + b, R[b][0], R[b][1]).id('kubejs:factory_ascension/machine_' + b))
+    global.FA.machines.miniCrusher.motors.forEach(m => event.shaped('kubejs:' + m.id, m.recipe[0], m.recipe[1]).id('kubejs:factory_ascension/motor_' + m.id))
     let GL = global.FA.machines.glass
     Object.keys(GL).forEach(g => event.shaped(Item.of(FA_MOD + ':' + g, 8), ['GGG', 'GCG', 'GGG'], { G: 'minecraft:glass', C: GL[g] })
       .id('kubejs:factory_ascension/glass_' + g))
@@ -250,14 +251,85 @@ if (Platform.isLoaded(FA_MOD)) {
     return 1
   }
 
+  // ---- Ascension Workbench: gear in the top slot, a tome / gem / attachment / Chaos Tome / Polishing Cloth below ----
+  // The preview says what Apply will do (or why it can't); Apply and Star Up run the same rules as right-clicking.
+  let faBenchPlan = (gear, mod) => {
+    if (!gear || gear.isEmpty()) return { ok: false, text: 'Put a weapon, tool or piece of armor in the top slot.' }
+    if (!mod || mod.isEmpty()) return { ok: false, text: 'Add a tome, gem, attachment, Chaos Tome or Polishing Cloth below it.' }
+    let id = String(mod.getId())
+    let kind = faIsGear(gear) ? faGearKind(gear) : ''
+    let tomeId = faTomeId(mod)
+    if (tomeId) {
+      let e = global.FA.enchants[tomeId]
+      if (!kind) return { ok: false, text: 'Tomes only go on gear.' }
+      if (!global.FA_enchantFits(tomeId, kind)) return { ok: false, text: e.name + ' goes on ' + global.FA_fitsText(tomeId) + '.' }
+      let level = faAppliedLevel(mod, tomeId), had = faGetLevel(gear, tomeId)
+      if (had >= level) return { ok: false, text: 'It already has ' + e.name + ' ' + global.FA_num(had) + '.' }
+      return { ok: true, text: 'Apply ' + e.name + ' ' + global.FA_num(level) + (had ? ' (swaps out level ' + global.FA_num(had) + ')' : '') + ' for ' + global.FA_num(global.FA_cost(0, tomeId)) + ' Essence', act: 'tome', id: tomeId }
+    }
+    let gem = /^kubejs:gem_([a-z_]+)_(\d)$/.exec(id)
+    if (gem) {
+      let G = global.FA.gems, T = G.types[gem[1]]
+      if (!kind || !T) return { ok: false, text: 'Gems only go in gear.' }
+      if (faGemsOf(gear).length >= G.sockets) return { ok: false, text: 'All ' + G.sockets + ' sockets are full.' }
+      return { ok: true, text: 'Socket it: +' + global.FA_gemLevels(parseInt(gem[2])) + ' ' + global.FA.enchants[T.enchant].name, act: 'gem', type: gem[1], tier: parseInt(gem[2]) }
+    }
+    if (id.indexOf('kubejs:attachment_') == 0) {
+      let def = global.FA_attachmentDef(id.slice(18))
+      if (!def) return { ok: false, text: 'Unknown attachment.' }
+      if (global.FA_gearSlot(gear) != def.fits) return { ok: false, text: 'A ' + def.name + ' doesn\'t fit this.' }
+      let have = global.FA_attachIds(gear)
+      if (have.indexOf(def.id) >= 0) return { ok: false, text: 'It already has a ' + def.name + '.' }
+      if (have.length >= global.FA.attachments.slots) return { ok: false, text: 'No free attachment slots.' }
+      return { ok: true, text: 'Attach: ' + global.FA_attachmentEffect(def), act: 'attach', id: def.id }
+    }
+    if (id == 'kubejs:chaos_tome') return kind ? { ok: true, text: 'Roll a random enchant onto it for ' + global.FA_num(global.FA_rollCost(0, 0)) + ' Essence', act: 'chaos' }
+      : { ok: false, text: 'Chaos Tomes only roll onto gear.' }
+    if (id == 'kubejs:polishing_cloth') return gear.getMaxDamage() > 0 ? { ok: true, text: 'Polish it: reroll its condition, keeping the better grade', act: 'polish' }
+      : { ok: false, text: 'Only gear with durability can be polished.' }
+    return { ok: false, text: 'That doesn\'t go on gear.' }
+  }
+
+  let faBenchPreview = be => {
+    let items = be.faItems()
+    let plan = faBenchPlan(items.getStackInSlot(0), items.getStackInSlot(1))
+    be.faSetPreview(plan.text, plan.ok)
+  }
+
+  let faBenchApply = (be, player) => {
+    if (!player) return
+    let items = be.faItems()
+    let gear = items.getStackInSlot(0), mod = items.getStackInSlot(1)
+    let plan = faBenchPlan(gear, mod)
+    if (!plan.ok) { be.faSetPreview(plan.text, false); return }
+    if (plan.act == 'tome') faUnlock(player, mod, plan.id, gear)
+    else if (plan.act == 'gem') faSocket(player, mod, plan.type, plan.tier, gear)
+    else if (plan.act == 'attach') faAttach(player, mod, plan.id, gear)
+    else if (plan.act == 'chaos') faChaosRoll(player, mod, gear)
+    else if (plan.act == 'polish') faPolish(player, mod, gear)
+    be.faChanged()
+  }
+
+  let faBenchStar = (be, player) => {
+    if (!player) return
+    let gear = be.faItems().getStackInSlot(0)
+    let check = global.FA_legendCheck(player, gear)
+    if (check.ok && global.FA_legendUp(player, gear)) be.faChanged()
+    else be.faSetPreview(check.text, false)
+  }
+
   global.FA_onMachine = event => {
     let kind = String(event.getKind())
     let be = event.getBlockEntity()
     if (!be) return
     if (kind == 'salvage') faRunSalvager(event.getLevel(), event.getPos())
-    else if (kind == 'preview' && be.faItems) faFusionPreview(be)
+    else if (kind == 'preview' && be.faItems && !be.faIsBench) faFusionPreview(be)
     else if (kind == 'fuse' && be.faItems) faFuse(be, event.hasPlayer() ? event.getPlayer() : false)
+    else if (kind == 'bench_preview') faBenchPreview(be)
+    else if (kind == 'bench_apply') faBenchApply(be, event.hasPlayer() ? event.getPlayer() : false)
+    else if (kind == 'bench_star') faBenchStar(be, event.hasPlayer() ? event.getPlayer() : false)
   }
+  global.FA_benchPlanText = (gear, mod) => faBenchPlan(gear, mod).text
   global.FA_fusionPlanText = table => faFusionPlan(table.faItems()).text
   global.FA_fuseTable = (table, player) => faFuse(table, player)
 }

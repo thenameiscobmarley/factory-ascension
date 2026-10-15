@@ -1,0 +1,213 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "endgame"
+	group: ""
+	icon: "kubejs:ascendium_ingot"
+	id: "2905D9C78531E93A"
+	order_index: 5
+	quest_links: [ ]
+	quests: [
+		{
+			dependencies: [ ]
+			description: [
+				"Diamond + 2 Ascendite Ingots + Obsidian in a heated mixer."
+			]
+			icon: "kubejs:voidsteel_ingot"
+			id: "9598B402E0603B9C"
+			rewards: [
+				{
+					count: 2
+					id: "2982371C80FFAFA9"
+					item: "kubejs:dense_ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 4L
+					id: "778EA0E2E2A379F3"
+					item: "kubejs:voidsteel_ingot"
+					type: "item"
+				}
+			]
+			title: "Voidsteel"
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [ ]
+			description: [
+				"9 cores pressed in a heated Basin."
+			]
+			icon: "kubejs:dense_ascension_core"
+			id: "AADEBFCD0A6EA236"
+			rewards: [
+				{
+					count: 1
+					id: "2F8F02BE69E99DA9"
+					item: "kubejs:ascension_singularity"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 9L
+					id: "99AE21B4D9AF3D37"
+					item: "kubejs:dense_ascension_core"
+					type: "item"
+				}
+			]
+			title: "Dense Cores"
+			x: 0.0d
+			y: 2.0d
+		}
+		{
+			dependencies: [
+				"9598B402E0603B9C"
+				"AADEBFCD0A6EA236"
+			]
+			description: [
+				"Netherite + 2 Voidsteel + a Dense Core, superheated."
+			]
+			icon: "kubejs:celestium_ingot"
+			id: "774A0FB25286B49C"
+			rewards: [
+				{
+					count: 4
+					id: "B31D709944512B67"
+					item: "kubejs:mythic_fragment"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 4L
+					id: "0E3C463811D55CDF"
+					item: "kubejs:celestium_ingot"
+					type: "item"
+				}
+			]
+			title: "Celestium"
+			x: 2.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"AADEBFCD0A6EA236"
+			]
+			description: [
+				"A Depot on top, Liquid Essence below: it levels gear by itself."
+			]
+			icon: "kubejs:ascension_altar"
+			id: "EFA65CB7D5A34DE5"
+			rewards: [
+				{
+					count: 4
+					id: "CDF6A3B02061B073"
+					item: "kubejs:liquid_essence_bucket"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "E8AAC88F7C5CDB3A"
+					item: "kubejs:ascension_altar"
+					type: "item"
+				}
+			]
+			title: "The Ascension Altar"
+			x: 2.0d
+			y: 3.0d
+		}
+		{
+			dependencies: [
+				"774A0FB25286B49C"
+			]
+			description: [
+				"81 Essence in one item."
+			]
+			icon: "kubejs:ascension_singularity"
+			id: "A9D898200D3590C9"
+			rewards: [
+				{
+					count: 1
+					id: "B472BD036619A866"
+					item: "kubejs:ascended_soul"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "B49CD846462B4095"
+					item: "kubejs:ascension_singularity"
+					type: "item"
+				}
+			]
+			title: "Singularity"
+			x: 4.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"A9D898200D3590C9"
+			]
+			description: [
+				"The endgame metal: Celestium, a Singularity, Mythic Fragments and Liquid Essence, superheated."
+			]
+			icon: "kubejs:ascendium_ingot"
+			id: "6BD7A7855EFAAAAE"
+			rewards: [
+				{
+					count: 1
+					id: "F40023D5C245C500"
+					item: "kubejs:foil_sheet_celestial"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "2EE28B76181E6EEB"
+					item: "kubejs:ascendium_ingot"
+					type: "item"
+				}
+			]
+			title: "Ascendium"
+			x: 6.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"6BD7A7855EFAAAAE"
+			]
+			description: [
+				"The best foil there is: x100."
+			]
+			icon: "kubejs:foil_sheet_eclipse"
+			id: "50C6E6ADD5F88F3A"
+			rewards: [
+				{
+					count: 2
+					id: "84510929B6E2B41E"
+					item: "minecraft:nether_star"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "C40973976EC8EECB"
+					item: "kubejs:foil_sheet_eclipse"
+					type: "item"
+				}
+			]
+			title: "Eclipse"
+			x: 8.0d
+			y: 1.0d
+		}
+	]
+	title: "Endgame"
+}

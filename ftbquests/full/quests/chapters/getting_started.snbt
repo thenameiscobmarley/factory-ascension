@@ -1,0 +1,157 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "getting_started"
+	group: ""
+	icon: "kubejs:ascendite_ingot"
+	id: "CD7374CABA86D47E"
+	order_index: 0
+	quest_links: [ ]
+	quests: [
+		{
+			dependencies: [ ]
+			description: [
+				"Craft a Rock Hammer (5 iron + 2 sticks)."
+				"Hammer in one hand, cobblestone in the other: right-click to smash it into nuggets, flint and sometimes Raw Ascendite."
+			]
+			icon: "kubejs:rock_hammer"
+			id: "701AD5BB66D16EF4"
+			rewards: [
+				{
+					count: 9
+					id: "0DB74926EE067001"
+					item: "kubejs:ascendite_nugget"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "BCC48783037DC75C"
+					item: "kubejs:rock_hammer"
+					type: "item"
+				}
+			]
+			title: "Smash Some Rock"
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"701AD5BB66D16EF4"
+			]
+			description: [
+				"Teal ore from Y -48 to 80. Smelt Raw Ascendite into ingots."
+				"No ore yet? Iron + copper + 2 lapis + an amethyst shard makes one by hand."
+			]
+			icon: "kubejs:ascendite_ingot"
+			id: "19242609C5837D95"
+			rewards: [
+				{
+					count: 4
+					id: "E685D83DE73AC799"
+					item: "kubejs:ascension_shard"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 8L
+					id: "6F808808D8DE0725"
+					item: "kubejs:ascendite_ingot"
+					type: "item"
+				}
+			]
+			title: "Ascendite"
+			x: 2.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"19242609C5837D95"
+			]
+			description: [
+				"Ascendite tools and armor sit between iron and diamond, and take Ascended enchants like any gear."
+			]
+			icon: "kubejs:ascendite_pickaxe"
+			id: "E0C96CD09C1003B7"
+			rewards: [
+				{
+					id: "6AD5EEF9CB40AC3A"
+					type: "xp_levels"
+					xp_levels: 5
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "759DF46B26E73BE2"
+					item: "kubejs:ascendite_pickaxe"
+					type: "item"
+				}
+			]
+			title: "Teal Steel"
+			x: 4.0d
+			y: -1.0d
+		}
+		{
+			dependencies: [
+				"19242609C5837D95"
+			]
+			description: [
+				"4 Ascendite Ingots + 4 Redstone + Lapis, or 4 Ascension Shards, in a crafting grid."
+				"Right-click a core in the air to absorb it: +1 Essence. Essence levels your enchants (/ascension)."
+			]
+			icon: "kubejs:ascension_core"
+			id: "C5FC271732196E6A"
+			rewards: [
+				{
+					count: 2
+					id: "38D64369DEEDA0E6"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "D7ACC760C100408F"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			title: "Your First Ascension Core"
+			x: 4.0d
+			y: 1.0d
+		}
+		{
+			dependencies: [
+				"C5FC271732196E6A"
+			]
+			description: [
+				"Stand where you'll build your base and type /sethome."
+				"Danger zones are measured from your home: within 1,000 blocks mobs are normal. Further out they get stronger, and so does the loot."
+			]
+			icon: "minecraft:red_bed"
+			id: "795E06BAA6F70AFC"
+			rewards: [
+				{
+					count: 2
+					id: "FB0CFB8EF59CC0C1"
+					item: "kubejs:polishing_cloth"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					id: "0073A12DC2712255"
+					type: "checkmark"
+				}
+			]
+			title: "Home Sweet Home"
+			x: 6.0d
+			y: 1.0d
+		}
+	]
+	title: "Getting Started"
+}

@@ -393,6 +393,18 @@ def _battery(body, band, cells):
                  ('teal', add(*[rect(0.38, 0.44 + k * (0.36 / cells), 0.62, 0.44 + k * (0.36 / cells) + 0.36 / cells - 0.03) for k in range(cells)]))])
 
 
+def _motor(body, band, glow):
+    """A small electric motor: a ribbed body, a shaft sticking out, a power light."""
+    return _att([(body, add(rect(0.18, 0.28, 0.72, 0.78))), (band, add(*[rect(0.18 + k * 0.11, 0.26, 0.24 + k * 0.11, 0.8) for k in range(5)])),
+                 ('steel', add(rect(0.72, 0.46, 0.94, 0.58))), ('steel_dk', add(rect(0.12, 0.78, 0.78, 0.86))), (glow, add(circ(0.3, 0.38, 0.05)))])
+
+
+MOTORS = {
+    'electric_motor': _motor('steel', 'copper', 'red'),
+    'ascendite_motor': _motor('steel_dk', 'teal', 'gold'),
+    'essence_motor': _motor('gem', 'gold', 'teal'),
+}
+
 BATTERIES = {
     'copper_battery': _battery('copper', 'steel_dk', 2),
     'ascendite_battery': _battery('steel_dk', 'gold', 3),

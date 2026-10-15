@@ -17,6 +17,9 @@ The **Factory Ascension** mod jar (the Full download) isn't on CurseForge; it co
 | [KubeJS](https://www.curseforge.com/minecraft/mc-mods/kubejs) | Runs the Factory Ascension scripts (KubeJS 6 / 2001.x for 1.20.1) |
 | [Rhino](https://www.curseforge.com/minecraft/mc-mods/rhino) | KubeJS dependency |
 | [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api) | KubeJS dependency |
+| [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-forge) | The pack's quest book |
+| [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge) | FTB Quests dependency |
+| [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams-forge) | FTB Quests dependency |
 
 ## Factory and gear
 

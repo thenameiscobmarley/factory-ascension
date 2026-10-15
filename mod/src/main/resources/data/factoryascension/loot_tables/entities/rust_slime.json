@@ -51,12 +51,6 @@
                 "max": 1
               }
             }
-          ],
-          "conditions": [
-            {
-              "condition": "forge:mod_loaded",
-              "modid": "create"
-            }
           ]
         }
       ]

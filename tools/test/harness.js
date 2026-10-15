@@ -279,6 +279,8 @@ function livingBits(o, maxHealth) {
   o.setPersistenceRequired = function () { this.persistent = true }
   o.mobType = MobType.UNDEFINED; o.ground = true; o.wet = false; o.dim = 'minecraft:overworld'; o.boss = false; o.nearby = []
   o.isAlive = function () { return true }
+  o.isPassenger = function () { return !!this.riding }
+  if (!o.blockPosition) o.blockPosition = function () { var self = this; return { x: Math.floor(self.x || 0), y: 64, z: Math.floor(self.z || 0), getX: function () { return this.x }, getY: function () { return 64 }, getZ: function () { return this.z } } }
   o.getHealth = function () { return this.hp }
   o.setHealth = function (h) { this.hp = h }
   o.getMaxHealth = function () { return this.maxHp }
@@ -300,6 +302,7 @@ function livingBits(o, maxHealth) {
         getPlayerList: function () { return { getPlayers: function () { var a = []; a.size = function () { return 0 }; return a } } },
         tell: function (t) { (self.levelTells = self.levelTells || []).push(t.s) } } },
       getBlockState: function () { return { isAir: function () { return true } } },
+      isLoaded: function (pos) { return !self.unloaded }, isPositionEntityTicking: function () { return !self.unloaded },
       createEntity: function (t) { var m = makeMob(); m.type = t; spawnedMinions.push(m); return m },
       getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } },
       getDayTime: function () { return self.dayTime || 1000 },
@@ -333,7 +336,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
   'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/72_fa_mod_mobs.js', 'startup_scripts/76_fa_skinwalkers.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js', 'startup_scripts/97_fa_mod.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
-  'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js', 'server_scripts/48_fa_rooms.js',
+  'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js', 'server_scripts/47_fa_legendary.js', 'server_scripts/48_fa_rooms.js',
   'client_scripts/05_fa_mob_info.js', 'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
   load('kubejs/' + f)
   print('loaded ' + f)
@@ -345,7 +348,7 @@ print('\nitems')
 var created = [], createdBlocks = [], createdFluids = []
 var builder = {}
 ;['displayName', 'rarity', 'glow', 'maxStackSize', 'thinTexture', 'bucketColor', 'soundType', 'hardness', 'resistance', 'requiresTool',
-  'tagBlock', 'lightLevel', 'textureAll', 'maxDamage'].forEach(function (m) { builder[m] = function () { return builder } })
+  'tagBlock', 'lightLevel', 'textureAll', 'maxDamage', 'model', 'notSolid', 'renderType'].forEach(function (m) { builder[m] = function () { return builder } })
 var gearTiers = {}, foodDefs = {}
 handlers.registry.forEach(function (r) {
   var list = r.type == 'item' ? created : r.type == 'block' ? createdBlocks : createdFluids
@@ -394,7 +397,7 @@ check('486 enchants (59 + 15 Mythic + 200 Fusion + 200 Triad + 12 Ultimate)', en
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.attachments.batteries.length + global.FA.foils.types.length +
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.attachments.batteries.length + global.FA.machines.miniCrusher.motors.length + global.FA.foils.types.length +
   global.FA.roomCharges.styles.length * global.FA.roomCharges.sizes.length, created.length)
 var vanillaMobs = {}
 MF.foods.forEach(function (fd) { fd.mobs.forEach(function (m) { vanillaMobs[m] = true }) })
@@ -602,7 +605,7 @@ var clicks = []
 p.messages.forEach(function (t) { clicks = clicks.concat(t.clicks || []) })
 check('menu has clickable upgrade buttons', clicks.indexOf('/ascension upgrade protection 100') >= 0, clicks.join(','))
 print('  sample: ' + p.messages[2].s)
-check('commands registered (/ascension, /home, /sethome, /ascension sell, /ascension detach)', handlers.commands.length == 4)
+check('commands registered (/ascension, /home, /sethome, /ascension sell, /ascension detach, /ascension legendary)', handlers.commands.length == 5)
 
 // ---------------- Effects ----------------
 print('\ndamage')
@@ -1065,7 +1068,7 @@ var oreBlock = { name: 'iron_ore' }, stone = { name: 'stone' }
 // KubeJS block container: level.getBlock(pos) with .id and .hasTag(tagId)
 function state(block) { return { id: 'minecraft:' + block.name, hasTag: function (tag) { return tag == 'forge:ores' ? block === oreBlock : tag == 'minecraft:logs' ? !!block.log : false } } }
 function bpos(x, y, z) { return { getX: function () { return x }, getY: function () { return y }, getZ: function () { return z }, offset: function (a, b, c) { return bpos(x + a, y + b, z + c) } } }
-var world = { getBlock: function (p2) { var inCube = Math.abs(p2.getX()) <= 1 && Math.abs(p2.getY()) <= 1 && Math.abs(p2.getZ()) <= 1; return state(inCube ? oreBlock : stone) } }
+var world = { isLoaded: function () { return true }, getBlock: function (p2) { var inCube = Math.abs(p2.getX()) <= 1 && Math.abs(p2.getY()) <= 1 && Math.abs(p2.getZ()) <= 1; return state(inCube ? oreBlock : stone) } }
 var minerPick = gear('Pick'); faSetLevel(minerPick, 'vein_miner', 2)
 var miner = makePlayer(server, 'miner'); miner.main = minerPick
 miner.gameMode = { broken: 0, destroyBlock: function () { this.broken++; return true } }
@@ -1633,6 +1636,13 @@ crowded.nearby = crowd
 var crowdBefore = bolts.length
 spawn(crowded, 30000); ticks(2)
 check('no extra mobs while the area is already crowded', bolts.length == crowdBefore)
+// Deep out, at the edge of the loaded world: no horde (extras would make the game generate new chunks on the spot)
+var edgeMob = makeMob(); edgeMob.x = 30000; edgeMob.unloaded = true; var edgeBefore = bolts.length
+spawn(edgeMob, 30000); ticks(2)
+check('no hordes in unloaded chunks (no chunk-generation chain reaction deep in the danger zones)', bolts.length == edgeBefore)
+var rider = makeMob(); rider.x = 30000; rider.riding = true; var riderBefore = bolts.length
+spawn(rider, 30000); ticks(2)
+check('jockey riders never bring hordes', bolts.length == riderBefore)
 var nearSpawn = makeMob(); var nsBefore = bolts.length
 spawn(nearSpawn, 100); ticks(2)
 check('no hordes in the safe zone', bolts.length == nsBefore)
@@ -2089,6 +2099,28 @@ fixer.given = []
 faDetach(fixer, 0)
 check('[Detach] takes it off and gives the attachment back', global.FA_attachIds(sword9).join() == 'taser' && fixer.given[0].id == 'kubejs:attachment_chainsaw')
 check('every attachment has a recipe', global.FA.attachments.list.every(function (a) { return recipes.some(function (r) { return r.rid == 'kubejs:factory_ascension/attachment_' + a.id }) }))
+
+check('mob loot tables only use drops that always exist (no forge:mod_loaded, which loot tables can\'t read)',
+  Object.keys(global.FA.modMobs.minDanger).every(function (id) { return readFile('mod/src/main/resources/data/factoryascension/loot_tables/entities/' + id + '.json').indexOf('mod_loaded') < 0 }))
+check('Mini Crusher: motors (with recipes and speeds) and a battery charge per item', global.FA.machines.miniCrusher.motors.every(function (m) { return m.speed > 0 && m.recipe[0].length == 3 }) &&
+  global.FA.machines.miniCrusher.chargePerItem > 0)
+
+// ---------------- Legendary stars ----------------
+print('\nlegendary')
+var LG = global.FA.legendary
+function itemsOf(id, n) { var st = stack(n); st.id = id; return st }
+var smith = makePlayer(server, 'smith'), lsword = gearOf('weapon'); faSetLevel(lsword, 'sharpness', 100)
+smith.main = lsword; smith.inv = LG.costs[0].map(function (c) { return itemsOf(c[0], c[1] + 3) })
+var star1 = global.FA_legendUp(smith, lsword)
+var ldata = lsword.nbt.getCompound('FactoryAscension'), lfx = ldata.getCompound('legendfx').getCompound('0')
+check('Star Up: costs come out of the inventory, the gear gets star 1 and a level-' + LG.effectLevels[0] + ' legendary effect that suits it (' + lfx.getString('id') + ')',
+  star1 == 1 && ldata.getInt('legend') == 1 && smith.inv.every(function (st) { return st.count == 3 }) && lfx.getInt('level') == LG.effectLevels[0] &&
+  global.FA_enchantFits(String(lfx.getString('id')), 'weapon'), smith.inv.map(function (st) { return st.count }).join())
+check('...and with nothing left to pay, star 2 is refused', global.FA_legendUp(smith, lsword) == 0 && ldata.getInt('legend') == 1)
+var five = gearOf('weapon'); faSetLevel(five, 'sharpness', 100); var fd = five.getOrCreateTag().getCompound('FactoryAscension'); fd.putInt('legend', 5); five.getOrCreateTag().put('FactoryAscension', fd)
+var fiver = makePlayer(server, 'fiver'); fiver.main = five
+check('5 Legendary stars: every level counts x1.5 (Sharpness 100 -> 150 = x16 damage)', near(hit(fiver, makeMob(), 1), 16), hit(fiver, makeMob(), 1))
+check('legendary settings: ' + LG.maxStars + ' stars, a cost, an effect level and a grade for each', LG.costs.length == LG.maxStars && LG.effectLevels.length == LG.maxStars && LG.grades.length == LG.maxStars + 1)
 
 // ---------------- Foils ----------------
 print('\nfoils')

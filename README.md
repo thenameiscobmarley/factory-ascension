@@ -12,7 +12,7 @@ so going AFK is always safe.
 
 | Download | What's in it |
 |---|---|
-| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar: the Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, Universal Storage Terminal, connected glass, Shiny Reflections and 34 new mobs |
+| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar: the Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, Universal Storage Terminal, Ascension Workbench, Mini Crusher, connected glass, Shiny Reflections and 34 new mobs |
 | **Half** | The KubeJS scripts only. Everything works except the mod's blocks |
 
 Each comes as a plain zip and as a **CurseForge** zip you import straight into the CurseForge app (it downloads the mods for you).
@@ -181,6 +181,25 @@ fragments or gems once. `/ascension milestones` shows your progress. Altar level
 Once an item has 1,000 total levels, `/ascension rebirth` resets its enchants to level 1 for a permanent
 **star**: every level on it then counts x1.25 (x1.5 at 2 stars, and so on). Each star needs 1,000 more levels than the last.
 
+## Legendary stars (Ascension Workbench)
+
+Fallout 76-style grades for gear, from no stars to **10**. Put gear in the **Ascension Workbench** (two blocks wide) and
+press **Star Up**: each star costs items from your inventory, adds a **legendary effect** (a random enchant that suits
+the gear: level 10 at star 1, up to 6,000 at star 10) and makes every level on the item count x1.1 more per star (x2 at
+10 stars, on top of Rebirth stars). The grade shows under the item's name: ★★★☆☆☆☆☆☆☆ LEGENDARY.
+
+| Stars | Grade | Cost of that star |
+|---|---|---|
+| 1 | Legendary | 16 Ascension Cores, 8 Shards |
+| 2-3 | Legendary | 4-8 Dense Cores, 1-2 Mythic Fragments |
+| 4-6 | Epic Legendary | Dense Cores / Singularities, Mythic Fragments, Voidsteel then Celestium |
+| 7-9 | Mythic Legendary | Singularities, Ascended Souls, Celestium then Ascendium |
+| 10 | Ascended Legendary | 32 Singularities, 8 Ascended Souls, 8 Ascendium, a Nether Star (the server hears about it) |
+
+The workbench is also where gear gets everything else: put gear on top and a tome, gem, attachment, Chaos Tome or
+Polishing Cloth below, and it says what **Apply** will do before you press it. Half download: `/ascension legendary` on
+the gear in your hand. Everything is in the `legendary` section of the config.
+
 ## Gems and gear sets
 
 - **Gems** (Bloodstone, Sapphire, Garnet, Topaz, Opal, Onyx) are made in a superheated mixer, then compacted 4 → 1
@@ -348,10 +367,13 @@ glance:
 | Galaxy | x5 | a purple night sky full of stars |
 | Void | x8 | pitch black with a glowing violet edge |
 | Celestial | x12 | white-gold rays and sparkles |
+| **Cased:** Ruby, Sapphire, Emerald, Amber, Aurora | x15, x18, x22, x27, x33 | collector foils sealed in a tinted clear case, faceted gem patterns |
+| **Cased:** Obsidian, Inferno, Glacier, Nebula, Eclipse | x40, x50, x62, x80, x100 | each made from the one before it |
 
 - **Looted:** pack cards roll foils (8% of Commons, always on Holo cards and up, with better foils the rarer the card),
   and 15% of tomes from danger-zone loot come foiled.
-- **Crafted:** a **Foil Sheet** for each foil, from copper and paper up to Ascendium and a nether star. Hold the sheet,
+- **Crafted:** a **Foil Sheet** for each foil (in a clear tinted wrapper you can see the foil through), from copper and
+  paper up to Ascendium and a nether star, then the ten **Foil Cases** past it. Hold the sheet,
   put the tome in your other hand, right-click. A better foil replaces a worse one; a worse one is refused.
 - A level 100 tome with Gold Foil goes on gear as level 150. Foiled tomes also sell for x their foil.
 - Everything is in the `foils` section of the config.
@@ -573,6 +595,20 @@ Up to 128 chests within 128 blocks, same dimension (`machines.storage`). Sneak +
 | Universal Storage Terminal | 4 Ascendite Ingots, 2 Chests, 1 Glass Pane, 1 Ascension Core, 1 Comparator |
 | Storage Linker | Ascendite Ingot, Ascendite Nugget, Amethyst Shard (diagonal) |
 
+### Mini Crusher (Full download)
+
+Create's crushing recipes (Millstone recipes if there's no crushing one) in one block, with **no crushing wheels and
+no rotation**: put a **motor** in its motor slot and a **battery** in its battery slot (2 charge per item). Motors set the
+speed: Electric Motor x1, Ascendite Motor x2, Essence Motor x4, each crafted from the one before. Hoppers and funnels
+feed it from any side (batteries go into the battery slot) and take the results out. Config: `machines.miniCrusher`.
+
+### 3D models
+
+Every block the pack adds is a real 3D model built from parts: the vault's door and dial, the binder's slanted desk,
+the forge's glass tank of essence, the terminal's tilted screen and keyboard, the workbench's tools and vise, the
+Altar's pillar and crystals, and so on. Enchantment Packs are thick foil packs torn open at the top with cards peeking
+out, Booster Boxes have a lid, Foil Sheets are cards in a clear wrapper, and Foil Cases are cards in a tinted case.
+
 ### The other machines
 
 | Block | What it does |
@@ -673,8 +709,11 @@ Mythic Fragments, Dense Cores, a Booster Box and Gear Caches, and a part with a 
   so nothing can conflict with it. Recipe: 8 Glass around the center item, makes 8. Factory: Andesite Alloy,
   Ascendite: an Ascendite Nugget, Gilded: a Gold Nugget, Smoked: Coal (config `machines.glass`).
 - **Shiny Reflections**: torches, lanterns, glowstone and the sun glint off gold, diamond, iron, copper, quartz, glass,
-  ice, amethyst, polished stone and the mod's own glass and machines, and the glints slide across the surface as you
-  move, the way a mirror image would. No shaders: twice a second it lists the shiny faces and lights near you, and each
+  ice, amethyst, polished stone, glazed terracotta and the mod's own glass and machines, and the glints slide across the
+  surface as you move, the way a mirror image would. **Every block shines its own way:** metals tint their glints in
+  their color and brushed metal stretches them into streaks, gems (diamond, emerald, amethyst, Ascendite, the Altar)
+  twinkle with star sparkles, glass and ice glow more at grazing angles, and the sun's highlight is sharp on gems and
+  polished stone, broad on metal. No shaders: twice a second it lists the shiny faces and lights near you, and each
   frame it draws a small glint where each light's mirror image lands. Shiny blocks are the `factoryascension:shiny`
   block tag (add your own with a datapack); radius, brightness and the glint cap are in
   `config/factoryascension-client.toml`.
@@ -787,6 +826,12 @@ Anything with tiers has a gold **⬆ Upgrade** line saying what the next tier ne
 engine parts. Every mob part has its own line, raw and cooked. With the Full download the mod's blocks, glass and spawn
 eggs have details too (eggs say where the mob lives, what it drops, and boss rules).
 
+## Quest book (FTB Quests)
+
+The downloads include an FTB Quests quest book (FTB Quests, FTB Library and FTB Teams are in the CurseForge mod list):
+six chapters, from your first Rock Hammer to 10-star Legendary gear and the Eclipse foil, with rewards. The Half
+download's book skips the mod's blocks. It's generated by `tools/make_quests.py`.
+
 ## Recipes (all automatable with Create)
 
 | Item | How |
@@ -853,12 +898,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 66 checks (83 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 66 checks (85 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 506 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 514 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

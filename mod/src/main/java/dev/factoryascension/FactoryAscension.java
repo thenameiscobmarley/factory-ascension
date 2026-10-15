@@ -12,6 +12,8 @@ import dev.factoryascension.block.OpenerBlock;
 import dev.factoryascension.block.SalvagerBlock;
 import dev.factoryascension.block.SmelterBlock;
 import dev.factoryascension.block.TerminalBlock;
+import dev.factoryascension.block.WorkbenchBlock;
+import dev.factoryascension.block.MiniCrusherBlock;
 import dev.factoryascension.block.VaultBlock;
 import dev.factoryascension.blockentity.BinderBlockEntity;
 import dev.factoryascension.blockentity.BurnerBlockEntity;
@@ -22,6 +24,8 @@ import dev.factoryascension.blockentity.OpenerBlockEntity;
 import dev.factoryascension.blockentity.SalvagerBlockEntity;
 import dev.factoryascension.blockentity.SmelterBlockEntity;
 import dev.factoryascension.blockentity.TerminalBlockEntity;
+import dev.factoryascension.blockentity.WorkbenchBlockEntity;
+import dev.factoryascension.blockentity.MiniCrusherBlockEntity;
 import dev.factoryascension.item.StorageLinkerItem;
 import dev.factoryascension.blockentity.VaultBlockEntity;
 import dev.factoryascension.menu.BinderMenu;
@@ -32,6 +36,8 @@ import dev.factoryascension.menu.OpenerMenu;
 import dev.factoryascension.menu.SalvagerMenu;
 import dev.factoryascension.menu.SmelterMenu;
 import dev.factoryascension.menu.TerminalMenu;
+import dev.factoryascension.menu.WorkbenchMenu;
+import dev.factoryascension.menu.MiniCrusherMenu;
 import dev.factoryascension.menu.VaultMenu;
 import dev.factoryascension.mob.FAMobs;
 import dev.factoryascension.network.FANetwork;
@@ -74,12 +80,13 @@ public class FactoryAscension {
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
     private static BlockBehaviour.Properties machine() {
+        // noOcclusion: the 3D models don't fill the whole block, so neighbors must still draw their faces
         return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(4f, 1200f).sound(SoundType.NETHERITE_BLOCK)
-            .requiresCorrectToolForDrops().lightLevel(s -> 6);
+            .requiresCorrectToolForDrops().lightLevel(s -> 6).noOcclusion();
     }
 
     private static BlockBehaviour.Properties engine() {
-        return BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3f, 6f).sound(SoundType.METAL).requiresCorrectToolForDrops();
+        return BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3f, 6f).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion();
     }
 
     // Connected glass: frames only where there's no matching glass next to it
@@ -88,12 +95,16 @@ public class FactoryAscension {
         .map(id -> block(id, () -> new ConnectedGlassBlock(BlockBehaviour.Properties.copy(net.minecraft.world.level.block.Blocks.GLASS)))).toList();
 
     public static final RegistryObject<Block> VAULT = block("ascension_vault", () -> new VaultBlock(machine()));
-    public static final RegistryObject<Block> BINDER = block("card_binder", () -> new BinderBlock(machine().noOcclusion()));
+    public static final RegistryObject<Block> BINDER = block("card_binder", () -> new BinderBlock(machine()));
     public static final RegistryObject<Block> FORGE = block("essence_forge", () -> new ForgeBlock(machine()));
     public static final RegistryObject<Block> OPENER = block("pack_opener", () -> new OpenerBlock(machine()));
     public static final RegistryObject<Block> SALVAGER = block("salvager", () -> new SalvagerBlock(machine()));
-    public static final RegistryObject<Block> FUSION = block("tome_fusion_table", () -> new FusionBlock(machine().noOcclusion()));
+    public static final RegistryObject<Block> FUSION = block("tome_fusion_table", () -> new FusionBlock(machine()));
     public static final RegistryObject<Block> SMELTER = block("super_smelter", () -> new SmelterBlock(machine().lightLevel(s -> s.getValue(SmelterBlock.LIT) ? 13 : 3)));
+    // Ascension Workbench: two blocks wide
+    public static final RegistryObject<Block> WORKBENCH = block("ascension_workbench", () -> new WorkbenchBlock(machine()));
+    // Mini Crusher: crushing without the big wheels (a motor and a battery)
+    public static final RegistryObject<Block> MINI_CRUSHER = block("mini_crusher", () -> new MiniCrusherBlock(machine()));
     // Universal Storage Terminal and its Storage Linker
     public static final RegistryObject<Block> TERMINAL = block("storage_terminal", () -> new TerminalBlock(machine()));
     public static final RegistryObject<Item> LINKER = ITEMS.register("storage_linker", () -> new StorageLinkerItem(new Item.Properties().stacksTo(1)));
@@ -122,6 +133,10 @@ public class FactoryAscension {
         () -> BlockEntityType.Builder.of(EngineBlockEntity::create, ENGINE_CORE.get()).build(null));
     public static final RegistryObject<BlockEntityType<TerminalBlockEntity>> TERMINAL_BE = BLOCK_ENTITIES.register("storage_terminal",
         () -> BlockEntityType.Builder.of(TerminalBlockEntity::new, TERMINAL.get()).build(null));
+    public static final RegistryObject<BlockEntityType<WorkbenchBlockEntity>> WORKBENCH_BE = BLOCK_ENTITIES.register("ascension_workbench",
+        () -> BlockEntityType.Builder.of(WorkbenchBlockEntity::new, WORKBENCH.get()).build(null));
+    public static final RegistryObject<BlockEntityType<MiniCrusherBlockEntity>> MINI_CRUSHER_BE = BLOCK_ENTITIES.register("mini_crusher",
+        () -> BlockEntityType.Builder.of(MiniCrusherBlockEntity::new, MINI_CRUSHER.get()).build(null));
     public static final RegistryObject<BlockEntityType<BurnerBlockEntity>> BURNER_BE = BLOCK_ENTITIES.register("engine_burner",
         () -> BlockEntityType.Builder.of(BurnerBlockEntity::new, BURNER.get()).build(null));
 
@@ -142,6 +157,10 @@ public class FactoryAscension {
         () -> IForgeMenuType.create((id, inv, buf) -> new EngineMenu(id, inv, buf.readBlockPos(), buf.readVarInt())));
     public static final RegistryObject<MenuType<TerminalMenu>> TERMINAL_MENU = MENUS.register("storage_terminal",
         () -> IForgeMenuType.create((id, inv, buf) -> new TerminalMenu(id, inv, buf.readBlockPos())));
+    public static final RegistryObject<MenuType<WorkbenchMenu>> WORKBENCH_MENU = MENUS.register("ascension_workbench",
+        () -> IForgeMenuType.create((id, inv, buf) -> new WorkbenchMenu(id, inv, buf.readBlockPos())));
+    public static final RegistryObject<MenuType<MiniCrusherMenu>> MINI_CRUSHER_MENU = MENUS.register("mini_crusher",
+        () -> IForgeMenuType.create((id, inv, buf) -> new MiniCrusherMenu(id, inv, buf.readBlockPos())));
     public static final RegistryObject<MenuType<SmelterMenu>> SMELTER_MENU = MENUS.register("super_smelter",
         () -> IForgeMenuType.create((id, inv, buf) -> new SmelterMenu(id, inv, buf.readBlockPos())));
 
@@ -156,6 +175,8 @@ public class FactoryAscension {
             out.accept(SALVAGER.get());
             out.accept(FUSION.get());
             out.accept(SMELTER.get());
+            out.accept(WORKBENCH.get());
+            out.accept(MINI_CRUSHER.get());
             out.accept(TERMINAL.get());
             out.accept(LINKER.get());
             out.accept(ENGINE_CORE.get());

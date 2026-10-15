@@ -39,12 +39,14 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
     if (!H.enabled || event.loadedFromDisk() || event.getLevel().isClientSide()) return
     let mob = event.getEntity()
     if (!(mob instanceof $FAEnemy) || !(mob instanceof $FALiving)) return
+    // Riders (jockeys) and mobs at the edge of the loaded world never bring hordes: extras there would load new chunks
+    if (mob.isPassenger() || !faLoaded(mob.level, mob.blockPosition())) return
     let data = mob.getPersistentData()
     if (!data.contains('fa_danger') || data.getBoolean('fa_horde') || data.getBoolean('fa_boss') || data.getBoolean('fa_minion') || faIsBoss(mob)) return
     let count = Math.min(H.maxExtra, faRoll(H.extraPerLevel * data.getInt('fa_danger')))
     if (count <= 0) return
     faLater(1, () => {
-      if (!mob.isAlive() || mob.isRemoved() || faHostilesNear(mob, 48) >= H.nearbyCap) return
+      if (!mob.isAlive() || mob.isRemoved() || !faLoaded(mob.level, mob.blockPosition()) || faHostilesNear(mob, 48) >= H.nearbyCap) return
       faSpawnHorde(mob, count)
     })
   } catch (err) {

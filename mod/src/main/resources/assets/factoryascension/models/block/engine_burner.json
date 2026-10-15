@@ -1,7 +1,118 @@
 {
-  "parent": "minecraft:block/cube_column",
+  "parent": "minecraft:block/block",
   "textures": {
     "side": "factoryascension:block/engine_burner_side",
-    "end": "factoryascension:block/engine_burner_top"
-  }
+    "side_lit": "factoryascension:block/engine_burner_side_lit",
+    "top": "factoryascension:block/engine_burner_top",
+    "mat_steel": "factoryascension:block/mat_steel",
+    "mat_steel_dk": "factoryascension:block/mat_steel_dk",
+    "mat_gold": "factoryascension:block/mat_gold",
+    "mat_teal": "factoryascension:block/mat_teal",
+    "mat_wood": "factoryascension:block/mat_wood",
+    "mat_copper": "factoryascension:block/mat_copper",
+    "mat_iron": "factoryascension:block/mat_iron",
+    "mat_gem": "factoryascension:block/mat_gem",
+    "mat_cloth": "factoryascension:block/mat_cloth",
+    "mat_fire": "factoryascension:block/mat_fire",
+    "mat_glass": "factoryascension:block/mat_glass",
+    "particle": "factoryascension:block/engine_burner_side"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        13,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#mat_steel_dk"
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        13,
+        6
+      ],
+      "to": [
+        10,
+        16,
+        10
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_steel_dk"
+        },
+        "south": {
+          "texture": "#mat_steel_dk"
+        },
+        "east": {
+          "texture": "#mat_steel_dk"
+        },
+        "west": {
+          "texture": "#mat_steel_dk"
+        },
+        "up": {
+          "texture": "#mat_steel_dk"
+        },
+        "down": {
+          "texture": "#mat_steel_dk"
+        }
+      }
+    },
+    {
+      "from": [
+        5.5,
+        15.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        16.5,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_copper"
+        },
+        "south": {
+          "texture": "#mat_copper"
+        },
+        "east": {
+          "texture": "#mat_copper"
+        },
+        "west": {
+          "texture": "#mat_copper"
+        },
+        "up": {
+          "texture": "#mat_copper"
+        },
+        "down": {
+          "texture": "#mat_copper"
+        }
+      }
+    }
+  ]
 }

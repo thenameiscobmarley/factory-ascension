@@ -307,10 +307,11 @@ def loot(spec):
         e = {"type": "minecraft:item", "name": item, "functions": [
             {"function": "minecraft:set_count", "count": {"type": "minecraft:uniform", "min": lo, "max": hi}},
             {"function": "minecraft:looting_enchant", "count": {"type": "minecraft:uniform", "min": 0, "max": 1}}]}
-        # Items from mods that aren't installed are skipped instead of breaking the table
+        # Loot tables have no "is this mod installed" condition, so drops may only use mods that are always there
+        # (Create is required by the mod)
         mod = item.split(':')[0]
-        if mod not in ('minecraft', 'kubejs', 'factoryascension'):
-            e["conditions"] = [{"condition": "forge:mod_loaded", "modid": mod}]
+        if mod not in ('minecraft', 'kubejs', 'factoryascension', 'create'):
+            raise SystemExit('mob loot can only use vanilla, KubeJS, Create or this mod: ' + item)
         pool = {"rolls": 1, "entries": [e]}
         if conditions:
             pool["conditions"] = conditions
