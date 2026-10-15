@@ -333,7 +333,7 @@
 
   // ---------- ENCHANTS: mythic ----------
   const F = FA.fragments;
-  $("#fragRates").textContent = "Elites drop one " + Math.round(F.eliteChance * 100) + "% of the time, plus " + (F.eliteChancePerLevel * 100) + "% per danger level (up to " + Math.round(F.eliteChanceCap * 100) + "%).";
+  $("#fragRates").textContent = "Elites drop one " + Math.round(global.FA_fragmentChance(1, true) * 100) + "% of the time at 1,000 blocks out, " + Math.round(global.FA_fragmentChance(5, true) * 100) + "% at 2,000, climbing on the same curve as the mobs (up to " + Math.round(F.eliteChanceCap * 100) + "%).";
   $("#mythicGrid").innerHTML = ids.filter(id => E[id].mythic).map(id => '<div class="myth slot-card"><img src="' + tex("tome_" + id) + '" alt="" /><b>' + esc(E[id].name) + "</b><span>" +
     esc(global.FA_describe(id, E[id].maxLevel || 10)) + "</span></div>").join("");
 
@@ -480,6 +480,8 @@
     ["card_binder", "Card Binder", "Holds 54 tome cards, counts your collection, and floats your best card above the block.", { f: "side", s: "side", t: "top" }],
     ["essence_forge", "Essence Forge", "Gear in the slot, Liquid Essence piped into its 16-bucket tank: it levels the gear like the Ascension Altar, once a second."],
     ["pack_opener", "Pack Opener", "Hopper in Enchantment Packs: it opens one every " + (M.openerSeconds == 1 ? "second" : M.openerSeconds + " seconds") + " into 27 slots and flips the cards on screen."],
+    ["storage_terminal", "Universal Storage Terminal", "Link up to " + M.storage.maxLinks + " chests to it with a Storage Linker" + (M.storage.range > 0 ? " (within " + M.storage.range + " blocks)" : "") +
+      " and use them as one big chest: search, Sort across every chest, scroll, shift-click in and out. Hoppers can feed it."],
     ["engine_core", "Engine Core", "The heart of a Modular Engine. Its front face is the shaft output. Right-click it for the engine's screen: speed, power, modules and what to add next.", { f: "front", s: "side", t: "top" }],
     ["engine_coil", "Coil Module", "+" + EN.suPerCoil + " SU of stress capacity, while a Burner powers it. Its screen shows how many coils are powered.", { f: "side", s: "side", t: "top" }],
     ["engine_gearbox", "Gearbox Module", "Each one takes the engine to its next speed: " + EN.rpm.join(", ") + " RPM. Same power, faster shaft. Its screen shows the speed ladder.", { f: "side", s: "side", t: "top" }],

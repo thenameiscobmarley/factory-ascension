@@ -46,31 +46,37 @@ global.FA_endEvent = server => {
   if (e && server) server.tell(Text.gray('The ' + FA_EVENT_INFO[e.type].title.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) + ' has ended.'))
 }
 
-function faPickWeighted(list) {
-  let total = 0
-  list.forEach(x => { total += x[1] })
-  let r = Math.random() * total
-  for (let i = 0; i < list.length; i++) {
-    r -= list[i][1]
-    if (r < 0) return list[i][0]
-  }
-  return list[list.length - 1][0]
-}
-
-// Meteor Shower: drop a glowing rare item from the sky somewhere near each player
+// Meteor Shower: drop glowing loot from the sky near each player. Anything the pack makes can fall; the tier odds are a
+// loot drop's at the landing spot, so the farther from home, the better (global.FA_meteorRoll in 00_fa_config.js).
+let faMeteorPool = false
 function faMeteor(server, player) {
   let M = global.FA.events.meteorShower
   let level = player.level
-  let x = Math.floor(player.getX() + (Math.random() * 2 - 1) * M.radius)
-  let z = Math.floor(player.getZ() + (Math.random() * 2 - 1) * M.radius)
-  let y = level.getHeight($FAHeightmap.MOTION_BLOCKING, x, z) + 30
-  let drop = new $FAItemEntity(level, x + 0.5, y, z + 0.5, Item.of(faPickWeighted(M.drops)))
-  drop.glowing = true
-  drop.setMotion(0, -1.5, 0)
-  level.addFreshEntity(drop)
-  let dim = 'execute in ' + level.dimension + ' run '
-  server.runCommandSilent(dim + 'particle minecraft:flame ' + x + ' ' + (y - 10) + ' ' + z + ' 0.3 8 0.3 0.05 60 force')
-  server.runCommandSilent(dim + 'playsound minecraft:entity.firework_rocket.large_blast ambient @a ' + x + ' ' + (y - 20) + ' ' + z + ' 3 0.6')
+  if (!faMeteorPool) faMeteorPool = global.FA_meteorPool()
+  for (let n = 0; n < M.perWave; n++) {
+    let x = Math.floor(player.getX() + (Math.random() * 2 - 1) * M.radius)
+    let z = Math.floor(player.getZ() + (Math.random() * 2 - 1) * M.radius)
+    let y = level.getHeight($FAHeightmap.MOTION_BLOCKING, x, z) + 30
+    let danger = Math.max(0, global.FA_dangerLevel(level, x, z, player))
+    let roll = global.FA_meteorRoll(Math.random, danger, faMeteorPool)
+    let stack
+    if (roll.relic) {
+      stack = global.FA_relicStack(global.FA_makeRelic(Math.random, roll.relic, danger))
+    } else {
+      stack = Item.of(roll.id)
+      if (stack.isEmpty()) continue
+      stack.setCount(Math.min(roll.count, stack.getMaxStackSize()))
+    }
+    let drop = new $FAItemEntity(level, x + 0.5, y, z + 0.5, stack)
+    drop.glowing = true
+    drop.setMotion(0, -1.5, 0)
+    level.addFreshEntity(drop)
+    let dim = 'execute in ' + level.dimension + ' run '
+    let fx = ['minecraft:flame', 'minecraft:flame', 'minecraft:soul_fire_flame', 'minecraft:dragon_breath', 'minecraft:end_rod', 'minecraft:totem_of_undying'][roll.tier]
+    server.runCommandSilent(dim + 'particle ' + fx + ' ' + x + ' ' + (y - 10) + ' ' + z + ' 0.3 8 0.3 0.05 ' + (60 + 30 * roll.tier) + ' force')
+    server.runCommandSilent(dim + 'playsound minecraft:entity.firework_rocket.large_blast ambient @a ' + x + ' ' + (y - 20) + ' ' + z + ' 3 ' + (0.6 + 0.1 * roll.tier))
+    if (roll.tier >= 4) player.tell(Text.gold('\u2604 A ' + global.FA.loot.tiers[roll.tier].name + ' meteor is falling nearby: ').append(stack.getHoverName()))
+  }
 }
 
 // ---- Ascended bosses ----

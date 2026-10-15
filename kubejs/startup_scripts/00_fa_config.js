@@ -166,9 +166,17 @@ global.FA = {
   // The deeper the zone, the more often a kill drops one and the better the tier. Elites roll twice and lean a tier up,
   // Ascended bosses roll four times and lean two up. Bulk amounts grow with danger. Top tiers drop Relics:
   // pre-enchanted gear with big levels (upgradeable like any other gear).
+  // Loot grows on the same exponential curve as the mobs (danger.exponent): curve = (blocks out / 1000) ^ 2.807,
+  // so 1 at 1,000 blocks, 7 at 2,000, 22 at 3,000, 92 at 5,000, 640 at 10,000. Every "Scale" below multiplies it.
   loot: {
     enabled: true,
-    chance: 0.1, chancePerLevel: 0.006, chanceCap: 0.75,
+    chance: 0.1, chanceScale: 0.02, chanceCap: 0.75,   // chance a kill drops a roll: 12% at 1k, 24% at 2k, 54% at 3k, max 75%
+    bulkScale: 0.2,            // stack sizes x(1 + 0.2 x curve): x1.2 at 1k, x2.4 at 2k, x19 at 5k
+    relicLevelScale: 2,        // Relic enchant levels: (8 + 2 x curve) x the quality's levelMult
+    condensedScale: 0.05,      // Condensed Essence drops reach one block tier higher per 20 curve
+    // Tier weights: weight x (1 + curve) ^ (growth x tierCurve), so the rare tiers take over the deeper you go.
+    // Mythic odds: 0.1% at home, ~1% at 2,000 blocks, ~10% at 5,000, ~36% at 10,000.
+    tierCurve: 10,
     eliteRolls: 2, bossRolls: 4,
     tiers: [
       // weight at danger 0, and how fast it grows per danger level (higher tiers grow faster)
@@ -197,10 +205,11 @@ global.FA = {
 
   // ---- Mythic Fragments: drop from danger-zone mobs, needed for Mythic tomes ----
   fragments: {
-    eliteChance: 0.15,          // Elites: 15% + 0.5% per danger level, max 75%
-    eliteChancePerLevel: 0.005,
+    // On the loot curve (see loot): Elites 15% + 0.5% x curve (max 75%), other danger-zone mobs 0.2% x curve (max 5%)
+    eliteChance: 0.15,
+    eliteChanceScale: 0.005,
     eliteChanceCap: 0.75,
-    normalChancePerLevel: 0.002, // other danger-zone mobs: 0.2% per danger level, max 5%
+    normalChanceScale: 0.002,
     normalChanceCap: 0.05
   },
 
@@ -639,8 +648,9 @@ global.FA = {
     exponent: 2.807,
     healthScale: 0.5,          // mobs take damage / that, like having more health
     damageScale: 0.5,          // mobs deal x that damage
-    lootPerLevel: 0.1,         // mob drops x(1 + 0.1 * level)
-    xpPerLevel: 0.2,           // mob XP x(1 + 0.2 * level)
+    // Mob drops and XP grow on the same curve as their health: x(1 + scale * (blocks / 1000) ^ exponent)
+    lootScale: 0.5,            // mob drops x1.5 at 1,000 blocks, x4.5 at 2,000, x47 at 5,000
+    xpScale: 0.5,              // mob XP the same
     // Elites: rare, named, much tougher, much better loot
     eliteChancePerLevel: 0.01, // 1% per level...
     eliteChanceCap: 0.25,      // ...up to 25% of mobs
@@ -768,8 +778,28 @@ global.FA = {
     checkEveryMinutes: 1,
     chancePerCheck: 0.05,      // about one event every 20 minutes
     bloodMoon: { minutes: 6, dangerBonus: 10, fragmentMult: 2, nightOnly: true },
-    meteorShower: { minutes: 3, everySeconds: 15, radius: 30,
-      drops: [['minecraft:diamond', 30], ['minecraft:ancient_debris', 15], ['kubejs:gem_mineral_cluster', 30], ['kubejs:mythic_fragment', 4], ['kubejs:chaos_tome', 1]] },
+    // Meteor Shower: anything the pack makes can fall from the sky. Each meteor picks a loot tier (Common 0 ... Mythic 5)
+    // with the same odds as a loot drop where it lands, so the farther from home, the better (loot curve), then any item
+    // of that tier. The better the item, the higher (rarer) its tier. counts: [min, max] per tier for stackable items,
+    // times the loot curve's bulk. pool: the tier of each kind of item. extra: other items, [id, tier].
+    meteorShower: { minutes: 3, everySeconds: 15, radius: 30, perWave: 2,
+      counts: [[2, 8], [1, 4], [1, 2], [1, 1], [1, 1], [1, 1]],
+      pool: {
+        basics: 0,             // Ascension Cores and Shards, Ascendite, mineral clusters, Blank Tomes, Polishing Cloths, Rock Hammers
+        food: 0,               // every mob part, raw and cooked
+        engine: 0,             // Modular Engine parts, connected glass, Storage Linker (Full download)
+        ascenditeGear: 1, attachments: 1, packs: 1, denseCore: 1, baseTomes: 1,
+        voidsteel: 2, fusionTomes: 2, chaos: 2, machines: 2,   // machines: the mod's other blocks
+        celestium: 3, triadTomes: 3, singularity: 3, bigMachines: 3,   // bigMachines: Ascension Vault, Essence Forge
+        ascendium: 4, mythicTomes: 4, souls: 4,
+        ultimateTomes: 5,
+        gems: [1, 2, 3],       // Chipped, Flawless, Perfect
+        roomTnt: [0, 1, 2],    // 16, 32, 50
+        foils: [0, 0, 1, 1, 2, 3, 4, 5],
+        condensedPerTier: 10,  // Condensed Essence: blocks 0-9 -> Uncommon, 10-19 -> Rare ... 40+ -> Mythic
+        relics: { rare: 2, epic: 3, legendary: 4, mythic: 5 }
+      },
+      extra: [['minecraft:diamond', 1], ['minecraft:ancient_debris', 2], ['minecraft:netherite_ingot', 4]] },
     goldenHour: { minutes: 5, lootMult: 2 }
   },
 
@@ -1079,6 +1109,9 @@ global.FA = {
       rpm: [16, 32, 64, 128, 256],   // speed with 0, 1, 2, 3, 4+ Gearboxes (same SU, faster shaft)
       fuelMultiplier: 1        // fuel lasts this many times its furnace burn time (1 coal = 80 s)
     },
+    // Universal Storage Terminal: link chests to it with a Storage Linker, then use it as one big chest.
+    // range: how far a linked chest may be from the terminal (0 = any distance in the same dimension).
+    storage: { range: 128, maxLinks: 128 },
     // Connected glass: 8 Glass around the center item -> 8 of that glass (crafting grid)
     glass: { factory_glass: 'create:andesite_alloy', ascendite_glass: 'kubejs:ascendite_nugget', gilded_glass: 'minecraft:gold_nugget', smoked_glass: 'minecraft:coal' },
     recipes: {
@@ -1093,7 +1126,10 @@ global.FA = {
       engine_core: [['ICI', 'SFS', 'IAI'], { I: 'minecraft:iron_ingot', C: 'create:cogwheel', S: 'create:shaft', F: 'minecraft:furnace', A: 'create:andesite_alloy' }],
       engine_coil: [['CAC', 'ARA', 'CAC'], { C: 'minecraft:copper_ingot', A: 'create:andesite_alloy', R: 'minecraft:redstone' }],
       engine_gearbox: [['ICI', 'CGC', 'ICI'], { I: 'minecraft:iron_ingot', C: 'create:cogwheel', G: 'create:large_cogwheel' }],
-      engine_burner: [['III', 'IFI', 'BBB'], { I: 'minecraft:iron_ingot', F: 'minecraft:furnace', B: 'minecraft:bricks' }]
+      engine_burner: [['III', 'IFI', 'BBB'], { I: 'minecraft:iron_ingot', F: 'minecraft:furnace', B: 'minecraft:bricks' }],
+      // Storage: early too (Ascendite, chests and a core)
+      storage_terminal: [['IGI', 'CEC', 'IRI'], { I: 'kubejs:ascendite_ingot', G: 'minecraft:glass_pane', C: 'minecraft:chest', E: 'kubejs:ascension_core', R: 'minecraft:comparator' }],
+      storage_linker: [['  A', ' N ', 'I  '], { A: 'minecraft:amethyst_shard', N: 'kubejs:ascendite_nugget', I: 'kubejs:ascendite_ingot' }]
     }
   },
 
@@ -1578,13 +1614,17 @@ global.FA_zone = danger => {
 }
 
 // Multipliers for a mob at a danger level (elite = the rare named kind)
+// The loot curve: (blocks out / 1000) ^ exponent, the same curve the mobs get tougher on (0 in the safe lands)
+global.FA_lootCurve = danger => danger > 0 ? Math.pow(global.FA_dangerBlocks(danger) / 1000, global.FA.danger.exponent) : 0
+
 global.FA_dangerMult = (danger, elite) => {
   let d = global.FA.danger
+  let curve = global.FA_lootCurve(danger)
   return {
     health: (danger > 0 ? 1 + d.healthScale * Math.pow(global.FA_dangerBlocks(danger) / 1000, d.exponent) : 1) * (elite ? d.eliteHealth : 1),
     damage: (danger > 0 ? 1 + d.damageScale * Math.pow(global.FA_dangerBlocks(danger) / 1000, d.exponent) : 1) * (elite ? d.eliteDamage : 1),
-    loot: (1 + d.lootPerLevel * danger) * (elite ? d.eliteLoot : 1),
-    xp: (1 + d.xpPerLevel * danger) * (elite ? d.eliteLoot : 1)
+    loot: (1 + d.lootScale * curve) * (elite ? d.eliteLoot : 1),
+    xp: (1 + d.xpScale * curve) * (elite ? d.eliteLoot : 1)
   }
 }
 
@@ -1688,8 +1728,9 @@ global.FA_phoenixCooldown = (e, level) => Math.max(e.minCooldown, e.cooldown / (
 global.FA_fragmentChance = (danger, elite) => {
   let f = global.FA.fragments
   if (danger <= 0) return 0
-  return elite ? Math.min(f.eliteChanceCap, f.eliteChance + f.eliteChancePerLevel * danger)
-    : Math.min(f.normalChanceCap, f.normalChancePerLevel * danger)
+  let curve = global.FA_lootCurve(danger)
+  return elite ? Math.min(f.eliteChanceCap, f.eliteChance + f.eliteChanceScale * curve)
+    : Math.min(f.normalChanceCap, f.normalChanceScale * curve)
 }
 
 // ---- Chaos Tome generator ----
@@ -1831,11 +1872,73 @@ global.FA_condensedValue = tier => global.FA.condensed.mbPerBlock / global.FA.al
 // ---- Loot helpers (shared by the game and the website) ----
 
 // Chance a danger-zone kill drops a loot roll
-global.FA_lootChance = danger => danger <= 0 ? 0 : Math.min(global.FA.loot.chanceCap, global.FA.loot.chance + global.FA.loot.chancePerLevel * danger)
+global.FA_lootChance = danger => danger <= 0 ? 0 : Math.min(global.FA.loot.chanceCap, global.FA.loot.chance + global.FA.loot.chanceScale * global.FA_lootCurve(danger))
+
+// ---- Meteor Shower pool: every item the pack makes, sorted into the six loot tiers (shared by the game and the tests) ----
+// Returns 6 lists (Common ... Mythic) of item ids, or { relic: quality } for a Relic.
+global.FA_meteorPool = () => {
+  let P = global.FA.events.meteorShower.pool, FA = global.FA, E = FA.enchants
+  let mod = typeof Platform != 'undefined' && Platform.isLoaded('factoryascension')
+  let tiers = [[], [], [], [], [], []]
+  let put = (tier, ids) => { if (tier >= 0 && tier < 6) ids.forEach(id => tiers[tier].push(id)) }
+  let k = id => 'kubejs:' + id
+  let gear = t => ['ingot', 'sword', 'pickaxe', 'axe', 'shovel', 'hoe', 'helmet', 'chestplate', 'leggings', 'boots'].map(g => k(t + '_' + g))
+  let tomes = test => Object.keys(E).filter(id => test(E[id])).map(id => k('tome_' + id))
+  put(P.basics, ['ascension_core', 'ascension_shard', 'raw_ascendite', 'crushed_raw_ascendite', 'ascendite_ingot', 'ascendite_nugget', 'ascendite_block',
+    'ascendite_ore', 'deepslate_ascendite_ore', 'common_mineral_cluster', 'gem_mineral_cluster', 'exotic_mineral_cluster', 'blank_ascension_tome',
+    'polishing_cloth', 'rock_hammer', 'ascendite_rock_hammer', 'liquid_essence_bucket'].map(k))
+  put(P.food, [].concat.apply([], FA.mobFood.foods.map(fd => [k(fd.raw), k(fd.cooked)])))
+  put(P.ascenditeGear, gear('ascendite').filter(id => id != k('ascendite_ingot')))
+  put(P.attachments, FA.attachments.list.map(a => k('attachment_' + a.id)))
+  put(P.packs, [k('enchantment_pack'), k('gear_cache')])
+  put(P.denseCore, [k('dense_ascension_core')])
+  put(P.baseTomes, tomes(e => !e.mythic && !e.ultimate && e.type != 'fusion'))
+  put(P.voidsteel, gear('voidsteel'))
+  put(P.fusionTomes, tomes(e => e.type == 'fusion' && !e.triad))
+  put(P.chaos, [k('chaos_tome'), k('mythic_fragment')])
+  put(P.machines, [k('ascension_altar'), k('essence_condenser')])
+  put(P.celestium, gear('celestium'))
+  put(P.triadTomes, tomes(e => e.triad))
+  put(P.singularity, [k('ascension_singularity'), k('booster_box')])
+  put(P.ascendium, gear('ascendium'))
+  put(P.mythicTomes, tomes(e => e.mythic))
+  put(P.souls, [k('ascended_soul')])
+  put(P.ultimateTomes, tomes(e => e.ultimate))
+  Object.keys(FA.gems.types).forEach(type => P.gems.forEach((t, i) => put(t, [global.FA_gemId(type, i + 1)])))
+  FA.roomCharges.styles.forEach(st => FA.roomCharges.sizes.forEach((sz, i) => put(P.roomTnt[i], [k('room_tnt_' + st.id + '_' + sz.id)])))
+  FA.foils.types.forEach((f, i) => put(P.foils[Math.min(i, P.foils.length - 1)], [k('foil_sheet_' + f.id)]))
+  for (let t = 0; t <= global.FA_condensedTiers(); t++) put(Math.min(5, 1 + Math.floor(t / P.condensedPerTier)), [global.FA_condensedId(t)])
+  Object.keys(P.relics).forEach(q => put(P.relics[q], [{ relic: q }]))
+  if (mod) {
+    put(P.engine, ['engine_core', 'engine_coil', 'engine_gearbox', 'engine_burner', 'storage_linker'].concat(Object.keys(FA.machines.glass)).map(b => 'factoryascension:' + b))
+    put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
+    put(P.bigMachines, ['ascension_vault', 'essence_forge'].map(b => 'factoryascension:' + b))
+  }
+  global.FA.events.meteorShower.extra.forEach(x => put(x[1], [x[0]]))
+  return tiers
+}
+
+// One meteor: a tier with the loot odds at this danger, then any item of it. { tier, id, count } or { tier, relic }.
+global.FA_meteorRoll = (r, danger, pool) => {
+  let M = global.FA.events.meteorShower
+  pool = pool || global.FA_meteorPool()
+  let odds = global.FA_lootOdds(danger)
+  let x = r(), tier = 0
+  for (let i = 0; i < odds.length; i++) { x -= odds[i]; if (x < 0) { tier = i; break } }
+  while (tier > 0 && pool[tier].length == 0) tier--
+  let pick = pool[tier][Math.floor(r() * pool[tier].length)]
+  if (typeof pick != 'string') return { tier: tier, relic: pick.relic }
+  let c = M.counts[tier]
+  return { tier: tier, id: pick, count: Math.max(1, Math.round((c[0] + Math.floor(r() * (c[1] - c[0] + 1))) * (c[1] > 1 ? global.FA_lootBulk(danger) : 1))) }
+}
+
+// Stack sizes of bulk drops grow on the loot curve
+global.FA_lootBulk = danger => 1 + global.FA.loot.bulkScale * global.FA_lootCurve(danger)
 
 // Odds of each tier at a danger level, as fractions that add up to 1
 global.FA_lootOdds = danger => {
-  let w = global.FA.loot.tiers.map(t => t.weight * (1 + t.growth * Math.max(0, danger)))
+  let curve = global.FA_lootCurve(danger)
+  let w = global.FA.loot.tiers.map(t => t.weight * Math.pow(1 + curve, t.growth * global.FA.loot.tierCurve))
   let total = w.reduce((a, b) => a + b, 0)
   return w.map(x => x / total)
 }
@@ -1873,7 +1976,7 @@ global.FA_makeRelic = (r, quality, danger) => {
   let suits = id => FA_RELIC_TYPES[kind.slot].indexOf(E[id].type) >= 0 && !E[id].ultimate
   let normal = Object.keys(E).filter(id => suits(id) && !E[id].mythic)
   let mythics = Object.keys(E).filter(id => suits(id) && E[id].mythic)
-  let base = (8 + 2 * Math.max(0, danger)) * Q.levelMult
+  let base = (8 + global.FA.loot.relicLevelScale * global.FA_lootCurve(danger)) * Q.levelMult
   let level = id => E[id].maxLevel ? 1 + Math.floor(r() * E[id].maxLevel) : Math.max(1, Math.min(global.FA.jackpot.levelCap, Math.round(base * (0.5 + r()) * global.FA_luckyMult(r))))
   let enchants = {}
   let count = Q.enchants[0] + Math.floor(r() * (Q.enchants[1] - Q.enchants[0] + 1))
@@ -1908,7 +2011,7 @@ global.FA_rollLoot = (r, danger, bump) => {
   let y = r() * total
   let d = drops[drops.length - 1]
   for (let i = 0; i < drops.length; i++) { y -= drops[i][drops[i].length - 1]; if (y < 0) { d = drops[i]; break } }
-  let scale = 1 + Math.max(0, danger) / 25   // bulk amounts grow with danger
+  let scale = global.FA_lootBulk(danger)   // bulk amounts grow on the loot curve
   let E = global.FA.enchants
   let tomeOf = group => {
     let ids = Object.keys(E).filter(id => group == 'ultimate' ? E[id].ultimate : group == 'mythic' ? E[id].mythic : group == 'fusion' ? E[id].type == 'fusion'
@@ -1925,7 +2028,7 @@ global.FA_rollLoot = (r, danger, bump) => {
     }
     case 'tome': drop = { kind: 'item', id: tomeOf(d[1]), count: 1 }; break
     case 'condensed': {
-      let top = Math.min(global.FA_condensedTiers(), d[2] + Math.floor(Math.max(0, danger) / 20))
+      let top = Math.min(global.FA_condensedTiers(), d[2] + Math.floor(global.FA_lootCurve(danger) * L.condensedScale))
       drop = { kind: 'item', id: global.FA_condensedId(Math.min(top, d[1] + Math.floor(r() * (top - d[1] + 1)))), count: 1 + Math.floor(r() * 3) }
       break
     }
@@ -2188,8 +2291,8 @@ global.FA_validate = cfg => {
   })
 
   let d = cfg.danger
-  let dangerOk = ['safeRadius', 'netherScale', 'netherBonus', 'endBonus', 'healthScale', 'damageScale', 'exponent', 'lootPerLevel',
-    'xpPerLevel', 'eliteChancePerLevel', 'eliteChanceCap', 'maxLevel'].every(f => need(d[f], 'danger.' + f, 0)) &&
+  let dangerOk = ['safeRadius', 'netherScale', 'netherBonus', 'endBonus', 'healthScale', 'damageScale', 'exponent', 'lootScale',
+    'xpScale', 'eliteChancePerLevel', 'eliteChanceCap', 'maxLevel'].every(f => need(d[f], 'danger.' + f, 0)) &&
     need(d.blocksPerLevel, 'danger.blocksPerLevel', 1) && need(d.eliteHealth, 'danger.eliteHealth', 1) &&
     need(d.eliteDamage, 'danger.eliteDamage', 0) && need(d.eliteLoot, 'danger.eliteLoot', 0) &&
     d.zones && d.zones.length > 0 && d.zones[0].from == 0 && (d.centerOn == 'home' || d.centerOn == 'spawn')
@@ -2255,7 +2358,8 @@ global.FA_validate = cfg => {
   let wev = cfg.events
   if (wev && wev.enabled && !(okNum(wev.checkEveryMinutes, 1) && okNum(wev.chancePerCheck, 0) && wev.chancePerCheck <= 1 &&
     okNum(wev.bloodMoon.minutes, 1) && okNum(wev.bloodMoon.dangerBonus, 0) && okNum(wev.bloodMoon.fragmentMult, 1) &&
-    okNum(wev.meteorShower.minutes, 1) && okNum(wev.meteorShower.everySeconds, 1) && okNum(wev.meteorShower.radius, 1) && wev.meteorShower.drops.length > 0 &&
+    okNum(wev.meteorShower.minutes, 1) && okNum(wev.meteorShower.everySeconds, 1) && okNum(wev.meteorShower.radius, 1) && okNum(wev.meteorShower.perWave, 1) &&
+    wev.meteorShower.pool && wev.meteorShower.counts && wev.meteorShower.counts.length == 6 &&
     okNum(wev.goldenHour.minutes, 1) && okNum(wev.goldenHour.lootMult, 1))) {
     problems.push('world event settings are broken, events were switched off')
     wev.enabled = false
@@ -2274,7 +2378,8 @@ global.FA_validate = cfg => {
   }
   let lt = cfg.loot
   let kinds = { item: 5, gem: 3, tome: 3, condensed: 4, relic: 3 }
-  if (lt && lt.enabled && !(okNum(lt.chance, 0) && okNum(lt.chancePerLevel, 0) && okNum(lt.chanceCap, 0) && lt.chanceCap <= 1 &&
+  if (lt && lt.enabled && !(okNum(lt.chance, 0) && okNum(lt.chanceScale, 0) && okNum(lt.chanceCap, 0) && lt.chanceCap <= 1 &&
+    okNum(lt.bulkScale, 0) && okNum(lt.tierCurve, 0) && okNum(lt.relicLevelScale, 0) && okNum(lt.condensedScale, 0) &&
     okNum(lt.eliteRolls, 0) && okNum(lt.bossRolls, 0) && lt.tiers && lt.tiers.length > 0 &&
     lt.tiers.every(t => typeof t.name == 'string' && okNum(t.weight, 0) && okNum(t.growth, 0) && t.drops && t.drops.length > 0 &&
       t.drops.every(d => kinds[d[0]] == d.length && okNum(d[d.length - 1], 0.0001) &&
@@ -2285,9 +2390,9 @@ global.FA_validate = cfg => {
     lt.enabled = false
   }
   let f = cfg.fragments
-  if (!['eliteChance', 'eliteChancePerLevel', 'eliteChanceCap', 'normalChancePerLevel', 'normalChanceCap'].every(k => okNum(f[k], 0) && f[k] <= 1)) {
+  if (!['eliteChance', 'eliteChanceScale', 'eliteChanceCap', 'normalChanceScale', 'normalChanceCap'].every(k => okNum(f[k], 0) && f[k] <= 1)) {
     problems.push('fragment chances must be between 0 and 1, reset to defaults')
-    cfg.fragments = { eliteChance: 0.15, eliteChancePerLevel: 0.005, eliteChanceCap: 0.75, normalChancePerLevel: 0.002, normalChanceCap: 0.05 }
+    cfg.fragments = { eliteChance: 0.15, eliteChanceScale: 0.005, eliteChanceCap: 0.75, normalChanceScale: 0.002, normalChanceCap: 0.05 }
   }
   let mf = cfg.mobFood
   let effectOk = e => e && /^[a-z0-9_]+:[a-z0-9_]+$/.test(e[0]) && okNum(e[1], 0) && okNum(e[2], 0)

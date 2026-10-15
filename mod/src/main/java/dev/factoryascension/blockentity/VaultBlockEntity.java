@@ -34,7 +34,7 @@ import java.util.List;
  * Tiers are set by the pack's KubeJS rules (faSetTier), so upgrade costs live in the KubeJS config.
  * Hoppers and pipes see only the unlocked slots.
  */
-public class VaultBlockEntity extends SyncedBlockEntity implements MenuProvider, MachineBlock.DropsContents {
+public class VaultBlockEntity extends SyncedBlockEntity implements MenuProvider, MachineBlock.DropsContents, dev.factoryascension.storage.BigStorage {
     public static final int SLOTS_PER_TIER = 108;
     public static final int MAX_TIER = 3;
     public static final int MAX_SLOTS = SLOTS_PER_TIER * (MAX_TIER + 1);
@@ -54,6 +54,17 @@ public class VaultBlockEntity extends SyncedBlockEntity implements MenuProvider,
 
     public ItemStackHandler items() {
         return items;
+    }
+
+    /** The unlocked slots, for the vault screen. */
+    @Override
+    public net.minecraftforge.items.IItemHandlerModifiable storage() {
+        return new RangedWrapper(items, 0, capacity());
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return net.minecraft.world.Container.stillValidBlockEntity(this, player);
     }
 
     public int capacity() {
@@ -100,6 +111,7 @@ public class VaultBlockEntity extends SyncedBlockEntity implements MenuProvider,
         setChanged();
     }
 
+    @Override
     public int usedSlots() {
         int used = 0;
         for (int i = 0; i < capacity(); i++) if (!items.getStackInSlot(i).isEmpty()) used++;

@@ -1,6 +1,6 @@
 // priority: 10
 // Factory Ascension - the bridge to the Factory Ascension mod (the "Full" download's jar). Without the mod this does nothing.
-//   - pushes the config's machine numbers (machines.smelter, machines.engine, machines.salvager) into the mod
+//   - pushes the config's machine numbers (machines.smelter, machines.engine, machines.salvager, machines.storage) into the mod
 //   - passes the mod's machine events (Salvager timer, Fusion Table slots and button) to server_scripts/46_fa_machines.js
 
 if (Platform.isLoaded('factoryascension')) {
@@ -10,6 +10,7 @@ if (Platform.isLoaded('factoryascension')) {
   $FAModConfig.setSmelter(M.smelter.cookTicksAt64Rpm, M.smelter.minRpm)
   $FAModConfig.setEngine(M.engine.suPerCoil, M.engine.coilsPerBurner, M.engine.maxModules, M.engine.fuelMultiplier)
   M.engine.rpm.forEach((r, i) => $FAModConfig.setEngineRpm(i, r))
+  $FAModConfig.setStorage(M.storage.range, M.storage.maxLinks)
   $FAModConfig.setSalvager(Math.max(1, Math.round(M.salvager.seconds * 20)))
 
   ForgeEvents.onEvent('dev.factoryascension.event.MachineEvent', event => {

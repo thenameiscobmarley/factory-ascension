@@ -11,6 +11,7 @@ import dev.factoryascension.block.FusionBlock;
 import dev.factoryascension.block.OpenerBlock;
 import dev.factoryascension.block.SalvagerBlock;
 import dev.factoryascension.block.SmelterBlock;
+import dev.factoryascension.block.TerminalBlock;
 import dev.factoryascension.block.VaultBlock;
 import dev.factoryascension.blockentity.BinderBlockEntity;
 import dev.factoryascension.blockentity.BurnerBlockEntity;
@@ -20,6 +21,8 @@ import dev.factoryascension.blockentity.FusionBlockEntity;
 import dev.factoryascension.blockentity.OpenerBlockEntity;
 import dev.factoryascension.blockentity.SalvagerBlockEntity;
 import dev.factoryascension.blockentity.SmelterBlockEntity;
+import dev.factoryascension.blockentity.TerminalBlockEntity;
+import dev.factoryascension.item.StorageLinkerItem;
 import dev.factoryascension.blockentity.VaultBlockEntity;
 import dev.factoryascension.menu.BinderMenu;
 import dev.factoryascension.menu.EngineMenu;
@@ -28,6 +31,7 @@ import dev.factoryascension.menu.FusionMenu;
 import dev.factoryascension.menu.OpenerMenu;
 import dev.factoryascension.menu.SalvagerMenu;
 import dev.factoryascension.menu.SmelterMenu;
+import dev.factoryascension.menu.TerminalMenu;
 import dev.factoryascension.menu.VaultMenu;
 import dev.factoryascension.mob.FAMobs;
 import dev.factoryascension.network.FANetwork;
@@ -90,6 +94,9 @@ public class FactoryAscension {
     public static final RegistryObject<Block> SALVAGER = block("salvager", () -> new SalvagerBlock(machine()));
     public static final RegistryObject<Block> FUSION = block("tome_fusion_table", () -> new FusionBlock(machine().noOcclusion()));
     public static final RegistryObject<Block> SMELTER = block("super_smelter", () -> new SmelterBlock(machine().lightLevel(s -> s.getValue(SmelterBlock.LIT) ? 13 : 3)));
+    // Universal Storage Terminal and its Storage Linker
+    public static final RegistryObject<Block> TERMINAL = block("storage_terminal", () -> new TerminalBlock(machine()));
+    public static final RegistryObject<Item> LINKER = ITEMS.register("storage_linker", () -> new StorageLinkerItem(new Item.Properties().stacksTo(1)));
     // Modular Engine: early-game parts (iron-tier, mine with any pickaxe)
     public static final RegistryObject<Block> ENGINE_CORE = block("engine_core", () -> new EngineBlock(engine()));
     public static final RegistryObject<Block> COIL = block("engine_coil", () -> new EngineModuleBlock(engine()));
@@ -113,6 +120,8 @@ public class FactoryAscension {
         () -> BlockEntityType.Builder.of(SmelterBlockEntity::create, SMELTER.get()).build(null));
     public static final RegistryObject<BlockEntityType<EngineBlockEntity>> ENGINE_BE = BLOCK_ENTITIES.register("engine_core",
         () -> BlockEntityType.Builder.of(EngineBlockEntity::create, ENGINE_CORE.get()).build(null));
+    public static final RegistryObject<BlockEntityType<TerminalBlockEntity>> TERMINAL_BE = BLOCK_ENTITIES.register("storage_terminal",
+        () -> BlockEntityType.Builder.of(TerminalBlockEntity::new, TERMINAL.get()).build(null));
     public static final RegistryObject<BlockEntityType<BurnerBlockEntity>> BURNER_BE = BLOCK_ENTITIES.register("engine_burner",
         () -> BlockEntityType.Builder.of(BurnerBlockEntity::new, BURNER.get()).build(null));
 
@@ -131,6 +140,8 @@ public class FactoryAscension {
         () -> IForgeMenuType.create((id, inv, buf) -> new FusionMenu(id, inv, buf.readBlockPos())));
     public static final RegistryObject<MenuType<EngineMenu>> ENGINE_MENU = MENUS.register("engine",
         () -> IForgeMenuType.create((id, inv, buf) -> new EngineMenu(id, inv, buf.readBlockPos(), buf.readVarInt())));
+    public static final RegistryObject<MenuType<TerminalMenu>> TERMINAL_MENU = MENUS.register("storage_terminal",
+        () -> IForgeMenuType.create((id, inv, buf) -> new TerminalMenu(id, inv, buf.readBlockPos())));
     public static final RegistryObject<MenuType<SmelterMenu>> SMELTER_MENU = MENUS.register("super_smelter",
         () -> IForgeMenuType.create((id, inv, buf) -> new SmelterMenu(id, inv, buf.readBlockPos())));
 
@@ -145,6 +156,8 @@ public class FactoryAscension {
             out.accept(SALVAGER.get());
             out.accept(FUSION.get());
             out.accept(SMELTER.get());
+            out.accept(TERMINAL.get());
+            out.accept(LINKER.get());
             out.accept(ENGINE_CORE.get());
             out.accept(COIL.get());
             out.accept(GEARBOX.get());

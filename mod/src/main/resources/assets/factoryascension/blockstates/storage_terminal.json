@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "factoryascension:block/storage_terminal"
+    },
+    "facing=east": {
+      "model": "factoryascension:block/storage_terminal",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "factoryascension:block/storage_terminal",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "factoryascension:block/storage_terminal",
+      "y": 270
+    }
+  }
+}

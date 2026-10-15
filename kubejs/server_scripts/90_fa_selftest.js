@@ -545,8 +545,27 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let lone = new $EngineMenu(0, player.getInventory(), place(X + 16, Y, Z + 18, 'factoryascension:engine_gearbox'), $EngineMenu.GEARBOX)
     check('engine screens: burner sees ' + em.rpm() + ' RPM, ' + em.su() + ' SU, lit ' + em.burnerLit() + '; a lone gearbox says not connected',
       em.connected() && em.rpm() == engine.rpm() && Math.abs(em.su() - engine.su()) <= 1 && em.burnerLit() && em.coils() == 1 && !lone.connected())
+    // Universal Storage Terminal: link a chest and a barrel, read and write them as one big chest, sort across both
+    let termPos = place(X + 20, Y, Z + 16, 'factoryascension:storage_terminal')
+    let cpos = place(X + 22, Y, Z + 16, 'minecraft:chest')
+    let rpos = place(X + 24, Y, Z + 16, 'minecraft:barrel')
+    level.getBlockEntity(cpos).setItem(5, Item.of('minecraft:iron_ingot', 20))
+    level.getBlockEntity(rpos).setItem(0, Item.of('minecraft:iron_ingot', 30))
+    let term = level.getBlockEntity(termPos)
+    let l1 = String(term.toggle(cpos)), l2 = String(term.toggle(rpos)), l3 = String(term.toggle(place(X + 20, Y, Z + 18, 'minecraft:stone')))
+    let inv = term.storage()
+    let n0 = inv.getSlots()
+    inv.setStackInSlot(30, Item.of('minecraft:gold_ingot', 3))      // slot 30 = the barrel's slot 3
+    let viaTerminal = String(level.getBlockEntity(rpos).getItem(3).getId())
+    term.sortContents()
+    let first = term.storage().getStackInSlot(0), second = term.storage().getStackInSlot(1)
+    let tm = term.createMenu(0, player.getInventory(), player)
+    check('Storage Terminal: a chest + a barrel = ' + n0 + ' slots, writes land in the right chest, Sort merges across both (' + first.getCount() + ' ' + first.getId() + ')',
+      l1 == 'LINKED' && l2 == 'LINKED' && l3 == 'NOT_STORAGE' && n0 == 54 && viaTerminal == 'minecraft:gold_ingot' &&
+      String(first.getId()) == 'minecraft:gold_ingot' && String(second.getId()) == 'minecraft:iron_ingot' && second.getCount() == 50 && tm.capacity() == 54 && tm.links() == 2,
+      [l1, l2, l3, n0, viaTerminal, first.getId(), second.getId(), second.getCount(), tm.capacity(), tm.links()].join(' '))
     let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
-      'engine_gearbox', 'engine_burner'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
+      'engine_gearbox', 'engine_burner', 'storage_terminal', 'storage_linker'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
       .concat(Object.keys(global.FA.machines.glass).map(g => 'glass_' + g).filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent()))
     check('the mod blocks and its 4 glasses have recipes', recipes.length == 0, recipes.join(', '))
   })
@@ -598,6 +617,17 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
   })
 
   // ---- Gear match: Sharpness won't go on a helmet; a Chaos Tome on a helmet only rolls armor effects (real clicks) ----
+  // Meteor Shower: every item in its pool is real, and a roll makes a real stack
+  attempt('meteor shower', () => {
+    let pool = global.FA_meteorPool()
+    let bad = []
+    pool.forEach(t => t.forEach(id => { if (typeof id == 'string' && Item.of(id).isEmpty()) bad.push(id) }))
+    let rolls = 0
+    for (let i = 0; i < 200; i++) { let r = global.FA_meteorRoll(Math.random, 17, pool); if (r.relic || !Item.of(r.id).isEmpty()) rolls++ }
+    check('Meteor Shower: all ' + pool.reduce((a, t) => a + t.length, 0) + ' things it can drop exist, and 200 rolls far out all make real items',
+      bad.length == 0 && rolls == 200, bad.slice(0, 6).join(', '))
+  })
+
   attempt('gear match', () => {
     player.getInventory().clearContent()
     let helmet = Item.of('minecraft:iron_helmet')

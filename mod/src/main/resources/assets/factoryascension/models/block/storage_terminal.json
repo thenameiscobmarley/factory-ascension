@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "factoryascension:block/storage_terminal_front",
+    "side": "factoryascension:block/storage_terminal_side",
+    "top": "factoryascension:block/storage_terminal_top"
+  }
+}

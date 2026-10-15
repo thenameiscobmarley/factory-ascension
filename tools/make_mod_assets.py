@@ -18,7 +18,7 @@ ASSETS = os.path.join(RES, "assets", "factoryascension")
 DATA = os.path.join(RES, "data", "factoryascension")
 S = 32
 BLOCKS = ["ascension_vault", "card_binder", "essence_forge", "pack_opener", "salvager", "tome_fusion_table", "super_smelter",
-          "engine_core", "engine_coil", "engine_gearbox", "engine_burner"]
+          "engine_core", "engine_coil", "engine_gearbox", "engine_burner", "storage_terminal"]
 gear_art.MATERIALS.setdefault("copper", ((255, 196, 150), (200, 110, 62), (96, 44, 24)))
 
 
@@ -369,6 +369,59 @@ def burner_top():
     return px
 
 
+def terminal_front():
+    """A screen showing a grid of stored items, with a teal glow."""
+    px = side()
+    plate(px, 4, 4, 24, 20, "steel_dk")
+    frame(px, "gold", 4)
+    for y in range(6, 22):
+        for x in range(6, 26):
+            px[y][x] = _shade("teal", 0.85 + 0.05 * ((x + y) % 2)) + (255,)
+    colors = ("gold", "gem", "teal", "iron", "copper", "gold", "gem", "iron")
+    for i in range(8):                                # stored items in the grid
+        cx, cy = 8 + (i % 4) * 5, 8 + (i // 4) * 6
+        for y in range(cy, cy + 3):
+            for x in range(cx, cx + 3):
+                px[y][x] = _shade(colors[i], 0.25 + 0.15 * (y - cy)) + (255,)
+    for x in range(6, 26):                            # search bar
+        px[20][x] = _shade("teal", 0.3) + (255,)
+    plate(px, 9, 25, 14, 3, "gold")                   # keypad strip
+    for x in (11, 15, 19):
+        px[26][x] = _shade("teal", 0.2) + (255,)
+    return px
+
+
+def terminal_top():
+    px = top()
+    for x in range(6, 26):                            # link cables out to the chests
+        px[16][x] = _shade("teal", 0.3) + (255,)
+        px[x][16] = _shade("teal", 0.3) + (255,)
+    gem(px, 16, 16, 3)
+    return px
+
+
+def linker_item():
+    """Storage Linker: a gold-banded wand with a teal crystal tip."""
+    px = [[(0, 0, 0, 0)] * S for _ in range(S)]
+    for k in range(4, 22):                            # handle, bottom-left to top-right
+        for w in range(-1, 2):
+            x, y = k + w, 31 - k
+            if 0 <= x < S and 0 <= y < S:
+                px[y][x] = _shade("steel_dk" if w else "steel", 0.3 + 0.02 * k) + (255,)
+    for k in (8, 13, 18):                             # gold bands
+        for w in range(-2, 3):
+            x, y = k + w, 31 - k
+            if 0 <= x < S and 0 <= y < S:
+                px[y][x] = _shade("gold", 0.35) + (255,)
+    for y in range(2, 13):                            # crystal tip
+        for x in range(19, 30):
+            if abs(x - 24.5) + abs(y - 7.5) <= 5:
+                px[y][x] = _shade("teal", 0.15 + 0.08 * (y - 2)) + (255,)
+    for x, y in ((22, 5), (23, 5), (22, 6)):
+        px[y][x] = (255, 255, 255, 255)
+    return px
+
+
 FACES = {
     "ascension_vault": {"front": vault_front, "side": side, "top": top},
     "card_binder": {"front": binder_side, "side": binder_side, "top": binder_top},
@@ -381,11 +434,12 @@ FACES = {
     "engine_coil": {"side": coil_side, "top": engine_top},
     "engine_gearbox": {"side": gearbox_side, "top": engine_top},
     "engine_burner": {"side": burner_side, "side_lit": lambda: burner_side(True), "top": burner_top},
+    "storage_terminal": {"front": terminal_front, "side": side, "top": terminal_top},
 }
 NAMES = {"ascension_vault": "Ascension Vault", "card_binder": "Card Binder", "essence_forge": "Essence Forge", "pack_opener": "Pack Opener",
          "salvager": "Salvager", "tome_fusion_table": "Tome Fusion Table", "super_smelter": "Super Smelter",
          "engine_core": "Modular Engine Core", "engine_coil": "Engine Coil Module", "engine_gearbox": "Engine Gearbox Module",
-         "engine_burner": "Engine Burner Module"}
+         "engine_burner": "Engine Burner Module", "storage_terminal": "Universal Storage Terminal"}
 FACINGS = (("north", 0), ("east", 90), ("south", 180), ("west", 270))
 
 
@@ -493,11 +547,27 @@ def main():
                {"replace": False, "values": ["factoryascension:" + b for b in BLOCKS]})
     write_json(os.path.join(RES, "data", "minecraft", "tags", "blocks", "needs_iron_tool.json"),
                {"replace": False, "values": ["factoryascension:" + b for b in BLOCKS if not b.startswith("engine_")]})   # engine parts: any pickaxe
-    lang = {"itemGroup.factoryascension": "Factory Ascension"}
+    # Storage Linker (a plain item)
+    os.makedirs(os.path.join(ASSETS, "textures", "item"), exist_ok=True)
+    make_textures.png(os.path.join(ASSETS, "textures", "item", "storage_linker.png"), linker_item())
+    write_json(os.path.join(ASSETS, "models", "item", "storage_linker.json"),
+               {"parent": "minecraft:item/handheld", "textures": {"layer0": "factoryascension:item/storage_linker"}})
+    lang = {"itemGroup.factoryascension": "Factory Ascension", "item.factoryascension.storage_linker": "Storage Linker"}
     for b in BLOCKS:
         lang["block.factoryascension." + b] = NAMES[b]
     lang.update({
         "gui.factoryascension.search": "Search...",
+        "gui.factoryascension.terminal_links": "%s chests",
+        "gui.factoryascension.linker_bound": "Linker set to this terminal (%s chests linked). Now right-click chests to link them.",
+        "gui.factoryascension.linker_unbound": "Right-click a Universal Storage Terminal first to set the linker",
+        "gui.factoryascension.linker_lost": "The linker's terminal isn't here (broken, unloaded or another dimension)",
+        "gui.factoryascension.linker_linked": "Linked! %s / %s chests",
+        "gui.factoryascension.linker_unlinked": "Unlinked. %s / %s chests",
+        "gui.factoryascension.linker_too_far": "Too far from the terminal (%3$s blocks max)",
+        "gui.factoryascension.linker_full": "This terminal is full (%2$s chests max)",
+        "gui.factoryascension.linker_cleared": "Linker cleared",
+        "gui.factoryascension.linker_tip_bound": "Set to the terminal at %s, %s, %s",
+        "gui.factoryascension.linker_tip_unbound": "Not set: right-click a Universal Storage Terminal",
         "gui.factoryascension.sort": "Sort",
         "gui.factoryascension.collection": "Collection: %s / %s",
         "gui.factoryascension.tank": "Liquid Essence: %s / %s mB",

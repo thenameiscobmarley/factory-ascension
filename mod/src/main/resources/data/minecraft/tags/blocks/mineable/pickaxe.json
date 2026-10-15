@@ -11,6 +11,7 @@
     "factoryascension:engine_core",
     "factoryascension:engine_coil",
     "factoryascension:engine_gearbox",
-    "factoryascension:engine_burner"
+    "factoryascension:engine_burner",
+    "factoryascension:storage_terminal"
   ]
 }

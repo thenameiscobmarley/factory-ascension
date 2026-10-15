@@ -26,6 +26,7 @@ public final class ClientSetup {
             MenuScreens.register(FactoryAscension.FUSION_MENU.get(), FusionScreen::new);
             MenuScreens.register(FactoryAscension.SMELTER_MENU.get(), SmelterScreen::new);
             MenuScreens.register(FactoryAscension.ENGINE_MENU.get(), EngineScreen::new);
+            MenuScreens.<dev.factoryascension.menu.VaultMenu, VaultScreen>register(FactoryAscension.TERMINAL_MENU.get(), VaultScreen::new);
         });
     }
 

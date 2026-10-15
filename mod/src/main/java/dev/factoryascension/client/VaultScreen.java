@@ -10,7 +10,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import org.lwjgl.glfw.GLFW;
 
-/** Ascension Vault: search box, Sort button, 6 rows of the vault with a scroll bar, and the player's inventory. */
+/**
+ * Ascension Vault and Universal Storage Terminal: search box, Sort button, 6 rows of storage with a scroll bar, and the
+ * player's inventory. The terminal also shows how many chests are linked.
+ */
 public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     private static final int BAR_X = 174, BAR_Y = 32, BAR_H = VaultMenu.ROWS * 18 - 2;
     private EditBox search;
@@ -71,7 +74,8 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         g.drawString(font, title, 8, 5, FAGui.GOLD, false);
-        String space = menu.used() + " / " + menu.capacity();
+        String space = (menu.links() >= 0 ? Component.translatable("gui.factoryascension.terminal_links", menu.links()).getString() + "  " : "")
+            + menu.used() + " / " + menu.capacity();
         g.drawString(font, space, imageWidth - 8 - font.width(space), 5, FAGui.TEXT_DIM, false);
         g.drawString(font, playerInventoryTitle, 8, inventoryLabelY, FAGui.TEXT_DIM, false);
     }

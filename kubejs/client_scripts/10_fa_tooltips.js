@@ -382,8 +382,8 @@ ItemEvents.tooltip(event => {
   // Boss and danger-zone drops
   let F = FA.fragments
   details('kubejs:mythic_fragment', 'A shard of something that should not exist.', () => [
-    from('danger-zone kills. Elites: ' + pct(F.eliteChance) + ' + ' + pct(F.eliteChancePerLevel) + ' per danger level (max ' + pct(F.eliteChanceCap) + ')'),
-    tip('  Other mobs: ' + (F.normalChancePerLevel * 100).toFixed(1) + '% per danger level (max ' + pct(F.normalChanceCap) + '). Bosses drop several.'),
+    from('danger-zone kills. Elites: ' + pct(global.FA_fragmentChance(1, true)) + ' at 1,000 blocks out, ' + pct(global.FA_fragmentChance(5, true)) + ' at 2,000 (max ' + pct(F.eliteChanceCap) + ')'),
+    tip('  Other mobs: ' + (global.FA_fragmentChance(5, false) * 100).toFixed(1) + '% at 2,000 blocks, climbing fast after (max ' + pct(F.normalChanceCap) + '). Bosses drop several.'),
     use('Mythic tomes (4 each) and Ultimate tomes (4 each)')])
   details('kubejs:ascended_soul', 'Still screaming, faintly.', () => [
     from('Ascended bosses only: rare giant mobs at danger ' + FA.bosses.minDanger + '+ (' + global.FA_num(global.FA_dangerBlocks(FA.bosses.minDanger)) + '+ blocks from ' + (FA.danger.centerOn == 'home' ? 'your home)' : 'spawn)')),
@@ -639,6 +639,18 @@ ItemEvents.tooltip(event => {
       use('burning any furnace fuel to power ' + EN.coilsPerBurner + ' Coils' + (EN.fuelMultiplier != 1 ? ' (fuel lasts x' + EN.fuelMultiplier + ')' : '')),
       tip('Right-click with fuel to fill it, or open its screen. Hoppers and chutes fill it. Spare Burners wait.'),
       up('one more Burner for every ' + EN.coilsPerBurner + ' more Coils')])
+
+    // Universal Storage Terminal and its linker
+    let ST = M.storage
+    block('storage_terminal', 'Every chest you own, one click away.', () => [
+      use('seeing every chest linked to it as one big chest: search, Sort, scroll, take and put'),
+      tip('Link chests with a Storage Linker: up to ' + ST.maxLinks + ' chests, barrels, vaults or Create vaults' + (ST.range > 0 ? ' within ' + ST.range + ' blocks' : '')),
+      tip('Hoppers and funnels can feed it: items go into the first linked chest with room. Double chests count once.'),
+      up('more room: link more chests (or link Ascension Vaults and upgrade those)')])
+    block('storage_linker', 'One end in your hand, the other in every chest.', () => [
+      Text.gray('Use: ').append(Text.white('right-click a Universal Storage Terminal to set it, then right-click chests to link or unlink them')),
+      tip('While you hold it, the terminal sparkles gold and its chests teal'),
+      tip('Sneak + right-click the air to clear it')])
 
     // Connected glass
     let glassLore = { factory_glass: 'Clean steel-framed panes for any factory.', ascendite_glass: 'Teal-tinted, with an Ascendite frame.',

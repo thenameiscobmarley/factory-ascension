@@ -12,7 +12,7 @@ so going AFK is always safe.
 
 | Download | What's in it |
 |---|---|
-| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar: the Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, connected glass, Shiny Reflections and 20 new mobs |
+| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar: the Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, Universal Storage Terminal, connected glass, Shiny Reflections and 34 new mobs |
 | **Half** | The KubeJS scripts only. Everything works except the mod's blocks |
 
 Each comes as a plain zip and as a **CurseForge** zip you import straight into the CurseForge app (it downloads the mods for you).
@@ -194,7 +194,11 @@ Once an item has 1,000 total levels, `/ascension rebirth` resets its enchants to
 
 About once every 20 minutes something happens to the whole server:
 - **Blood Moon** (nights only): everything spawns 10 danger levels higher, and Mythic Fragments drop twice as often.
-- **Meteor Shower**: glowing rare loot (diamonds, ancient debris, gem clusters, even Chaos Tomes) falls from the sky near everyone.
+- **Meteor Shower**: glowing loot falls from the sky near everyone, 2 meteors every 15 seconds. **Anything the pack makes can
+  fall**: every item, block, tome, gem, gear tier, food, foil, Room TNT, the mod's machines (Full download), even Relics.
+  Better things are rarer: each meteor picks a tier with the same odds as a loot drop where it lands (Common 60% ...
+  Mythic 0.1% at home, much better far out, see the table below), then any item of that tier. Legendary and Mythic
+  meteors announce themselves. The tiers of each kind of item are in `events.meteorShower.pool`.
 - **Golden Hour**: mob loot is doubled.
 
 `/ascension event` shows the current one. Ops can `/ascension event start <bloodMoon|meteorShower|goldenHour>` and `/ascension event stop`.
@@ -205,17 +209,18 @@ About once every 20 minutes something happens to the whole server:
 (danger 60 = packs of 4), up to +6, in clear space beside it. Extras never bring their own extras or become bosses, and none
 spawn while 60 hostiles are already within 48 blocks, so it stays playable.
 
-**Loot drops:** danger-zone kills can drop a loot roll (10% near the edge of the Safe Lands, up to 75% deep out). Elites roll twice
-and lean a tier up, Ascended bosses roll four times and lean two up. The deeper you go, the better the odds:
+**Loot drops:** danger-zone kills can drop a loot roll (12% at 1,000 blocks out, 24% at 2,000, 54% at 3,000, up to 75%).
+Elites roll twice and lean a tier up, Ascended bosses roll four times and lean two up. The odds grow exponentially with
+distance, on the same curve as the mobs, and bulk stacks grow with it (x2.4 at 2,000 blocks, x19 at 5,000):
 
-| Tier | At danger 0 | At danger 80 | What drops |
-|---|---|---|---|
-| Common | 60% | 37% | Stacks of cores and mineral clusters (bigger stacks deeper out) |
-| Uncommon | 25% | 28% | Dense Cores, Condensed Essence, base tomes, Chipped gems, **Rare Relics**, Enchantment Packs |
-| Rare | 10% | 18% | Chaos Tomes, Flawless gems, Fusion tomes, Mythic Fragments, **Rare and Epic Relics**, packs |
-| Epic | 4% | 12% | Perfect gems, Mythic tomes, Singularities, dense Condensed Essence, **Epic Relics**, Booster Boxes |
-| Legendary | 0.9% | 4% | **Legendary Relics**, Ascended Souls, very dense Condensed Essence |
-| Mythic | 0.1% | 0.7% | **Mythic Relics**, Ultimate tomes, Ascended Souls |
+| Tier | At home | 2,000 blocks | 5,000 blocks | 10,000 blocks | What drops |
+|---|---|---|---|---|---|
+| Common | 60% | 48% | 27% | 9% | Stacks of cores and mineral clusters (bigger stacks deeper out) |
+| Uncommon | 25% | 25% | 17% | 7% | Dense Cores, Condensed Essence, base tomes, Chipped gems, **Rare Relics**, Enchantment Packs |
+| Rare | 10% | 13.5% | 14% | 8% | Chaos Tomes, Flawless gems, Fusion tomes, Mythic Fragments, **Rare and Epic Relics**, packs |
+| Epic | 4% | 9% | 17% | 15.5% | Perfect gems, Mythic tomes, Singularities, dense Condensed Essence, **Epic Relics**, Booster Boxes |
+| Legendary | 0.9% | 3.8% | 15% | 24% | **Legendary Relics**, Ascended Souls, very dense Condensed Essence |
+| Mythic | 0.1% | 1% | 10% | 36% | **Mythic Relics**, Ultimate tomes, Ascended Souls |
 
 **Relics** are named, pre-enchanted gear, like *Dreadbound Greaves of Ruin*: Rare (iron, 1-2 enchants), Epic (diamond,
 2-3 enchants), Legendary (diamond, 2-4) and Mythic (netherite, 4-6 plus a Mythic enchant). Their enchants suit what
@@ -509,7 +514,7 @@ Leaping (Roasted Rabbit Leg), Bane (Spider Legs), Smite (Zombie Brain), Bulwark 
 
 ## Factory Ascension blocks (Full download)
 
-The Full download adds a Forge mod with eleven blocks, styled like the Ascendite gear. Find them in the
+The Full download adds a Forge mod with twelve machine blocks, four kinds of connected glass and the Storage Linker, styled like the Ascendite gear. Find them in the
 **Factory Ascension** creative tab or in JEI. Recipes and every number are in the `machines` section of the config.
 
 ### Modular Engine: power from day one
@@ -534,6 +539,20 @@ Every part has its own screen (right-click it):
 
 A part that isn't touching an engine says "Not connected". Engineer's Goggles show the same numbers. One core per
 engine: two cores touching the same modules jam. Up to 32 modules.
+
+### Universal Storage Terminal (Full download)
+
+One block that turns all your chests into one big chest. Craft a **Storage Linker**, right-click the **Universal Storage
+Terminal** with it to set it, then right-click chests to link them (again to unlink). Chests, barrels, shulker boxes,
+Ascension Vaults, Create vaults and any modded inventory with 9+ slots work; double chests count once. The terminal's
+screen is the vault's: search box, Sort (merges and sorts across every linked chest), a scroll bar, shift-click in and out.
+While you hold the linker, the terminal sparkles gold and its chests teal. Hoppers and funnels can feed the terminal too.
+Up to 128 chests within 128 blocks, same dimension (`machines.storage`). Sneak + right-click the air clears the linker.
+
+| Item | Recipe |
+|---|---|
+| Universal Storage Terminal | 4 Ascendite Ingots, 2 Chests, 1 Glass Pane, 1 Ascension Core, 1 Comparator |
+| Storage Linker | Ascendite Ingot, Ascendite Nugget, Amethyst Shard (diagonal) |
 
 ### The other machines
 
@@ -691,19 +710,21 @@ spawns nearest to; near someone who hasn't set a home, mobs stay normal.
 Crossing into a new zone puts its name and danger on screen as a big title, with a sound (a cave rumble going deeper).
 A new danger level inside the same zone shows above the hotbar. Logging in out in a danger zone shows it too.
 
-| Distance from home | Zone | Danger | Mob health and damage | Loot |
-|---|---|---|---|---|
-| 0 - 1,000 | Safe Lands | 0 | normal | normal |
-| 1,000 | The Frontier | 1 | x1.5 | x1.1 |
-| 1,250 / 1,500 / 1,750 | The Frontier | 2 / 3 / 4 | x1.9 / x2.6 / x3.4 | x1.2 - x1.4 |
-| 2,000 | The Wilds | 5 | x4.5 | x1.5 |
-| 3,000 | Dread Reaches | 9 | x11.9 | x1.9 |
-| 5,000 | The Abyss | 17 | x47 | x2.7 |
-| 10,000 | Nightmare | 37 | x322 | x4.7 |
-| 20,000+ | The Void Beyond | 77+ | x2,245+ | x8.7+ |
+| Distance from home | Zone | Danger | Mob health, damage, drops and XP | Loot roll chance | Mythic loot odds |
+|---|---|---|---|---|---|
+| 0 - 1,000 | Safe Lands | 0 | normal | none | 0.1% |
+| 1,000 | The Frontier | 1 | x1.5 | 12% | 0.2% |
+| 1,250 / 1,500 / 1,750 | The Frontier | 2 / 3 / 4 | x1.9 / x2.6 / x3.4 | 13% - 19% | 0.3% - 0.7% |
+| 2,000 | The Wilds | 5 | x4.5 | 24% | 1% |
+| 3,000 | Dread Reaches | 9 | x11.9 | 54% | 2.8% |
+| 5,000 | The Abyss | 17 | x47 | 75% | 10% |
+| 10,000 | Nightmare | 37 | x322 | 75% | 36% |
+| 20,000+ | The Void Beyond | 77+ | x2,245+ | 75% | 66%+ |
 
 Mob toughness follows `x(1 + 0.5 * (blocks / 1000) ^ 2.807)`, measured where each level starts: x1.5 at 1,000 blocks and
-x4.5 at 2,000 (`healthScale`, `damageScale` and `exponent` in the config).
+x4.5 at 2,000 (`healthScale`, `damageScale` and `exponent` in the config). **Loot rides the same curve:** mob drops and
+XP get the same multiplier (`lootScale`, `xpScale`), and loot rolls, their tiers, stack sizes, Relic levels and Mythic
+Fragment chances all grow with `(blocks / 1000) ^ 2.807` too (the `loot` and `fragments` sections).
 
 - **Elites:** 1% of mobs per danger level (max 25%) spawn as named Elites, like `☠ Elite Zombie · Lv 23`.
   They have x3 health, x1.5 damage and x3 loot on top of the zone's numbers.
@@ -813,12 +834,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 64 checks (80 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 65 checks (82 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 494 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 497 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

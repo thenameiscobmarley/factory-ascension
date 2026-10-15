@@ -917,7 +917,8 @@ var tenMob = makeMob(); tenMob.pdata.putInt('fa_danger', 10)
 Math.random = function () { return 0.999 }
 var d6 = dropEvent(plainHero, tenMob, [stack(4)]); dropsHook(d6)
 Math.random = realRandom
-check('danger 10 doubles drops even without Plunder', totalCount(d6) == 8, totalCount(d6))
+var m10 = global.FA_dangerMult(10, false)
+check('danger 10 (3,250 blocks) multiplies drops on the same curve as mob health: x' + m10.loot.toFixed(1), Math.abs(totalCount(d6) - 4 * m10.loot) <= 1 && near(m10.loot, m10.health), totalCount(d6))
 
 // ---- Mob food ----
 MF.enabled = true
@@ -940,7 +941,7 @@ Math.random = realRandom
 MF.enabled = false
 var xpEv2 = { xp: 10, getEntity: function () { return tenMob }, getAttackingPlayer: function () { return plainHero }, getDroppedExperience: function () { return this.xp }, setDroppedExperience: function (n) { this.xp = n } }
 xpHook(xpEv2)
-check('danger 10 triples XP', xpEv2.xp == 30)
+check('danger 10 multiplies XP on the curve too', Math.abs(xpEv2.xp - 10 * m10.xp) <= 1, xpEv2.xp)
 
 var explorer = makePlayer(server, 'explorer')
 explorer.age = 20
@@ -1095,8 +1096,9 @@ check('no fragments unless a player made the kill', !dn.list.arr.some(function (
 var dsafe = dropEvent(plainHero, makeMob(), []); dropsHook(dsafe)
 check('no fragments from safe-zone mobs', dsafe.list.arr.length == 0)
 Math.random = realRandom
-check('fragment odds: Elite at danger 20 = 25%, normal mob at danger 20 = 4%',
-  near(global.FA_fragmentChance(20, true), 0.25) && near(global.FA_fragmentChance(20, false), 0.04))
+check('fragment odds climb on the loot curve: Elite 15.5% at danger 1, capped 75% by danger 20; normal 0.2% at danger 1, capped 5%',
+  near(global.FA_fragmentChance(1, true), 0.155) && near(global.FA_fragmentChance(20, true), 0.75) && near(global.FA_fragmentChance(1, false), 0.002) &&
+  near(global.FA_fragmentChance(20, false), 0.05) && global.FA_fragmentChance(5, true) > global.FA_fragmentChance(3, true))
 
 var slammer = hero({ gravity_slam: 2 }, 'slam'), sl1 = makeMob(); slammer.nearby = [sl1]
 var fall = { mult: 1, getEntity: function () { return slammer }, getDistance: function () { return 10 }, setDamageMultiplier: function (m) { this.mult = m } }
@@ -1538,7 +1540,26 @@ check('loot odds add up to 100% at every depth', near(o0.reduce(function (a, b) 
 check('deeper zones shift the odds toward the top tiers', o80[4] + o80[5] > 4 * (o0[4] + o0[5]) && o80[0] < o0[0], (o0[4] + o0[5]).toFixed(4) + ' -> ' + (o80[4] + o80[5]).toFixed(4))
 print('  odds at danger 0: ' + o0.map(function (x, i) { return global.FA.loot.tiers[i].name + ' ' + (x * 100).toFixed(1) + '%' }).join(', '))
 print('  odds at danger 80: ' + o80.map(function (x, i) { return global.FA.loot.tiers[i].name + ' ' + (x * 100).toFixed(1) + '%' }).join(', '))
-check('a kill drops a loot roll more often deeper: 10.6% at danger 1, 58% at danger 80, capped at 75%', near(global.FA_lootChance(1), 0.106) && near(global.FA_lootChance(80), 0.58) && near(global.FA_lootChance(500), 0.75))
+check('a kill drops a loot roll more often deeper, on the curve: 12% at 1,000 blocks, ' + (global.FA_lootChance(5) * 100).toFixed(0) + '% at 2,000, capped at 75%',
+  near(global.FA_lootChance(1), 0.12) && near(global.FA_lootChance(5), 0.1 + 0.02 * Math.pow(2, 2.807)) && near(global.FA_lootChance(80), 0.75))
+check('loot follows the mob curve: x1.5 at 1,000 blocks, x4.5 at 2,000, bigger stacks and better tiers deeper',
+  near(global.FA_dangerMult(1).loot, 1.5) && Math.abs(global.FA_dangerMult(5).loot - 4.5) < 0.05 && global.FA_lootBulk(17) > 10 * (global.FA_lootBulk(1) - 1) &&
+  global.FA_lootOdds(17)[5] > 30 * global.FA_lootOdds(1)[5], global.FA_dangerMult(5).loot.toFixed(2) + ', mythic ' + (global.FA_lootOdds(1)[5] * 100).toFixed(2) + '% -> ' + (global.FA_lootOdds(17)[5] * 100).toFixed(2) + '%')
+// Meteor Shower: anything from the pack can fall, better things rarer, better odds deeper
+var mIsLoaded = Platform.isLoaded
+Platform.isLoaded = function (m) { return m == 'factoryascension' || mIsLoaded(m) }
+var mPool = global.FA_meteorPool()
+Platform.isLoaded = mIsLoaded
+var mAll = [].concat.apply([], mPool).filter(function (x) { return typeof x == 'string' })
+var mMissing = created.concat(createdBlocks).map(function (x) { return 'kubejs:' + x }).concat(modItems.filter(function (id) { return !/_spawn_egg$/.test(id) }))
+  .filter(function (id) { return id != 'kubejs:incomplete_ascension_core' && mAll.indexOf(id) < 0 })
+check('meteors can drop every item and block the pack makes (' + mAll.length + ', plus Relics)', mMissing.length == 0, mMissing.slice(0, 8).join(', '))
+var mSeed = 7, mRand = function () { mSeed = (mSeed * 16807) % 2147483647; return mSeed / 2147483647 }
+var mean = function (danger) { var t = 0; for (var i = 0; i < 3000; i++) t += global.FA_meteorRoll(mRand, danger, mPool).tier; return t / 3000 }
+var mHome = mean(0), mFar = mean(17), mTop = [0, 0, 0, 0, 0, 0]
+for (var mi = 0; mi < 3000; mi++) mTop[global.FA_meteorRoll(mRand, 0, mPool).tier]++
+check('meteor loot: the better the tier the rarer, and better farther out (mean tier ' + mHome.toFixed(2) + ' at home, ' + mFar.toFixed(2) + ' at 5,000 blocks)',
+  mTop[0] > mTop[1] && mTop[1] > mTop[2] && mTop[2] > mTop[3] && mTop[3] >= mTop[4] && mFar > mHome + 1, mTop.join(' / '))
 var known = {}; created.concat(createdBlocks).forEach(function (id) { known['kubejs:' + id] = true })
 var badLoot = [], tiersSeen = [0, 0, 0, 0, 0, 0], relicCount = 0
 for (var lr = 0; lr < 3000; lr++) {

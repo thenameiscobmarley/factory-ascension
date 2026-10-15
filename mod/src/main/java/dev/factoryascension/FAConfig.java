@@ -22,6 +22,10 @@ public final class FAConfig {
     /** Fuel lasts this many times its furnace burn time. */
     public static float engineFuelMultiplier = 1;
 
+    // Universal Storage Terminal: how far its linked chests may be (0 = any distance, same dimension) and how many
+    public static int storageRange = 128;
+    public static int storageMaxLinks = 128;
+
     /** How often (ticks) the Salvager asks the scripts to salvage. */
     public static int salvagerTicks = 20;
 
@@ -50,6 +54,11 @@ public final class FAConfig {
     public static void setEngineRpm(int gears, int rpm) {
         if (gears < 0 || gears >= engineRpm.length) return;
         engineRpm[gears] = Math.max(1, Math.min(256, rpm));
+    }
+
+    public static void setStorage(int range, int maxLinks) {
+        storageRange = Math.max(0, range);
+        storageMaxLinks = Math.max(1, maxLinks);
     }
 
     public static void setSalvager(int ticks) {
