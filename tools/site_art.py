@@ -137,8 +137,64 @@ def desk():
     return px
 
 
+# ---- The "Tome" theme: covers like the enchant tomes themselves ----
+GEM = ((245, 214, 255), (170, 96, 255), (78, 30, 150))
+TEAL = ((210, 255, 246), (64, 232, 212), (16, 150, 150))
+
+
+def tome_cover(name):
+    """A tome cover: richer leather, a gold foil frame inset on the cover with violet gem corners, a glowing teal rune
+    band down the spine, gold clasps and gilt page edges."""
+    px = cover(name)
+    # The middle of a cover repeats to fill the panel, so the gold foil frame goes on the edges between the slices:
+    # along the spine's fold, under the top edge, above the bottom page edges and beside the right ones
+    for x in range(SPINE - 1, W - RIGHT + 1):
+        px[TOP - 1][x] = tone(GOLD, 0.2) + (255,)
+        px[H - BOTTOM][x] = tone(GOLD, 0.55) + (255,)
+    for y in range(TOP - 1, H - BOTTOM + 1):
+        px[y][SPINE - 1] = tone(GOLD, 0.35) + (255,)
+        px[y][W - RIGHT] = tone(GOLD, 0.6) + (255,)
+    for cx, cy in ((SPINE - 2, TOP - 2), (W - RIGHT - 1, TOP - 2), (SPINE - 2, H - BOTTOM - 1), (W - RIGHT - 1, H - BOTTOM - 1)):
+        for y in range(cy, cy + 2):
+            for x in range(cx, cx + 2):
+                if 0 < x < W - 1 and 0 < y < H - 1:
+                    px[y][x] = tone(GEM, 0.1 if (x == cx and y == cy) else 0.55) + (255,)
+    for y in range(2, H - 2):                                  # rune band on the spine
+        if y % 5 != 0:
+            px[y][4] = tone(TEAL, 0.25 + 0.2 * ((y // 5) % 2)) + (255,)
+    for cy in (6, 22):                                         # gold clasps
+        for y in range(cy, cy + 4):
+            for x in range(2, SPINE - 2):
+                if x != 4:
+                    px[y][x] = tone(GOLD, 0.7 if (y in (cy, cy + 3) or x in (2, SPINE - 3)) else 0.3) + (255,)
+    for y in range(H - 1):                                     # gilt page edges
+        for x in range(W - RIGHT + 1, W - 1):
+            if (x + y) % 3 == 0:
+                px[y][x] = tone(GOLD, 0.35) + (255,)
+    return px
+
+
+def tome_desk():
+    """16 x 16 deep violet velvet with a faint gold rune lattice, for the Tome theme's page background."""
+    pal = ((60, 34, 84), (34, 18, 50), (16, 8, 26))
+    px = []
+    for y in range(16):
+        row = []
+        for x in range(16):
+            t = 0.6 + 0.07 * grain(41, x, y) + 0.05 * grain(42, x // 2, y // 2)
+            c = tone(pal, t)
+            if (x + y) % 8 == 0 or (x - y) % 8 == 0:
+                c = mix(c, GOLD[1], 0.12)
+            row.append(c + (255,))
+        px.append(row)
+    return px
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
+    for name in LEATHER:
+        make_textures.png(os.path.join(OUT, "tome_cover_%s.png" % name), tome_cover(name))
+    make_textures.png(os.path.join(OUT, "tome_desk.png"), tome_desk())
     for name in LEATHER:
         make_textures.png(os.path.join(OUT, "cover_%s.png" % name), cover(name))
     make_textures.png(os.path.join(OUT, "frame_gold.png"), gold_frame())

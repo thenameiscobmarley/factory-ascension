@@ -465,3 +465,37 @@ footer p { margin: 4px 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ======================================================================================================
+   Tome theme (the default): the site dressed like the pack's enchant tomes. Deep violet velvet pages, covers with a
+   gold foil frame and violet gem corners, a glowing teal rune spine, gilt page edges, holographic foil headings.
+   "Classic" (data-theme="classic") is the original look above, unchanged. The switch is in the top bar.
+   ====================================================================================================== */
+html[data-theme="tome"] { --bg: #160c22; --bg2: #1d1030; --ink: #0b0614; --line: #3a2452; --text: #f6ecff; --muted: #d4bfe8; --dim: #9b86b4;
+  --shadow: calc(var(--px) * 1) calc(var(--px) * 1) 0 #12061f; }
+html[data-theme="tome"] body { background: var(--bg) url(art/tome_desk.png) 0 0 / calc(var(--px) * 16) repeat; }
+html[data-theme="tome"] .cover { --c: url(art/tome_cover_purple.png); }
+html[data-theme="tome"] .cover.brown { --c: url(art/tome_cover_brown.png); }
+html[data-theme="tome"] .cover.red { --c: url(art/tome_cover_red.png); }
+html[data-theme="tome"] .cover.teal { --c: url(art/tome_cover_teal.png); }
+html[data-theme="tome"] .cover.purple { --c: url(art/tome_cover_purple.png); }
+html[data-theme="tome"] .cover.green { --c: url(art/tome_cover_green.png); }
+html[data-theme="tome"] .cover.steel { --c: url(art/tome_cover_steel.png); }
+/* Foil headings: gold leaf with a holographic sheen sliding across */
+html[data-theme="tome"] h1, html[data-theme="tome"] h2 {
+  background: linear-gradient(100deg, #ffe68c 0%, #e8b03a 30%, #fff6d0 42%, #c08cff 50%, #40e8d4 56%, #ffe68c 66%, #e8b03a 100%);
+  background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none;
+  filter: drop-shadow(calc(var(--px) * 1) calc(var(--px) * 1) 0 #12061f); animation: fa-foil 7s linear infinite; }
+html[data-theme="tome"] h1 span, html[data-theme="tome"] h2 span { color: inherit; }
+@keyframes fa-foil { from { background-position: 0% 0; } to { background-position: 300% 0; } }
+@media (prefers-reduced-motion: reduce) { html[data-theme="tome"] h1, html[data-theme="tome"] h2 { animation: none; } }
+html[data-theme="tome"] .top { background: #12081ef2; border-bottom-color: var(--ink); box-shadow: 0 var(--px) 0 #e8b03a, 0 calc(var(--px) * 2) 0 #5a2e8a; }
+html[data-theme="tome"] .top .links a:hover { background: #2a1640; }
+html[data-theme="tome"] .slot-card, html[data-theme="tome"] .uv-card { background: #1a0f28; box-shadow: inset var(--px) var(--px) 0 #2c1a44, inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #0a0512; }
+html[data-theme="tome"] .btn, html[data-theme="tome"] .uv-btn { --b: #4a2a6e; }
+html[data-theme="tome"] .btn.gold, html[data-theme="tome"] .uv-btn--primary { --b: var(--gold); }
+html[data-theme="tome"] .chip, html[data-theme="tome"] .uv-chip { --b: #2c1a44; }
+html[data-theme="tome"] .input, html[data-theme="tome"] .uv-input, html[data-theme="tome"] .uv-select { background: #0e0718; }
+html[data-theme="tome"] code { background: #0e071899; }
+/* The switch */
+.theme-switch { flex: none; }

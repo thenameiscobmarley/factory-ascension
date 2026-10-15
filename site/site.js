@@ -662,3 +662,17 @@
 
   route();
 })();
+
+// ---- Theme switch: Tome (default) or Classic, remembered in this browser ----
+(() => {
+  const btn = document.getElementById("themeSwitch");
+  if (!btn) return;
+  const label = () => { btn.textContent = document.documentElement.dataset.theme == "classic" ? "Tome look" : "Classic look"; };
+  label();
+  btn.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme == "classic" ? "tome" : "classic";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("fa-theme", next); } catch (e) { /* private mode: it just won't be remembered */ }
+    label();
+  });
+})();
