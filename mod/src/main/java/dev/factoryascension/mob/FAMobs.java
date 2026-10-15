@@ -166,6 +166,19 @@ public final class FAMobs {
             new FABosses.BossBlaze(t, l, tyrant, BossEvent.BossBarColor.BLUE, List.of("factoryascension:teal_wisp", "factoryascension:storm_wisp")), MobCategory.MONSTER)
             .sized(1.32f, 3.96f).fireImmune(), 2.2f);
 
+        // ---- The Ascended Realm (1.17): two mobs and two bosses, spawning only there (#factoryascension:is_realm) ----
+        MobSpec astralWisp = MobSpec.of().stats(40, 8, 0.27).anyLight();
+        add("astral_wisp", "blaze", astralWisp, 0xDCC878, 0xFFF0A0, EntityType.Builder.<FABlaze>of((t, l) -> new FABlaze(t, l, astralWisp), MobCategory.MONSTER).sized(0.6f, 1.8f).fireImmune());
+        zombie("void_knight", MobSpec.of().hit(MobEffects.WITHER, 3, 0).stats(60, 10, 0.25).armor(10).sunProof(), 0x221830, 0xAA60FF, false);
+        MobSpec sovereign = MobSpec.of().boss().arrows(MobEffects.LEVITATION, 3, 1).stats(700, 12, 0.27).armor(14).anyLight();
+        add("astral_sovereign", "skeleton", sovereign, 0xF0E8C8, 0xFFE68C, EntityType.Builder.<FABosses.BossSkeleton>of((t, l) ->
+            new FABosses.BossSkeleton(t, l, sovereign, BossEvent.BossBarColor.YELLOW, List.of("factoryascension:astral_wisp", "factoryascension:void_archer")), MobCategory.MONSTER)
+            .sized(1.32f, 4.38f).fireImmune(), 2.2f);
+        MobSpec behemoth = MobSpec.of().boss().hit(MobEffects.WITHER, 6, 1).stats(800, 18, 0.24).armor(14).anyLight();
+        add("void_behemoth", "zombie", behemoth, 0x1C1228, 0xBE64FF, EntityType.Builder.<FABosses.BossZombie>of((t, l) ->
+            new FABosses.BossZombie(t, l, behemoth, BossEvent.BossBarColor.PURPLE, List.of("factoryascension:void_knight", "factoryascension:void_stalker")), MobCategory.MONSTER)
+            .sized(1.56f, 5.07f).fireImmune(), 2.6f);
+
         MobSpec cow = MobSpec.of();
         add("copper_cow", "cow", cow, 0xB4643C, 0x50AA82, EntityType.Builder.<FACow>of((t, l) -> new FACow(t, l, cow), MobCategory.CREATURE).sized(0.9f, 1.4f));
     }

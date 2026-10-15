@@ -5,7 +5,7 @@
 	group: ""
 	icon: "kubejs:ascendium_ingot"
 	id: "2905D9C78531E93A"
-	order_index: 5
+	order_index: 6
 	quest_links: [ ]
 	quests: [
 		{

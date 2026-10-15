@@ -113,6 +113,18 @@ CHAPTERS = [
         ("room", "Instant Basement", "kubejs:room_tnt_quartz_16", [("item", "kubejs:room_tnt_quartz_16", 1)], [("item", "minecraft:tnt", 4)], [],
          ["Factory Room TNT blasts out a lit, lined room in front of you."], 0, 3),
     ]),
+    ("companions", "Pets and Charms", "kubejs:ascendite_collar", [
+        ("whistle", "Here, Boy!", "kubejs:pet_whistle", [("item", "kubejs:pet_whistle", 1)], [("item", "minecraft:bone", 16)], [],
+         ["Iron, an Ender Pearl and a gold nugget. Right-click to call your pets to you."], 0, 0),
+        ("collar", "A Good Collar", "kubejs:ascendite_collar", [("item", "kubejs:ascendite_collar", 1)], [("item", "kubejs:ascension_core", 4)], ["whistle"],
+         ["Right-click your own tamed pet with it: 60 health, 8 attack, 6 armor, and no fire or fall damage.", "Each collar after it needs the one before."], 2, 0),
+        ("collar_top", "Best in Show", "kubejs:singularity_collar", [("item", "kubejs:singularity_collar", 1)], [("item", "kubejs:ascended_soul", 1)], ["collar"],
+         ["The Singularity Collar: 4,000 health and 500 attack. Your wolf is the boss now."], 4, 0),
+        ("charm", "Lucky Charm", "kubejs:luck_charm", [("item", "kubejs:luck_charm", 1)], [("item", "kubejs:enchantment_pack", 1)], [],
+         ["Charms work from anywhere in your inventory. Gold around an ingredient and a core."], 0, 2),
+        ("ascended_charm", "All of Them", "kubejs:ascended_charm", [("item", "kubejs:ascended_charm", 1)], [("item", "kubejs:booster_box", 1)], ["charm"],
+         ["Eight charms and an Ascended Soul: every effect, stronger, and a 16-block magnet."], 2, 2),
+    ]),
     ("endgame", "Endgame", "kubejs:ascendium_ingot", [
         ("voidsteel", "Voidsteel", "kubejs:voidsteel_ingot", [("item", "kubejs:voidsteel_ingot", 4)], [("item", "kubejs:dense_ascension_core", 2)], [],
          ["Diamond + 2 Ascendite Ingots + Obsidian in a heated mixer."], 0, 0),

@@ -1,0 +1,36 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "factoryascension:ascended_shelf",
+  "spawners": [
+    {
+      "type": "factoryascension:ascendite_skeleton",
+      "weight": 40,
+      "minCount": 1,
+      "maxCount": 2
+    },
+    {
+      "type": "factoryascension:ascendite_husk",
+      "weight": 40,
+      "minCount": 1,
+      "maxCount": 2
+    },
+    {
+      "type": "factoryascension:ascendite_creeper",
+      "weight": 25,
+      "minCount": 1,
+      "maxCount": 2
+    },
+    {
+      "type": "factoryascension:teal_wisp",
+      "weight": 30,
+      "minCount": 1,
+      "maxCount": 2
+    },
+    {
+      "type": "factoryascension:spark_spider",
+      "weight": 25,
+      "minCount": 1,
+      "maxCount": 2
+    }
+  ]
+}

@@ -16,6 +16,11 @@ import make_textures  # noqa: E402
 
 RES = A.RES
 ASSETS, DATA = A.ASSETS, A.DATA
+# The Realm's terrain, biomes, ores and crystals live in the KubeJS data (both downloads): Minecraft saves a
+# dimension's settings in the world, and a world that can't find them won't load, even without the mod jar. They only
+# use vanilla parts and block ids the scripts keep placeholders for. The mod's own mobs and structures are added to the
+# Realm by biome modifiers in the jar (#factoryascension:is_realm).
+KDATA = os.path.join(os.path.dirname(__file__), "..", "kubejs", "data", "factoryascension")
 VANILLA = os.path.expanduser("~/fa-testserver/libraries/net/minecraft/server/1.20.1-20230612.114412/server-1.20.1-20230612.114412-extra.jar")
 NS = "factoryascension"
 S = A.S
@@ -169,12 +174,12 @@ BIOMES = {
     "void_garden": ("Void Garden", 0x12081f, 0x1c0f30, [("void_stalker", 30), ("void_archer", 40), ("shadow_skeleton", 40)], 10),
     "astral_peaks": ("Astral Peaks", 0x4a3a1a, 0x5a4a2a, [("storm_wisp", 30), ("thunder_creeper", 25), ("brass_sentinel", 30)], 6),
 }
-COMMON_MOBS = [("teal_wisp", 30), ("spark_spider", 25), ("minecraft:enderman", 20), ("wisp_tyrant", 1), ("hollow_king", 1)]
+COMMON_MOBS = [("teal_wisp", 30), ("spark_spider", 25)]   # + the Realm's own mobs (tools/mob_art.py, #is_realm)
 ORES = [("essence_crystal_ore", 8, 9), ("voidsteel_ore", 5, 6), ("astral_ore", 3, 4)]   # (block, vein size, veins per chunk)
 
 
 def feature(path, obj):
-    A.write_json(os.path.join(DATA, "worldgen", path + ".json"), obj)
+    A.write_json(os.path.join(KDATA, "worldgen", path + ".json"), obj)
 
 
 def worldgen(lang):
@@ -190,13 +195,13 @@ def worldgen(lang):
          "then_run": {"type": "minecraft:block", "result_state": {"Name": NS + ":realm_moss"}}},
         {"type": "minecraft:block", "result_state": {"Name": NS + ":realm_stone"}}]}
     feature("noise_settings/ascended_realm", islands)
-    A.write_json(os.path.join(DATA, "dimension_type", "ascended_realm.json"), {
+    A.write_json(os.path.join(KDATA, "dimension_type", "ascended_realm.json"), {
         "ambient_light": 0.15, "bed_works": False, "coordinate_scale": 1.0, "effects": "minecraft:overworld", "fixed_time": 18000,
         "has_ceiling": False, "has_raids": False, "has_skylight": True, "height": 256, "infiniburn": "#minecraft:infiniburn_end",
         "logical_height": 256, "min_y": 0, "monster_spawn_block_light_limit": 0,
         "monster_spawn_light_level": {"type": "minecraft:uniform", "value": {"min_inclusive": 0, "max_inclusive": 7}},
         "natural": False, "piglin_safe": False, "respawn_anchor_works": False, "ultrawarm": False})
-    A.write_json(os.path.join(DATA, "dimension", "ascended_realm.json"), {
+    A.write_json(os.path.join(KDATA, "dimension", "ascended_realm.json"), {
         "type": NS + ":ascended_realm",
         "generator": {"type": "minecraft:noise", "settings": NS + ":ascended_realm",
                       "biome_source": {"type": "minecraft:checkerboard", "scale": 4, "biomes": [NS + ":" + b for b in BIOMES]}}})
@@ -220,12 +225,12 @@ def worldgen(lang):
                 {"type": "minecraft:matching_blocks", "offset": [0, -1, 0], "blocks": NS + ":realm_moss"}]}},
             {"type": "minecraft:biome"}]})
         steps = [[] for _ in range(11)]
-        import structure_gen
-        for step, ids in structure_gen.REALM_STEPS.items():
-            steps[step] = ids
         steps[6] = ore_ids
         steps[9] = [NS + ":realm_crystal_" + b]
-        monsters = [{"type": (m if ":" in m else NS + ":" + m), "weight": w, "minCount": 1, "maxCount": 1 if w <= 1 else 2} for m, w in mobs + COMMON_MOBS]
+        monsters = [{"type": "minecraft:enderman", "weight": 20, "minCount": 1, "maxCount": 2}]
+        A.write_json(os.path.join(DATA, "forge", "biome_modifier", "realm_mobs_" + b + ".json"), {
+            "type": "forge:add_spawns", "biomes": NS + ":" + b,
+            "spawners": [{"type": NS + ":" + m, "weight": w, "minCount": 1, "maxCount": 2} for m, w in mobs + COMMON_MOBS]})
         feature("biome/" + b, {"has_precipitation": False, "temperature": 0.5, "downfall": 0.0,
             "effects": {"sky_color": sky, "fog_color": fog, "water_color": 0x40e8d4, "water_fog_color": 0x1c0f30,
                         "particle": {"options": {"type": "minecraft:end_rod"}, "probability": 0.002},
@@ -237,6 +242,7 @@ def worldgen(lang):
 
 
 def main():
+    A.write_json(os.path.join(KDATA, "tags", "worldgen", "biome", "is_realm.json"), {"replace": False, "values": [NS + ":" + b for b in BIOMES]})
     lang_path = os.path.join(ASSETS, "lang", "en_us.json")
     lang = json.load(open(lang_path))
     block_assets(lang)

@@ -23,52 +23,10 @@
   "spawners": {
     "monster": [
       {
-        "type": "factoryascension:storm_wisp",
-        "weight": 30,
-        "minCount": 1,
-        "maxCount": 2
-      },
-      {
-        "type": "factoryascension:thunder_creeper",
-        "weight": 25,
-        "minCount": 1,
-        "maxCount": 2
-      },
-      {
-        "type": "factoryascension:brass_sentinel",
-        "weight": 30,
-        "minCount": 1,
-        "maxCount": 2
-      },
-      {
-        "type": "factoryascension:teal_wisp",
-        "weight": 30,
-        "minCount": 1,
-        "maxCount": 2
-      },
-      {
-        "type": "factoryascension:spark_spider",
-        "weight": 25,
-        "minCount": 1,
-        "maxCount": 2
-      },
-      {
         "type": "minecraft:enderman",
         "weight": 20,
         "minCount": 1,
         "maxCount": 2
-      },
-      {
-        "type": "factoryascension:wisp_tyrant",
-        "weight": 1,
-        "minCount": 1,
-        "maxCount": 1
-      },
-      {
-        "type": "factoryascension:hollow_king",
-        "weight": 1,
-        "minCount": 1,
-        "maxCount": 1
       }
     ],
     "creature": [],
@@ -88,12 +46,8 @@
     [],
     [],
     [],
-    [
-      "factoryascension:realm_vault"
-    ],
-    [
-      "factoryascension:sky_shrine"
-    ],
+    [],
+    [],
     [
       "factoryascension:realm_essence_crystal_ore",
       "factoryascension:realm_voidsteel_ore",

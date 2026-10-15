@@ -221,6 +221,19 @@ next to a gate that takes you back to where you left. Going through is free.
   **Astral** (1-2 Mythic Fragments). Fortune works on all of them; Silk Touch keeps the ore.
 - Platform height and size are in `realm`. Two quests in the Endgame chapter lead there.
 
+## Pets and charms
+
+- **Ascension Collars** (5 tiers): right-click your own tamed pet (wolf, cat, parrot, horse...) with one. It gets the
+  collar's health, attack and armor, heals fully, and stops taking fire and fall damage. Ascendite (60 health, 8 attack),
+  Voidsteel (150 / 20), Celestium (400 / 50), Ascendium (1,000 / 150), Singularity (4,000 / 500). Each needs the one before.
+- **Pet Whistle**: right-click to call your pets within 256 blocks (sitting ones stay put).
+- **Charms**: carry one anywhere in your inventory: Haste, Swiftness, Owl (night vision), Ember (fire resistance), Tide
+  (water breathing + dolphin's grace), Iron (resistance), Lucky, Leaping, Magnet (pulls items within 8 blocks). The
+  **Ascended Charm** (eight charms + an Ascended Soul) does all of them, stronger, with a 16-block magnet. Charms never add hearts.
+
+New in the Ascended Realm (Full download): **Astral Wisps** and **Void Knights**, and two bosses, the **Astral Sovereign**
+and the **Void Behemoth**, each with a boss bar, minions and Ascended Souls (sometimes a Singularity) to drop.
+
 ## Quarry, Mob Grinder and Warp Hopper (Full download)
 
 - **Ascension Quarry**: turn the shaft in its back and it mines out the 17 x 17 square under it (`machines.quarry.radius`),

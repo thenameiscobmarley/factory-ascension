@@ -97,6 +97,10 @@ StartupEvents.registry('item', event => {
 
   // Rerolls a piece of gear's condition, keeping the better grade (config: condition)
   event.create('polishing_cloth').displayName('Polishing Cloth').rarity('uncommon')
+  // Pets and charms (config: pets, charms)
+  global.FA.pets.collars.forEach((c, i) => event.create(c.id).displayName(c.name).maxStackSize(16).rarity(['uncommon', 'rare', 'rare', 'epic', 'epic'][i] || 'epic').glow(i >= 3))
+  event.create('pet_whistle').displayName('Pet Whistle').maxStackSize(1).rarity('uncommon')
+  global.FA.charms.list.forEach(c => event.create(c.id).displayName(c.name).maxStackSize(1).rarity(c.id == 'ascended_charm' ? 'epic' : 'rare').glow(c.id == 'ascended_charm'))
 
   // Rock Hammers: smash rock into gravel, nuggets and ore (config: hammer)
   event.create('rock_hammer').displayName('Rock Hammer').maxDamage(global.FA.hammer.tools['kubejs:rock_hammer'].uses)
@@ -219,6 +223,7 @@ if (!Platform.isLoaded('factoryascension') && global.FA_MOD_CONTENT) {
       .textureAll('kubejs:block/fa_placeholder'))
   })
   StartupEvents.registry('item', event => {
-    C.items.forEach(id => event.create('factoryascension:' + id).displayName(label(id)).texture('kubejs:item/fa_placeholder'))
+    // Blocks bring their own items: an id on both lists (the backpacks) would be registered twice and stop the game
+    C.items.filter(id => C.blocks.indexOf(id) < 0).forEach(id => event.create('factoryascension:' + id).displayName(label(id)).texture('kubejs:item/fa_placeholder'))
   })
 }

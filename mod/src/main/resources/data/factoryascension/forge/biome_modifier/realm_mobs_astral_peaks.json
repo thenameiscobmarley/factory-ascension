@@ -1,0 +1,36 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "factoryascension:astral_peaks",
+  "spawners": [
+    {
+      "type": "factoryascension:storm_wisp",
+      "weight": 30,
+      "minCount": 1,
+      "maxCount": 2
+    },
+    {
+      "type": "factoryascension:thunder_creeper",
+      "weight": 25,
+      "minCount": 1,
+      "maxCount": 2
+    },
+    {
+      "type": "factoryascension:brass_sentinel",
+      "weight": 30,
+      "minCount": 1,
+      "maxCount": 2
+    },
+    {
+      "type": "factoryascension:teal_wisp",
+      "weight": 30,
+      "minCount": 1,
+      "maxCount": 2
+    },
+    {
+      "type": "factoryascension:spark_spider",
+      "weight": 25,
+      "minCount": 1,
+      "maxCount": 2
+    }
+  ]
+}

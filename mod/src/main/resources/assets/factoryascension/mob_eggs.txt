@@ -32,3 +32,7 @@ rust_colossus 5a3c28 ff6a1e
 broodmother 46285a dc64ff
 hollow_king e6e6d2 8c50dc
 wisp_tyrant 147878 40e8d4
+astral_wisp dcc878 fff0a0
+void_knight 221830 aa60ff
+astral_sovereign f0e8c8 ffe68c
+void_behemoth 1c1228 be64ff

@@ -170,5 +170,25 @@ global.FA_MOB_INFO = {
   "name": "Wisp Tyrant",
   "where": "BOSS · The Nether, danger 10+",
   "what": "A giant teal blaze. Rings of fireballs; calls Teal and Storm Wisps."
+ },
+ "astral_wisp": {
+  "name": "Astral Wisp",
+  "where": "Ascended Realm",
+  "what": "A wisp of starlight that throws fire. Drops glowstone, sometimes a core or a Mythic Fragment."
+ },
+ "void_knight": {
+  "name": "Void Knight",
+  "where": "Ascended Realm",
+  "what": "Armored in the void itself. Drops obsidian and, now and then, Voidsteel."
+ },
+ "astral_sovereign": {
+  "name": "Astral Sovereign",
+  "where": "Ascended Realm (boss)",
+  "what": "Rules the islands: calls Astral Wisps and Void Archers. Drops Ascended Souls, Celestium and maybe a Singularity."
+ },
+ "void_behemoth": {
+  "name": "Void Behemoth",
+  "where": "Ascended Realm (boss)",
+  "what": "The biggest thing in the Realm: calls Void Knights and Void Stalkers. Drops Ascended Souls, Voidsteel and maybe a Singularity."
  }
 }

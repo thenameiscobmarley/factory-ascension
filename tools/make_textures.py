@@ -948,6 +948,8 @@ def main():
     for name, px in textures.items():
         png(os.path.join(OUT, name + ".png"), px)
         print("wrote", name + ".png")
+    import pet_charm_art
+    pet_charm_art.main()
 
 
 if __name__ == "__main__":

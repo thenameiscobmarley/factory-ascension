@@ -807,7 +807,8 @@ def mod_id_list():
     jar is ever missing, the scripts register stand-ins under these ids so a world doesn't drop the mod's things."""
     lang = json.load(open(os.path.join(ASSETS, "lang", "en_us.json")))
     blocks = sorted(k.split(".")[2] for k in lang if k.startswith("block.factoryascension."))
-    items = sorted(k.split(".")[2] for k in lang if k.startswith("item.factoryascension."))
+    # An id named as both (the backpacks) is a block with an item: listing it twice would register it twice
+    items = sorted(set(k.split(".")[2] for k in lang if k.startswith("item.factoryascension.")) - set(blocks))
     names = {k.split(".")[2]: v for k, v in lang.items() if k.startswith(("block.factoryascension.", "item.factoryascension."))}
     path = os.path.join(os.path.dirname(__file__), "..", "kubejs", "startup_scripts", "03_fa_mod_ids.js")
     with open(path, "w") as f:

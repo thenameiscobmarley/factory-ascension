@@ -842,7 +842,8 @@ global.FA = {
         foils: [0, 0, 1, 1, 2, 3, 4, 5, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],   // the 10 cased foils are Legendary / Mythic
         condensedPerTier: 10,  // Condensed Essence: blocks 0-9 -> Uncommon, 10-19 -> Rare ... 40+ -> Mythic
         relics: { rare: 2, epic: 3, legendary: 4, mythic: 5 },
-        backpacks: [3, 3, 4, 4, 5, 5]   // the Ascension backpacks, smallest first (with Sophisticated Backpacks)
+        backpacks: [3, 3, 4, 4, 5, 5],  // the Ascension backpacks, smallest first (with Sophisticated Backpacks)
+        collars: [1, 2, 3, 4, 5], whistle: 1, charms: 2, ascendedCharm: 5
       },
       extra: [['minecraft:diamond', 1], ['minecraft:ancient_debris', 2], ['minecraft:netherite_ingot', 4]] },
     goldenHour: { minutes: 5, lootMult: 2 }
@@ -985,7 +986,11 @@ global.FA = {
       { raw: 'colossus_heart', rawName: "Colossus Heart", cooked: 'forged_colossus_heart', cookedName: "Forged Colossus Heart", mobs: ['factoryascension:rust_colossus'], chance: 1.0, hunger: 16, saturation: 1.2, effect: ['minecraft:health_boost', 300, 3], art: ['heart', [150, 82, 40], [255, 110, 30]], mod: true },
       { raw: 'brood_gland', rawName: "Brood Gland", cooked: 'seared_brood_gland', cookedName: "Seared Brood Gland", mobs: ['factoryascension:broodmother'], chance: 1.0, hunger: 14, saturation: 1.2, effect: ['minecraft:speed', 300, 2], art: ['gland', [96, 56, 120], [255, 120, 255]], mod: true },
       { raw: 'kings_marrow', rawName: "King's Marrow", cooked: 'roasted_kings_marrow', cookedName: "Roasted King's Marrow", mobs: ['factoryascension:hollow_king'], chance: 1.0, hunger: 14, saturation: 1.2, effect: ['minecraft:resistance', 300, 2], art: ['bone', [220, 220, 206], [232, 176, 58]], mod: true },
-      { raw: 'tyrant_core', rawName: "Tyrant Core", cooked: 'quenched_tyrant_core', cookedName: "Quenched Tyrant Core", mobs: ['factoryascension:wisp_tyrant'], chance: 1.0, hunger: 14, saturation: 1.2, effect: ['minecraft:fire_resistance', 600, 0], art: ['core', [20, 120, 120], [220, 255, 250]], mod: true }
+      { raw: 'tyrant_core', rawName: "Tyrant Core", cooked: 'quenched_tyrant_core', cookedName: "Quenched Tyrant Core", mobs: ['factoryascension:wisp_tyrant'], chance: 1.0, hunger: 14, saturation: 1.2, effect: ['minecraft:fire_resistance', 600, 0], art: ['core', [20, 120, 120], [220, 255, 250]], mod: true },
+      { raw: 'astral_ember', rawName: "Astral Ember", cooked: 'starlit_ember', cookedName: "Starlit Ember", mobs: ['factoryascension:astral_wisp'], chance: 0.35, hunger: 5, saturation: 0.6, effect: ['minecraft:slow_falling', 60, 0], art: ['wisp', [220, 200, 120], [255, 250, 200]], mod: true },
+      { raw: 'void_sinew', rawName: "Void Sinew", cooked: 'smoked_void_sinew', cookedName: "Smoked Void Sinew", mobs: ['factoryascension:void_knight'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:strength', 60, 0], art: ['gland', [70, 50, 100], [220, 160, 255]], mod: true },
+      { raw: 'sovereign_crown_shard', rawName: "Sovereign's Heart", cooked: 'gilded_sovereign_heart', cookedName: "Gilded Sovereign's Heart", mobs: ['factoryascension:astral_sovereign'], chance: 1.0, hunger: 16, saturation: 1.4, effect: ['minecraft:regeneration', 300, 1], art: ['heart', [240, 232, 200], [255, 230, 140]], mod: true },
+      { raw: 'behemoth_core', rawName: "Behemoth Core", cooked: 'quenched_behemoth_core', cookedName: "Quenched Behemoth Core", mobs: ['factoryascension:void_behemoth'], chance: 1.0, hunger: 16, saturation: 1.4, effect: ['minecraft:strength', 300, 2], art: ['core', [60, 40, 90], [255, 120, 255]], mod: true }
     ]
   },
 
@@ -1245,6 +1250,43 @@ global.FA = {
   // Astral (Mythic Fragments). Danger there starts at danger.realmBonus.
   realm: { platformY: 128, platformRadius: 3, cooldownTicks: 40 },
 
+  // ---- Pets: Ascension Collars and the Pet Whistle ----
+  // Right-click your own tamed pet (wolf, cat, parrot, horse, ...) with a collar: it gets the collar's health, attack
+  // and armor, heals fully, stops taking fire and fall damage, and keeps it all. Each collar needs the one before.
+  // The Pet Whistle calls your pets (not the sitting ones) within whistleRange blocks to you.
+  pets: {
+    collars: [
+      { id: 'ascendite_collar', name: 'Ascendite Collar', health: 60, attack: 8, armor: 6, recipe: [[' L ', 'I I', ' C '], { L: 'minecraft:leather', I: 'kubejs:ascendite_ingot', C: 'kubejs:ascension_core' }] },
+      { id: 'voidsteel_collar', name: 'Voidsteel Collar', health: 150, attack: 20, armor: 10, recipe: [[' L ', 'IPI', ' C '], { L: 'minecraft:leather', I: 'kubejs:voidsteel_ingot', P: 'kubejs:ascendite_collar', C: 'kubejs:dense_ascension_core' }] },
+      { id: 'celestium_collar', name: 'Celestium Collar', health: 400, attack: 50, armor: 15, recipe: [[' L ', 'IPI', ' C '], { L: 'minecraft:leather', I: 'kubejs:celestium_ingot', P: 'kubejs:voidsteel_collar', C: 'kubejs:mythic_fragment' }] },
+      { id: 'ascendium_collar', name: 'Ascendium Collar', health: 1000, attack: 150, armor: 20, recipe: [[' L ', 'IPI', ' C '], { L: 'minecraft:leather', I: 'kubejs:ascendium_ingot', P: 'kubejs:celestium_collar', C: 'kubejs:ascension_singularity' }] },
+      { id: 'singularity_collar', name: 'Singularity Collar', health: 4000, attack: 500, armor: 30, recipe: [[' S ', 'SPS', ' A '], { S: 'kubejs:ascension_singularity', P: 'kubejs:ascendium_collar', A: 'kubejs:ascended_soul' }] }
+    ],
+    whistleRange: 256,
+    whistle: [[' N ', 'IPI', ' I '], { N: 'minecraft:gold_nugget', I: 'minecraft:iron_ingot', P: 'minecraft:ender_pearl' }]
+  },
+
+  // ---- Charms: carry one anywhere in your inventory for its effect (the strongest of each kind counts) ----
+  // effects: [effect, amplifier]. magnet: pulls items within that many blocks to you. Never adds hearts.
+  charms: {
+    list: [
+      { id: 'haste_charm', name: 'Charm of Haste', effects: [['minecraft:haste', 1]], extra: 'minecraft:golden_pickaxe' },
+      { id: 'swift_charm', name: 'Charm of Swiftness', effects: [['minecraft:speed', 1]], extra: 'minecraft:sugar' },
+      { id: 'owl_charm', name: 'Owl Charm', effects: [['minecraft:night_vision', 0]], extra: 'minecraft:golden_carrot' },
+      { id: 'ember_charm', name: 'Ember Charm', effects: [['minecraft:fire_resistance', 0]], extra: 'minecraft:magma_cream' },
+      { id: 'tide_charm', name: 'Tide Charm', effects: [['minecraft:water_breathing', 0], ['minecraft:dolphins_grace', 0]], extra: 'minecraft:nautilus_shell' },
+      { id: 'iron_charm', name: 'Iron Charm', effects: [['minecraft:resistance', 0]], extra: 'minecraft:iron_block' },
+      { id: 'luck_charm', name: 'Lucky Charm', effects: [['minecraft:luck', 2]], extra: 'minecraft:rabbit_foot' },
+      { id: 'leap_charm', name: 'Leaping Charm', effects: [['minecraft:jump_boost', 1]], extra: 'minecraft:slime_ball' },
+      { id: 'magnet_charm', name: 'Magnet Charm', effects: [], magnet: 8, extra: 'minecraft:lodestone' },
+      { id: 'ascended_charm', name: 'Ascended Charm', effects: [['minecraft:haste', 2], ['minecraft:speed', 2], ['minecraft:night_vision', 0], ['minecraft:fire_resistance', 0],
+        ['minecraft:water_breathing', 0], ['minecraft:dolphins_grace', 0], ['minecraft:resistance', 1], ['minecraft:luck', 3], ['minecraft:jump_boost', 1]], magnet: 16, extra: 'kubejs:ascended_soul' }
+    ],
+    // Every charm: gold around its ingredient (`extra`) and a core. The Ascended Charm: every other charm around a Soul
+    recipe: [['GNG', 'NXN', 'GCG'], { G: 'minecraft:gold_ingot', N: 'minecraft:gold_nugget', C: 'kubejs:ascension_core' }],
+    everyTicks: 40
+  },
+
   // ---- Factory Room TNT: blasts out a ready-made underground room ----
   // Right-click a block with one. After the fuse it hollows out a room in front of you (width x length x height inside),
   // lines the floor, walls and roof with the style's block, sets its lights into the roof every lightSpacing blocks and
@@ -1307,7 +1349,8 @@ global.FA = {
       crystal_spider: 1, spark_spider: 2, cinder_spider: 0, ascendite_creeper: 3, frost_creeper: 1, essence_slime: 5, rust_slime: 1,
       ore_mite: 1, teal_wisp: 0, void_stalker: 0, factory_raider: 4, ember_hen: 0, copper_cow: 0,
       bog_lurker: 1, sand_wraith: 1, thunder_creeper: 2, brass_sentinel: 4, shadow_skeleton: 3, cave_weaver: 1, moss_slime: 0, glow_mite: 1,
-      storm_wisp: 6, treasure_raider: 3, rust_colossus: 8, broodmother: 8, hollow_king: 12, wisp_tyrant: 10
+      storm_wisp: 6, treasure_raider: 3, rust_colossus: 8, broodmother: 8, hollow_king: 12, wisp_tyrant: 10,
+      astral_wisp: 12, void_knight: 12, astral_sovereign: 12, void_behemoth: 12   // Realm only (its danger starts at realmBonus)
     },
     // Bosses: on top of minDanger, only `chance` of their natural spawns go through, and never within `spacing`
     // blocks of another of the same boss. Each has a boss bar, calls minions at 2/3 and 1/3 health and enrages at 1/4.
@@ -1315,7 +1358,9 @@ global.FA = {
       rust_colossus: { chance: 0.3, spacing: 300 },
       broodmother: { chance: 0.3, spacing: 300 },
       hollow_king: { chance: 0.25, spacing: 400 },
-      wisp_tyrant: { chance: 0.3, spacing: 300 }
+      wisp_tyrant: { chance: 0.3, spacing: 300 },
+      astral_sovereign: { chance: 0.25, spacing: 400 },
+      void_behemoth: { chance: 0.25, spacing: 400 }
     }
   },
 
@@ -2058,6 +2103,9 @@ global.FA_meteorPool = () => {
   put(P.ascendium, gear('ascendium'))
   put(P.mythicTomes, tomes(e => e.mythic))
   put(P.souls, [k('ascended_soul')])
+  FA.pets.collars.forEach((c, i) => put(P.collars[Math.min(i, P.collars.length - 1)], [k(c.id)]))
+  put(P.whistle, [k('pet_whistle')])
+  FA.charms.list.forEach(c => put(c.id == 'ascended_charm' ? P.ascendedCharm : P.charms, [k(c.id)]))
   put(P.ultimateTomes, tomes(e => e.ultimate))
   Object.keys(FA.gems.types).forEach(type => P.gems.forEach((t, i) => put(t, [global.FA_gemId(type, i + 1)])))
   FA.roomCharges.styles.forEach(st => FA.roomCharges.sizes.forEach((sz, i) => put(P.roomTnt[i], [k('room_tnt_' + st.id + '_' + sz.id)])))

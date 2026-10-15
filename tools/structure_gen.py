@@ -72,16 +72,12 @@ def main():
                                                                       "max_inclusive": {"absolute": how[2]}}})
         place.append({"type": "minecraft:biome"})
         A.write_json(os.path.join(DATA, "worldgen", "placed_feature", s + ".json"), {"feature": NS + ":" + s, "placement": place})
-        if where == "overworld":
-            A.write_json(os.path.join(DATA, "forge", "biome_modifier", "structure_" + s + ".json"), {
-                "type": "forge:add_features", "biomes": "#minecraft:is_overworld", "features": placed_id(s),
-                "step": "surface_structures" if how == "surface" else "underground_structures"})
+        A.write_json(os.path.join(DATA, "forge", "biome_modifier", "structure_" + s + ".json"), {
+            "type": "forge:add_features", "biomes": "#minecraft:is_overworld" if where == "overworld" else "#factoryascension:is_realm",
+            "features": placed_id(s), "step": "surface_structures" if how == "surface" else "underground_structures"})
         A.write_json(os.path.join(DATA, "loot_tables", "chests", s + ".json"), {"type": "minecraft:chest", "pools": LOOT[s]})
     print("wrote %d structures" % len(STRUCTURES))
 
-
-# For realm_gen.py: the Realm's structures by generation step
-REALM_STEPS = {4: [placed_id("realm_vault")], 5: [placed_id("sky_shrine")]}
 
 if __name__ == "__main__":
     main()

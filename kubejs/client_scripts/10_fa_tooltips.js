@@ -630,6 +630,17 @@ ItemEvents.tooltip(event => {
     made('Ascendite Ingots, like iron armor. Repair with Ascendite Ingots in an anvil.'),
     tip('Takes Ascended enchants like any gear: hold a tome in your other hand and right-click'), nextTier('ascendite')]))
   // ---- The Factory Ascension mod's blocks and spawn eggs (Full download) ----
+  // Pets and charms (kubejs items, both downloads)
+  FA.pets.collars.forEach((c, i) => details('kubejs:' + c.id, 'A good pet deserves good gear.', () => [
+    use('right-clicking your own tamed pet: ' + c.health + ' health, ' + c.attack + ' attack, ' + c.armor + ' armor, and no fire or fall damage'),
+    tip(i == 0 ? 'Wolves, cats, parrots, horses... any pet you tamed' : 'It must already wear a ' + FA.pets.collars[i - 1].name)]))
+  details('kubejs:pet_whistle', 'Here, boy!', () => [use('calling your pets within ' + FA.pets.whistleRange + ' blocks to you (sitting ones stay put)')])
+  FA.charms.list.forEach(c => details('kubejs:' + c.id, c.id == 'ascended_charm' ? 'Every charm, at once, stronger.' : 'Keep it in your pocket.', () => [
+    use(c.effects.length ? 'carrying it anywhere in your inventory: ' + c.effects.map(fx => faItemName(fx[0]).replace(/^minecraft:/, '').replace(/_/g, ' ') + ' ' + (fx[1] + 1)).join(', ')
+      : 'carrying it anywhere in your inventory'),
+    c.magnet ? tip('Pulls items within ' + c.magnet + ' blocks to you') : tip('The strongest charm of each kind counts'),
+    tip(c.id == 'ascended_charm' ? 'Made from eight charms and an Ascended Soul' : 'Gold around ' + faItemName(c.extra) + ' and a core')]))
+
   if (Platform.isLoaded('factoryascension')) {
     let M = FA.machines, EN = M.engine
     // "4 Iron Ingot, 2 Shaft" from a shaped recipe in the config

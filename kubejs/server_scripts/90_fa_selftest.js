@@ -310,6 +310,42 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     check('raw food cooks in a furnace, smoker and campfire', cooks.length == 3, cooks.join(', '))
   })
 
+  // ---- Pets and charms: collars in order, the whistle, charm effects and the magnet ----
+  attempt('pets and charms', () => {
+    let wolf = spawn('minecraft:wolf', X - 8, Y, Z - 8)
+    ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => wolf.getPersistentData().remove(k))
+    wolf.tame(player)
+    let refused = global.FA_applyCollar(wolf, 1)
+    let ok = global.FA_applyCollar(wolf, 0)
+    let C0 = global.FA.pets.collars[0]
+    let hp = wolf.getMaxHealth()
+    check('Ascension Collar: a tamed wolf refuses the Voidsteel Collar first ("' + refused + '"), then takes the Ascendite one (' + hp + ' max health)',
+      refused.length > 0 && ok == '' && hp >= C0.health && wolf.getPersistentData().getInt('fa_collar') == 1, refused + ' / ' + ok + ' / ' + hp)
+    wolf.setPositionAndRotation(X - 20, Y, Z - 20, 0, 0)
+    let called = global.FA_whistle(player)
+    let dist = Math.sqrt(Math.pow(wolf.getX() - player.getX(), 2) + Math.pow(wolf.getZ() - player.getZ(), 2))
+    check('Pet Whistle: calls the wolf back from 17 blocks away (' + called + ' called, now ' + dist.toFixed(1) + ' blocks away)', called >= 1 && dist < 2, called + ' / ' + dist)
+    player.removeAllEffects()
+    player.getInventory().setItem(20, Item.of('kubejs:iron_charm'))
+    player.getInventory().setItem(21, Item.of('kubejs:magnet_charm'))
+    let stick = level.createEntity('minecraft:item')
+    stick.setItem(Item.of('minecraft:stick'))
+    stick.setPosition(player.getX() + 5, player.getY(), player.getZ())
+    stick.spawn()
+    let got = global.FA_charmTick(player)
+    let pulled = Math.abs(stick.getX() - player.getX()) < 1
+    check('charms: an Iron Charm anywhere in the inventory gives Resistance, a Magnet Charm pulls a stick 5 blocks away (' + JSON.stringify(got) + ')',
+      player.hasEffect($STEffects.DAMAGE_RESISTANCE) && pulled, player.hasEffect($STEffects.DAMAGE_RESISTANCE) + ' / ' + pulled)
+    stick.discard()
+    player.getInventory().setItem(20, Item.of('minecraft:air'))
+    player.getInventory().setItem(21, Item.of('minecraft:air'))
+    player.removeAllEffects()
+    let recipesMissing = global.FA.pets.collars.map(c => 'collar_' + c.id).concat(['pet_whistle', 'charm_ascended'])
+      .concat(global.FA.charms.list.filter(c => c.id != 'ascended_charm').map(c => 'charm_' + c.id))
+      .filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent())
+    check('every collar, the whistle and every charm has a recipe', recipesMissing.length == 0, recipesMissing.join(', '))
+  })
+
   // ---- Rock Hammer: hand mode and block mode, through Minecraft's own click handling ----
   attempt('rock hammer', () => {
     player.getCooldowns().removeCooldown(Item.of('kubejs:rock_hammer').getItem())
@@ -619,8 +655,10 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let realmLevel = server.getLevel('factoryascension:ascended_realm')
     let realmCounts = {}
     if (realmLevel) {
+      // A fresh spot each run, so this checks newly generated terrain
+      let rbx = 16 * Math.floor(20000 + Math.random() * 40000), rbz = 16 * Math.floor(20000 + Math.random() * 40000)
       for (let rx = 0; rx < 48; rx += 2) for (let rz = 0; rz < 48; rz += 2) for (let ry = 0; ry < 256; ry += 2) {
-        let rid = String(realmLevel.getBlock(4096 + rx, ry, 4096 + rz).id)
+        let rid = String(realmLevel.getBlock(rbx + rx, ry, rbz + rz).id)
         if (rid.indexOf('factoryascension:') == 0) realmCounts[rid.split(':')[1]] = (realmCounts[rid.split(':')[1]] || 0) + 1
       }
     }
@@ -687,6 +725,13 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     }
     check('Structures: Factory Ruin, Ascension Crypt, Realm Vault and Sky Shrine build, fill their chests and set their spawners (' + JSON.stringify(stOut) + ')',
       stOut.ruin > 0 && stOut.crypt > 1 && stOut.cryptMob && stOut.vault > 1 && stOut.vaultMob && stOut.shrine > 0, JSON.stringify(stOut))
+    // The Realm's own mobs and bosses: they exist and the bosses get a boss bar
+    let realmMobs = ['astral_wisp', 'void_knight', 'astral_sovereign', 'void_behemoth'].map(m => {
+      let e = spawn('factoryascension:' + m, X + 6, Y, Z - 26)
+      let ok = !!e && e.isAlive()
+      return m + (ok ? '' : ' (missing)')
+    })
+    check('the Realm mobs spawn: ' + realmMobs.join(', '), realmMobs.every(m => m.indexOf('missing') < 0), realmMobs.join(', '))
     // Ascension Workbench: two halves; Apply puts an attachment on a sword, Star Up adds a Legendary star
     let benchPos = place(X + 26, Y, Z + 16, 'minecraft:air')
     level.getBlock(benchPos).set('factoryascension:ascension_workbench', { facing: 'north', main: 'true' })

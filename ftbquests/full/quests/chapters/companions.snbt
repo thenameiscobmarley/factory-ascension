@@ -1,0 +1,155 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "companions"
+	group: ""
+	icon: "kubejs:ascendite_collar"
+	id: "951232A3F935188B"
+	order_index: 5
+	quest_links: [ ]
+	quests: [
+		{
+			dependencies: [ ]
+			description: [
+				"Iron, an Ender Pearl and a gold nugget. Right-click to call your pets to you."
+			]
+			icon: "kubejs:pet_whistle"
+			id: "C830131F33F34820"
+			rewards: [
+				{
+					count: 16
+					id: "1592F57080A90990"
+					item: "minecraft:bone"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "74B69100F5FA2734"
+					item: "kubejs:pet_whistle"
+					type: "item"
+				}
+			]
+			title: "Here, Boy!"
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"C830131F33F34820"
+			]
+			description: [
+				"Right-click your own tamed pet with it: 60 health, 8 attack, 6 armor, and no fire or fall damage."
+				"Each collar after it needs the one before."
+			]
+			icon: "kubejs:ascendite_collar"
+			id: "423E4DD0D5592AF0"
+			rewards: [
+				{
+					count: 4
+					id: "1EDD5E072ED18CCD"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "65058CBBCC79AB76"
+					item: "kubejs:ascendite_collar"
+					type: "item"
+				}
+			]
+			title: "A Good Collar"
+			x: 2.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [
+				"423E4DD0D5592AF0"
+			]
+			description: [
+				"The Singularity Collar: 4,000 health and 500 attack. Your wolf is the boss now."
+			]
+			icon: "kubejs:singularity_collar"
+			id: "618991C9883D43E6"
+			rewards: [
+				{
+					count: 1
+					id: "D14608600EA16D99"
+					item: "kubejs:ascended_soul"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "75A547601354D5B5"
+					item: "kubejs:singularity_collar"
+					type: "item"
+				}
+			]
+			title: "Best in Show"
+			x: 4.0d
+			y: 0.0d
+		}
+		{
+			dependencies: [ ]
+			description: [
+				"Charms work from anywhere in your inventory. Gold around an ingredient and a core."
+			]
+			icon: "kubejs:luck_charm"
+			id: "AC777B5B39FFD27A"
+			rewards: [
+				{
+					count: 1
+					id: "5AAB06AF1AEEDE36"
+					item: "kubejs:enchantment_pack"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "06906372F720C860"
+					item: "kubejs:luck_charm"
+					type: "item"
+				}
+			]
+			title: "Lucky Charm"
+			x: 0.0d
+			y: 2.0d
+		}
+		{
+			dependencies: [
+				"AC777B5B39FFD27A"
+			]
+			description: [
+				"Eight charms and an Ascended Soul: every effect, stronger, and a 16-block magnet."
+			]
+			icon: "kubejs:ascended_charm"
+			id: "65F9B42DC6328683"
+			rewards: [
+				{
+					count: 1
+					id: "5BB3C64592110547"
+					item: "kubejs:booster_box"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "5921D1BDD50DA8B1"
+					item: "kubejs:ascended_charm"
+					type: "item"
+				}
+			]
+			title: "All of Them"
+			x: 2.0d
+			y: 2.0d
+		}
+	]
+	title: "Pets and Charms"
+}

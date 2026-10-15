@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#factoryascension:is_realm",
+  "features": "factoryascension:sky_shrine",
+  "step": "surface_structures"
+}

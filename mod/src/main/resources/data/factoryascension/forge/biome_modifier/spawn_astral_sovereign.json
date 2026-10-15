@@ -1,0 +1,10 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#factoryascension:is_realm",
+  "spawners": {
+    "type": "factoryascension:astral_sovereign",
+    "weight": 1,
+    "minCount": 1,
+    "maxCount": 1
+  }
+}

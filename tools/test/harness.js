@@ -402,8 +402,8 @@ check('486 enchants (59 + 15 Mythic + 200 Fusion + 200 Triad + 12 Ultimate)', en
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.attachments.batteries.length + global.FA.machines.miniCrusher.motors.length + global.FA.foils.types.length +
-  global.FA.roomCharges.styles.length * global.FA.roomCharges.sizes.length, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT + collars + whistle + charms)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.attachments.batteries.length + global.FA.machines.miniCrusher.motors.length + global.FA.foils.types.length +
+  global.FA.roomCharges.styles.length * global.FA.roomCharges.sizes.length + global.FA.pets.collars.length + 1 + global.FA.charms.list.length, created.length)
 var vanillaMobs = {}
 MF.foods.forEach(function (fd) { fd.mobs.forEach(function (m) { vanillaMobs[m] = true }) })
 check(MF.foods.length + ' mob parts for ' + Object.keys(vanillaMobs).length + ' mobs: raw ones make you sick, cooked ones feed you and give their buff, both edible on a full stomach',
@@ -2118,6 +2118,8 @@ check('the Enchantment Pack model only tilts by angles Minecraft accepts (0, 22.
 // ---------------- Missing-mod guard ----------------
 print('\nmod guard')
 var phIds = global.FA_MOD_CONTENT.blocks.concat(global.FA_MOD_CONTENT.items).map(function (i) { return 'factoryascension:' + i })
+var phSeen = {}, phDupes = placeholders.filter(function (i) { var d = phSeen[i]; phSeen[i] = true; return d })
+check('no placeholder id is registered twice (a block brings its own item; twice stops the game without the jar)', phDupes.length == 0, phDupes.join(', '))
 check('without the jar, every mod block and item (' + phIds.length + ') gets a placeholder, so worlds keep them',
   phIds.length >= 50 && phIds.every(function (i) { return placeholders.indexOf(i) >= 0 }), phIds.filter(function (i) { return placeholders.indexOf(i) < 0 }).slice(0, 5).join())
 Platform.getInfo = function (id) { return { getName: function () { return id == 'factoryascension' ? 'Factory Ascension' : id } } }
@@ -2452,7 +2454,7 @@ var modParts = cfgText.match(/mobs: \['factoryascension:(\w+)'\]/g) || []
 var MM = global.FA.modMobs
 check('every one of the mod\'s ' + Object.keys(MM.minDanger).length + ' mobs drops its own part (' + modParts.length + ')',
   Object.keys(MM.minDanger).length >= 34 && Object.keys(MM.minDanger).every(function (id) { return cfgText.indexOf("mobs: ['factoryascension:" + id + "']") >= 0 }))
-check('bosses are deep, rare and spread out, and drop an Ascended Soul', Object.keys(MM.bosses).length == 4 && Object.keys(MM.bosses).every(function (id) {
+check('bosses are deep, rare and spread out, and drop an Ascended Soul', Object.keys(MM.bosses).length >= 6 && Object.keys(MM.bosses).every(function (id) {
   var lootText = String(new java.lang.String(java.nio.file.Files.readAllBytes(new java.io.File('mod/src/main/resources/data/factoryascension/loot_tables/entities/' + id + '.json').toPath()), 'UTF-8'))
   return MM.minDanger[id] >= 8 && MM.bosses[id].chance < 1 && MM.bosses[id].spacing >= 200 && lootText.indexOf('kubejs:ascended_soul') >= 0 }))
 
