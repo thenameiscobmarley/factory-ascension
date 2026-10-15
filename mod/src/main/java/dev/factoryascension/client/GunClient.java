@@ -75,6 +75,25 @@ public final class GunClient {
         }
     }
 
+    /**
+     * Oculus binds R to "reload shaders" too, so every shotgun reload would also reload the shader pack (a long
+     * freeze). Once, if both are on R, the shader key is unbound (it's a debugging key; rebind it in Controls if wanted).
+     */
+    public static void fixOculusReloadKey() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.options == null || FAClientConfig.OCULUS_KEY_MOVED.get()) return;
+        for (KeyMapping k : mc.options.keyMappings) {
+            if (k.getName().equals("iris.keybind.reload") && k.getKey().equals(RELOAD.getKey())) {
+                k.setKey(InputConstants.UNKNOWN);
+                KeyMapping.resetMapping();
+                mc.options.save();
+                org.slf4j.LoggerFactory.getLogger("Factory Ascension").info("Unbound Oculus's reload-shaders key (it was R, the shotgun's reload)");
+            }
+        }
+        FAClientConfig.OCULUS_KEY_MOVED.set(true);
+        FAClientConfig.OCULUS_KEY_MOVED.save();
+    }
+
     // ---- Forge bus: input, zoom, recoil ----
     @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static final class Events {

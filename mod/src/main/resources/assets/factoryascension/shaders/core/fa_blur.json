@@ -1,0 +1,35 @@
+{
+ "vertex": "factoryascension:fa_fullscreen",
+ "fragment": "factoryascension:fa_blur",
+ "attributes": [
+  "Position"
+ ],
+ "samplers": [
+  {
+   "name": "DiffuseSampler"
+  },
+  {
+   "name": "DepthSampler"
+  }
+ ],
+ "uniforms": [
+  {
+   "name": "OutSize",
+   "type": "float",
+   "count": 2,
+   "values": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "Direction",
+   "type": "float",
+   "count": 2,
+   "values": [
+    1,
+    0
+   ]
+  }
+ ]
+}

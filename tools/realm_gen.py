@@ -228,8 +228,11 @@ def worldgen(lang):
         steps[6] = ore_ids
         steps[9] = [NS + ":realm_crystal_" + b]
         monsters = [{"type": "minecraft:enderman", "weight": 20, "minCount": 1, "maxCount": 2}]
+        # By a one-biome tag, not the biome's id: the biomes live in the KubeJS data, and a jar loaded without it must
+        # still start (a missing tag is just empty; a missing biome stops the world loading)
+        A.write_json(os.path.join(KDATA, "tags", "worldgen", "biome", "realm_" + b + ".json"), {"replace": False, "values": [NS + ":" + b]})
         A.write_json(os.path.join(DATA, "forge", "biome_modifier", "realm_mobs_" + b + ".json"), {
-            "type": "forge:add_spawns", "biomes": NS + ":" + b,
+            "type": "forge:add_spawns", "biomes": "#" + NS + ":realm_" + b,
             "spawners": [{"type": NS + ":" + m, "weight": w, "minCount": 1, "maxCount": 2} for m, w in mobs + COMMON_MOBS]})
         feature("biome/" + b, {"has_precipitation": False, "temperature": 0.5, "downfall": 0.0,
             "effects": {"sky_color": sky, "fog_color": fog, "water_color": 0x40e8d4, "water_fog_color": 0x1c0f30,

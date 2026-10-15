@@ -1,0 +1,42 @@
+{
+ "vertex": "factoryascension:fa_fullscreen",
+ "fragment": "factoryascension:fa_rays",
+ "attributes": [
+  "Position"
+ ],
+ "samplers": [
+  {
+   "name": "DiffuseSampler"
+  },
+  {
+   "name": "DepthSampler"
+  }
+ ],
+ "uniforms": [
+  {
+   "name": "SunPos",
+   "type": "float",
+   "count": 2,
+   "values": [
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "name": "RayStrength",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "Steps",
+   "type": "int",
+   "count": 1,
+   "values": [
+    32
+   ]
+  }
+ ]
+}

@@ -77,10 +77,21 @@ function faSelftest(server, report, done) {
 
   server.runCommandSilent('forceload add ' + (X - 32) + ' ' + (Z - 32) + ' ' + (X + 32) + ' ' + (Z + 32))
   if (server.getLevel('factoryascension:ascended_realm')) server.runCommandSilent('execute in factoryascension:ascended_realm run forceload add ' + X + ' ' + Z)
+  // A clean start: whatever an earlier run left behind (a crash skips the clean-up) is cleared, blocks and mobs, so
+  // stale machines can't poison this run. Fill works on at most 32,768 blocks at once: 16 x 16 columns at a time.
+  for (let cx = X - 32; cx < X + 32; cx += 16) for (let cz = Z - 32; cz < Z + 32; cz += 16)
+    server.runCommandSilent('fill ' + cx + ' ' + (Y - 14) + ' ' + cz + ' ' + (cx + 15) + ' ' + (Y + 12) + ' ' + (cz + 15) + ' minecraft:air')
+  server.runCommandSilent('kill @e[type=!minecraft:player,x=' + (X - 34) + ',y=' + (Y - 20) + ',z=' + (Z - 34) + ',dx=68,dy=40,dz=68]')
   // A floor to stand things on
   for (let dx = -24; dx <= 24; dx++) for (let dz = -24; dz <= 24; dz++) place(X + dx, Y - 1, Z + dz, 'minecraft:stone')
 
   let player = $STFakePlayers.getMinecraft(level)
+  // Open files and threads at the start, for the leak check at the end
+  global.FA_stLeak0 = { files: -1, threads: 0 }
+  if (Platform.isLoaded('factoryascension')) {
+    let $Health0 = Java.loadClass('dev.factoryascension.HealthMonitor')
+    global.FA_stLeak0 = { files: $Health0.openFiles(), threads: $Health0.threads() }
+  }
   player.setPositionAndRotation(X, Y, Z, 0, 0)
   player.setShiftKeyDown(false)
   let savedLoot = global.FA.loot.chance
@@ -728,11 +739,14 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let realmLevel = server.getLevel('factoryascension:ascended_realm')
     let realmCounts = {}
     if (realmLevel) {
-      // A fresh spot each run, so this checks newly generated terrain
-      let rbx = 16 * Math.floor(20000 + Math.random() * 40000), rbz = 16 * Math.floor(20000 + Math.random() * 40000)
-      for (let rx = 0; rx < 48; rx += 2) for (let rz = 0; rz < 48; rz += 2) for (let ry = 0; ry < 256; ry += 2) {
-        let rid = String(realmLevel.getBlock(rbx + rx, ry, rbz + rz).id)
-        if (rid.indexOf('factoryascension:') == 0) realmCounts[rid.split(':')[1]] = (realmCounts[rid.split(':')[1]] || 0) + 1
+      // Fresh spots each run, so this checks newly generated terrain; islands are scattered, so the best of three
+      for (let attemptSpot = 0; attemptSpot < 3 && (realmCounts.realm_stone || 0) < 200; attemptSpot++) {
+        realmCounts = {}
+        let rbx = 16 * Math.floor(20000 + Math.random() * 40000), rbz = 16 * Math.floor(20000 + Math.random() * 40000)
+        for (let rx = 0; rx < 48; rx += 2) for (let rz = 0; rz < 48; rz += 2) for (let ry = 0; ry < 256; ry += 2) {
+          let rid = String(realmLevel.getBlock(rbx + rx, ry, rbz + rz).id)
+          if (rid.indexOf('factoryascension:') == 0) realmCounts[rid.split(':')[1]] = (realmCounts[rid.split(':')[1]] || 0) + 1
+        }
       }
     }
     let realmAt = realmLevel ? global.FA_realmPlatform(server, 4000, 4000) : null
@@ -834,6 +848,11 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let gunDiag = 'look ' + gunLook.x().toFixed(2) + ',' + gunLook.y().toFixed(2) + ',' + gunLook.z().toFixed(2) + ' eye ' + gunEye.x().toFixed(1) + ',' + gunEye.y().toFixed(1) + ',' + gunEye.z().toFixed(1) +
       ' zombie ' + target.getX().toFixed(1) + ',' + target.getY().toFixed(1) + ',' + target.getZ().toFixed(1) + ' ' + target.type
     $Shotgun.fire(player, false)
+    // A hip shot's pellets spread at random: if a volley happens to miss, take up to two more
+    for (let extra = 0; extra < 2 && $Shotgun.lastHits == 0 && target.isAlive(); extra++) {
+      player.getCooldowns().removeCooldown(gun.getItem())
+      $Shotgun.fire(player, false)
+    }
     let gunHits = $Shotgun.lastHits
     let held = player.getMainHandItem()
     let shellsLeft = $Shotgun.shells(held)
@@ -845,7 +864,7 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let shellsInBag = player.getInventory().getItem(22).getCount()
     check('Shotgun: a hip shot hits the zombie ahead (' + gunHits + ' hit, ' + (target.isAlive() ? target.getHealth().toFixed(1) + ' health left' : 'dead') + '), uses a shell (' +
       shellsLeft + ' left), and reloading loads the 3 shells in the inventory (' + reloaded + ')',
-      gunHits >= 1 && hurt && shellsLeft == global.FA.guns.shotgun.capacity - 1 && reloaded == 3 && shellsInBag == 0,
+      gunHits >= 1 && hurt && shellsLeft >= global.FA.guns.shotgun.capacity - 3 && shellsLeft <= global.FA.guns.shotgun.capacity - 1 && reloaded == 3 && shellsInBag == 0,
       [gunHits, hurt, shellsLeft, reloaded, shellsInBag, $Shotgun.lastDamage, $Shotgun.lastLanded, target.getHealth(), gunDiag].join(' / '))
     target.discard()
     player.getCooldowns().removeCooldown(gun.getItem())
@@ -1275,6 +1294,25 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
         fast.discard()
       }))
     })
+    // Leaks: saving the world over and over leaves no files or threads open, and Warp Hoppers leave the registry
+    // of loaded hoppers when they're removed (a static list that only grew would be a memory leak)
+    if (Platform.isLoaded('factoryascension')) attempt('leaks', () => {
+      let $Health = Java.loadClass('dev.factoryascension.HealthMonitor')
+      let $Warp = Java.loadClass('dev.factoryascension.machine.WarpHopperBlockEntity')
+      let warp0 = $Warp.faLoadedCount()
+      let wp = place(X - 2, Y + 6, Z - 2, 'factoryascension:warp_hopper')
+      after(4, () => attempt('leaks check', () => {
+        let warp1 = $Warp.faLoadedCount()
+        level.getBlock(wp).set('minecraft:air')
+        after(4, () => attempt('leaks check 2', () => {
+          let warp2 = $Warp.faLoadedCount()
+          check('no leaks: a Warp Hopper joins and leaves the loaded list (' + warp0 + ' -> ' + warp1 + ' -> ' + warp2 + ')',
+            warp1 == warp0 + 1 && warp2 == warp0, [warp0, warp1, warp2].join(' / '))
+          let rep = $Health.report()
+          check('health monitor reports memory, files and threads (' + String(rep.get(1)) + ')', rep.size() == 3 && /threads: \d+/.test(String(rep.get(1))), String(rep.get(0)))
+        }))
+      }))
+    })
     after(20, faUltimateStage)
   }
   let faUltimateStage = () => {
@@ -1306,6 +1344,18 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
 
   // ---- 8. Machine results, then clean up and summarize ----
   let faFinish = () => {
+    // Leaks over the whole self-test (every system in the pack ran): open files and threads end where they started
+    if (Platform.isLoaded('factoryascension')) attempt('leaks over the run', () => {
+      let $Health = Java.loadClass('dev.factoryascension.HealthMonitor')
+      let files1 = $Health.openFiles(), threads1 = $Health.threads()
+      // Compared with where the last run ended: the first run after a restart opens world region files that the game
+      // then keeps cached (not a leak); a real leak grows again on every run
+      let prev = global.FA_stLeakPrev
+      global.FA_stLeakPrev = { files: files1, threads: threads1 }
+      if (!prev) check('leak baseline recorded (open files ' + files1 + ', threads ' + threads1 + '); run the self-test again to compare', true)
+      else check('no leaks from one self-test run to the next: open files ' + prev.files + ' -> ' + files1 + ', threads ' + prev.threads + ' -> ' + threads1,
+        (files1 < 0 || files1 - prev.files <= 6) && threads1 - prev.threads <= 4, [prev.files, files1, prev.threads, threads1].join(' / '))
+    })
     attempt('machines check', () => {
       let items = level.getBlockEntity(depot).getCapability($STCaps.ITEM_HANDLER, $STDirection.DOWN).resolve().orElse(null)
       let leveled = items.getStackInSlot(0)

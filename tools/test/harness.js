@@ -2458,6 +2458,61 @@ check('bosses are deep, rare and spread out, and drop an Ascended Soul', Object.
   var lootText = String(new java.lang.String(java.nio.file.Files.readAllBytes(new java.io.File('mod/src/main/resources/data/factoryascension/loot_tables/entities/' + id + '.json').toPath()), 'UTF-8'))
   return MM.minDanger[id] >= 8 && MM.bosses[id].chance < 1 && MM.bosses[id].spacing >= 200 && lootText.indexOf('kubejs:ascended_soul') >= 0 }))
 
+// ---------------- The jar must load without the KubeJS data (the Realm's biomes and dimension live there) ----------------
+print('\njar without the scripts')
+var jarRefs = []
+;(function walk(dir) {
+  var files = new java.io.File(dir).listFiles()
+  if (!files) return
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i]
+    if (f.isDirectory()) { walk(f.getPath()); continue }
+    if (!/\.json$/.test(String(f.getName()))) continue
+    var text = String(new java.lang.String(java.nio.file.Files.readAllBytes(f.toPath()), 'UTF-8'))
+    if (/"factoryascension:(ascended_shelf|void_garden|astral_peaks|ascended_realm)"/.test(text)) jarRefs.push(String(f.getName()))
+  }
+})('mod/src/main/resources/data')
+check('the mod jar never names a Realm biome or the Realm itself directly (only by tag), so it starts without the scripts', jarRefs.length == 0, jarRefs.join(', '))
+
+// ---------------- Leaks in the mod's code: whatever opens a file, stream, image or thread must close it ----------------
+print('\nresource leaks (static)')
+var leakSpots = []
+;(function walk(dir) {
+  var files = new java.io.File(dir).listFiles()
+  if (!files) return
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i]
+    if (f.isDirectory()) { walk(f.getPath()); continue }
+    if (!/\.java$/.test(String(f.getName()))) continue
+    var lines = String(new java.lang.String(java.nio.file.Files.readAllBytes(f.toPath()), 'UTF-8')).split('\n')
+    for (var n = 0; n < lines.length; n++) {
+      var line = lines[n]
+      if (!/new FileInputStream|new FileOutputStream|Files\.new(In|Out)putStream|new ZipOutputStream|new ZipFile|NativeImage\.read\(|new NativeImage\(|Files\.walk\(|Files\.list\(/.test(line)) continue
+      if (/try \(/.test(line) || /try \(\w+\)/.test(lines.slice(n, n + 4).join(' '))) continue   // try-with-resources closes it
+      // Otherwise its variable must be closed in a finally block within the next 80 lines
+      var m = line.match(/(\w+)\s*=\s*(new |NativeImage\.read|Files\.)/)
+      var name = m ? m[1] : null
+      var rest = lines.slice(n, n + 80).join('\n')
+      if (name && new RegExp('finally[\\s\\S]*' + name + '\\.close\\(\\)').test(rest)) continue
+      leakSpots.push(String(f.getName()) + ':' + (n + 1))
+    }
+  }
+})('mod/src/main/java')
+check('every file, stream, zip and image the mod opens is closed (try-with-resources, or close() in finally)', leakSpots.length == 0, leakSpots.join(', '))
+var threadSpots = []
+;(function walk(dir) {
+  var files = new java.io.File(dir).listFiles()
+  if (!files) return
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i]
+    if (f.isDirectory()) { walk(f.getPath()); continue }
+    if (!/\.java$/.test(String(f.getName()))) continue
+    var text = String(new java.lang.String(java.nio.file.Files.readAllBytes(f.toPath()), 'UTF-8'))
+    if (/new Thread\(/.test(text) && !/setDaemon\((true|false)\)/.test(text)) threadSpots.push(String(f.getName()))
+  }
+})('mod/src/main/java')
+check('every thread the mod starts says whether it may outlive the game (daemon, or on purpose not, like the backup that must finish)', threadSpots.length == 0, threadSpots.join(', '))
+
 // ---------------- Conflicts: a mod that does the same job turns the pack's version off ----------------
 print('\nconflicts')
 var realIsLoaded = Platform.isLoaded

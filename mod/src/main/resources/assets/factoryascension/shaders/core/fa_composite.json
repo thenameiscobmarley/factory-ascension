@@ -1,0 +1,36 @@
+{
+ "vertex": "factoryascension:fa_fullscreen",
+ "fragment": "factoryascension:fa_composite",
+ "attributes": [
+  "Position"
+ ],
+ "samplers": [
+  {
+   "name": "DiffuseSampler"
+  },
+  {
+   "name": "RaySampler"
+  },
+  {
+   "name": "SceneSampler"
+  }
+ ],
+ "uniforms": [
+  {
+   "name": "Mode",
+   "type": "int",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "RaysOn",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1
+   ]
+  }
+ ]
+}

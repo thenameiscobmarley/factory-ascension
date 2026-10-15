@@ -278,6 +278,33 @@ About once every 20 minutes something happens to the whole server:
 
 `/ascension event` shows the current one. Ops can `/ascension event start <bloodMoon|meteorShower|goldenHour>` and `/ascension event stop`.
 
+## Graphics (Full download)
+
+**Pause > Factory Ascension...** has every graphics option, and each one switches off by itself if it ever fails (safe mode),
+so the game keeps running:
+
+- **Ascension Lighting**: screen-space traced lighting: rays marched through the depth of the frame give soft contact
+  shadows in corners and under overhangs, light bounced off nearby surfaces in their colour, and light shafts from the sun
+  and moon. Off / Low / Medium / High plus a strength slider. Standard OpenGL only (AMD and NVIDIA alike). It steps aside
+  by itself when an Oculus shader pack is on.
+- **Smoke**: soft, drifting smoke from explosions and gunfire.
+- **Voxel debris**: broken and blown-up blocks shatter into small 3D pieces of their texture that tumble, bounce and settle.
+- **Water**: foam where waterfalls land and where water flows, bubbles underwater, and a splash ring when something drops in.
+- **Depth pack**: the **Make depth pack...** button builds a LabPBR resource pack on your PC from the textures your game has
+  loaded (every block, item, mob and armor, from every mod), with a height and normal map for each, and turns it on.
+  With **Oculus** and **Complementary Shaders** (both in the pack; Complementary starts in LabPBR mode) every surface gets
+  real parallax depth. Nothing made from Mojang's textures is ever shipped: it's built locally.
+
+Oculus also uses **R** to reload shaders, which is the shotgun's reload key; the mod unbinds Oculus's (once) so a reload
+never freezes the game. Rebind it in Controls if you want it.
+
+## Health checks
+
+The mod watches memory (after garbage collection), open files and threads every 30 seconds and warns in the log and in
+`logs/factoryascension-health.txt` if one keeps growing. `/ascension health` shows the numbers. The self-test and the
+offline checks also look for leaks: saving the world repeatedly must not leave files or threads open, every file, zip and
+image the mod opens is closed, and every thread says whether it may outlive the game.
+
 ## Soulbound
 
 **Soulbound** (tome: Blank Tome + Eye of Ender + Echo Shard, heated) goes on any gear and keeps it with you: it stays in your

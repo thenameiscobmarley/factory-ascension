@@ -1,6 +1,6 @@
 {
   "type": "forge:add_spawns",
-  "biomes": "factoryascension:void_garden",
+  "biomes": "#factoryascension:realm_void_garden",
   "spawners": [
     {
       "type": "factoryascension:void_stalker",

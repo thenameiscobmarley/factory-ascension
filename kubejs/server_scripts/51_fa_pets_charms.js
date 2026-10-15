@@ -171,3 +171,13 @@ ServerEvents.recipes(event => {
   event.shaped('kubejs:unbinding_scroll', [' P ', 'ESE', ' P '], { P: 'minecraft:paper', E: 'minecraft:ender_pearl', S: 'kubejs:ascension_shard' })
     .id('kubejs:factory_ascension/unbinding_scroll')
 })
+
+// /ascension health: memory, open files and threads, and any leak warnings (the mod's health checks, Full download)
+if (Platform.isLoaded('factoryascension')) ServerEvents.commandRegistry(event => {
+  let { commands: Commands } = event
+  event.register(Commands.literal('ascension').then(Commands.literal('health').executes(ctx => {
+    let lines = Java.loadClass('dev.factoryascension.HealthMonitor').report()
+    for (let i = 0; i < lines.size(); i++) ctx.source.sendSystemMessage(Text.gray(String(lines.get(i))))
+    return 1
+  })))
+})

@@ -44,6 +44,9 @@ public class WarpHopperBlockEntity extends BlockEntity {
     }
 
     public String key() { return key; }
+
+    /** How many Warp Hoppers are registered as loaded (the leak check: it must drop again when they're removed). */
+    public static int faLoadedCount() { return LOADED.size(); }
     public long sent() { return sent; }
 
     /** Other loaded Warp Hoppers with this one's key. */

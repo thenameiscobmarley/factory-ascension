@@ -78,6 +78,10 @@ public class FactoryAscension {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+    public static final DeferredRegister<net.minecraft.core.particles.ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MODID);
+    /** Only so its textures (particles/soft_smoke.json) go into the particle atlas; FxParticles draws the smoke itself. */
+    public static final RegistryObject<net.minecraft.core.particles.SimpleParticleType> SOFT_SMOKE = PARTICLES.register("soft_smoke",
+        () -> new net.minecraft.core.particles.SimpleParticleType(false));
 
     private static BlockBehaviour.Properties machine() {
         // noOcclusion: the 3D models don't fill the whole block, so neighbors must still draw their faces
@@ -247,12 +251,14 @@ public class FactoryAscension {
         BLOCK_ENTITIES.register(bus);
         MENUS.register(bus);
         TABS.register(bus);
+        PARTICLES.register(bus);
         FANetwork.register();
         bus.addListener(this::commonSetup);
     }
 
     /** Create's stress numbers for the item tooltips and goggles (the real values come from FAConfig at run time). */
     private void commonSetup(FMLCommonSetupEvent event) {
+        HealthMonitor.start(net.minecraftforge.fml.loading.FMLPaths.GAMEDIR.get());
         event.enqueueWork(() -> {
             if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks")) dev.factoryascension.compat.SophisticatedBackpacks.allowPlacing();
             BlockStressValues.IMPACTS.register(SMELTER.get(), () -> FAConfig.smelterStress[0]);

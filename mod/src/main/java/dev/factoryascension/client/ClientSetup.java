@@ -18,6 +18,7 @@ public final class ClientSetup {
     public static void setup(FMLClientSetupEvent event) {
         ClientConflicts.check();
         event.enqueueWork(() -> {
+            try { GunClient.fixOculusReloadKey(); } catch (Throwable ignored) { }
             MenuScreens.register(FactoryAscension.VAULT_MENU.get(), VaultScreen::new);
             MenuScreens.register(FactoryAscension.BINDER_MENU.get(), BinderScreen::new);
             MenuScreens.register(FactoryAscension.FORGE_MENU.get(), ForgeScreen::new);

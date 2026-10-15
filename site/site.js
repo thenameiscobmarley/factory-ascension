@@ -654,6 +654,7 @@
   $("#mods").innerHTML = [["Create", "create", 1], ["KubeJS", "kubejs", 1], ["Rhino", "rhino", 1], ["Architectury API", "architectury-api", 1],
     ["Create: The Factory Must Grow", "create-industry"], ["Mekanism", "mekanism"], ["JEI", "jei"], ["Waystones", "waystones"], ["Balm", "balm"],
     ["Sophisticated Backpacks", "sophisticated-backpacks"], ["Sophisticated Core", "sophisticated-core"], ["Jade", "jade"], ["Embeddium", "embeddium"],
+    ["Oculus", "oculus"], ["Iris & Oculus Flywheel Compat", "iris-flywheel-compat"],
     ["ModernFix", "modernfix"], ["FerriteCore", "ferritecore"]]
     .map(m => '<a class="chip' + (m[2] ? " req" : "") + '" href="https://www.curseforge.com/minecraft/mc-mods/' + m[1] + '">' + esc(m[0]) + "</a>").join("");
   document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => { copy(b.dataset.copy); b.classList.add("is-active"); setTimeout(() => b.classList.remove("is-active"), 600); }));

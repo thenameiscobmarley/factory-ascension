@@ -123,6 +123,7 @@ public class ShotgunItem extends Item {
         RandomSource r = player.getRandom();
         Map<Entity, Float> hits = new HashMap<>();
         double range = FAConfig.gunRange;
+        int impacts = 0;
         for (int i = 0; i < FAConfig.gunPellets; i++) {
             double a = spread * Math.sqrt(r.nextDouble()), b = r.nextDouble() * Math.PI * 2;
             Vec3 dir = look.add(right.scale(Math.tan(a) * Math.cos(b))).add(up.scale(Math.tan(a) * Math.sin(b))).normalize();
@@ -147,6 +148,7 @@ public class ShotgunItem extends Item {
                 BlockState state = level.getBlockState(pos);
                 level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), stop.x, stop.y, stop.z, 4, 0.05, 0.05, 0.05, 0.1);
                 level.sendParticles(ParticleTypes.SMOKE, stop.x, stop.y, stop.z, 1, 0, 0, 0, 0.01);
+                if (impacts++ < 3) dev.factoryascension.FxEvents.impact(level, stop, pos, state);
                 if (FAConfig.gunBreaksGlass && (state.is(Tags.Blocks.GLASS) || state.is(Tags.Blocks.GLASS_PANES))) level.destroyBlock(pos, false, player);
             }
         }
@@ -164,6 +166,7 @@ public class ShotgunItem extends Item {
         level.sendParticles(ParticleTypes.FLAME, muzzle.x, muzzle.y, muzzle.z, 6, 0.05, 0.05, 0.05, 0.03);
         level.sendParticles(ParticleTypes.LARGE_SMOKE, muzzle.x, muzzle.y, muzzle.z, 3, 0.05, 0.05, 0.05, 0.02);
         level.sendParticles(ParticleTypes.FLASH, muzzle.x, muzzle.y, muzzle.z, 1, 0, 0, 0, 0);
+        dev.factoryascension.FxEvents.smoke(level, muzzle, 0.45f);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 0.8f, 1.7f + r.nextFloat() * 0.1f);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, SoundSource.PLAYERS, 1.2f, 0.55f);
         // A kick back when firing from the hip

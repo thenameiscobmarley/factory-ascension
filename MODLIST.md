@@ -22,6 +22,10 @@ The **Factory Ascension** mod jar (the Full download) isn't on CurseForge; it co
 | [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams-forge) | FTB Quests dependency |
 | [Sophisticated Backpacks](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) | Backpacks; the six Ascension tiers build on it |
 | [Sophisticated Core](https://www.curseforge.com/minecraft/mc-mods/sophisticated-core) | Sophisticated Backpacks dependency |
+| [Embeddium](https://www.curseforge.com/minecraft/mc-mods/embeddium) | Faster rendering; Oculus needs it (client) |
+| [Oculus](https://www.curseforge.com/minecraft/mc-mods/oculus) | Loads shader packs: parallax from the depth pack (client) |
+| [Iris & Oculus Flywheel Compat](https://www.curseforge.com/minecraft/mc-mods/iris-flywheel-compat) | Create's moving parts render correctly with shaders on (client) |
+| [Complementary Shaders - Reimagined](https://www.curseforge.com/minecraft/shaders/complementary-reimagined) | The shader pack, set to LabPBR so it reads the Factory Ascension depth pack |
 
 ## Factory and gear
 

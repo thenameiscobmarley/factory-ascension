@@ -1,6 +1,6 @@
 {
   "type": "forge:add_spawns",
-  "biomes": "factoryascension:astral_peaks",
+  "biomes": "#factoryascension:realm_astral_peaks",
   "spawners": [
     {
       "type": "factoryascension:storm_wisp",

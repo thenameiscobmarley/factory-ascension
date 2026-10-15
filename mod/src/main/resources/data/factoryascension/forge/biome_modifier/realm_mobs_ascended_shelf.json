@@ -1,6 +1,6 @@
 {
   "type": "forge:add_spawns",
-  "biomes": "factoryascension:ascended_shelf",
+  "biomes": "#factoryascension:realm_ascended_shelf",
   "spawners": [
     {
       "type": "factoryascension:ascendite_skeleton",

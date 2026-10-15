@@ -2,6 +2,13 @@
 // each chapter are built from this (site.js), so new things never get mixed in with old ones.
 // area: home, luck, gear, enchants, machines, world. icon: a path under fa/. Newest release first.
 window.FA_NEWS = [
+  // ---- v20.0.0 ----
+  { v: "20.0.0", area: "home", icon: "items/mythic_fragment.png", title: "Ascension Lighting", text: "Screen-space traced lighting: soft contact shadows, bounced colour and sun rays. Works on AMD and NVIDIA." },
+  { v: "20.0.0", area: "home", icon: "items/ascension_core.png", title: "Factory Ascension settings", text: "A button in the pause menu for every graphics option, with a safe mode that turns effects off if anything goes wrong." },
+  { v: "20.0.0", area: "world", icon: "blocks/realm_moss_side.png", title: "Smoke, debris and living water", text: "Soft smoke from explosions and gunfire, blocks that shatter into bouncing voxels, and foaming, splashing water." },
+  { v: "20.0.0", area: "home", icon: "blocks/ascendite_glass_0.png", title: "Real depth with Oculus", text: "Make a depth pack from your own textures: with Oculus and Complementary, every block, item and mob gets parallax depth." },
+  { v: "20.0.0", area: "home", icon: "blocks/engine_coil_side.png", title: "Health checks", text: "The mod watches memory, open files and threads, and warns before a leak can slow your game." },
+
   // ---- v19.0.0 ----
   { v: "19.0.0", area: "home", icon: "items/blank_ascension_tome.png", title: "Clear version numbers", text: "Releases are now v19, v20 and so on, and every download says it's for Minecraft 1.20.1." },
   { v: "19.0.0", area: "enchants", icon: "items/tome_soulbound.png", title: "Soulbound", text: "A new enchant: the item stays with you through death, can't be dropped and never burns. An Unbinding Scroll takes it off." },
