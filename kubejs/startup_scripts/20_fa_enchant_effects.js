@@ -851,7 +851,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
     if (!d.enabled || event.loadedFromDisk()) return
     let mob = event.getEntity()
     let level = event.getLevel()
-    if (level.isClientSide() || !(mob instanceof $FAEnemy) || !(mob instanceof $FALiving) || faIsBoss(mob)) return
+    // Other mods' bosses stay as their makers designed them; the pack's own bosses scale with the zone like any mob
+    if (level.isClientSide() || !(mob instanceof $FAEnemy) || !(mob instanceof $FALiving) || (faIsBoss(mob) && String(mob.type).indexOf('factoryascension:') != 0)) return
     let data = mob.getPersistentData()
     if (data.contains('fa_danger')) return
 
@@ -860,6 +861,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
     if (danger > 0 && faEvent('bloodMoon')) danger += global.FA.events.bloodMoon.dangerBonus
     if (danger <= 0) return
     data.putInt('fa_danger', danger)
+    if (faIsBoss(mob)) return   // the mod's bosses: zone scaling only (no Ascended boss or Elite on top)
 
     // Ascended boss: rare, only deep out, never from a boss's own minions
     let B = global.FA.bosses

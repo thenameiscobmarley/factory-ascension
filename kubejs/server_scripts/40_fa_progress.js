@@ -161,6 +161,12 @@ function faSocket(player, gemStack, type, tier, gear) {
     return
   }
   let G = global.FA.gems
+  let gemEnchant = G.types[type].enchant
+  if (!global.FA_enchantFits(gemEnchant, faGearKind(gear))) {
+    player.displayClientMessage(Text.red('A ' + G.types[type].name + ' (' + global.FA.enchants[gemEnchant].name + ') doesn\'t suit ' + FA_KIND_NAMES[faGearKind(gear)] +
+      ': it goes in ' + global.FA_fitsText(gemEnchant) + '.'), true)
+    return
+  }
   let gems = faGems(gear)
   let slot
   if (gems.length < G.sockets) {

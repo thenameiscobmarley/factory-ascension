@@ -18,3 +18,17 @@ void_stalker 1a1224 963cdc
 factory_raider 8c8c88 966e32
 ember_hen e67828 ffdc5a
 copper_cow b4643c 50aa82
+bog_lurker 3e4a2a 7c9a3c
+sand_wraith c8b078 6e5a32
+thunder_creeper 383848 f0e050
+brass_sentinel b48c3c 5a4628
+shadow_skeleton 1c1c24 8c50dc
+cave_weaver 8c8c96 e6e6f0
+moss_slime 4e8c32 a0d25a
+glow_mite 6e6450 ffdc5a
+storm_wisp d2d2e6 fff064
+treasure_raider c8a032 32a050
+rust_colossus 5a3c28 ff6a1e
+broodmother 46285a dc64ff
+hollow_king e6e6d2 8c50dc
+wisp_tyrant 147878 40e8d4

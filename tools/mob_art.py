@@ -82,6 +82,54 @@ MOBS = {
     'copper_cow': dict(model='cow', name='Copper Cow', base=(180, 100, 60), head=(190, 110, 70), horn=(230, 220, 200), udder=(240, 170, 160), pattern='patina',
                        glow=(80, 170, 130), eyes=(20, 20, 20), egg=(0xB4643C, 0x50AA82), spawn=['#minecraft:is_overworld', 6, 2, 3],
                        loot=[['minecraft:leather', 0, 2], ['minecraft:copper_ingot', 0, 2]]),
+    # ---- 1.6: more mobs ----
+    'bog_lurker': dict(model='humanoid', name='Bog Lurker', base=(70, 86, 50), head=(84, 104, 60), body=(56, 64, 40), pattern='dirt', eyes=(200, 230, 90),
+                       egg=(0x3E4A2A, 0x7C9A3C), spawn=['#forge:is_swamp', 40, 1, 3],
+                       loot=[['minecraft:rotten_flesh', 0, 2], ['minecraft:slime_ball', 0, 2], ['minecraft:lily_pad', 0, 1]]),
+    'sand_wraith': dict(model='humanoid', name='Sand Wraith', base=(200, 176, 120), head=(214, 190, 134), body=(150, 120, 70), pattern='dirt', eyes=(40, 30, 20),
+                        egg=(0xC8B078, 0x6E5A32), spawn=['#forge:is_desert', 40, 1, 2],
+                        loot=[['minecraft:rotten_flesh', 0, 2], ['minecraft:sand', 1, 4], ['minecraft:gold_nugget', 0, 3]]),
+    'thunder_creeper': dict(model='creeper', name='Thunder Creeper', base=(56, 56, 72), pattern='veins', glow=(240, 224, 80), eyes=(240, 224, 80),
+                            egg=(0x383848, 0xF0E050), spawn=['#minecraft:is_overworld', 15, 1, 1],
+                            loot=[['minecraft:gunpowder', 1, 3], ['minecraft:redstone', 1, 4]]),
+    'brass_sentinel': dict(model='skeleton', name='Brass Sentinel', base=(180, 140, 60), pattern='stripes', eyes=(255, 120, 40),
+                           egg=(0xB48C3C, 0x5A4628), spawn=['#minecraft:is_overworld', 15, 1, 2],
+                           loot=[['minecraft:bone', 0, 2], ['minecraft:arrow', 1, 4], ['create:brass_nugget', 1, 4]]),
+    'shadow_skeleton': dict(model='skeleton', name='Shadow Skeleton', base=(30, 30, 38), pattern='veins', glow=(140, 80, 220), eyes=(200, 140, 255),
+                            egg=(0x1C1C24, 0x8C50DC), spawn=['#minecraft:is_forest', 25, 1, 2],
+                            loot=[['minecraft:bone', 0, 2], ['minecraft:coal', 0, 2], ['minecraft:echo_shard', 0, 1, 0.1]]),
+    'cave_weaver': dict(model='spider', name='Cave Weaver', base=(140, 140, 150), body=(170, 170, 180), pattern='stripes', eyes=(255, 255, 255),
+                        egg=(0x8C8C96, 0xE6E6F0), spawn=['#minecraft:is_overworld', 25, 1, 2],
+                        loot=[['minecraft:string', 2, 5], ['minecraft:cobweb', 0, 1, 0.3]]),
+    'moss_slime': dict(model='slime', name='Moss Slime', base=(78, 140, 50), inner=(120, 90, 50), pattern='dirt', eyes=(250, 230, 120),
+                       egg=(0x4E8C32, 0xA0D25A), spawn=['minecraft:lush_caves', 40, 1, 2],
+                       loot=[['minecraft:slime_ball', 0, 2], ['minecraft:moss_block', 0, 1], ['minecraft:glow_berries', 0, 2]]),
+    'glow_mite': dict(model='silverfish', name='Glow Mite', base=(110, 100, 80), pattern='ore', glow=(255, 220, 90), eyes=(255, 240, 160),
+                      egg=(0x6E6450, 0xFFDC5A), spawn=['#minecraft:is_overworld', 25, 2, 4],
+                      loot=[['minecraft:glowstone_dust', 1, 3]]),
+    'storm_wisp': dict(model='blaze', name='Storm Wisp', base=(200, 200, 220), rod=(255, 240, 100), pattern='veins', glow=(255, 250, 160), eyes=(255, 255, 255),
+                       egg=(0xD2D2E6, 0xFFF064), spawn=['#minecraft:is_mountain', 15, 1, 1],
+                       loot=[['minecraft:glowstone_dust', 1, 3], ['minecraft:redstone', 1, 3], ['kubejs:ascension_shard', 0, 1, 0.5]]),
+    'treasure_raider': dict(model='illager', name='Treasure Raider', base=(140, 140, 136), head=(150, 150, 146), body=(200, 160, 50), robe=(60, 140, 80),
+                            pattern='stripes', eyes=(255, 210, 60), egg=(0xC8A032, 0x32A050), spawn=['#minecraft:is_overworld', 3, 1, 1],
+                            loot=[['minecraft:emerald', 1, 4], ['minecraft:gold_ingot', 1, 3], ['kubejs:enchantment_pack', 0, 1, 0.5], ['kubejs:gear_cache', 0, 1, 0.3]]),
+    # ---- Bosses (scaled up in game; a crown on the ones with heads) ----
+    'rust_colossus': dict(model='humanoid', name='Rust Colossus', base=(110, 76, 50), head=(126, 92, 60), body=(150, 82, 40), pattern='rust', eyes=(255, 110, 30),
+                          crown=(232, 176, 58), egg=(0x5A3C28, 0xFF6A1E), spawn=['#minecraft:is_overworld', 1, 1, 1],
+                          loot=[['kubejs:ascended_soul', 1, 1], ['kubejs:mythic_fragment', 2, 4], ['kubejs:dense_ascension_core', 2, 5], ['minecraft:iron_block', 2, 4],
+                                ['kubejs:booster_box', 1, 1], ['kubejs:gear_cache', 1, 3]]),
+    'broodmother': dict(model='spider', name='Broodmother', base=(70, 40, 90), body=(96, 56, 120), pattern='crystal', eyes=(255, 120, 255),
+                        egg=(0x46285A, 0xDC64FF), spawn=['#minecraft:is_forest', 1, 1, 1],
+                        loot=[['kubejs:ascended_soul', 1, 1], ['kubejs:mythic_fragment', 2, 4], ['kubejs:dense_ascension_core', 2, 5], ['minecraft:string', 8, 16],
+                              ['minecraft:amethyst_block', 1, 3], ['kubejs:booster_box', 1, 1], ['kubejs:gear_cache', 1, 3]]),
+    'hollow_king': dict(model='skeleton', name='Hollow King', base=(220, 220, 206), pattern='veins', glow=(140, 80, 220), eyes=(200, 140, 255),
+                        crown=(232, 176, 58), egg=(0xE6E6D2, 0x8C50DC), spawn=['#minecraft:is_overworld', 1, 1, 1],
+                        loot=[['kubejs:ascended_soul', 1, 1], ['kubejs:mythic_fragment', 2, 4], ['kubejs:dense_ascension_core', 2, 5], ['minecraft:bone_block', 2, 4],
+                              ['minecraft:wither_skeleton_skull', 0, 1, 0.5], ['kubejs:booster_box', 1, 1], ['kubejs:gear_cache', 1, 3]]),
+    'wisp_tyrant': dict(model='blaze', name='Wisp Tyrant', base=(20, 120, 120), rod=(64, 232, 212), pattern='glow', glow=(220, 255, 250), eyes=(255, 255, 255),
+                        egg=(0x147878, 0x40E8D4), spawn=['#minecraft:is_nether', 1, 1, 1],
+                        loot=[['kubejs:ascended_soul', 1, 1], ['kubejs:mythic_fragment', 2, 4], ['kubejs:dense_ascension_core', 2, 5], ['minecraft:blaze_rod', 4, 8],
+                              ['kubejs:ascension_shard', 4, 8], ['kubejs:booster_box', 1, 1], ['kubejs:gear_cache', 1, 3]]),
 }
 
 
@@ -214,6 +262,23 @@ def skin(mob_id, spec):
                         px[y][x] = c
             if face == 'front' or (spec['model'] == 'slime' and part in ('reye', 'leye')):
                 face_features(px, spec, spec['model'], part, fx0, fy0, fw, fh)
+        # Bosses with a head wear a gold crown: the top of the head and a band around its top two rows, with gems
+        if spec.get('crown') and part == 'head':
+            for face, (fx0, fy0, fw, fh) in faces(u, v, w, h, d).items():
+                rows = range(fh) if face == 'top' else range(2) if face != 'bottom' else range(0)
+                for yy in rows:
+                    for xx in range(fw):
+                        if face == 'top' and 1 < xx < fw - 2 and 1 < yy < fh - 2:
+                            continue
+                        c = mul(spec['crown'], 1.15 if yy == 0 else 0.85)
+                        if face != 'top' and yy == 0 and xx % 2:
+                            c = (0, 0, 0, 0)[:3]    # points of the crown
+                            px[fy0 + yy][fx0 + xx] = (0, 0, 0, 0)
+                            continue
+                        px[fy0 + yy][fx0 + xx] = c + (255,)
+                if face == 'front':
+                    px[fy0 + 1][fx0 + fw // 2] = (220, 40, 60, 255)
+                    px[fy0 + 1][fx0 + fw // 2 - 1] = (255, 120, 140, 255)
         # Humanoid arms: sleeves on the top third
         if spec['model'] == 'humanoid' and part == 'arm':
             for face, (fx0, fy0, fw, fh) in faces(u, v, w, h, d).items():
@@ -253,7 +318,7 @@ def loot(spec):
     return {"type": "minecraft:entity", "pools": pools}
 
 
-DESC = {'rust_walker': ('Overworld, past the safe zone', 'A corroded factory hand. Its hits leave you weak; drops iron and copper nuggets.'), 'ascendite_husk': ('Overworld, danger 3+', "Glows teal, doesn't burn in daylight, makes you glow. Drops Ascension Shards."), 'ember_ghoul': ('The Nether', 'Fireproof, sets you alight. Drops blaze powder and magma cream.'), 'frost_revenant': ('Snowy biomes', 'Slows you to a crawl. Drops packed ice and snowballs.'), 'deep_miner': ('Below Y 0', 'Swings an iron pickaxe and gives you Mining Fatigue. Drops raw ore and coal.'), 'void_archer': ('The End', 'Its arrows make you float. Drops ender pearls.'), 'ascendite_skeleton': ('Overworld, danger 3+', 'Arrows that make you glow. Drops Ascendite nuggets.'), 'crystal_spider': ('Caves below Y 40', 'Armored amethyst; slows you. Drops amethyst shards.'), 'spark_spider': ('Overworld, danger 2+', 'Crackles with lightning. Drops redstone and glowstone.'), 'cinder_spider': ('The Nether', 'Fireproof, sets you alight. Drops blaze powder and fire charges.'), 'ascendite_creeper': ('Overworld, danger 3+', 'Its blast breaks no blocks and scatters Ascension Shards.'), 'frost_creeper': ('Snowy biomes', 'Its blast breaks no blocks: it leaves snow and slows everything nearby.'), 'essence_slime': ('Below Y 40, danger 5+', 'A purple slime that splits like any other. Drops Ascension Shards.'), 'rust_slime': ('Below Y 40', 'A copper-green slime. Drops copper nuggets.'), 'ore_mite': ('Below Y 20', 'A silverfish full of metal. Drops iron, gold and Ascendite nuggets.'), 'teal_wisp': ('The Nether', 'A teal blaze. Drops Ascension Shards and glowstone.'), 'void_stalker': ('The End', 'A huge, dark enderman. Blinds you. Drops ender pearls.'), 'factory_raider': ('Forests, danger 4+', 'A raider in work clothes; weakens you. Drops brass and andesite alloy.'), 'ember_hen': ('Savannas', 'Friendly and fireproof. Lays blaze powder now and then, as well as eggs.'), 'copper_cow': ('Overworld', 'Friendly. Moos in patina. Drops leather and copper ingots.')}
+DESC = {'bog_lurker': ('Swamps', 'Drags itself out of the mud; poisons what it touches. Drops slime balls and lily pads.'), 'sand_wraith': ('Deserts', "Doesn't burn in the sun; blinds you. Drops sand and gold nuggets."), 'thunder_creeper': ('Overworld', 'Its blast breaks no blocks: it calls lightning and jolts everything nearby.'), 'brass_sentinel': ('Overworld, danger 4+', 'Armored in brass; its arrows slow you. Drops brass nuggets.'), 'shadow_skeleton': ('Forests, danger 3+', 'Arrows that bring Darkness. Sometimes drops an echo shard.'), 'cave_weaver': ('Caves below Y 30', 'Leaves cobwebs at your feet when it bites. Drops lots of string.'), 'moss_slime': ('Lush caves', 'A mossy slime. Drops moss and glow berries.'), 'glow_mite': ('Below Y 40', 'A glowing silverfish; makes you glow. Drops glowstone dust.'), 'storm_wisp': ('Mountains, danger 6+', 'A pale blaze that strikes with lightning. Drops redstone, glowstone and shards.'), 'treasure_raider': ('Overworld, danger 3+ (rare)', 'A raider loaded with loot: emeralds, gold, packs and gear caches.'), 'rust_colossus': ('BOSS · Overworld, danger 8+', 'A towering rusted giant. Slams the ground, calls Rust Walkers and Deep Miners, enrages at 1/4 health.'), 'broodmother': ('BOSS · Forests, danger 8+', 'A spider the size of a house. Poisons, webs, slams, and calls her brood.'), 'hollow_king': ('BOSS · Overworld, danger 12+', 'A crowned skeleton king. Wither arrows in volleys of five; calls Shadow and Ascendite Skeletons.'), 'wisp_tyrant': ('BOSS · The Nether, danger 10+', 'A giant teal blaze. Rings of fireballs; calls Teal and Storm Wisps.'), 'rust_walker': ('Overworld, past the safe zone', 'A corroded factory hand. Its hits leave you weak; drops iron and copper nuggets.'), 'ascendite_husk': ('Overworld, danger 3+', "Glows teal, doesn't burn in daylight, makes you glow. Drops Ascension Shards."), 'ember_ghoul': ('The Nether', 'Fireproof, sets you alight. Drops blaze powder and magma cream.'), 'frost_revenant': ('Snowy biomes', 'Slows you to a crawl. Drops packed ice and snowballs.'), 'deep_miner': ('Below Y 0', 'Swings an iron pickaxe and gives you Mining Fatigue. Drops raw ore and coal.'), 'void_archer': ('The End', 'Its arrows make you float. Drops ender pearls.'), 'ascendite_skeleton': ('Overworld, danger 3+', 'Arrows that make you glow. Drops Ascendite nuggets.'), 'crystal_spider': ('Caves below Y 40', 'Armored amethyst; slows you. Drops amethyst shards.'), 'spark_spider': ('Overworld, danger 2+', 'Crackles with lightning. Drops redstone and glowstone.'), 'cinder_spider': ('The Nether', 'Fireproof, sets you alight. Drops blaze powder and fire charges.'), 'ascendite_creeper': ('Overworld, danger 3+', 'Its blast breaks no blocks and scatters Ascension Shards.'), 'frost_creeper': ('Snowy biomes', 'Its blast breaks no blocks: it leaves snow and slows everything nearby.'), 'essence_slime': ('Below Y 40, danger 5+', 'A purple slime that splits like any other. Drops Ascension Shards.'), 'rust_slime': ('Below Y 40', 'A copper-green slime. Drops copper nuggets.'), 'ore_mite': ('Below Y 20', 'A silverfish full of metal. Drops iron, gold and Ascendite nuggets.'), 'teal_wisp': ('The Nether', 'A teal blaze. Drops Ascension Shards and glowstone.'), 'void_stalker': ('The End', 'A huge, dark enderman. Blinds you. Drops ender pearls.'), 'factory_raider': ('Forests, danger 4+', 'A raider in work clothes; weakens you. Drops brass and andesite alloy.'), 'ember_hen': ('Savannas', 'Friendly and fireproof. Lays blaze powder now and then, as well as eggs.'), 'copper_cow': ('Overworld', 'Friendly. Moos in patina. Drops leather and copper ingots.')}
 
 
 def site_data(path):

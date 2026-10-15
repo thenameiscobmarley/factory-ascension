@@ -9,7 +9,7 @@ Get a download from the [release page](https://github.com/thenameiscobmarley/fac
 | `FactoryAscension-Full-<version>.zip` | You already have an instance and want to copy the files in by hand |
 | `FactoryAscension-Half-<version>.zip` | Same, scripts only |
 
-**Full** = the KubeJS scripts plus `factoryascension-<version>.jar` (Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, connected glass, Shiny Reflections and 20 mobs).
+**Full** = the KubeJS scripts plus `factoryascension-<version>.jar` (Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, connected glass, Shiny Reflections, 34 mobs and 4 bosses).
 **Half** = the scripts only. Both work on their own; Half just doesn't have the mod's blocks.
 Servers and everyone joining them need the same one.
 
@@ -63,9 +63,9 @@ kubejs/
    All 486 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
-4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 62 checks (75 with the Full jar)
+4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 64 checks (79 with the Full jar)
    with a fake player (Essence, a real tome right-click, leveled tomes and extracting, enchants, danger zones, Ascendite, mob food, Rock Hammers, gear condition, rare variants, glowing ores, the safe-zone center, /home, card packs, Artifacts, gems, rebirth,
-   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **62 / 62 passed** (**75 / 75** with Full).
+   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **64 / 64 passed** (**79 / 79** with Full).
    Any FAIL line says which part is broken.
 5. Full only: open the **Factory Ascension** creative tab, place each block and open it. The Vault should scroll, search and sort;
    drop an Enchantment Pack into the Pack Opener and watch the cards flip. Build an engine: an Engine Core, a Coil and a Burner

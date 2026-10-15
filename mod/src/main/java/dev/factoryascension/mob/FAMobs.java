@@ -54,6 +54,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import net.minecraft.world.BossEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,16 +68,20 @@ public final class FAMobs {
     public static final List<Entry> ALL = new ArrayList<>();
 
     /** One mob: its id, the vanilla mob it's built on, its spec, its type and spawn egg. */
-    public record Entry(String id, String base, MobSpec spec, RegistryObject<? extends EntityType<? extends Mob>> type, RegistryObject<Item> egg) {
+    public record Entry(String id, String base, MobSpec spec, RegistryObject<? extends EntityType<? extends Mob>> type, RegistryObject<Item> egg, float scale) {
     }
 
     private FAMobs() {
     }
 
     private static <T extends Mob> void add(String id, String base, MobSpec spec, int c1, int c2, EntityType.Builder<T> builder) {
-        RegistryObject<EntityType<T>> type = ENTITIES.register(id, () -> builder.clientTrackingRange(8).build(FactoryAscension.MODID + ":" + id));
+        add(id, base, spec, c1, c2, builder, 1f);
+    }
+
+    private static <T extends Mob> void add(String id, String base, MobSpec spec, int c1, int c2, EntityType.Builder<T> builder, float scale) {
+        RegistryObject<EntityType<T>> type = ENTITIES.register(id, () -> builder.clientTrackingRange(scale > 1 ? 12 : 8).build(FactoryAscension.MODID + ":" + id));
         RegistryObject<Item> egg = FactoryAscension.ITEMS.register(id + "_spawn_egg", () -> new ForgeSpawnEggItem(type, c1, c2, new Item.Properties()));
-        ALL.add(new Entry(id, base, spec, type, egg));
+        ALL.add(new Entry(id, base, spec, type, egg, scale));
     }
 
     private static void zombie(String id, MobSpec spec, int c1, int c2, boolean fire) {
@@ -128,6 +133,39 @@ public final class FAMobs {
         add("factory_raider", "vindicator", raider, 0x8C8C88, 0x966E32, EntityType.Builder.<FAVindicator>of((t, l) -> new FAVindicator(t, l, raider), MobCategory.MONSTER).sized(0.6f, 1.95f));
         MobSpec hen = MobSpec.of().lays();
         add("ember_hen", "chicken", hen, 0xE67828, 0xFFDC5A, EntityType.Builder.<FAChicken>of((t, l) -> new FAChicken(t, l, hen), MobCategory.CREATURE).sized(0.4f, 0.7f).fireImmune());
+        // ---- More mobs (1.6) ----
+        zombie("bog_lurker", MobSpec.of().hit(MobEffects.POISON, 4, 0).stats(26, 4, 0.23), 0x3E4A2A, 0x7C9A3C, false);
+        zombie("sand_wraith", MobSpec.of().hit(MobEffects.BLINDNESS, 3, 0).stats(24, 4, 0.26).sunProof(), 0xC8B078, 0x6E5A32, false);
+        creeper("thunder_creeper", MobSpec.of().explosion("storm").stats(22, 0, 0.25), 0x383848, 0xF0E050);
+        skeleton("brass_sentinel", MobSpec.of().arrows(MobEffects.MOVEMENT_SLOWDOWN, 3, 1).stats(30, 4, 0.24).armor(6), 0xB48C3C, 0x5A4628);
+        skeleton("shadow_skeleton", MobSpec.of().arrows(MobEffects.DARKNESS, 4, 0).stats(24, 3, 0.27), 0x1C1C24, 0x8C50DC);
+        spider("cave_weaver", MobSpec.of().webs().stats(18, 3, 0.3).below(30), 0x8C8C96, 0xE6E6F0, false);
+        slime("moss_slime", MobSpec.of().below(64), 0x4E8C32, 0xA0D25A);
+        MobSpec glowMite = MobSpec.of().hit(MobEffects.GLOWING, 6, 0).stats(10, 2, 0.3).below(40);
+        add("glow_mite", "silverfish", glowMite, 0x6E6450, 0xFFDC5A, EntityType.Builder.<FASilverfish>of((t, l) -> new FASilverfish(t, l, glowMite), MobCategory.MONSTER).sized(0.4f, 0.3f));
+        MobSpec stormWisp = MobSpec.of().lightning().stats(26, 6, 0.25).anyLight();
+        add("storm_wisp", "blaze", stormWisp, 0xD2D2E6, 0xFFF064, EntityType.Builder.<FABlaze>of((t, l) -> new FABlaze(t, l, stormWisp), MobCategory.MONSTER).sized(0.6f, 1.8f).fireImmune());
+        MobSpec treasure = MobSpec.of().hit(MobEffects.WEAKNESS, 3, 0).stats(30, 5, 0.36).armor(4);
+        add("treasure_raider", "vindicator", treasure, 0xC8A032, 0x32A050, EntityType.Builder.<FAVindicator>of((t, l) -> new FAVindicator(t, l, treasure), MobCategory.MONSTER).sized(0.6f, 1.95f));
+
+        // ---- Bosses: rare, huge, a boss bar, minions and a signature attack (BossBrain) ----
+        MobSpec colossus = MobSpec.of().boss().hit(MobEffects.WEAKNESS, 6, 1).stats(400, 14, 0.24).armor(10);
+        add("rust_colossus", "zombie", colossus, 0x5A3C28, 0xFF6A1E, EntityType.Builder.<FABosses.BossZombie>of((t, l) ->
+            new FABosses.BossZombie(t, l, colossus, BossEvent.BossBarColor.RED, List.of("factoryascension:rust_walker", "factoryascension:deep_miner")), MobCategory.MONSTER)
+            .sized(1.56f, 5.07f), 2.6f);
+        MobSpec brood = MobSpec.of().boss().webs().hit(MobEffects.POISON, 5, 1).stats(320, 10, 0.32).armor(8);
+        add("broodmother", "spider", brood, 0x46285A, 0xDC64FF, EntityType.Builder.<FABosses.BossSpider>of((t, l) ->
+            new FABosses.BossSpider(t, l, brood, BossEvent.BossBarColor.PURPLE, List.of("factoryascension:crystal_spider", "factoryascension:cave_weaver")), MobCategory.MONSTER)
+            .sized(3.08f, 1.98f), 2.2f);
+        MobSpec king = MobSpec.of().boss().arrows(MobEffects.WITHER, 4, 1).stats(350, 8, 0.27).armor(12);
+        add("hollow_king", "skeleton", king, 0xE6E6D2, 0x8C50DC, EntityType.Builder.<FABosses.BossSkeleton>of((t, l) ->
+            new FABosses.BossSkeleton(t, l, king, BossEvent.BossBarColor.WHITE, List.of("factoryascension:shadow_skeleton", "factoryascension:ascendite_skeleton")), MobCategory.MONSTER)
+            .sized(1.32f, 4.38f), 2.2f);
+        MobSpec tyrant = MobSpec.of().boss().ignite(6).stats(360, 10, 0.25).armor(8).anyLight();
+        add("wisp_tyrant", "blaze", tyrant, 0x147878, 0x40E8D4, EntityType.Builder.<FABosses.BossBlaze>of((t, l) ->
+            new FABosses.BossBlaze(t, l, tyrant, BossEvent.BossBarColor.BLUE, List.of("factoryascension:teal_wisp", "factoryascension:storm_wisp")), MobCategory.MONSTER)
+            .sized(1.32f, 3.96f).fireImmune(), 2.2f);
+
         MobSpec cow = MobSpec.of();
         add("copper_cow", "cow", cow, 0xB4643C, 0x50AA82, EntityType.Builder.<FACow>of((t, l) -> new FACow(t, l, cow), MobCategory.CREATURE).sized(0.9f, 1.4f));
     }
@@ -163,6 +201,7 @@ public final class FAMobs {
             if (s.damage > 0) b.add(Attributes.ATTACK_DAMAGE, s.damage);
             if (s.speed > 0) b.add(Attributes.MOVEMENT_SPEED, s.speed);
             if (s.armor > 0) b.add(Attributes.ARMOR, s.armor);
+            if (s.boss) b.add(Attributes.KNOCKBACK_RESISTANCE, 0.8).add(Attributes.FOLLOW_RANGE, 48);
             event.put((EntityType<? extends LivingEntity>) e.type().get(), b.build());
         }
     }
@@ -192,6 +231,17 @@ public final class FAMobs {
             int n = 1 + level.random.nextInt(3);
             for (int i = 0; shard != null && i < n; i++)
                 level.addFreshEntity(new ItemEntity(level, at.getX() + 0.5, at.getY() + 0.5, at.getZ() + 0.5, new ItemStack(shard)));
+        } else if (creeper.explosionKind().equals("storm")) {
+            // Lightning (for show) all around, and a jolt for everything nearby
+            for (int i = 0; i < 4; i++) {
+                net.minecraft.world.entity.LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level);
+                if (bolt == null) continue;
+                bolt.moveTo(at.getX() + level.random.nextInt(9) - 4, at.getY(), at.getZ() + level.random.nextInt(9) - 4);
+                bolt.setVisualOnly(true);
+                level.addFreshEntity(bolt);
+            }
+            for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, new AABB(at).inflate(5)))
+                if (e != creeper) e.hurt(level.damageSources().lightningBolt(), 8f);
         } else if (creeper.explosionKind().equals("frost")) {
             for (BlockPos p : BlockPos.betweenClosed(at.offset(-3, -2, -3), at.offset(3, 2, 3))) {
                 if (p.distSqr(at) <= 10 && level.getBlockState(p).isAir() && level.getBlockState(p.below()).isFaceSturdy(level, p.below(), net.minecraft.core.Direction.UP))

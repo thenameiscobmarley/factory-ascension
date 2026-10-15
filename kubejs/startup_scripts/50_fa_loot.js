@@ -40,7 +40,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
     let mob = event.getEntity()
     if (!(mob instanceof $FAEnemy) || !(mob instanceof $FALiving)) return
     let data = mob.getPersistentData()
-    if (!data.contains('fa_danger') || data.getBoolean('fa_horde') || data.getBoolean('fa_boss') || data.getBoolean('fa_minion')) return
+    if (!data.contains('fa_danger') || data.getBoolean('fa_horde') || data.getBoolean('fa_boss') || data.getBoolean('fa_minion') || faIsBoss(mob)) return
     let count = Math.min(H.maxExtra, faRoll(H.extraPerLevel * data.getInt('fa_danger')))
     if (count <= 0) return
     faLater(1, () => {

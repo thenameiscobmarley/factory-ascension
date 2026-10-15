@@ -664,6 +664,7 @@ global.FA = {
   // A Chaos Tome rolls a brand-new enchant onto gear: a rarity, a generated name and 1-3 random effects.
   // Rolls are made from a seed, so the same seed always gives the same enchant (in game and on the website).
   chaos: {
+    matchGear: true,           // a roll only gets effects that suit the item it's on (see gearMatch)
     maxPerItem: 3,             // rolled enchants one item can hold (sneak-use a Chaos Tome on a full item to reroll its newest)
     rarities: [
       { name: 'Common', weight: 50, power: 1, affixes: 1, costMult: 1, color: 'gray' },
@@ -890,7 +891,21 @@ global.FA = {
       { raw: 'void_eye', rawName: "Void Eye", cooked: 'seared_void_eye', cookedName: "Seared Void Eye", mobs: ['factoryascension:void_stalker'], chance: 0.35, hunger: 5, saturation: 0.5, effect: ['minecraft:night_vision', 120, 0], art: ['gland', [30, 20, 40], [200, 110, 255]], mod: true },
       { raw: 'raider_heart', rawName: "Raider Heart", cooked: 'charred_raider_heart', cookedName: "Charred Raider Heart", mobs: ['factoryascension:factory_raider'], chance: 0.35, hunger: 7, saturation: 0.7, effect: ['minecraft:strength', 30, 0], art: ['heart', [150, 60, 60], [150, 110, 50]], mod: true },
       { raw: 'ember_wings', rawName: "Ember Wings", cooked: 'hot_ember_wings', cookedName: "Hot Ember Wings", mobs: ['factoryascension:ember_hen'], chance: 0.4, hunger: 4, saturation: 0.4, effect: ['minecraft:fire_resistance', 60, 0], art: ['wing', [230, 120, 40], [255, 220, 90]], mod: true },
-      { raw: 'copper_tongue', rawName: "Copper Tongue", cooked: 'grilled_copper_tongue', cookedName: "Grilled Copper Tongue", mobs: ['factoryascension:copper_cow'], chance: 0.35, hunger: 7, saturation: 0.7, effect: ['minecraft:haste', 45, 0], art: ['tongue', [190, 110, 70], [80, 170, 130]], mod: true }
+      { raw: 'copper_tongue', rawName: "Copper Tongue", cooked: 'grilled_copper_tongue', cookedName: "Grilled Copper Tongue", mobs: ['factoryascension:copper_cow'], chance: 0.35, hunger: 7, saturation: 0.7, effect: ['minecraft:haste', 45, 0], art: ['tongue', [190, 110, 70], [80, 170, 130]], mod: true },
+      { raw: 'bog_heart', rawName: "Bog Heart", cooked: 'smoked_bog_heart', cookedName: "Smoked Bog Heart", mobs: ['factoryascension:bog_lurker'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:water_breathing', 90, 0], art: ['heart', [70, 90, 50], [150, 180, 90]], mod: true },
+      { raw: 'wraith_dust_gland', rawName: "Wraith Gland", cooked: 'roasted_wraith_gland', cookedName: "Roasted Wraith Gland", mobs: ['factoryascension:sand_wraith'], chance: 0.35, hunger: 5, saturation: 0.5, effect: ['minecraft:fire_resistance', 60, 0], art: ['gland', [200, 176, 120], [120, 90, 50]], mod: true },
+      { raw: 'thunder_core', rawName: "Thunder Core", cooked: 'charged_thunder_core', cookedName: "Charged Thunder Core", mobs: ['factoryascension:thunder_creeper'], chance: 0.4, hunger: 5, saturation: 0.5, effect: ['minecraft:speed', 40, 1], art: ['core', [56, 56, 72], [240, 224, 80]], mod: true },
+      { raw: 'brass_marrow', rawName: "Brass Marrow", cooked: 'roasted_brass_marrow', cookedName: "Roasted Brass Marrow", mobs: ['factoryascension:brass_sentinel'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:resistance', 30, 0], art: ['bone', [180, 140, 60], [255, 210, 120]], mod: true },
+      { raw: 'shadow_marrow', rawName: "Shadow Marrow", cooked: 'blackened_shadow_marrow', cookedName: "Blackened Shadow Marrow", mobs: ['factoryascension:shadow_skeleton'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:night_vision', 120, 0], art: ['bone', [30, 30, 38], [140, 80, 220]], mod: true },
+      { raw: 'weaver_spinneret', rawName: "Weaver Spinneret", cooked: 'toasted_spinneret', cookedName: "Toasted Spinneret", mobs: ['factoryascension:cave_weaver'], chance: 0.35, hunger: 4, saturation: 0.4, effect: ['minecraft:jump_boost', 30, 1], art: ['gland', [170, 170, 180], [255, 255, 255]], mod: true },
+      { raw: 'moss_gel', rawName: "Moss Gel", cooked: 'fried_moss_gel', cookedName: "Fried Moss Gel", mobs: ['factoryascension:moss_slime'], chance: 0.15, hunger: 4, saturation: 0.5, effect: ['minecraft:regeneration', 6, 0], art: ['core', [78, 140, 50], [160, 210, 90]], mod: true },
+      { raw: 'glow_mite_shell', rawName: "Glow Mite Shell", cooked: 'toasted_glow_shell', cookedName: "Toasted Glow Shell", mobs: ['factoryascension:glow_mite'], chance: 0.2, hunger: 2, saturation: 0.3, effect: ['minecraft:night_vision', 90, 0], art: ['carapace', [110, 100, 80], [255, 220, 90]], mod: true },
+      { raw: 'storm_core', rawName: "Storm Core", cooked: 'seared_storm_core', cookedName: "Seared Storm Core", mobs: ['factoryascension:storm_wisp'], chance: 0.35, hunger: 5, saturation: 0.5, effect: ['minecraft:speed', 45, 1], art: ['wisp', [200, 200, 220], [255, 240, 100]], mod: true },
+      { raw: 'treasure_heart', rawName: "Treasure Heart", cooked: 'gilded_heart', cookedName: "Gilded Heart", mobs: ['factoryascension:treasure_raider'], chance: 0.5, hunger: 8, saturation: 0.8, effect: ['minecraft:luck', 300, 1], art: ['heart', [200, 160, 50], [60, 140, 80]], mod: true },
+      { raw: 'colossus_heart', rawName: "Colossus Heart", cooked: 'forged_colossus_heart', cookedName: "Forged Colossus Heart", mobs: ['factoryascension:rust_colossus'], chance: 1.0, hunger: 16, saturation: 1.2, effect: ['minecraft:health_boost', 300, 3], art: ['heart', [150, 82, 40], [255, 110, 30]], mod: true },
+      { raw: 'brood_gland', rawName: "Brood Gland", cooked: 'seared_brood_gland', cookedName: "Seared Brood Gland", mobs: ['factoryascension:broodmother'], chance: 1.0, hunger: 14, saturation: 1.2, effect: ['minecraft:speed', 300, 2], art: ['gland', [96, 56, 120], [255, 120, 255]], mod: true },
+      { raw: 'kings_marrow', rawName: "King's Marrow", cooked: 'roasted_kings_marrow', cookedName: "Roasted King's Marrow", mobs: ['factoryascension:hollow_king'], chance: 1.0, hunger: 14, saturation: 1.2, effect: ['minecraft:resistance', 300, 2], art: ['bone', [220, 220, 206], [232, 176, 58]], mod: true },
+      { raw: 'tyrant_core', rawName: "Tyrant Core", cooked: 'quenched_tyrant_core', cookedName: "Quenched Tyrant Core", mobs: ['factoryascension:wisp_tyrant'], chance: 1.0, hunger: 14, saturation: 1.2, effect: ['minecraft:fire_resistance', 600, 0], art: ['core', [20, 120, 120], [220, 255, 250]], mod: true }
     ]
   },
 
@@ -1135,8 +1150,31 @@ global.FA = {
     minDanger: {
       rust_walker: 1, ascendite_husk: 3, ember_ghoul: 0, frost_revenant: 1, deep_miner: 1, void_archer: 0, ascendite_skeleton: 3,
       crystal_spider: 1, spark_spider: 2, cinder_spider: 0, ascendite_creeper: 3, frost_creeper: 1, essence_slime: 5, rust_slime: 1,
-      ore_mite: 1, teal_wisp: 0, void_stalker: 0, factory_raider: 4, ember_hen: 0, copper_cow: 0
+      ore_mite: 1, teal_wisp: 0, void_stalker: 0, factory_raider: 4, ember_hen: 0, copper_cow: 0,
+      bog_lurker: 1, sand_wraith: 1, thunder_creeper: 2, brass_sentinel: 4, shadow_skeleton: 3, cave_weaver: 1, moss_slime: 0, glow_mite: 1,
+      storm_wisp: 6, treasure_raider: 3, rust_colossus: 8, broodmother: 8, hollow_king: 12, wisp_tyrant: 10
+    },
+    // Bosses: on top of minDanger, only `chance` of their natural spawns go through, and never within `spacing`
+    // blocks of another of the same boss. Each has a boss bar, calls minions at 2/3 and 1/3 health and enrages at 1/4.
+    bosses: {
+      rust_colossus: { chance: 0.3, spacing: 300 },
+      broodmother: { chance: 0.3, spacing: 300 },
+      hollow_king: { chance: 0.25, spacing: 400 },
+      wisp_tyrant: { chance: 0.3, spacing: 300 }
     }
+  },
+
+  // ---- Gear match: enchants go on gear they suit (tomes, Chaos rolls and gems) ----
+  // Every slot's levels add up, so a mismatched enchant still counts, but it's confusing: Sharpness on a helmet,
+  // Protection on a pickaxe. With enabled: true a tome or gem only goes on gear it suits, and Chaos Tomes only roll
+  // effects that suit the item. weapon: swords, axes, bows, tridents; armor; tool: pickaxes, shovels, hoes (axes too).
+  gearMatch: {
+    enabled: true,
+    weapon: ['damage', 'critical', 'reaper', 'cleave', 'lifesteal', 'hit_effect', 'self_effect', 'ignite', 'hit_heal', 'plunder', 'kill_heal', 'xp', 'drop',
+      'chain_lightning', 'gravity_well', 'death_nova', 'souls', 'overkill', 'rampage', 'heads', 'projectile_teleport', 'ultimate'],
+    armor: ['resist', 'vitality', 'retribution', 'dodge', 'undying', 'regen', 'passive', 'phoenix', 'time_stop', 'aura', 'slam', 'flight'],
+    tool: ['mining', 'vein', 'magnet', 'xp', 'drop'],
+    any: ['repair', 'eternal', 'attribute']    // these make sense on anything
   },
 
   // ---- Conflicts: when another installed mod already does a feature's job, the pack turns its own version off ----
@@ -1587,6 +1625,39 @@ global.FA_roomSpot = (plan, i) => {
 global.FA_roomMiddle = plan => {
   let u = Math.floor((plan.umin + plan.umax) / 2), v = Math.floor((plan.L + 1) / 2)
   return { x: plan.cx + u * plan.rx + v * plan.fx, y: plan.floorY + 1, z: plan.cz + u * plan.rz + v * plan.fz }
+}
+
+// Does this enchant type suit this kind of gear ('weapon', 'armor', 'tool' or 'axe', which is both weapon and tool)?
+global.FA_typeFits = (type, kind) => {
+  let M = global.FA.gearMatch
+  if (!M.enabled || M.any.indexOf(type) >= 0) return true
+  if (kind == 'axe') return M.weapon.indexOf(type) >= 0 || M.tool.indexOf(type) >= 0
+  return (M[kind] || M.weapon).indexOf(type) >= 0
+}
+
+// Does this enchant suit the gear? A Fusion or Triad suits it if any of its parts does.
+global.FA_enchantFits = (id, kind) => {
+  let e = global.FA.enchants[id]
+  if (!e) return false
+  if (e.type == 'fusion' && e.parts) return e.parts.some(p => global.FA_enchantFits(p, kind))
+  return global.FA_typeFits(e.type, kind)
+}
+
+// Which kinds of gear an enchant suits, for messages: "weapons", "armor", "tools"
+global.FA_fitsText = id => {
+  let names = { weapon: 'weapons', armor: 'armor', tool: 'tools' }
+  return ['weapon', 'armor', 'tool'].filter(k => global.FA_enchantFits(id, k)).map(k => names[k]).join(' or ') || 'nothing'
+}
+
+// A Chaos roll whose effects all suit the gear: tries seeds from `seed` on (the seed is what's saved on the item,
+// so the same roll reads back the same way everywhere). Returns the seed.
+global.FA_fittingSeed = (seed, kind) => {
+  if (!global.FA.chaos.matchGear || !global.FA.gearMatch.enabled) return seed
+  for (let i = 0; i < 400; i++) {
+    let s = ((seed + i * 7919) % 2147483646) + 1
+    if (global.FA_rollEnchant(s).affixes.every(a => global.FA_typeFits(a.type, kind))) return s
+  }
+  return seed
 }
 
 // A skinwalker's true form: one of skinwalkers.forms by weight, skipping mods that aren't installed. loaded(id) -> bool

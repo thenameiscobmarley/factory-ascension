@@ -19,9 +19,9 @@ public final class MobSpec {
     boolean lightning;
     MobEffect arrowEffect;
     int arrowSeconds, arrowAmp;
-    String explosion = "";      // "", "shards" (breaks no blocks, scatters shards) or "frost" (breaks no blocks, snow and slowness)
+    String explosion = "";      // "", "shards", "frost" or "storm": none of them break blocks (see FAMobs.onDetonate)
     double health, damage, speed, armor;
-    boolean miner, lays, sunProof, anyLight;
+    boolean miner, lays, sunProof, anyLight, webs, boss;
     int maxY = 10000;   // spawns only below this height (cave mobs)
 
     public static MobSpec of() {
@@ -39,6 +39,8 @@ public final class MobSpec {
     MobSpec lays() { lays = true; return this; }
     MobSpec sunProof() { sunProof = true; return this; }
     MobSpec anyLight() { anyLight = true; return this; }
+    MobSpec webs() { webs = true; return this; }
+    MobSpec boss() { boss = true; return this; }
     MobSpec below(int y) { maxY = y; return this; }
 
     /** Call after a successful melee hit. */
@@ -46,6 +48,9 @@ public final class MobSpec {
         if (!(target instanceof LivingEntity living) || attacker.level().isClientSide) return;
         if (hitEffect != null) living.addEffect(new MobEffectInstance(hitEffect, hitSeconds * 20, hitAmp), attacker);
         if (igniteSeconds > 0) living.setSecondsOnFire(igniteSeconds);
+        // A Cave Weaver's bite leaves a web at your feet, sometimes
+        if (webs && attacker.getRandom().nextFloat() < 0.3f && attacker.level().getBlockState(living.blockPosition()).isAir())
+            attacker.level().setBlockAndUpdate(living.blockPosition(), net.minecraft.world.level.block.Blocks.COBWEB.defaultBlockState());
         if (lightning && attacker.getRandom().nextFloat() < 0.25f) {
             LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(attacker.level());
             if (bolt != null) {

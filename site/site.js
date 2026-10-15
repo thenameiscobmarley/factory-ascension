@@ -56,7 +56,7 @@
   addEventListener("hashchange", route);
 
   // ---------- hero stats (straight from the config: no counting animation, so the numbers never disagree) ----------
-  $("#heroStats").innerHTML = [[ids.length, "enchants"], [FA.foils.types.length, "foils"], [4, "new metals"], [11, "machines"], [20, "new mobs"], [FA.mobFood.foods.length, "mob parts"], ["∞", "level cap"], [PACK.checks, "safety checks"]]
+  $("#heroStats").innerHTML = [[ids.length, "enchants"], [FA.foils.types.length, "foils"], [4, "new metals"], [11, "machines"], [(window.FA_MOBS || []).length || 34, "new mobs"], [FA.mobFood.foods.length, "mob parts"], ["∞", "level cap"], [PACK.checks, "safety checks"]]
     .map(h => '<div class="slot-card"><b>' + (typeof h[0] == "number" ? global.FA_num(h[0]) : h[0]) + "</b><small>" + h[1] + "</small></div>").join("");
   $("#enchCount").textContent = global.FA_num(ids.length);
   $("#newVersion").textContent = PACK.version.replace(/\.0$/, "");
@@ -563,7 +563,8 @@
   const partOf = id => FA.mobFood.foods.find(f => f.mobs.indexOf("factoryascension:" + id) >= 0);
   $("#bestiary").innerHTML = MOBS.map(m => {
     const p = partOf(m.id);
-    return '<article class="beast slot-card"><span class="egg" style="--e1:' + m.egg[0] + ";--e2:" + m.egg[1] + '"></span><b>' + esc(m.name) + '</b><span class="where">' +
+    const boss = /^BOSS/.test(m.where);
+    return '<article class="beast slot-card' + (boss ? " is-boss" : "") + '"><span class="egg" style="--e1:' + m.egg[0] + ";--e2:" + m.egg[1] + '"></span><b>' + esc(m.name) + '</b><span class="where">' +
       esc(m.where) + "</span><p>" + esc(m.what) + "</p>" + (p ? '<span class="part-line"><img src="' + tex(p.raw) + '" alt="" /><img src="' + tex(p.cooked) + '" alt="" />' +
       esc(p.rawName) + " → " + esc(p.cookedName) + '<span class="dim">(' + esc(p.effect[0].replace("minecraft:", "").replace(/_/g, " ")) + ")</span></span>" : "") + "</article>";
   }).join("");

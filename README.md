@@ -544,6 +544,15 @@ Without the jar (Half download) the pack still works; these blocks just don't ex
 Config `easyStart`: Andesite Casings by hand (any log + Andesite Alloy = 2), a Mechanical Belt from 3 leather,
 4 cogwheels from 8 planks around an Andesite Alloy, and 8 shafts from an Andesite Alloy and a stick.
 
+## Gear match: enchants go on gear they suit
+
+Enchant levels add up from every slot, so a mismatched enchant still counted, but it made no sense: Sharpness on a helmet,
+Protection on a pickaxe. Now a tome or a gem only goes on gear it suits ("Ascended Sharpness doesn't suit armor: it goes
+on weapons."), and a Chaos Tome only rolls effects that suit the item you hold it against: weapons get damage and on-hit
+effects, armor gets resistances and defenses, tools get mining effects, and an axe counts as a weapon and a tool.
+Fusions and Triads suit gear if any of their parts does; Unbreakable-style effects suit anything. Turn it off with
+`gearMatch.enabled: false` in the config.
+
 ## Skinwalkers
 
 Out in the wilderness, not every animal is an animal. About 1 in 50 cows, pigs, sheep, chickens, horses, goats, llamas,
@@ -557,11 +566,17 @@ turned, and sometimes a rare variant too. Killing it drops 2 extra loot rolls a 
 Falls, lava, the void and `/kill` still hurt a disguised one normally; only a creature's hit makes it turn. Every number
 is in the `skinwalkers` section of the config.
 
-## Bestiary: 20 new mobs (Full download)
+## Bestiary: 34 new mobs and 4 bosses (Full download)
 
 Each is a vanilla mob's body and brain (so it moves and fights the way you'd expect) with its own skin, stats and
 tricks. Hostile ones scale with the danger zones like any mob, and the strange ones only spawn out in them: natural
 spawns closer to home than `modMobs.minDanger` in the config are cancelled. Every one drops its own body part.
+
+**Bosses** turn up every now and then deep in the danger zones: drawn two to three times normal size, with a boss bar,
+300-400 health (before danger scaling), knockback resistance and a signature attack (a ground slam, volleys of five
+arrows, or rings of fireballs). At 2/3 and 1/3 health they call their minions; below 1/4 they enrage. Only some of their
+natural spawns go through, and never near another of the same boss (`modMobs.bosses`). They drop an Ascended Soul,
+Mythic Fragments, Dense Cores, a Booster Box and Gear Caches, and a part with a long, strong buff.
 
 | Mob | Where | What it does |
 |---|---|---|
@@ -585,6 +600,20 @@ spawns closer to home than `modMobs.minDanger` in the config are cancelled. Ever
 | **Factory Raider** | Forests, danger 4+ | A raider in work clothes; weakens you. Drops brass and andesite alloy. |
 | **Ember Hen** | Savannas | Friendly and fireproof. Lays blaze powder now and then, as well as eggs. |
 | **Copper Cow** | Overworld | Friendly. Moos in patina. Drops leather and copper ingots. |
+| **Bog Lurker** | Swamps | Drags itself out of the mud; poisons what it touches. Drops slime balls and lily pads. |
+| **Sand Wraith** | Deserts | Doesn't burn in the sun; blinds you. Drops sand and gold nuggets. |
+| **Thunder Creeper** | Overworld | Its blast breaks no blocks: it calls lightning and jolts everything nearby. |
+| **Brass Sentinel** | Overworld, danger 4+ | Armored in brass; its arrows slow you. Drops brass nuggets. |
+| **Shadow Skeleton** | Forests, danger 3+ | Arrows that bring Darkness. Sometimes drops an echo shard. |
+| **Cave Weaver** | Caves below Y 30 | Leaves cobwebs at your feet when it bites. Drops lots of string. |
+| **Moss Slime** | Lush caves | A mossy slime. Drops moss and glow berries. |
+| **Glow Mite** | Below Y 40 | A glowing silverfish; makes you glow. Drops glowstone dust. |
+| **Storm Wisp** | Mountains, danger 6+ | A pale blaze that strikes with lightning. Drops redstone, glowstone and shards. |
+| **Treasure Raider** | Overworld, danger 3+ (rare) | A raider loaded with loot: emeralds, gold, packs and gear caches. |
+| **Rust Colossus** | BOSS · Overworld, danger 8+ | A towering rusted giant. Slams the ground, calls Rust Walkers and Deep Miners, enrages at 1/4 health. |
+| **Broodmother** | BOSS · Forests, danger 8+ | A spider the size of a house. Poisons, webs, slams, and calls her brood. |
+| **Hollow King** | BOSS · Overworld, danger 12+ | A crowned skeleton king. Wither arrows in volleys of five; calls Shadow and Ascendite Skeletons. |
+| **Wisp Tyrant** | BOSS · The Nether, danger 10+ | A giant teal blaze. Rings of fireballs; calls Teal and Storm Wisps. |
 
 ## Connected glass and Shiny Reflections (Full download)
 
@@ -766,7 +795,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 62 checks (75 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 64 checks (79 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 

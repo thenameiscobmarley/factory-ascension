@@ -72,6 +72,7 @@ var fakeBlocks = {}, lastBlockProps = null
 function FakeArmorItem(slot) { this.slot = slot || 'CHEST' }
 FakeArmorItem.prototype.getEquipmentSlot = function () { return this.slot }
 function FakeDiggerItem() {}
+function FakeAxeItem() {}
 function FakeBowItem() {}
 var Java = {
   loadClass: function (n) {
@@ -101,7 +102,7 @@ var Java = {
       'net.minecraft.world.item.ArmorItem': FakeArmorItem,
       'net.minecraft.world.item.DiggerItem': FakeDiggerItem,
       'net.minecraft.world.item.ProjectileWeaponItem': FakeBowItem,
-      'net.minecraft.world.item.AxeItem': function FakeAxeItem() {},
+      'net.minecraft.world.item.AxeItem': FakeAxeItem,
       'net.minecraft.nbt.CompoundTag': Compound,
       'net.minecraft.world.item.ItemStack': { of: function (t) { var st = stack(1, 1); st.id = t.d.id; st.tag = t.d.tag || null; st.restored = true; return st } },
       'net.minecraftforge.common.capabilities.ForgeCapabilities': { ITEM_HANDLER: 'items', FLUID_HANDLER: 'fluids' },
@@ -113,7 +114,8 @@ var Java = {
         this.name = name; this.amount = amount; this.op = op; this.id = 'uuid-' + (++modIds)
         this.getName = function () { return this.name }; this.getAmount = function () { return this.amount }; this.getId = function () { return this.id }
       },
-      'net.minecraft.world.entity.ai.attributes.AttributeModifier$Operation': { ADDITION: 'add', MULTIPLY_BASE: 'mul_base' }
+      'net.minecraft.world.entity.ai.attributes.AttributeModifier$Operation': { ADDITION: 'add', MULTIPLY_BASE: 'mul_base' },
+      'net.minecraft.world.phys.AABB': function FakeAABB(x0, y0, z0, x1, y1, z1) { this.box = [x0, y0, z0, x1, y1, z1] }
     }
     if (!(n in classes)) throw 'unknown class ' + n
     return classes[n]
@@ -193,7 +195,15 @@ function stack(count, max, name) {
     save: function (t) { t.d.id = this.id; t.d.tag = this.tag; return t }, setDamageValue: function (d) { this.damage = d }, getMaxDamage: function () { return this.maxDamage || 0 }
   }
 }
-function gear(name) { return stack(1, 1, name) }
+// Fake gear knows what it is from its name, like a real item knows its class (armor, axe, tool or weapon)
+function gear(name) {
+  var g = stack(1, 1, name), n = String(name || '')
+  if (/Helmet|Chestplate|Leggings|Boots/.test(n)) g.getItem = function () { return new FakeArmorItem(/Helmet/.test(n) ? 'HEAD' : /Leggings/.test(n) ? 'LEGS' : /Boots/.test(n) ? 'FEET' : 'CHEST') }
+  else if (/ Axe$/.test(n)) g.getItem = function () { return new FakeAxeItem() }
+  else if (/Pickaxe|Shovel|Hoe/.test(n)) g.getItem = function () { return new FakeDiggerItem() }
+  else if (!g.getItem) g.getItem = function () { return {} }
+  return g
+}
 
 function makeServer() {
   var data = new Compound()
@@ -1316,11 +1326,30 @@ handlers.rightClicked['kubejs:gem_bloodstone_1']({ player: jew, item: chip, hand
 handlers.rightClicked['kubejs:gem_bloodstone_1']({ player: jew, item: chip, hand: 'MAIN_HAND', cancel: function () {} })
 check('only 3 sockets; a 4th gem is refused and kept', faGems(jewGear).length == 3 && chip.count == 2)
 var perfect = stack(1); jew.main = perfect; jew.sneaking = true
-handlers.rightClicked['kubejs:gem_sapphire_3']({ player: jew, item: perfect, hand: 'MAIN_HAND', cancel: function () {} })
+handlers.rightClicked['kubejs:gem_topaz_3']({ player: jew, item: perfect, hand: 'MAIN_HAND', cancel: function () {} })
 jew.sneaking = false
-check('sneak replaces the newest gem', faGems(jewGear).filter(function (g) { return g.type == 'sapphire' && g.tier == 3 }).length == 1 && faGems(jewGear).length == 3)
+check('sneak replaces the newest gem', faGems(jewGear).filter(function (g) { return g.type == 'topaz' && g.tier == 3 }).length == 1 && faGems(jewGear).length == 3)
 jew.main = jewGear; jew.off = stack(0)
-check('gems stack with stars and sets like any level', faLevels(jew).protection == 75 && faLevels(jew).sharpness == 6)
+check('gems stack with stars and sets like any level', faLevels(jew).plunder == 75 && faLevels(jew).sharpness == 6)
+// Gear match: a Sapphire (Protection) won't go in a sword, and tomes and Chaos rolls follow the same rule
+var sap = stack(1); jew.main = sap; jew.off = gear('Plain Sword')
+handlers.rightClicked['kubejs:gem_sapphire_1']({ player: jew, item: sap, hand: 'MAIN_HAND', cancel: function () {} })
+check('a Sapphire (Protection) won\'t go in a sword, and is kept', sap.count == 1 && faGems(jew.off).length == 0)
+var helm = gear('Iron Helmet'), stome = stack(1); jew.main = stome; jew.off = helm
+handlers.rightClicked['kubejs:tome_sharpness']({ player: jew, item: stome, hand: 'MAIN_HAND', cancel: function () {} })
+check('Sharpness won\'t go on a helmet (it says it goes on weapons), the tome is kept', faGetLevel(helm, 'sharpness') == 0 && stome.count == 1)
+check('enchants know what they suit: Sharpness weapons, Protection armor, Excavation tools, Mending-style ones anything',
+  global.FA_fitsText('sharpness') == 'weapons' && global.FA_fitsText('protection') == 'armor' && global.FA_enchantFits('excavation', 'tool') && global.FA_enchantFits('excavation', 'axe') &&
+  ['weapon', 'armor', 'tool'].every(function (k) { return global.FA_enchantFits('eternal', k) }), global.FA_fitsText('excavation'))
+check('every enchant suits at least one kind of gear', Object.keys(global.FA.enchants).every(function (id) { return global.FA_fitsText(id) != 'nothing' }),
+  Object.keys(global.FA.enchants).filter(function (id) { return global.FA_fitsText(id) == 'nothing' }).join(', '))
+var helmSeeds = 0, helmBad = 0
+for (var hs = 1; hs < 60; hs++) {
+  var fs = global.FA_fittingSeed(hs * 104729, 'armor')
+  helmSeeds++
+  if (!global.FA_rollEnchant(fs).affixes.every(function (a) { return global.FA_typeFits(a.type, 'armor') })) helmBad++
+}
+check('Chaos Tomes on a helmet only roll armor effects (' + helmSeeds + ' rolls, ' + helmBad + ' wrong)', helmBad == 0)
 
 print('\nsets')
 var setHero = makePlayer(server, 'set')
@@ -2269,6 +2298,17 @@ check('skinwalkers hide among ordinary animals, only out in the wilderness, and 
   SW.minDanger >= 1 && SW.chance > 0 && SW.chance < 0.1 && SW.forms.every(function (f) { return f[1] > 0 }))
 var swText = String(new java.lang.String(java.nio.file.Files.readAllBytes(new java.io.File('kubejs/startup_scripts/76_fa_skinwalkers.js').toPath()), 'UTF-8'))
 check('only a creature\'s hit makes it turn: falls, the void and /kill still work on it', /if \(!\(who instanceof \$FALiving\)\) return\s+event.setCanceled\(true\)/.test(swText))
+
+// ---------------- The mod's mobs and bosses (config side) ----------------
+print('\nmod mobs and bosses')
+var cfgText = String(new java.lang.String(java.nio.file.Files.readAllBytes(new java.io.File('kubejs/startup_scripts/00_fa_config.js').toPath()), 'UTF-8'))
+var modParts = cfgText.match(/mobs: \['factoryascension:(\w+)'\]/g) || []
+var MM = global.FA.modMobs
+check('every one of the mod\'s ' + Object.keys(MM.minDanger).length + ' mobs drops its own part (' + modParts.length + ')',
+  Object.keys(MM.minDanger).length >= 34 && Object.keys(MM.minDanger).every(function (id) { return cfgText.indexOf("mobs: ['factoryascension:" + id + "']") >= 0 }))
+check('bosses are deep, rare and spread out, and drop an Ascended Soul', Object.keys(MM.bosses).length == 4 && Object.keys(MM.bosses).every(function (id) {
+  var lootText = String(new java.lang.String(java.nio.file.Files.readAllBytes(new java.io.File('mod/src/main/resources/data/factoryascension/loot_tables/entities/' + id + '.json').toPath()), 'UTF-8'))
+  return MM.minDanger[id] >= 8 && MM.bosses[id].chance < 1 && MM.bosses[id].spacing >= 200 && lootText.indexOf('kubejs:ascended_soul') >= 0 }))
 
 // ---------------- Conflicts: a mod that does the same job turns the pack's version off ----------------
 print('\nconflicts')

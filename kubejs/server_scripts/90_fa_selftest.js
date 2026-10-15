@@ -27,6 +27,7 @@ let faSelftestBusy = false
 let faSelftestCenterOn = 'home'   // the real danger.centerOn, put back when the test ends
 let armedRoom = false             // the Room TNT armed in the room test, checked at the end
 let skinwalkerAt = false          // where the test skinwalker turned, checked at the end
+let bossAt = false                // the boss hurt in the mob test, checked at the end
 
 function faSelftest(server, report, done) {
   let results = []
@@ -547,13 +548,20 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
   if (Platform.isLoaded('factoryascension')) attempt('mod mobs', () => {
     let ids = Object.keys(global.FA.modMobs.minDanger), ok = [], bad = []
     ids.forEach((id, i) => {
-      let e = spawn('factoryascension:' + id, X - 20 + (i % 5) * 2, Y, Z + 14 + Math.floor(i / 5) * 2)
+      let e = spawn('factoryascension:' + id, X - 22 + (i % 8) * 2, Y, Z + 12 + Math.floor(i / 8) * 2)
       if (e && String(e.type) == 'factoryascension:' + id && e.getMaxHealth() > 0) ok.push(id)
       else bad.push(id)
     })
-    check('all ' + ids.length + ' of the mod\'s mobs spawn with their stats (' + ok.length + ')', ok.length == 20, bad.join(', '))
+    check('all ' + ids.length + ' of the mod\'s mobs spawn with their stats (' + ok.length + ')', ok.length == ids.length, bad.join(', '))
     // Gone again before their hordes arrive (a crowd here would stop the horde test later on)
     spawned.forEach(e => { if (String(e.type).indexOf('factoryascension:') == 0 && !e.isRemoved()) e.discard() })
+    // A boss: zone scaling only (no Elite, no Ascended boss on top), no horde of itself, and minions when it's hurt
+    let boss = spawn('factoryascension:rust_colossus', X - 18, Y, Z - 20)
+    let bd = boss.getPersistentData()
+    check('a boss spawns huge (' + boss.getMaxHealth() + ' health), scaled by its zone but not made an Elite or Ascended boss',
+      boss.getMaxHealth() >= 300 && bd.getInt('fa_danger') > 0 && !bd.getBoolean('fa_elite') && !bd.getBoolean('fa_boss'), bd.getInt('fa_danger'))
+    boss.setHealth(boss.getMaxHealth() * 0.6)
+    bossAt = { boss: boss }
     // A kill drops the mob's own part (forced chance)
     let cowFood = global.FA.mobFood.foods.filter(f => f.raw == 'copper_tongue')[0]
     let saved = cowFood.chance
@@ -580,6 +588,31 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     place(X - 19, Y + 3, Z + 4, 'factoryascension:ascendite_glass')
     let props = level.getBlock(g1).getProperties()
     check('connected glass joins the glass next to it (east ' + props.get('east') + ', west ' + props.get('west') + ')', String(props.get('east')) == 'true' && String(props.get('west')) == 'false')
+  })
+
+  // ---- Gear match: Sharpness won't go on a helmet; a Chaos Tome on a helmet only rolls armor effects (real clicks) ----
+  attempt('gear match', () => {
+    player.getInventory().clearContent()
+    let helmet = Item.of('minecraft:iron_helmet')
+    player.setItemInHand('main_hand', Item.of('kubejs:tome_sharpness'))
+    player.setItemInHand('off_hand', helmet)
+    faSetEssence(player, 100000)
+    player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+    let kept = String(player.getMainHandItem().getId()) == 'kubejs:tome_sharpness' && faGetLevel(player.getOffhandItem(), 'sharpness') == 0
+    check('Sharpness won\'t go on a helmet (real click; the tome is kept)', kept)
+    let wrong = 0, rolls = 0
+    for (let i = 0; i < 6; i++) {
+      let h = Item.of('minecraft:diamond_helmet')
+      player.setItemInHand('main_hand', Item.of('kubejs:chaos_tome'))
+      player.setItemInHand('off_hand', h)
+      player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+      faRolledSlots(player.getOffhandItem()).forEach(r => {
+        rolls++
+        global.FA_rollEnchant(r.seed).affixes.forEach(a => { if (!global.FA_typeFits(a.type, 'armor')) wrong++ })
+      })
+    }
+    check('Chaos Tomes on helmets only roll armor effects (' + rolls + ' rolls, ' + wrong + ' wrong)', rolls >= 5 && wrong == 0, rolls + ' / ' + wrong)
+    player.getInventory().clearContent()
   })
 
   // ---- Foils: a sheet applied with a real click, then the foiled tome applied with a real click ----
@@ -873,9 +906,24 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       check('the Condenser packed Liquid Essence into blocks (' + made + ')', made >= 1 && made == Math.floor(condFilled / global.FA.condensed.mbPerBlock), made + ' from ' + condFilled + ' mB')
     })
 
+    // The hurt boss called its minions, and brought no horde of copies
+    if (bossAt) attempt('boss minions', () => {
+      let near = level.getEntitiesOfClass($STLiving, bossAt.boss.getBoundingBox().inflate(24)), minions = 0, copies = 0, extra = 0
+      for (let i = 0; i < near.size(); i++) {
+        let m = near.get(i)
+        if (m.getPersistentData().getBoolean('fa_minion')) minions++
+        else if (String(m.type) == 'factoryascension:rust_walker' || String(m.type) == 'factoryascension:deep_miner') extra++
+        if (m !== bossAt.boss && String(m.type) == 'factoryascension:rust_colossus') copies++
+        if (m !== player) m.discard()
+      }
+      check('a boss below 2/3 health calls its minions (' + minions + '), and neither it nor they bring hordes (' + copies + ' copies, ' + extra + ' extras)',
+        minions >= 2 && minions <= 7 && copies == 0 && extra == 0)
+      bossAt = false
+    })
+
     // The skinwalker cow turned into a named Elite
     if (skinwalkerAt) attempt('skinwalker turned', () => {
-      let near = level.getEntitiesOfClass($STLiving, new $STAABB(skinwalkerAt.x - 24, Y - 4, skinwalkerAt.z - 24, skinwalkerAt.x + 24, Y + 8, skinwalkerAt.z + 24))
+      let near = level.getEntitiesOfClass($STLiving, new $STAABB(skinwalkerAt.x - 48, Y - 4, skinwalkerAt.z - 48, skinwalkerAt.x + 48, Y + 8, skinwalkerAt.z + 48))
       let form = null
       for (let i = 0; i < near.size(); i++) if (near.get(i).getPersistentData().getBoolean('fa_skinwalker_form')) form = near.get(i)
       let name = form && form.getCustomName() ? form.getCustomName().getString() : ''

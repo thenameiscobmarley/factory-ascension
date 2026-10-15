@@ -58,6 +58,20 @@ function faSetEssence(player, value) {
 
 // Gear = any single, unstackable item (tools, weapons, armor, shields, Tinkers tools, ...)
 // (Empty slots come back as undefined in KubeJS, so check that first)
+const $AscArmorItem = Java.loadClass('net.minecraft.world.item.ArmorItem')
+const $AscDiggerItem = Java.loadClass('net.minecraft.world.item.DiggerItem')
+const $AscAxeItem = Java.loadClass('net.minecraft.world.item.AxeItem')
+
+// 'armor', 'tool', 'axe' (weapon and tool) or 'weapon' (anything else: swords, bows, tridents...)
+function faGearKind(stack) {
+  let item = stack.getItem()
+  if (item instanceof $AscArmorItem) return 'armor'
+  if (item instanceof $AscAxeItem) return 'axe'
+  if (item instanceof $AscDiggerItem) return 'tool'
+  return 'weapon'
+}
+const FA_KIND_NAMES = { armor: 'armor', axe: 'an axe', tool: 'a tool', weapon: 'a weapon' }
+
 function faIsGear(stack) {
   return !!stack && !stack.isEmpty() && stack.getMaxStackSize() == 1 && stack.getCount() == 1
 }
@@ -379,6 +393,10 @@ function faUnlock(player, tome, id, gear) {
     player.displayClientMessage(Text.red('Hold the gear you want to enchant in your other hand.'), true)
     return
   }
+  if (!global.FA_enchantFits(id, faGearKind(gear))) {
+    player.displayClientMessage(Text.red(name + ' doesn\'t suit ' + FA_KIND_NAMES[faGearKind(gear)] + ': it goes on ' + global.FA_fitsText(id) + '.'), true)
+    return
+  }
   let tomeLevel = faAppliedLevel(tome, id)
   let had = faGetLevel(gear, id)
   if (had >= tomeLevel) {
@@ -611,7 +629,8 @@ function faChaosRoll(player, tome, gear) {
     return
   }
 
-  let seed = Math.floor(Math.random() * 2147483646) + 1
+  // Only effects that suit this kind of gear (no Sharpness rolls on a helmet)
+  let seed = global.FA_fittingSeed(Math.floor(Math.random() * 2147483646) + 1, faGearKind(gear))
   if (!faCommitRolled(player, gear, slot, old.seed, old.level, seed, 1, essence, essence - cost)) return
   tome.shrink(1)
   if (global.FA_onStat) global.FA_onStat(player, 'chaos_rolls', 1)
