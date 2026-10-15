@@ -88,7 +88,12 @@ function faRunAltar(level, pos) {
   let items = above.getCapability($FACaps.ITEM_HANDLER, $FADirection.DOWN).resolve().orElse(null)
   let fluids = below.getCapability($FACaps.FLUID_HANDLER, $FADirection.UP).resolve().orElse(null)
   if (!items || !fluids) return 0
+  return faLevelGear(level, pos, items, fluids)
+}
 
+// Levels the first upgradable gear in `items` from the Liquid Essence in `fluids`, for one second (the Ascension Altar,
+// and the mod's Essence Forge in the Full download). Returns how many levels it gave.
+function faLevelGear(level, pos, items, fluids) {
   let slot = -1
   for (let i = 0; i < items.getSlots(); i++) {
     let s = items.getStackInSlot(i)

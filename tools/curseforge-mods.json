@@ -1,0 +1,60 @@
+{
+ "minecraft": "1.20.1",
+ "forge": "47.4.10",
+ "mods": [
+  {
+   "slug": "create",
+   "projectID": 328085,
+   "fileID": 7178761,
+   "file": "create-1.20.1-6.0.8.jar"
+  },
+  {
+   "slug": "kubejs",
+   "projectID": 238086,
+   "fileID": 8020595,
+   "file": "kubejs-forge-2001.6.5-build.26.jar"
+  },
+  {
+   "slug": "rhino",
+   "projectID": 416294,
+   "fileID": 6186971,
+   "file": "rhino-forge-2001.2.3-build.10.jar"
+  },
+  {
+   "slug": "architectury-api",
+   "projectID": 419699,
+   "fileID": 5137938,
+   "file": "architectury-9.2.14-forge.jar"
+  },
+  {
+   "slug": "create-industry",
+   "projectID": 693815,
+   "fileID": 7344584,
+   "file": "tfmg-1.0.2f.jar"
+  },
+  {
+   "slug": "mekanism",
+   "projectID": 268560,
+   "fileID": 6552911,
+   "file": "Mekanism-1.20.1-10.4.16.80.jar"
+  },
+  {
+   "slug": "jei",
+   "projectID": 238222,
+   "fileID": 8778011,
+   "file": "jei-1.20.1-forge-15.56.0.205.jar"
+  },
+  {
+   "slug": "waystones",
+   "projectID": 245755,
+   "fileID": 8849482,
+   "file": "waystones-forge-1.20.1-14.1.21.jar"
+  },
+  {
+   "slug": "balm",
+   "projectID": 531761,
+   "fileID": 8969708,
+   "file": "balm-forge-1.20.1-7.3.44.jar"
+  }
+ ]
+}

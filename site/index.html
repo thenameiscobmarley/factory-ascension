@@ -247,14 +247,12 @@
 <section class="sec" id="install">
   <div class="wrap">
     <p class="mono" data-uv-reveal>08 · Install</p>
-    <h2 class="uv-h2" data-uv-reveal>Fifteen minutes to ascend.</h2>
+    <h2 class="uv-h2" data-uv-reveal>Five minutes to ascend.</h2>
     <ol class="steps" data-uv-stagger="up">
-      <li><b>Make a Forge 1.20.1 instance</b><span>Prism Launcher works great. On Fedora it's in Discover, or:</span>
-        <button class="code" data-copy="flatpak install flathub org.prismlauncher.PrismLauncher">flatpak install flathub org.prismlauncher.PrismLauncher</button></li>
-      <li><b>Add the mods</b><span>Required: Create, KubeJS, Rhino, Architectury API. The rest are recommended.</span>
+      <li><b>Pick a download</b><span><b>Full</b> = the scripts plus the Factory Ascension mod (Ascension Vault, Card Binder, Essence Forge, Pack Opener). <b>Half</b> = the scripts only. Both work on their own.</span></li>
+      <li><b>CurseForge app: import it</b><span>Create Custom Profile &rarr; import &rarr; pick the <code>-CurseForge.zip</code>. It makes the Forge 1.20.1 profile and downloads the tested mods for you.</span></li>
+      <li><b>Or by hand</b><span>Make a Forge 1.20.1 instance with the mods below (required: Create, KubeJS, Rhino, Architectury API), then extract the plain zip into the instance folder.</span>
         <div class="mods" id="mods"></div></li>
-      <li><b>Get the scripts</b><span>Download the repo and copy its <code>kubejs</code> folder into your instance's <code>minecraft</code> folder.</span>
-        <button class="code" data-copy="git clone https://github.com/thenameiscobmarley/factory-ascension.git">git clone https://github.com/thenameiscobmarley/factory-ascension.git</button></li>
       <li><b>Test it in creative</b><span>Hold the tome with a sword in your other hand, right-click, then type <code>/ascension</code>.</span>
         <button class="code" data-copy="/give @s kubejs:tome_wings">/give @s kubejs:tome_wings</button>
         <button class="code" data-copy="/give @s kubejs:chaos_tome 16">/give @s kubejs:chaos_tome 16</button>
@@ -262,7 +260,7 @@
     </ol>
     <div class="cta center" data-uv-reveal>
       <a class="uv-btn uv-btn--lg uv-btn--primary magnet" href="https://github.com/thenameiscobmarley/factory-ascension/blob/main/INSTALL.md">Full install guide</a>
-      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="https://github.com/thenameiscobmarley/factory-ascension/archive/refs/heads/main.zip">Download .zip</a>
+      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="https://github.com/thenameiscobmarley/factory-ascension/releases/latest">Downloads (Full / Half)</a>
     </div>
   </div>
 </section>

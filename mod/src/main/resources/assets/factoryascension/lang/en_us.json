@@ -1,0 +1,17 @@
+{
+  "itemGroup.factoryascension": "Factory Ascension",
+  "block.factoryascension.ascension_vault": "Ascension Vault",
+  "block.factoryascension.card_binder": "Card Binder",
+  "block.factoryascension.essence_forge": "Essence Forge",
+  "block.factoryascension.pack_opener": "Pack Opener",
+  "gui.factoryascension.search": "Search...",
+  "gui.factoryascension.sort": "Sort",
+  "gui.factoryascension.collection": "Collection: %s / %s",
+  "gui.factoryascension.tank": "Liquid Essence: %s / %s mB",
+  "gui.factoryascension.forge_working": "Leveling: +%s levels/s",
+  "gui.factoryascension.forge_idle": "Put gear in and fill the tank",
+  "gui.factoryascension.forge_total": "Levels forged: %s",
+  "gui.factoryascension.packs": "Packs",
+  "gui.factoryascension.cards": "Cards",
+  "gui.factoryascension.opened": "Opened: %s"
+}

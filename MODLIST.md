@@ -3,6 +3,12 @@
 Get every mod from CurseForge and pick the **Forge 1.20.1** file. Check the download
 count and the version notes on each page. Create add-ons sometimes lag behind new Create releases.
 
+The **CurseForge** downloads on the [release page](https://github.com/thenameiscobmarley/factory-ascension/releases/latest)
+already list the tested versions (Create 6.0.8, KubeJS 2001.6.5-build.26, Rhino, Architectury, TFMG 1.0.2f, Mekanism,
+JEI, Waystones 14.1.21, Balm) on Forge 47.4.10, so the app gets them for you. The rest of this list is extra.
+
+The **Factory Ascension** mod jar (the Full download) isn't on CurseForge; it comes in the zip.
+
 ## Required
 
 | Mod | Why |
@@ -27,7 +33,6 @@ count and the version notes on each page. Create add-ons sometimes lag behind ne
 |---|---|
 | [Sophisticated Backpacks](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) + [Sophisticated Core](https://www.curseforge.com/minecraft/mc-mods/sophisticated-core) | Upgradeable backpacks (up to netherite size) with pickup, magnet, filter and void upgrades, for hauling horde loot home |
 | [Waystones](https://www.curseforge.com/minecraft/mc-mods/waystones) + [Balm](https://www.curseforge.com/minecraft/mc-mods/balm) | Optional. Fast travel between waystones; the pack adds cheaper Waystone, Warp Stone, Warp Dust and Warp Scroll recipes. Tested with 14.1.21 |
-| [Tom's Simple Storage](https://www.curseforge.com/minecraft/mc-mods/toms-storage) | Auto-sorting storage: chests in a row join into one inventory with a scrollable, searchable Storage Terminal. More chests = more space. Tested with 1.20-1.7.1 |
 
 ## Things to fight
 

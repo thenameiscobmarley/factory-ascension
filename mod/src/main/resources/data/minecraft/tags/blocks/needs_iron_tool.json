@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "factoryascension:ascension_vault",
+    "factoryascension:card_binder",
+    "factoryascension:essence_forge",
+    "factoryascension:pack_opener"
+  ]
+}

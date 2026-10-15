@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "factoryascension:block/pack_opener_front",
+    "side": "factoryascension:block/pack_opener_side",
+    "top": "factoryascension:block/pack_opener_top"
+  }
+}

@@ -426,6 +426,54 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.setItemInHand('main_hand', sword)
   })
 
+  // ---- The Factory Ascension mod's blocks (Full download only) ----
+  if (Platform.isLoaded('factoryascension')) attempt('mod blocks', () => {
+    // Ascension Vault: 108 slots, upgrades, sorting
+    let vpos = place(X + 14, Y, Z + 10, 'factoryascension:ascension_vault')
+    let vault = level.getBlockEntity(vpos)
+    let ok1 = vault && vault.faGetCapacity() == 108
+    vault.faSetTier(2)
+    let items = vault.items()
+    items.setStackInSlot(5, Item.of('minecraft:stone', 10))
+    items.setStackInSlot(0, Item.of('minecraft:dirt', 3))
+    items.setStackInSlot(9, Item.of('minecraft:stone', 20))
+    vault.sortContents()
+    let sorted = String(items.getStackInSlot(0).getId()) == 'minecraft:dirt' && items.getStackInSlot(1).getCount() == 30 && items.getStackInSlot(2).isEmpty()
+    check('Ascension Vault: 108 slots, upgrades to ' + vault.faGetCapacity() + ', sorting merges and orders stacks', ok1 && vault.faGetCapacity() == 324 && sorted)
+    // Card Binder: only cards, counts the collection, shows the best
+    let bpos = place(X + 14, Y, Z + 12, 'factoryascension:card_binder')
+    let binder = level.getBlockEntity(bpos)
+    let best = Item.of('kubejs:tome_cleave')
+    global.FA_setFoil(best, 6)
+    let refused = binder.items().insertItem(0, Item.of('minecraft:dirt'), false).getCount() == 1
+    binder.items().insertItem(0, Item.of('kubejs:tome_sharpness'), false)
+    binder.items().insertItem(1, best, false)
+    binder.items().insertItem(2, Item.of('kubejs:tome_sharpness'), false)
+    check('Card Binder: takes only cards, counts ' + binder.uniqueCards() + ' different, shows the Void-foiled one on top', refused && binder.uniqueCards() == 2 &&
+      String(binder.showcase().getId()) == 'kubejs:tome_cleave')
+    // Essence Forge: levels the gear in its slot from its tank
+    let fpos = place(X + 14, Y, Z + 14, 'factoryascension:essence_forge')
+    let forge = level.getBlockEntity(fpos)
+    let pick = Item.of('minecraft:iron_pickaxe')
+    faSetLevel(pick, 'excavation', 1)
+    forge.items().setStackInSlot(0, pick)
+    let filled = forge.tank().fill(Fluid.of('kubejs:liquid_essence', 8000), $STFluidAction.EXECUTE)
+    let given = global.FA_runForge(level, fpos)
+    let after = faGetLevel(forge.items().getStackInSlot(0), 'excavation')
+    check('Essence Forge: ' + given + ' levels from its own tank (Excavation 1 -> ' + after + ')', filled == 8000 && given > 0 && after == 1 + given && forge.levelsLastSecond() == given, filled + ' / ' + given)
+    // Pack Opener: opens a pack into its outputs and shows the cards
+    let opos = place(X + 14, Y, Z + 16, 'factoryascension:pack_opener')
+    let opener = level.getBlockEntity(opos)
+    opener.faInput().setStackInSlot(0, Item.of('kubejs:enchantment_pack', 2))
+    global.FA_runOpener(level, opos)
+    let out = 0
+    for (let i = 0; i < opener.faOutput().getSlots(); i++) if (!opener.faOutput().getStackInSlot(i).isEmpty()) out++
+    check('Pack Opener: opens a pack into ' + out + ' cards and shows them', out == global.FA.packs.cards && opener.recent().size() == global.FA.packs.cards &&
+      opener.faInput().getStackInSlot(0).getCount() == 1, out)
+    let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
+    check('the mod blocks have recipes', recipes.length == 0, recipes.join(', '))
+  })
+
   // ---- Foils: a sheet applied with a real click, then the foiled tome applied with a real click ----
   attempt('foils', () => {
     player.getInventory().clearContent()

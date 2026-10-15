@@ -1,2 +1,4 @@
 *.jar
 __pycache__/
+dist/
+!mod/gradle/wrapper/gradle-wrapper.jar

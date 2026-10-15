@@ -1,0 +1,219 @@
+#!/usr/bin/env python3
+"""Textures, models, block states, loot tables and tags for the Factory Ascension mod (the Full download's jar).
+
+Blocks match the pack's gear art: gunmetal plates, gold trim, glowing teal channels, violet gems.
+Run from the repo root:  python3 tools/make_mod_assets.py
+"""
+import json
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
+import gear_art  # noqa: E402
+from gear_art import _shade, _mix  # noqa: E402
+import make_textures  # noqa: E402
+
+RES = os.path.join(os.path.dirname(__file__), "..", "mod", "src", "main", "resources")
+ASSETS = os.path.join(RES, "assets", "factoryascension")
+DATA = os.path.join(RES, "data", "factoryascension")
+S = 32
+BLOCKS = ["ascension_vault", "card_binder", "essence_forge", "pack_opener"]
+
+
+def canvas():
+    return [[(0, 0, 0, 255)] * S for _ in range(S)]
+
+
+def plate(px, x0, y0, w, h, mat="steel"):
+    for y in range(y0, y0 + h):
+        for x in range(x0, x0 + w):
+            t = 0.3 + 0.35 * ((x - x0) / max(1, w) + (y - y0) / max(1, h)) / 2
+            if x == x0 or y == y0:
+                t -= 0.18
+            if x == x0 + w - 1 or y == y0 + h - 1:
+                t += 0.2
+            px[y][x] = _shade(mat, t) + (255,)
+
+
+def frame(px, mat="gold", inset=0):
+    for i in range(inset, S - inset):
+        for j in (inset, S - 1 - inset):
+            px[j][i] = _shade(mat, 0.2 if j == inset else 0.6) + (255,)
+            px[i][j] = _shade(mat, 0.3 if j == inset else 0.6) + (255,)
+
+
+def rivets(px):
+    for x, y in ((4, 4), (27, 4), (4, 27), (27, 27)):
+        px[y][x] = _shade("gold", 0.15) + (255,)
+        px[y + 1][x + 1] = _shade("gold", 0.7) + (255,)
+
+
+def line(px, x0, y0, x1, y1, mat="teal"):
+    n = max(abs(x1 - x0), abs(y1 - y0), 1)
+    for k in range(n + 1):
+        x, y = round(x0 + (x1 - x0) * k / n), round(y0 + (y1 - y0) * k / n)
+        px[y][x] = _shade(mat, 0.3) + (255,)
+
+
+def gem(px, cx, cy, r=2):
+    for y in range(cy - r - 1, cy + r + 1):
+        for x in range(cx - r - 1, cx + r + 1):
+            if abs(x - cx + 0.5) + abs(y - cy + 0.5) <= r + 1.2:
+                px[y][x] = _shade("gold", 0.55) + (255,)
+    for y in range(cy - r, cy + r):
+        for x in range(cx - r, cx + r):
+            if abs(x - cx + 0.5) + abs(y - cy + 0.5) <= r + 0.2:
+                px[y][x] = _shade("gem", 0.15 if y < cy else 0.6) + (255,)
+    px[cy - 1][cx - 1] = (255, 255, 255, 255)
+
+
+def side():
+    px = canvas()
+    plate(px, 0, 0, S, S)
+    frame(px)
+    rivets(px)
+    line(px, 6, 16, 25, 16)
+    return px
+
+
+def top():
+    px = canvas()
+    plate(px, 0, 0, S, S, "steel_dk")
+    frame(px)
+    plate(px, 6, 6, 20, 20)
+    gem(px, 16, 16, 3)
+    return px
+
+
+def vault_front():
+    px = side()
+    plate(px, 5, 5, 22, 22, "steel_dk")            # door
+    frame(px, "gold", 5)
+    for y in range(9, 24):                           # door seam
+        px[y][16] = _shade("steel_dk", 0.85) + (255,)
+    for x in (10, 22):                               # hinges
+        for y in (8, 23):
+            px[y][x] = _shade("gold", 0.3) + (255,)
+    gem(px, 16, 15, 3)                               # glowing lock
+    line(px, 12, 20, 20, 20)
+    return px
+
+
+def binder_top():
+    px = canvas()
+    plate(px, 0, 0, S, S, "wood")
+    frame(px)
+    # An open binder: two pages of card pockets
+    for page in (3, 17):
+        plate(px, page, 5, 12, 22, "cloth")
+        for cy in (7, 15):
+            for cx in (page + 1, page + 6):
+                for y in range(cy, cy + 6):
+                    for x in range(cx, cx + 4):
+                        px[y][x] = _mix(_shade("gem", 0.4), (255, 255, 255), 0.25) + (255,) if (x + y) % 5 else (255, 255, 255, 255)
+    for y in range(5, 27):
+        px[y][16] = _shade("gold", 0.5) + (255,)
+    return px
+
+
+def binder_side():
+    px = canvas()
+    plate(px, 0, 0, S, S, "wood")
+    frame(px)
+    plate(px, 4, 20, 24, 8, "steel")
+    line(px, 6, 24, 25, 24, "gem")
+    return px
+
+
+def forge_front():
+    px = side()
+    plate(px, 7, 6, 18, 20, "steel_dk")
+    frame(px, "gold", 6)
+    for y in range(9, 23):                           # glowing core
+        for x in range(10, 22):
+            d = abs(x - 15.5) + abs(y - 16)
+            if d < 7:
+                px[y][x] = _shade("teal", 0.1 + d / 10) + (255,)
+    gem(px, 16, 16, 2)
+    return px
+
+
+def forge_top():
+    px = top()
+    for y in range(10, 22):                          # an anvil-like working surface with a channel
+        px[y][15] = _shade("teal", 0.2) + (255,)
+        px[y][16] = _shade("teal", 0.4) + (255,)
+    return px
+
+
+def opener_front():
+    px = side()
+    plate(px, 6, 6, 20, 8, "steel_dk")               # pack slot
+    for x in range(9, 23):
+        px[10][x] = (10, 10, 14, 255)
+    for i, cx in enumerate((8, 13, 18, 23)):         # cards fanning out
+        for y in range(17, 26):
+            for x in range(cx - 2, cx + 2):
+                px[y][x] = (_shade("gold", 0.3) if i % 2 else _shade("gem", 0.3)) + (255,)
+        px[18][cx - 1] = (255, 255, 255, 255)
+    return px
+
+
+FACES = {
+    "ascension_vault": {"front": vault_front, "side": side, "top": top},
+    "card_binder": {"front": binder_side, "side": binder_side, "top": binder_top},
+    "essence_forge": {"front": forge_front, "side": side, "top": forge_top},
+    "pack_opener": {"front": opener_front, "side": side, "top": top},
+}
+NAMES = {"ascension_vault": "Ascension Vault", "card_binder": "Card Binder", "essence_forge": "Essence Forge", "pack_opener": "Pack Opener"}
+
+
+def write_json(path, obj):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(obj, f, indent=2)
+        f.write("\n")
+
+
+def main():
+    tex = os.path.join(ASSETS, "textures", "block")
+    os.makedirs(tex, exist_ok=True)
+    for b, faces in FACES.items():
+        for face, draw in faces.items():
+            make_textures.png(os.path.join(tex, "%s_%s.png" % (b, face)), draw())
+        write_json(os.path.join(ASSETS, "models", "block", b + ".json"), {
+            "parent": "minecraft:block/orientable",
+            "textures": {"front": "factoryascension:block/%s_front" % b, "side": "factoryascension:block/%s_side" % b,
+                         "top": "factoryascension:block/%s_top" % b}})
+        write_json(os.path.join(ASSETS, "models", "item", b + ".json"), {"parent": "factoryascension:block/" + b})
+        write_json(os.path.join(ASSETS, "blockstates", b + ".json"), {"variants": {
+            "facing=%s" % d: {"model": "factoryascension:block/" + b, **({"y": r} if r else {})}
+            for d, r in (("north", 0), ("east", 90), ("south", 180), ("west", 270))}})
+        write_json(os.path.join(DATA, "loot_tables", "blocks", b + ".json"), {
+            "type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "factoryascension:" + b}],
+                                                  "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
+    write_json(os.path.join(RES, "data", "minecraft", "tags", "blocks", "mineable", "pickaxe.json"),
+               {"replace": False, "values": ["factoryascension:" + b for b in BLOCKS]})
+    write_json(os.path.join(RES, "data", "minecraft", "tags", "blocks", "needs_iron_tool.json"),
+               {"replace": False, "values": ["factoryascension:" + b for b in BLOCKS]})
+    lang = {"itemGroup.factoryascension": "Factory Ascension"}
+    for b in BLOCKS:
+        lang["block.factoryascension." + b] = NAMES[b]
+    lang.update({
+        "gui.factoryascension.search": "Search...",
+        "gui.factoryascension.sort": "Sort",
+        "gui.factoryascension.collection": "Collection: %s / %s",
+        "gui.factoryascension.tank": "Liquid Essence: %s / %s mB",
+        "gui.factoryascension.forge_working": "Leveling: +%s levels/s",
+        "gui.factoryascension.forge_idle": "Put gear in and fill the tank",
+        "gui.factoryascension.forge_total": "Levels forged: %s",
+        "gui.factoryascension.packs": "Packs",
+        "gui.factoryascension.cards": "Cards",
+        "gui.factoryascension.opened": "Opened: %s",
+    })
+    write_json(os.path.join(ASSETS, "lang", "en_us.json"), lang)
+    print("wrote textures, models, block states, loot tables, tags and lang for %d blocks" % len(BLOCKS))
+
+
+if __name__ == "__main__":
+    main()

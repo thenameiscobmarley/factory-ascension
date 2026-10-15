@@ -8,6 +8,14 @@ Want **Protection 3000**? Build a factory big enough to pay for it.
 Mobs get scarier **the farther you go from spawn**, with better loot to match. Time doesn't matter,
 so going AFK is always safe.
 
+**Download:** [latest release](https://github.com/thenameiscobmarley/factory-ascension/releases/latest). Pick one:
+
+| Download | What's in it |
+|---|---|
+| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar (Ascension Vault, Card Binder, Essence Forge, Pack Opener) |
+| **Half** | The KubeJS scripts only. Everything works except those four blocks |
+
+Each comes as a plain zip and as a **CurseForge** zip you import straight into the CurseForge app (it downloads the mods for you).
 **Install:** follow [INSTALL.md](INSTALL.md).
 
 ## The loop
@@ -491,16 +499,19 @@ Vitality (Seared Cow Heart), Sustenance (Grilled Cow Tongue), Renewal (Sheep Liv
 Leaping (Roasted Rabbit Leg), Bane (Spider Legs), Smite (Zombie Brain), Bulwark (Marrow Bone), Blast Ward
 (Creeper Heart), Gills (Squid Tentacle) and Hellbane (Hoglin Ribs). Everything is in the `mobFood` section of the config.
 
-## Storage: Tom's Simple Storage
+## Factory Ascension blocks (Full download)
 
-For a chest that sorts itself, scrolls, and gets bigger the more you add, the pack uses
-[Tom's Simple Storage](https://www.curseforge.com/minecraft/mc-mods/toms-storage) (124M+ downloads).
-KubeJS can't add new inventory screens, so this is better than anything a script could do:
+The Full download adds a small mod with four blocks, styled like the Ascendite gear. Find them in the
+**Factory Ascension** creative tab or in JEI. Recipes are in the `machines` section of the config.
 
-1. Place chests, barrels or Create Item Vaults touching each other in a row, as long as you like.
-2. Put an **Inventory Connector** touching the row. Every connected container joins one big storage.
-3. Put a **Storage Terminal** on the connector. It shows everything in one list: sorted, searchable, and you scroll through it.
-4. More chests in the row = more space. Use **Inventory Cables** to reach containers further away.
+| Block | What it does |
+|---|---|
+| **Ascension Vault** | A storage chest with a search bar, a Sort button and a scroll bar. Starts at 108 slots; right-click it with 8 Voidsteel, then 8 Celestium, then 4 Ascendium ingots for +108 each (432 max). Hoppers and Create funnels work; breaking it drops what's inside |
+| **Card Binder** | Holds 54 tomes (cards only). Shows how much of the collection you have, and floats your best card above the block |
+| **Essence Forge** | Put gear in the slot and pipe or pour Liquid Essence in (16 buckets). It levels the gear by the same rules as the Ascension Altar, once a second |
+| **Pack Opener** | Feed it Enchantment Packs (hoppers work). It opens one a second into 27 output slots and flips the cards on screen |
+
+Without the jar (Half download) the pack still works; these four blocks just don't exist.
 
 ## Danger zones
 
@@ -627,7 +638,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 55 checks of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 55 checks (60 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 

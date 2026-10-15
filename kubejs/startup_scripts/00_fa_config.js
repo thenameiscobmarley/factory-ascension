@@ -964,6 +964,19 @@ global.FA = {
     auras: ['1 0.8 0.2', '0.8 0.4 1', '0.3 1 1', '1 0.3 0.3', '0.4 1 0.4', '1 1 0.4']
   },
 
+  // ---- Machines from the Factory Ascension mod (the "Full" download's jar; ignored without it) ----
+  machines: {
+    // Ascension Vault: 108 slots, +108 per upgrade. Right-click the vault holding the next upgrade's items.
+    vaultUpgrades: [['kubejs:voidsteel_ingot', 8], ['kubejs:celestium_ingot', 8], ['kubejs:ascendium_ingot', 4]],
+    openerSeconds: 1,          // the Pack Opener opens one pack this often
+    recipes: {
+      ascension_vault: [['ABA', 'CDC', 'ABA'], { A: 'kubejs:ascendite_ingot', B: 'kubejs:ascendite_block', C: 'minecraft:chest', D: 'kubejs:dense_ascension_core' }],
+      card_binder: [['LBL', 'BCB', 'AAA'], { L: 'minecraft:leather', B: 'minecraft:book', C: 'kubejs:ascension_core', A: 'kubejs:ascendite_ingot' }],
+      essence_forge: [['IAI', 'BDB', 'OOO'], { I: 'kubejs:ascendite_ingot', A: 'minecraft:anvil', B: 'create:brass_casing', D: 'kubejs:dense_ascension_core', O: 'minecraft:obsidian' }],
+      pack_opener: [['IPI', 'CDC', 'IRI'], { I: 'kubejs:ascendite_ingot', P: 'minecraft:piston', C: 'minecraft:chest', D: 'kubejs:dense_ascension_core', R: 'minecraft:redstone_block' }]
+    }
+  },
+
   // ---- Home: /sethome saves where you stand, /home takes you back (any dimension) ----
   home: {
     enabled: true,

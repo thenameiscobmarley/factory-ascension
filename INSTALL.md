@@ -1,70 +1,55 @@
-# Installing by hand
+# Installing
 
-About 15 minutes. These steps use **Prism Launcher** on Fedora KDE. The CurseForge app works
-the same way: make a Forge 1.20.1 profile, add the mods, then copy the `kubejs` folder in.
+Get a download from the [release page](https://github.com/thenameiscobmarley/factory-ascension/releases/latest):
 
-## 1. Get Prism Launcher
+| File | Use it when |
+|---|---|
+| `FactoryAscension-Full-<version>-CurseForge.zip` | You use the CurseForge app (easiest). Scripts + the mod blocks |
+| `FactoryAscension-Half-<version>-CurseForge.zip` | Same, without the mod blocks (KubeJS only) |
+| `FactoryAscension-Full-<version>.zip` | You already have an instance and want to copy the files in by hand |
+| `FactoryAscension-Half-<version>.zip` | Same, scripts only |
 
-Open **Discover**, search **Prism Launcher**, install it. Or in a terminal:
+**Full** = the KubeJS scripts plus `factoryascension-<version>.jar` (Ascension Vault, Card Binder, Essence Forge, Pack Opener).
+**Half** = the scripts only. Both work on their own; Half just doesn't have those four blocks.
+Servers and everyone joining them need the same one.
 
-```sh
-flatpak install flathub org.prismlauncher.PrismLauncher
-```
+## Easy way: import into the CurseForge app
 
-Log in with your Microsoft account when it asks.
+1. Open the CurseForge app -> **Minecraft** -> **Create Custom Profile** (top right) -> **import** (the small link next to the
+   Create button) -> pick the `-CurseForge.zip` you downloaded.
+2. It makes a Forge 1.20.1 profile and downloads Create, KubeJS, Rhino, Architectury, TFMG, Mekanism, JEI, Waystones and Balm
+   (the versions the pack is tested with). The scripts and, for Full, the mod jar are copied in for you.
+3. Profile **...** -> **Profile Options**: give it **6 GB** of memory (4 GB if your PC struggles).
+4. Play, then do **Check it works** below. Add anything else from [MODLIST.md](MODLIST.md) you want.
 
-## 2. Make the instance
+## By hand (any launcher)
 
-1. **Add Instance** -> pick **1.20.1** -> name it `Factory Ascension`.
-2. In the same window, under **Mod loader**, pick **Forge** and the version marked recommended.
-3. **OK**.
-
-## 3. Give it enough memory
-
-Right-click the instance -> **Edit** -> **Settings** -> **Java**:
-tick **Memory**, set **Maximum memory** to **6144 MiB** (6 GB). Lower it to 4096 if your PC struggles.
-
-## 4. Add the mods
-
-Edit the instance -> **Mods** -> **Download mods** -> **CurseForge** tab.
-Search each mod in [MODLIST.md](MODLIST.md), pick the **Forge 1.20.1** version, and click **Select**.
-When you've picked them all, click **Review and confirm**. Prism adds most dependencies by itself.
-
-The required ones are **Create, KubeJS, Rhino and Architectury API**. The rest are
-recommended, so add whichever you want. **Sophisticated Backpacks** (with Sophisticated Core) is the one for hauling
-horde loot home: give it a pickup upgrade and it scoops drops straight into the backpack.
-
-## 5. Launch once, then close
-
-Launch the instance, wait for the main menu, then quit. This creates the `kubejs` folder.
-
-## 6. Copy in the scripts
-
-1. Get this repo: on GitHub click **Code** -> **Download ZIP**, then extract it.
-   Or: `git clone https://github.com/thenameiscobmarley/factory-ascension.git`
-2. Right-click the instance in Prism -> **Folder**. That opens the instance's `minecraft` folder.
-   (On the Flatpak it's under `~/.var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher/instances/`.)
-3. Copy the **contents** of the repo's `kubejs` folder into the instance's `kubejs` folder.
-   Say **yes** to merging folders. KubeJS's own example files can stay.
+1. Make a **Forge 1.20.1** instance (Forge 47.4.10 or newer) with at least **Create, KubeJS, Rhino and Architectury API**
+   from [MODLIST.md](MODLIST.md), pick the **Forge 1.20.1** file of each. Give it 6 GB of memory.
+2. Launch once to the main menu and quit. This creates the `kubejs` folder.
+3. Open the instance folder (the one with `mods` in it). Extract the plain zip into it and say **yes** to merging folders.
+   Full puts `factoryascension-<version>.jar` into `mods/`; both put the scripts into `kubejs/`. KubeJS's own example files can stay.
+   On Linux, `./install.sh "/path/to/instance"` from a clone of this repo does the `kubejs` part and backs up anything it overwrites.
 
 You should end up with:
 
 ```
-minecraft/kubejs/
+mods/factoryascension-1.0.0.jar   (Full only)
+kubejs/
   startup_scripts/00_fa_config.js, 10_fa_items.js, 20_fa_enchant_effects.js, 30_fa_world.js, 40_fa_ultimates.js, 50_fa_loot.js,
                   60_fa_mob_food.js, 70_fa_variants.js, 80_fa_combat.js, 90_fa_artifacts.js, 95_fa_attachments.js
   server_scripts/10_fa_ascension.js, 15_fa_home.js, 16_fa_packs.js, 17_fa_sell.js, 18_fa_attachments.js, 19_fa_foils.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js,
                  32_fa_ascendite_data.js, 35_fa_starter_recipes.js, 37_fa_food_recipes.js, 38_fa_hammer.js, 39_fa_condition.js, 40_fa_progress.js, 45_fa_altar.js,
-                 90_fa_selftest.js
+                 46_fa_machines.js, 90_fa_selftest.js
   client_scripts/10_fa_tooltips.js, 20_fa_jei.js
   data/kubejs/   (Ascendite ore worldgen: worldgen/ and forge/biome_modifier/)
-  assets/kubejs/textures/item/   (624 .png files)
-  assets/kubejs/textures/block/  (56 .png files: altar, condenser, 51 Condensed Essence tiers, Ascendite ores + block)
-  assets/kubejs/textures/models/armor/  (8 .png files: worn Ascendite, Voidsteel, Celestium and Ascendium armor)
+  assets/kubejs/textures/item/   (item textures)
+  assets/kubejs/textures/block/  (altar, condenser, Condensed Essence tiers, Ascendite ores + block)
+  assets/kubejs/textures/models/armor/  (worn Ascendite, Voidsteel, Celestium and Ascendium armor)
   assets/kubejs/models/item/     (tome models: each picks its foil look)
 ```
 
-## 7. Check it works
+## Check it works
 
 1. Launch and make a **Creative** world with cheats on.
 2. Press **E** and type `ascension` in the JEI search bar. Cores, tomes and clusters should show up with textures.
@@ -78,16 +63,20 @@ minecraft/kubejs/
    All 486 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
-4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 55 checks
+4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 55 checks (60 with the Full jar)
    with a fake player (Essence, a real tome right-click, leveled tomes and extracting, enchants, danger zones, Ascendite, mob food, Rock Hammers, gear condition, rare variants, glowing ores, the safe-zone center, /home, card packs, Artifacts, gems, rebirth,
-   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **55 / 55 passed**.
+   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **55 / 55 passed** (**60 / 60** with Full).
    Any FAIL line says which part is broken.
-5. If something's missing, open the instance folder -> `logs/kubejs/` and look in
+5. Full only: open the **Factory Ascension** creative tab, place each block and open it. The Vault should scroll, search and sort;
+   drop an Enchantment Pack into the Pack Opener and watch the cards flip.
+6. If something's missing, open the instance folder -> `logs/kubejs/` and look in
    `startup.log`, `server.log` and `client.log` for lines with `[Factory Ascension]` or `ERROR`.
 
 ## Updating
 
-Copy the new files over the old ones (the whole `kubejs` folder), then restart the game and run `/ascension selftest`.
+CurseForge app: import the new `-CurseForge.zip` as a new profile, or extract the plain zip over your profile's folder
+(Profile **...** -> **Open Folder**). By hand: extract the new zip over the old files, and delete the old
+`mods/factoryascension-*.jar` if the version changed. Then restart the game and run `/ascension selftest`.
 If you're updating from a version with 3D item models, delete the instance's `kubejs/assets/kubejs/models` folder first
 (copying over the top doesn't remove old files).
 - Changes to `server_scripts` load with `/reload` in game.
@@ -95,4 +84,4 @@ If you're updating from a version with 3D item models, delete the instance's `ku
 
 ## Removing
 
-Delete the `fa_` files and the textures listed above. Enchant data left on items is harmless and does nothing without the scripts.
+Delete the `fa_` files, the textures listed above and `mods/factoryascension-*.jar` (the four blocks and anything stored in them go with it). Enchant data left on items is harmless and does nothing without the scripts.
