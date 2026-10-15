@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "factoryascension:block/tome_fusion_table"
+    },
+    "facing=east": {
+      "model": "factoryascension:block/tome_fusion_table",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "factoryascension:block/tome_fusion_table",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "factoryascension:block/tome_fusion_table",
+      "y": 270
+    }
+  }
+}

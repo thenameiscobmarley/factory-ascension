@@ -1,72 +1,84 @@
 <!doctype html>
-<html lang="en" data-uv-theme="volcano">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Factory Ascension</title>
-<meta name="description" content="A Minecraft Create modpack where your factory is your power and every chest is a lottery: 486 uncapped enchants, foil card packs, one-of-one Artifacts, danger zones and four custom machines." />
-<meta name="theme-color" content="#0b0908" />
+<meta name="description" content="A Minecraft Create modpack where your factory is your power and every chest is a lottery: 486 uncapped enchants, foil card packs, one-of-one Artifacts, danger zones and a mod full of machines." />
+<meta name="theme-color" content="#140c07" />
 <link rel="icon" href="fa/items/ascension_core.png" />
-<link rel="stylesheet" href="vendor/uivault/fonts.css" />
-<link rel="stylesheet" href="vendor/uivault/uivault.css" />
-<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="site.css?v=e96459806e" />
+<script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
 
 <nav class="top">
-  <a class="brand" href="#top"><img src="fa/items/ascension_core.png" alt="" width="24" height="24" /> Factory Ascension</a>
-  <div class="links">
-    <a href="#loop">Loop</a><a href="#luck">Luck</a><a href="#gear">Gear</a><a href="#enchants">Enchants</a><a href="#danger">Danger</a><a href="#blocks">Blocks</a>
-    <a href="builder.html" class="hide-md">Builder</a><a href="recipes.html" class="hide-md">Recipes</a>
+  <a class="brand" href="#home"><img src="fa/items/ascension_core.png" alt="" /><span>Factory Ascension</span></a>
+  <div class="links" id="shelf">
+    <a href="#home" data-ch="home"><img src="fa/items/blank_ascension_tome.png" alt="" /><span>Home</span></a>
+    <a href="#luck" data-ch="luck"><img src="fa/items/enchantment_pack.png" alt="" /><span>Luck</span></a>
+    <a href="#gear" data-ch="gear"><img src="fa/items/ascendium_sword.png" alt="" /><span>Gear</span></a>
+    <a href="#enchants" data-ch="enchants"><img src="fa/items/tome_wings.png" alt="" /><span>Enchants</span></a>
+    <a href="#machines" data-ch="machines"><img src="fa/blocks/engine_core_front.png" alt="" /><span>Machines</span></a>
+    <a href="#world" data-ch="world"><img src="fa/items/mythic_fragment.png" alt="" /><span>World</span></a>
+    <a href="builder.html"><img src="fa/items/ascendite_chestplate.png" alt="" /><span>Builder</span></a>
+    <a href="recipes.html"><img src="fa/items/ascension_shard.png" alt="" /><span>Recipes</span></a>
   </div>
-  <a class="uv-btn uv-btn--sm uv-btn--primary" href="#download">Download</a>
+  <a class="btn gold sm" href="#download">Download</a>
 </nav>
 
-<!-- ============ HERO ============ -->
-<header class="hero" id="top">
-  <canvas class="embers" aria-hidden="true"></canvas>
-  <div class="gears" aria-hidden="true">
-    <svg class="gear g1" viewBox="-50 -50 100 100"></svg>
-    <svg class="gear g2" viewBox="-50 -50 100 100"></svg>
-    <svg class="gear g3" viewBox="-50 -50 100 100"></svg>
-  </div>
-  <div class="hero-copy">
-    <p class="mono" data-uv-reveal>Minecraft · Forge 1.20.1 · Create</p>
-    <h1><span class="solid">Factory</span><span class="hollow">Ascension</span></h1>
-    <p class="lede" data-uv-reveal>Your Create factory <em>is</em> your power: every core it builds makes your gear stronger, with no level cap.
-      And every chest, pack and rare mob is a lottery ticket. Protection 3000 isn't a cheat. It's a bigger factory and a lucky pull.</p>
-    <div class="cta" data-uv-reveal>
-      <a class="uv-btn uv-btn--lg uv-btn--primary magnet" href="#download">Download</a>
-      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="#luck">Open a pack</a>
-      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="builder.html">Gear Builder</a>
+<main class="book">
+
+<!-- ============ HOME ============ -->
+<section class="ch" id="home">
+  <div class="cover">
+    <div class="hero">
+      <div>
+        <p class="mono">Minecraft · Forge 1.20.1 · Create</p>
+        <h1>Factory <span>Ascension</span></h1>
+        <p class="lede">Your Create factory <em>is</em> your power: every core it builds makes your gear stronger, with no level cap.
+          And every chest, pack and rare mob is a lottery ticket. Protection 3000 isn't a cheat. It's a bigger factory and a lucky pull.</p>
+        <div class="cta">
+          <a class="btn gold lg" href="#download">Download</a>
+          <a class="btn lg" href="#luck">Open a pack</a>
+          <a class="btn lg" href="#machines">See the machines</a>
+        </div>
+      </div>
+      <div class="shelf" aria-hidden="true">
+        <img src="fa/items/tome_sharpness.png" alt="" style="--d:0s" /><img src="fa/items/tome_wings.png" alt="" style="--d:.4s" />
+        <img src="fa/items/tome_thunder_waltz.png" alt="" style="--d:.8s" /><img src="fa/items/chaos_tome.png" alt="" style="--d:.2s" />
+        <img src="fa/items/enchantment_pack.png" alt="" style="--d:.6s" /><img src="fa/items/tome_frostbite.png" alt="" style="--d:1s" />
+      </div>
     </div>
+    <div class="stats" id="heroStats"></div>
   </div>
-  <div class="stats" id="heroStats"></div>
-</header>
 
-<div class="uv-marquee ticker" aria-hidden="true">
-  <div id="tickerA"></div><div id="tickerB"></div>
-</div>
-
-<!-- ============ LOOP ============ -->
-<section class="sec" id="loop">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>01 · The loop</p>
-    <h2 class="uv-h2" data-uv-reveal>Mine. Build. Absorb. Ascend.</h2>
-    <p class="sub" data-uv-reveal>It starts with a glowing ore and a rock hammer. It ends with a factory that turns cobblestone into godhood.</p>
-    <ol class="belt" data-uv-stagger="up">
-      <li><img src="fa/items/raw_ascendite.png" alt="" /><b>Find Ascendite</b><span>A glowing ore between iron and diamond. Smash rock with a Rock Hammer, or press 9 cobblestone into Raw Ascendite.</span></li>
-      <li><img src="fa/items/common_mineral_cluster.png" alt="" /><b>Mine forever</b><span>Cobble generators feed mixers that make mineral clusters. Crush them for every ore, even diamonds and netherite.</span></li>
-      <li><img src="fa/items/ascension_core.png" alt="" /><b>Assemble cores</b><span>Assembly lines, presses or a crafting table turn your ores into Ascension Cores. Absorb them, or melt them into <i class="essence-fluid">Liquid Essence</i>.</span></li>
-      <li><img src="fa/items/enchantment_pack.png" alt="" /><b>Pull tomes</b><span>Craft tomes, rip open card packs, crack Gear Caches. Hold a tome next to any gear and right-click.</span></li>
-      <li><img src="fa/items/tome_wings.png" alt="" /><b>Ascend</b><span>Spend Essence on levels with no cap, then go further out, where the mobs and the loot get scarier.</span></li>
+  <div class="cover brown">
+    <p class="part">The loop</p>
+    <ol class="belt">
+      <li><img src="fa/items/raw_ascendite.png" alt="" /><b>Find Ascendite</b><span>A glowing ore between iron and diamond, or press 9 cobblestone into Raw Ascendite.</span></li>
+      <li><img src="fa/blocks/engine_coil_side.png" alt="" /><b>Power up</b><span>A Modular Engine burns coal from day one. Add coils as the factory grows.</span></li>
+      <li><img src="fa/items/ascension_core.png" alt="" /><b>Build cores</b><span>Presses, mixers or a crafting table turn ores into Ascension Cores and <i class="essence-fluid">Liquid Essence</i>.</span></li>
+      <li><img src="fa/items/enchantment_pack.png" alt="" /><b>Pull tomes</b><span>Craft tomes, rip open packs, crack Gear Caches. Right-click a tome onto any gear.</span></li>
+      <li><img src="fa/items/tome_wings.png" alt="" /><b>Ascend</b><span>Spend Essence on levels with no cap, then go further out where the loot gets better.</span></li>
     </ol>
+  </div>
 
-    <div class="ladder" data-uv-reveal>
+  <div class="grid2">
+    <div class="cover teal">
+      <p class="part">New in <span id="newVersion">1.1</span></p>
+      <div class="news">
+        <a href="#machines"><img src="fa/blocks/engine_core_front.png" alt="" /><b>Modular Engine</b><span>Power from day one: build it from Coils, Gearboxes and Burners.</span></a>
+        <a href="#machines"><img src="fa/blocks/super_smelter_front_lit.png" alt="" /><b>Super Smelter</b><span>Smelts up to 32 at once, faster the faster it spins.</span></a>
+        <a href="#machines"><img src="fa/blocks/salvager_front.png" alt="" /><b>Salvager</b><span>Feed it loot, get Ascension Cores back.</span></a>
+        <a href="#machines"><img src="fa/blocks/tome_fusion_table_top.png" alt="" /><b>Tome Fusion Table</b><span>Merge tomes and build Fusions in one screen.</span></a>
+        <a href="#machines"><img src="fa/items/ascendite_ingot.png" alt="" /><b>Easy start</b><span>Casings by hand, belts from leather, cheap cogs and shafts.</span></a>
+      </div>
+    </div>
+    <div class="cover purple">
       <div class="ladder-head">
         <span class="drop" aria-hidden="true"></span>
-        <div><b>Liquid Essence, condensed</b><span>An Essence Condenser packs it into blocks, and every tier is 9 of the last, all the way to <em id="ladderTop"></em>.
-          Hover a block to see how much is inside.</span></div>
+        <div><b>Liquid Essence, condensed</b><span>Every tier is 9 of the last, all the way to <em id="ladderTop"></em>. Point at a block.</span></div>
       </div>
       <div class="ladder-row" id="ladder"></div>
       <p class="ladder-read" id="ladderRead">&nbsp;</p>
@@ -75,145 +87,136 @@
 </section>
 
 <!-- ============ LUCK ============ -->
-<section class="sec luck" id="luck">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>02 · Luck</p>
-    <h2 class="luck-title" data-uv-reveal>Every chest is a lottery.</h2>
-    <p class="sub" data-uv-reveal>Enchantment Packs turn up in dungeon chests, temples, strongholds and End cities. Five tome cards each, the last one Rare or better,
-      and any card can come foiled. This opens packs with the game's own odds.</p>
-
+<section class="ch" id="luck">
+  <header class="ch-head"><img src="fa/items/enchantment_pack.png" alt="" />
+    <div><p class="mono">Chapter 1</p><h2>Every chest is a lottery</h2>
+    <p class="sub">Enchantment Packs turn up in dungeons, temples, strongholds and End cities: five tome cards each, the last one Rare or better,
+      and any card can come foiled. This opens packs with the game's own odds.</p></div></header>
+  <div class="cover red">
     <div class="pack-stage">
       <div class="pack-left">
-        <img class="pack-art" id="packArt" src="fa/items/enchantment_pack.png" alt="Enchantment Pack" width="120" height="120" />
-        <button class="uv-btn uv-btn--lg uv-btn--primary magnet" id="openPack">Open a pack</button>
-        <button class="uv-btn uv-btn--ghost" id="openBox"><img src="fa/items/booster_box.png" alt="" width="20" height="20" /> Crack a Booster Box</button>
+        <img class="pack-art" id="packArt" src="fa/items/enchantment_pack.png" alt="Enchantment Pack" />
+        <button class="btn gold lg" id="openPack" type="button">Open a pack</button>
+        <button class="btn" id="openBox" type="button"><img src="fa/items/booster_box.png" alt="" /> Crack a Booster Box</button>
         <div class="odds" id="packOdds" aria-label="Card rarity odds"></div>
         <div class="odds-key" id="packKey"></div>
         <p class="roll-stats" id="packStats">&nbsp;</p>
       </div>
-      <div class="cards" id="cards" aria-live="polite"></div>
+      <div>
+        <div class="cards" id="cards" aria-live="polite"></div>
+        <div class="box-sum" id="boxSum" aria-live="polite"></div>
+      </div>
     </div>
-    <div class="box-sum" id="boxSum" aria-live="polite"></div>
-
-    <h3 class="sub-h" data-uv-reveal>Foils</h3>
-    <p class="sub small" data-uv-reveal>A foil multiplies the tome's level when you apply it. Pack cards roll them (better cards, better foils), 15% of loot tomes come foiled,
-      and you can craft Foil Sheets and press them onto any tome.</p>
-    <div class="foils" id="foils" data-uv-stagger="up"></div>
-
-    <div class="luck-grid">
-      <article class="luck-card" data-uv-reveal>
-        <h3>Sealed Gear Caches</h3>
-        <p>One piece of relic gear in a sealed crate. It turns up in vanilla chests, and what's inside depends on where you <em>open</em> it:
-          carry it out to the danger zones first.</p>
-        <label class="mini-range">Open it at danger <output id="cacheLvlOut">0</output>
-          <input class="uv-range" id="cacheLvl" type="range" min="0" max="40" value="0" /></label>
-        <div class="odds" id="cacheOdds"></div>
-        <button class="uv-btn uv-btn--sm uv-btn--primary" id="openCache"><img src="fa/items/gear_cache.png" alt="" width="18" height="18" /> Break the seal</button>
-        <div class="relic" id="relic" aria-live="polite"></div>
-      </article>
-      <article class="luck-card" data-uv-reveal>
-        <h3>Jackpots</h3>
-        <p>Card and relic levels have a long lucky tail. Most rolls are normal. Some are not.</p>
-        <ul class="tail" id="tail"></ul>
-        <p class="dim small">And <b id="chestJackpot"></b> of vanilla chests hide a jackpot stack: up to 40 packs, 16 caches, 6 booster boxes or 192 cores.</p>
-      </article>
-      <article class="luck-card" data-uv-reveal>
-        <h3>Rare mobs</h3>
-        <p>Every mob that spawns rolls once. Kills are announced to the whole server.</p>
-        <div class="variants" id="variants"></div>
-      </article>
+  </div>
+  <div class="cover red">
+    <p class="part">Foils <small>a foil multiplies the tome's level when you apply it</small></p>
+    <div class="foils" id="foils"></div>
+  </div>
+  <div class="grid3">
+    <div class="cover red box">
+      <p class="part">Gear Caches</p>
+      <p>Relic gear in a sealed crate. What's inside depends on where you <em>open</em> it, so carry it out to the danger zones first.</p>
+      <label class="mini-range">Open it at danger <output id="cacheLvlOut">0</output>
+        <input class="range" id="cacheLvl" type="range" min="0" max="40" value="0" /></label>
+      <div class="odds" id="cacheOdds"></div>
+      <button class="btn gold sm" id="openCache" type="button"><img src="fa/items/gear_cache.png" alt="" /> Break the seal</button>
+      <div class="relic" id="relic" aria-live="polite"></div>
+    </div>
+    <div class="cover red box">
+      <p class="part">Jackpots</p>
+      <p>Card and relic levels have a long lucky tail. Most rolls are normal. Some are not.</p>
+      <ul class="tail" id="tail"></ul>
+      <p><b id="chestJackpot"></b> of vanilla chests hide a jackpot stack: up to 40 packs, 16 caches, 6 booster boxes or 192 cores.</p>
+    </div>
+    <div class="cover red box">
+      <p class="part">Rare mobs</p>
+      <p>Every mob rolls once when it spawns. Kills are announced to the server.</p>
+      <div class="variants" id="variants"></div>
     </div>
   </div>
 </section>
 
 <!-- ============ GEAR ============ -->
-<section class="sec gear-sec" id="gear">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>03 · Gear</p>
-    <h2 class="uv-h2" data-uv-reveal>Four new metals. No two swords alike.</h2>
-    <p class="sub" data-uv-reveal>Ascendite takes you past iron. Voidsteel, Celestium and Ascendium take you past netherite. Then condition, attachments and Artifacts make each piece yours.</p>
-
-    <div class="tiers" id="tiers" data-uv-stagger="up"></div>
-
-    <div class="gear-grid">
-      <article class="gear-card" data-uv-reveal>
-        <h3>Condition</h3>
-        <p>Every piece of gear rolls a wear grade once, like a weapon skin. Pristine hits 25% harder. A Polishing Cloth rerolls it and keeps the better grade.</p>
-        <div class="grades" id="grades"></div>
-        <button class="uv-btn uv-btn--sm uv-btn--ghost" id="rollGrade"><img src="fa/items/polishing_cloth.png" alt="" width="18" height="18" /> Roll a grade</button>
-        <p class="grade-out" id="gradeOut" aria-live="polite">&nbsp;</p>
-      </article>
-      <article class="gear-card" data-uv-reveal>
-        <h3>Attachments</h3>
-        <p>Two slots on every piece. Hold an attachment next to the gear and right-click. Hover one to see what it does.</p>
-        <div class="attach" id="attach"></div>
-        <p class="attach-out" id="attachOut">&nbsp;</p>
-      </article>
+<section class="ch" id="gear">
+  <header class="ch-head"><img src="fa/items/ascendium_sword.png" alt="" />
+    <div><p class="mono">Chapter 2</p><h2>Four new metals. No two swords alike.</h2>
+    <p class="sub">Ascendite takes you past iron; Voidsteel, Celestium and Ascendium take you past netherite. Then condition, attachments and Artifacts make each piece yours.</p></div></header>
+  <div class="cover teal">
+    <div class="tiers" id="tiers"></div>
+  </div>
+  <div class="grid2">
+    <div class="cover teal box">
+      <p class="part">Condition</p>
+      <p>Every piece rolls a wear grade once, like a weapon skin. Pristine hits 25% harder. A Polishing Cloth rerolls it and keeps the better grade.</p>
+      <div class="grades" id="grades"></div>
+      <button class="btn sm" id="rollGrade" type="button"><img src="fa/items/polishing_cloth.png" alt="" /> Roll a grade</button>
+      <p class="grade-out" id="gradeOut" aria-live="polite">&nbsp;</p>
     </div>
-
-    <article class="artifact" data-uv-reveal>
-      <div class="artifact-copy">
-        <p class="mono">One of one</p>
-        <h3>Artifacts</h3>
-        <p>Push a piece of gear past <b id="awakenLvls"></b> total enchant levels and <b>Awaken</b> it. It gets a name, a world serial number,
-          a signature color and aura, a lore line and 3 to 4 quirks with rolled strengths. There will never be another. <span id="relicArt"></span></p>
+    <div class="cover teal box">
+      <p class="part">Attachments</p>
+      <p>Two slots on every piece: hold one next to the gear and right-click. Point at one to see what it does.</p>
+      <div class="attach" id="attach"></div>
+      <p class="attach-out" id="attachOut">&nbsp;</p>
+    </div>
+  </div>
+  <div class="cover teal">
+    <div class="artifact">
+      <div>
+        <p class="part">Artifacts <small>one of one</small></p>
+        <p>Push a piece of gear past <b id="awakenLvls"></b> total enchant levels and <b>Awaken</b> it: a name, a world serial number,
+          a color and aura, a lore line and 3 to 4 quirks with rolled strengths. There will never be another. <span id="relicArt"></span></p>
         <div class="seg" id="artKind" role="tablist">
-          <button class="uv-chip is-active" data-k="weapon">Weapon</button><button class="uv-chip" data-k="armor">Armor</button><button class="uv-chip" data-k="tool">Tool</button>
+          <button class="chip is-active" data-k="weapon" type="button">Weapon</button><button class="chip" data-k="armor" type="button">Armor</button><button class="chip" data-k="tool" type="button">Tool</button>
         </div>
-        <button class="uv-btn uv-btn--primary magnet" id="awaken">Awaken one</button>
+        <button class="btn gold" id="awaken" type="button">Awaken one</button>
       </div>
       <div class="artifact-card" id="artCard" aria-live="polite"></div>
-    </article>
+    </div>
   </div>
 </section>
 
 <!-- ============ ENCHANTS ============ -->
-<section class="sec" id="enchants">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>04 · Enchants</p>
-    <h2 class="uv-h2" data-uv-reveal><span id="enchCount">486</span> enchants. No ceiling.</h2>
-    <p class="sub" data-uv-reveal>Drag the level, pick a foil, and watch them scale. These numbers come straight from the pack's config, so they're exactly what you get in game.</p>
+<section class="ch" id="enchants">
+  <header class="ch-head"><img src="fa/items/tome_wings.png" alt="" />
+    <div><p class="mono">Chapter 3</p><h2><span id="enchCount">486</span> enchants. No ceiling.</h2>
+    <p class="sub">Every number here comes straight from the pack's config, so it's exactly what you get in game.</p></div></header>
+  <div class="tabs" id="enchTabs" role="tablist">
+    <button class="chip is-active" data-sub="browse" type="button">Browse all</button>
+    <button class="chip" data-sub="mythic" type="button">✦ Mythic</button>
+    <button class="chip" data-sub="ultimates" type="button">☄ Ultimates</button>
+    <button class="chip" data-sub="chaos" type="button">Chaos Forge</button>
+  </div>
 
+  <div class="cover purple sub-page" data-sub="browse">
     <div class="controls">
-      <input class="uv-input search" id="search" type="search" placeholder="Search enchants, effects, catalysts…" aria-label="Search enchants" />
+      <input class="input search" id="search" type="search" placeholder="Search enchants, effects, catalysts…" aria-label="Search enchants" />
       <div class="level">
         <label for="lvl">Level <output id="lvlOut">1</output></label>
-        <input class="uv-range" id="lvl" type="range" min="0" max="1000" value="0" />
+        <input class="range" id="lvl" type="range" min="0" max="1000" value="0" />
         <div class="presets" id="presets"></div>
-        <div class="presets foil-pick" id="foilPick" aria-label="Foil"></div>
+        <div class="presets" id="foilPick" aria-label="Foil"></div>
       </div>
     </div>
     <div class="chips" id="chips" role="tablist"></div>
     <p class="count" id="count"></p>
     <div class="grid" id="grid"></div>
+    <div class="pager" id="pager"></div>
   </div>
-</section>
 
-<!-- ============ MYTHIC ============ -->
-<section class="sec mythic" id="mythic">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>05 · Mythic</p>
-    <h2 class="mythic-title" data-uv-reveal>&#10022; The rare, crazy tier</h2>
+  <div class="cover purple sub-page" data-sub="mythic" hidden>
     <div class="mythic-intro">
-      <img class="frag" src="fa/items/mythic_fragment.png" alt="Mythic Fragment" data-uv-reveal="zoom" />
-      <p data-uv-reveal>Mythic tomes can't be made from factory materials alone. They need <b>Mythic Fragments</b>, which only drop from mobs
-        out in the danger zones, mostly from Elites. <span id="fragRates"></span>
+      <img class="frag" src="fa/items/mythic_fragment.png" alt="Mythic Fragment" />
+      <p>Mythic tomes need <b>Mythic Fragments</b>, which only drop from mobs out in the danger zones, mostly Elites. <span id="fragRates"></span>
         The factory makes you strong. Exploring makes you <em>strange</em>.</p>
     </div>
-    <div class="mythic-grid" id="mythicGrid" data-uv-stagger="up"></div>
+    <div class="mythic-grid" id="mythicGrid"></div>
   </div>
-</section>
 
-<!-- ============ ULTIMATES ============ -->
-<section class="sec ultimates" id="ultimates">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>06 · Ultimates</p>
-    <h2 class="ult-title" data-uv-reveal>&#9732; Sneak. Hit. Unleash.</h2>
-    <p class="sub" data-uv-reveal>Ultimates are cinematic combo moves. Sneak and hit an enemy, and the game takes over: you blink around it,
-      launch into the sky, call down lightning, and land right back where you started. You can't be hurt mid-combo, and every hit scales
-      with your other enchants. Their tomes need <b>Ascended Souls</b>, which only Ascended bosses drop. Or a Secret Rare pull.</p>
+  <div class="cover red sub-page" data-sub="ultimates" hidden>
+    <p class="sub">Sneak and hit an enemy, and the game takes over: you blink around it, launch into the sky, call down lightning and land where you started.
+      You can't be hurt mid-combo. Their tomes need <b>Ascended Souls</b> from Ascended bosses, or a Secret Rare pull.</p>
     <div class="ult-stage">
-      <div class="replay" aria-hidden="true">
+      <div class="replay slot-card" aria-hidden="true">
         <svg viewBox="-60 -60 120 120" id="replay">
           <circle class="ring" r="30" />
           <g id="slashes"></g>
@@ -224,37 +227,29 @@
         </svg>
         <p class="mono" id="replayStep">Thunder God's Waltz</p>
       </div>
-      <div class="ult-side">
+      <div>
         <p class="ult-name" id="ultName"></p>
         <p class="ult-desc" id="ultDesc"></p>
-        <button class="uv-btn uv-btn--primary magnet" id="replayBtn">Replay Thunder God's Waltz</button>
+        <button class="btn gold" id="replayBtn" type="button">Replay</button>
       </div>
     </div>
-    <div class="ult-grid" id="ultGrid" data-uv-stagger="up"></div>
+    <div class="ult-grid" id="ultGrid"></div>
   </div>
-</section>
 
-<!-- ============ CHAOS ============ -->
-<section class="sec chaos" id="chaos">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>07 · Chaos Forge</p>
-    <h2 class="chaos-title" data-uv-reveal>Roll the dice on your gear.</h2>
-    <p class="sub" data-uv-reveal>A <b>Chaos Tome</b> rolls a brand-new enchant that's never existed before: a rarity, a name and up to three random effects.
-      This forge runs the exact same generator as the game, so every seed below is a real enchant you could pull.</p>
-
+  <div class="cover purple sub-page" data-sub="chaos" hidden>
+    <p class="sub">A <b>Chaos Tome</b> rolls a brand-new enchant: a rarity, a name and up to three random effects. This runs the game's own generator,
+      so every seed is a real enchant you could pull.</p>
     <div class="forge">
       <div class="forge-left">
-        <img class="chaos-tome" src="fa/items/chaos_tome.png" alt="Chaos Tome" width="112" height="112" />
-        <button class="uv-btn uv-btn--lg uv-btn--primary magnet" id="rollOne">Roll a Chaos Tome</button>
-        <button class="uv-btn uv-btn--ghost" id="rollMany">Roll 12 at once</button>
+        <img class="chaos-tome" src="fa/items/chaos_tome.png" alt="Chaos Tome" />
+        <button class="btn gold lg" id="rollOne" type="button">Roll a Chaos Tome</button>
+        <button class="btn" id="rollMany" type="button">Roll 12 at once</button>
         <div class="odds" id="odds" aria-label="Rarity odds"></div>
         <div class="odds-key" id="oddsKey"></div>
-        <label class="roll-level">Preview level
-          <span class="presets" id="rollLevels"></span>
-        </label>
-        <form class="seed-form" id="seedForm"><input class="uv-input" id="seedIn" inputmode="numeric" placeholder="Look up a seed…" aria-label="Seed" /><button class="uv-btn uv-btn--sm uv-btn--ghost">Go</button></form>
+        <label class="roll-level">Preview level <span class="presets" id="rollLevels"></span></label>
+        <form class="seed-form" id="seedForm"><input class="input" id="seedIn" inputmode="numeric" placeholder="Look up a seed…" aria-label="Seed" /><button class="btn sm">Go</button></form>
       </div>
-      <div class="forge-right">
+      <div>
         <article class="roll-card" id="rollCard" aria-live="polite"></article>
         <p class="roll-stats" id="rollStats"></p>
       </div>
@@ -263,150 +258,132 @@
   </div>
 </section>
 
-<!-- ============ DANGER ============ -->
-<section class="uv-pin danger" id="danger" style="--len: 520vh">
-  <div class="uv-pin__stage">
-    <div class="sky" id="sky"></div>
-    <i class="shade" id="shade"></i>
-    <div class="danger-ui">
-      <p class="mono">08 · Danger zones · scroll to travel</p>
-      <h2 class="zone" id="zoneName">Safe Lands</h2>
-      <div class="dist"><b id="dist">0</b><span>blocks from spawn</span></div>
-      <div class="readout">
-        <div class="uv-stat"><small>Danger</small><b id="dLevel">0</b></div>
-        <div class="uv-stat"><small>Mob health</small><b id="dHealth">x1.0</b></div>
-        <div class="uv-stat"><small>Mob damage</small><b id="dDamage">x1.0</b></div>
-        <div class="uv-stat"><small>Loot</small><b id="dLoot">x1.0</b></div>
-        <div class="uv-stat"><small>Elites</small><b id="dElite">0%</b></div>
+<!-- ============ MACHINES ============ -->
+<section class="ch" id="machines">
+  <header class="ch-head"><img src="fa/blocks/engine_core_front.png" alt="" />
+    <div><p class="mono">Chapter 4</p><h2>Machines of your own</h2>
+    <p class="sub">The <b>Full</b> download adds a Forge mod with eleven blocks in the same gunmetal, teal and gold as the Ascendite gear. Every number is in the
+      <code>machines</code> section of the config. Point at a block to spin it.</p></div></header>
+  <div class="cover steel">
+    <div class="engine">
+      <div>
+        <p class="part">Modular Engine <small>power from day one</small></p>
+        <p>An <b>Engine Core</b> plus modules touching it (or each other) in any shape. <b>Coils</b> add stress capacity, <b>Gearboxes</b> raise the speed,
+          and <b>Burners</b> burn any furnace fuel: each lit Burner powers <b id="cpb"></b> Coils. The shaft comes out of the core's front.
+          Everything is iron, copper and Create's andesite parts, so it's your first power source.</p>
+        <div class="mods-row" id="engineCtl"></div>
       </div>
-      <div class="loot">
-        <div class="loot-bar" id="lootBar" aria-label="Loot tier odds at this depth"></div>
-        <p class="loot-read" id="lootRead"></p>
-        <button class="uv-btn uv-btn--sm uv-btn--ghost" id="lootRoll" type="button">What drops here?</button>
-        <p class="loot-drop" id="lootDrop" aria-live="polite"></p>
+      <div>
+        <div class="engine-build" id="engineBuild" aria-label="Your engine"></div>
+        <div class="engine-out" id="engineOut"></div>
+        <p class="engine-note" id="engineNote">&nbsp;</p>
       </div>
-      <div class="rail"><i id="railDot"></i><div id="railZones"></div></div>
     </div>
-    <div class="elite" id="elite"><span>&#9760; Elite Zombie &middot; Lv <b id="eliteLv">0</b></span><img src="fa/items/mythic_fragment.png" alt="" /><small>drops Mythic Fragments</small></div>
+  </div>
+  <div class="cover steel">
+    <div class="machines" id="machinesGrid"></div>
+  </div>
+  <div class="cover brown">
+    <p class="part">Easy start <small>both downloads</small></p>
+    <ul class="easy" id="easy"></ul>
   </div>
 </section>
 
-<!-- ============ BLOCKS ============ -->
-<section class="sec blocks" id="blocks">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>09 · Blocks · Full download</p>
-    <h2 class="blocks-title" data-uv-reveal>Machines of your own.</h2>
-    <p class="sub" data-uv-reveal>The Full download adds a small Forge mod with four blocks, built in the same gunmetal, teal and gold as the Ascendite gear.
-      Recipes are in the <code>machines</code> section of the config. Hover a block to spin it.</p>
-    <div class="machines" id="machines" data-uv-stagger="up"></div>
+<!-- ============ WORLD ============ -->
+<section class="ch" id="world">
+  <header class="ch-head"><img src="fa/items/mythic_fragment.png" alt="" />
+    <div><p class="mono">Chapter 5</p><h2>The further you go, the scarier it gets</h2>
+    <p class="sub">Near spawn, mobs are normal. Past the safe zone every few hundred blocks adds a danger level, with no cap: tougher mobs, better loot. Time never matters, so AFK is always safe.</p></div></header>
+  <div class="cover green danger-ui" id="danger">
+    <h3 class="zone" id="zoneName">Safe Lands</h3>
+    <div class="dist"><b id="dist">0</b><span>blocks from spawn</span></div>
+    <div class="travel">
+      <input class="range" id="travel" type="range" min="0" max="1000" value="0" aria-label="Distance from spawn" />
+      <div class="rail-labels" id="railZones"></div>
+    </div>
+    <div class="readout">
+      <div class="slot-card"><small>Danger</small><b id="dLevel">0</b></div>
+      <div class="slot-card"><small>Mob health</small><b id="dHealth">x1.0</b></div>
+      <div class="slot-card"><small>Mob damage</small><b id="dDamage">x1.0</b></div>
+      <div class="slot-card"><small>Loot</small><b id="dLoot">x1.0</b></div>
+      <div class="slot-card"><small>Elites</small><b id="dElite">0%</b></div>
+    </div>
+    <div class="loot">
+      <div class="loot-bar" id="lootBar" aria-label="Loot tier odds at this depth"></div>
+      <p class="loot-read" id="lootRead"></p>
+      <button class="btn sm" id="lootRoll" type="button">What drops here?</button>
+      <p class="loot-drop" id="lootDrop" aria-live="polite"></p>
+    </div>
   </div>
-</section>
-
-<!-- ============ KIT ============ -->
-<section class="sec" id="kit">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>10 · Survival kit</p>
-    <h2 class="uv-h2" data-uv-reveal>The little things.</h2>
-    <div class="kit" id="kitGrid" data-uv-stagger="up"></div>
-    <div class="food" data-uv-reveal>
-      <p><b>Mob food.</b> Animals and monsters drop parts. Eat them raw and you'll regret it; cook them for a buff tied to the animal.
-        Thirteen tomes need one as a catalyst.</p>
+  <div class="cover brown">
+    <p class="part">Survival kit</p>
+    <div class="kit" id="kitGrid"></div>
+    <div class="food">
+      <p><b>Mob food.</b> Animals and monsters drop parts. Raw, you'll regret it; cooked, you get a buff tied to the animal. Thirteen tomes need one.</p>
       <div class="food-row" id="food"></div>
       <p class="food-out" id="foodOut">&nbsp;</p>
     </div>
   </div>
 </section>
 
-<!-- ============ SAFETY ============ -->
-<section class="sec" id="safety">
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>11 · Safety</p>
-    <h2 class="uv-h2" data-uv-reveal>Insane power. Zero dupes.</h2>
-    <p class="sub" data-uv-reveal>Uncapped numbers are only fun if they can't break your world. Every script is checked outside the game, and again inside a real server, before it ships.</p>
-    <div class="safety" data-uv-stagger="up">
-      <article class="uv-card">
-        <h3>No duplication</h3>
-        <ul>
-          <li>Loot bonuses never copy gear or items with NBT, so a mob can't duplicate your sword.</li>
-          <li>Upgrades are all-or-nothing, with rollback. Tomes are only used up when an unlock succeeds.</li>
-          <li>A fuzz test runs 3,000 random moves and checks that every bit of Essence is accounted for.</li>
-        </ul>
-      </article>
-      <article class="uv-card">
-        <h3>No corruption</h3>
-        <ul>
-          <li>Essence has a backup copy in the player's file, and it restores itself if world data is lost.</li>
-          <li>NaN, negative or out-of-range values read as 0 and are never written.</li>
-          <li>A startup config check switches off anything broken instead of crashing.</li>
-        </ul>
-      </article>
-      <article class="uv-card">
-        <h3>Tested in game</h3>
-        <ul>
-          <li><code>/ascension selftest</code> builds a test spot far from players and runs 55 real checks (60 with the Full mod), then cleans up.</li>
-          <li>Real right-clicks with a fake player: tomes, foils, packs, hammers, the altar and every machine.</li>
-          <li><code>/kill</code> and the void always work, whatever your Protection.</li>
-        </ul>
-      </article>
+<!-- ============ DOWNLOAD ============ -->
+<section class="ch" id="download">
+  <header class="ch-head"><img src="fa/items/booster_box.png" alt="" />
+    <div><p class="mono">Chapter 6</p><h2>Five minutes to ascend</h2>
+    <p class="sub">Two flavors. Both work on their own; a server and everyone joining it need the same one.</p></div></header>
+  <div class="dl">
+    <div class="cover red dl-card is-full">
+      <span class="dl-tag">Recommended</span>
+      <h3>Full</h3>
+      <p>The scripts <b>plus</b> the Factory Ascension mod: the Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge and Pack Opener.</p>
+      <a class="btn gold" data-dl="Full" data-cf="1">CurseForge app (.zip)</a>
+      <a class="btn" data-dl="Full">Plain zip</a>
     </div>
-    <pre class="term" data-uv-reveal><span class="dim">$ java -jar rhino.jar tools/test/harness.js</span>
-<span class="dim">safety: no duplication (fuzz)</span>
-  <span class="ok">ok</span>   Essence is conserved: absorbed = bank + cost of every level on items
-  <span class="ok">ok</span>   exactly one tome used per unlock
-  <span class="ok">ok</span>   a failed upgrade is rolled back (no free levels)
-  <span class="ok">ok</span>   gear drops are never duplicated
-<b class="ok">all checks passed</b>  <span class="dim">(457)</span>
-<span class="dim">&gt; /ascension selftest</span>
-<b class="ok">60 / 60 passed</b></pre>
+    <div class="cover brown dl-card">
+      <h3>Half</h3>
+      <p>The KubeJS scripts only: every system in the pack, minus the mod's blocks. No extra jar.</p>
+      <a class="btn gold" data-dl="Half" data-cf="1">CurseForge app (.zip)</a>
+      <a class="btn" data-dl="Half">Plain zip</a>
+    </div>
+  </div>
+  <div class="cover brown">
+    <ol class="steps">
+      <li class="slot-card"><b>CurseForge app: import it</b><span>Create Custom Profile → <i>import</i> → pick the CurseForge zip. It makes the Forge 1.20.1 profile, downloads the tested mods
+        and copies everything in. Give the profile 6 GB of memory.</span></li>
+      <li class="slot-card"><b>Or by hand</b><span>Make a Forge 1.20.1 instance with these mods (the red ones are required), launch it once, then extract the plain zip into the instance folder.</span>
+        <div class="mods" id="mods"></div></li>
+      <li class="slot-card"><b>Check it works</b><span>In a creative world:</span>
+        <button class="code" data-copy="/give @s kubejs:enchantment_pack 5" type="button">/give @s kubejs:enchantment_pack 5</button>
+        <button class="code" data-copy="/give @s kubejs:tome_wings" type="button">/give @s kubejs:tome_wings</button>
+        <button class="code" data-copy="/ascension selftest" type="button">/ascension selftest</button></li>
+    </ol>
+    <div class="cta center">
+      <a class="btn" href="https://github.com/thenameiscobmarley/factory-ascension/blob/main/INSTALL.md">Install guide</a>
+      <a class="btn" href="https://github.com/thenameiscobmarley/factory-ascension/releases/latest">All releases</a>
+      <a class="btn" href="https://github.com/thenameiscobmarley/factory-ascension">GitHub</a>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="cover teal safety">
+      <p class="part">Insane power. Zero dupes.</p>
+      <ul>
+        <li>Loot bonuses never copy gear or items with NBT. Upgrades are all-or-nothing, with rollback.</li>
+        <li>Essence has a backup copy and restores itself if world data is lost. Broken config values switch a feature off instead of crashing.</li>
+        <li><code>/kill</code> and the void always work, whatever your Protection.</li>
+      </ul>
+    </div>
+    <div class="cover teal">
+      <pre class="term" id="term"></pre>
+    </div>
   </div>
 </section>
 
-<!-- ============ DOWNLOAD ============ -->
-<section class="sec" id="download">
-  <span id="install"></span>
-  <div class="wrap">
-    <p class="mono" data-uv-reveal>12 · Download</p>
-    <h2 class="uv-h2" data-uv-reveal>Five minutes to ascend.</h2>
-    <p class="sub" data-uv-reveal>Two flavors. Both work on their own; servers and everyone joining need the same one.</p>
-    <div class="dl" data-uv-stagger="up">
-      <article class="dl-card is-full">
-        <span class="dl-tag">Recommended</span>
-        <h3>Full</h3>
-        <p>The scripts <b>plus</b> the Factory Ascension mod: Ascension Vault, Card Binder, Essence Forge and Pack Opener.</p>
-        <a class="uv-btn uv-btn--primary magnet" data-dl="Full" data-cf="1">CurseForge app (.zip)</a>
-        <a class="uv-btn uv-btn--ghost" data-dl="Full">Plain zip</a>
-      </article>
-      <article class="dl-card">
-        <h3>Half</h3>
-        <p>The KubeJS scripts only. Every system in the pack, minus those four blocks. No extra jar.</p>
-        <a class="uv-btn uv-btn--primary magnet" data-dl="Half" data-cf="1">CurseForge app (.zip)</a>
-        <a class="uv-btn uv-btn--ghost" data-dl="Half">Plain zip</a>
-      </article>
-    </div>
-    <ol class="steps" data-uv-stagger="up">
-      <li><b>CurseForge app: import it</b><span>Create Custom Profile &rarr; <i>import</i> &rarr; pick the CurseForge zip. It makes the Forge 1.20.1 profile, downloads Create, KubeJS and the rest
-        (the versions the pack is tested with), and copies everything in. Give the profile 6 GB of memory.</span></li>
-      <li><b>Or by hand</b><span>Make a Forge 1.20.1 instance with the mods below (required ones are outlined), launch it once, then extract the plain zip into the instance folder.</span>
-        <div class="mods" id="mods"></div></li>
-      <li><b>Test it in creative</b><span>Hold a tome with a sword in your other hand and right-click, open a pack, then check everything works.</span>
-        <button class="code" data-copy="/give @s kubejs:enchantment_pack 5">/give @s kubejs:enchantment_pack 5</button>
-        <button class="code" data-copy="/give @s kubejs:tome_wings">/give @s kubejs:tome_wings</button>
-        <button class="code" data-copy="/ascension selftest">/ascension selftest</button></li>
-    </ol>
-    <div class="cta center" data-uv-reveal>
-      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="https://github.com/thenameiscobmarley/factory-ascension/blob/main/INSTALL.md">Install guide</a>
-      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="https://github.com/thenameiscobmarley/factory-ascension/releases/latest">All releases</a>
-      <a class="uv-btn uv-btn--lg uv-btn--ghost magnet" href="https://github.com/thenameiscobmarley/factory-ascension">GitHub</a>
-    </div>
-  </div>
-</section>
+</main>
 
 <footer>
-  <p>Factory Ascension · MIT · built with <a href="https://thenameiscobmarley.github.io/ui-vault/">UI Vault</a></p>
+  <p>Factory Ascension · MIT · fonts: Pixelify Sans and Silkscreen (SIL Open Font License)</p>
   <p class="dim">Not affiliated with Mojang, Create or any mod author. Every number on this page is read from the pack's own config.</p>
-  <button class="fx-toggle" id="fxToggle" type="button"></button>
 </footer>
-
 
 <!-- The pack's real config and tome recipes, run in the browser with tiny stand-ins for KubeJS -->
 <script>
@@ -422,10 +399,9 @@
     }
   };
 </script>
-<script src="fa/00_fa_config.js"></script>
-<script src="fa/25_fa_tome_recipes.js"></script>
-<script src="fa/pack.js"></script>
-<script src="vendor/uivault/uivault.js"></script>
-<script src="site.js"></script>
+<script src="fa/00_fa_config.js?v=e96459806e"></script>
+<script src="fa/25_fa_tome_recipes.js?v=e96459806e"></script>
+<script src="fa/pack.js?v=e96459806e"></script>
+<script src="site.js?v=e96459806e"></script>
 </body>
 </html>

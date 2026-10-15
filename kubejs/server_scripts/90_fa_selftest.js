@@ -470,7 +470,67 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     for (let i = 0; i < opener.faOutput().getSlots(); i++) if (!opener.faOutput().getStackInSlot(i).isEmpty()) out++
     check('Pack Opener: opens a pack into ' + out + ' cards and shows them', out == global.FA.packs.cards && opener.recent().size() == global.FA.packs.cards &&
       opener.faInput().getStackInSlot(0).getCount() == 1, out)
-    let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
+    // Salvager: a pack goes in, its value comes out as cores (or waits in the bank)
+    let spos = place(X + 16, Y, Z + 10, 'factoryascension:salvager')
+    let sal = level.getBlockEntity(spos)
+    sal.faInput().setStackInSlot(0, Item.of('kubejs:booster_box', 1))
+    sal.faInput().setStackInSlot(1, Item.of('minecraft:dirt', 5))
+    global.FA_runSalvager(level, spos)
+    let paid = 0
+    for (let i = 0; i < sal.faOutput().getSlots(); i++) {
+      let o = sal.faOutput().getStackInSlot(i)
+      if (String(o.getId()) == 'kubejs:ascension_core') paid += o.getCount()
+      if (String(o.getId()) == 'kubejs:dense_ascension_core') paid += 9 * o.getCount()
+    }
+    let passed = false
+    for (let i = 0; i < sal.faOutput().getSlots(); i++) if (String(sal.faOutput().getStackInSlot(i).getId()) == 'minecraft:dirt') passed = true
+    let boxValue = global.FA.sell.items['kubejs:booster_box']
+    check('Salvager: a Booster Box pays ' + paid + ' cores (+' + sal.faGetBank().toFixed(2) + ' banked), dirt passes through', Math.abs(paid + sal.faGetBank() - boxValue) < 0.01 && passed,
+      paid + ' / ' + boxValue)
+    // Tome Fusion Table: merge two leveled tomes (one foiled), then make a Fusion from its parents
+    let tpos = place(X + 16, Y, Z + 12, 'factoryascension:tome_fusion_table')
+    let table = level.getBlockEntity(tpos)
+    let t1 = Item.of('kubejs:tome_sharpness'), t2 = Item.of('kubejs:tome_sharpness')
+    faSetLevel(t1, 'sharpness', 10)
+    faSetLevel(t2, 'sharpness', 20)
+    global.FA_setFoil(t2, 2)   // Gold x1.5: counts as 30
+    table.faItems().setStackInSlot(0, t1)
+    table.faItems().setStackInSlot(1, t2)
+    global.FA_fuseTable(table, false)
+    let merged = table.faItems().getStackInSlot(4)
+    let mergedOk = String(merged.getId()) == 'kubejs:tome_sharpness' && faTomeLevel(merged, 'sharpness') == 40 && global.FA_foilOf(merged) < 0 &&
+      table.faItems().getStackInSlot(0).isEmpty() && table.faItems().getStackInSlot(1).isEmpty()
+    table.faItems().setStackInSlot(4, Item.empty)
+    let fusion = Object.keys(global.FA.enchants).filter(k => global.FA.enchants[k].type == 'fusion' && !global.FA.enchants[k].triad)[0]
+    let parts = global.FA.enchants[fusion].parts
+    table.faItems().setStackInSlot(0, Item.of('kubejs:tome_' + parts[0]))
+    table.faItems().setStackInSlot(1, Item.of('kubejs:tome_' + parts[1]))
+    let noCore = global.FA_fuseTable(table, false) == 0
+    table.faItems().setStackInSlot(3, Item.of('kubejs:ascension_core', 1))
+    global.FA_fuseTable(table, false)
+    let made = String(table.faItems().getStackInSlot(4).getId()) == 'kubejs:tome_' + fusion && table.faItems().getStackInSlot(3).isEmpty()
+    check('Tome Fusion Table: merges Sharpness 10 + 20 (Gold foil) into 40, and makes ' + global.FA.enchants[fusion].name + ' from its parents and a core',
+      mergedOk && noCore && made, mergedOk + ' ' + noCore + ' ' + made)
+    // Super Smelter: knows smelting recipes, upgrades add lanes and stress
+    let mpos = place(X + 16, Y, Z + 14, 'factoryascension:super_smelter')
+    let sm = level.getBlockEntity(mpos)
+    let ingot = sm.result(Item.of('minecraft:raw_iron'))
+    let lanes0 = sm.lanes()
+    sm.faSetTier(2)
+    check('Super Smelter: raw iron -> ' + ingot.getId() + ', ' + lanes0 + ' -> ' + sm.lanes() + ' items at once after two upgrades',
+      String(ingot.getId()) == 'minecraft:iron_ingot' && lanes0 == global.FA.machines.smelter.tiers[0][0] && sm.lanes() == global.FA.machines.smelter.tiers[2][0])
+    // Modular Engine: a core, one coil and one burner with coal runs at the first speed with one coil's capacity
+    let epos = place(X + 16, Y, Z + 16, 'factoryascension:engine_core')
+    place(X + 17, Y, Z + 16, 'factoryascension:engine_coil')
+    let bpos2 = place(X + 18, Y, Z + 16, 'factoryascension:engine_burner')
+    level.getBlockEntity(bpos2).fuel().setStackInSlot(0, Item.of('minecraft:coal', 2))
+    let engine = level.getBlockEntity(epos)
+    for (let i = 0; i < 3; i++) engine.tick()
+    let G = global.FA.machines.engine
+    check('Modular Engine: core + coil + burning coal = ' + engine.rpm() + ' RPM, ' + engine.su() + ' SU', engine.coils() == 1 && engine.litBurners() == 1 &&
+      engine.rpm() == G.rpm[0] && Math.abs(engine.su() - G.suPerCoil) < 0.01, engine.status().getString())
+    let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
+      'engine_gearbox', 'engine_burner'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
     check('the mod blocks have recipes', recipes.length == 0, recipes.join(', '))
   })
 

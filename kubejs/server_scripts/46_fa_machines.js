@@ -1,9 +1,13 @@
 // priority: 490
 // Factory Ascension - rules for the blocks in the Factory Ascension mod (the "Full" download's jar; config: machines).
+// The Super Smelter and Modular Engine run in the mod itself (numbers pushed in by startup_scripts/97_fa_mod.js).
 // Without the mod installed this file does nothing, so the "Half" download (KubeJS only) works on its own.
 //   Ascension Vault: upgraded by right-clicking it with the next upgrade's items (sizes are in the mod)
 //   Essence Forge:   levels the gear in its slot from its Liquid Essence tank, the same rules as the Ascension Altar
 //   Pack Opener:     opens one Enchantment Pack a second into its outputs (the same card rules as opening by hand)
+//   Salvager:        sells loot put in it for cores (the same prices as /ascension sell)
+//   Fusion Table:    merges copies of a tome, or makes a Fusion / Triad from its parents
+//   Super Smelter:   upgraded by right-clicking it, like the vault
 // Uses helpers from 10_fa_ascension.js, 16_fa_packs.js and 45_fa_altar.js (same server scope).
 
 const FA_MOD = 'factoryascension'
@@ -32,30 +36,31 @@ if (Platform.isLoaded(FA_MOD)) {
     })
   })
 
-  // ---- Ascension Vault upgrades ----
-  BlockEvents.rightClicked(FA_VAULT_ID, event => {
+  // ---- Upgrades: Ascension Vault (more slots) and Super Smelter (more lanes) ----
+  // Right-click the block holding the next upgrade's items. faGetTier / faSetTier live in the mod.
+  let faUpgrades = (blockId, ups, label) => BlockEvents.rightClicked(blockId, event => {
     let player = event.player
     let held = player.getMainHandItem()
     if (!held || held.isEmpty()) return
-    let vault = event.level.getBlockEntity(event.block.pos)
-    if (!vault || !vault.faGetTier) return
-    let ups = global.FA.machines.vaultUpgrades
-    let tier = vault.faGetTier()
+    let be = event.level.getBlockEntity(event.block.pos)
+    if (!be || !be.faGetTier) return
+    let tier = be.faGetTier()
     let up = ups[tier]
-    let isUpgrade = ups.some(u => u[0] == String(held.getId()))
-    if (!isUpgrade) return
+    if (!ups.some(u => u[0] == String(held.getId()))) return
     if (!up) {
-      player.displayClientMessage(Text.yellow('This vault is fully upgraded (' + vault.faGetCapacity() + ' slots).'), true)
+      player.displayClientMessage(Text.yellow('Fully upgraded (' + label(be) + ').'), true)
     } else if (String(held.getId()) != up[0] || held.getCount() < up[1]) {
       player.displayClientMessage(Text.red('The next upgrade needs ' + up[1] + ' ' + Item.of(up[0]).getHoverName().getString() + '.'), true)
     } else {
       held.shrink(up[1])
-      vault.faSetTier(tier + 1)
+      be.faSetTier(tier + 1)
       faSound(player, 'minecraft:block.smithing_table.use', 0.8)
-      player.tell(Text.gold('Vault upgraded: ').append(Text.white(vault.faGetCapacity() + ' slots')))
+      player.tell(Text.gold('Upgraded: ').append(Text.white(label(be))))
     }
     event.cancel()
   })
+  faUpgrades(FA_VAULT_ID, global.FA.machines.vaultUpgrades, be => be.faGetCapacity() + ' slots')
+  faUpgrades(FA_MOD + ':super_smelter', global.FA.machines.smelter.upgrades, be => global.FA.machines.smelter.tiers[be.faGetTier()][0] + ' items at once')
 
   // ---- Essence Forge and Pack Opener, once a second ----
   let faRunForge = (level, pos) => {
@@ -117,4 +122,139 @@ if (Platform.isLoaded(FA_MOD)) {
       console.error('[Factory Ascension] mod machine tick failed: ' + err)
     }
   })
+
+  // ---- Salvager: /ascension sell as a machine ----
+  // Each run: up to itemsPerRun items are priced one at a time (faSellValue, 17_fa_sell.js) and their value goes into the
+  // salvager's Essence bank; whole cores are paid into the outputs as Singularities, Dense Cores and Cores.
+  let faMoveOut = (output, stack, simulate) => {
+    let left = stack
+    for (let i = 0; i < output.getSlots() && !left.isEmpty(); i++) left = output.insertItem(i, left, simulate)
+    return left
+  }
+  let faRunSalvager = (level, pos) => {
+    let sal = level.getBlockEntity(pos)
+    if (!sal || !sal.faInput) return 0
+    let S = global.FA.machines.salvager
+    let input = sal.faInput(), output = sal.faOutput()
+    let bank = sal.faGetBank(), count = 0, value = 0
+    for (let n = 0; n < S.itemsPerRun; n++) {
+      let slot = -1
+      for (let i = 0; i < input.getSlots(); i++) if (!input.getStackInSlot(i).isEmpty()) { slot = i; break }
+      if (slot < 0) break
+      let stack = input.getStackInSlot(slot)
+      let one = stack.copyWithCount(1)
+      let q = (!S.artifacts && global.FA_isArtifact(one)) ? { value: 0 } : faSellValue(one)
+      if (q.value <= 0) {
+        // Can't (or won't) sell it: pass the whole stack through, if there's room
+        let left = faMoveOut(output, stack.copy(), true)
+        if (left.getCount() == stack.getCount()) break
+        faMoveOut(output, input.extractItem(slot, stack.getCount() - left.getCount(), false), false)
+        continue
+      }
+      input.extractItem(slot, 1, false)
+      bank += q.value
+      value += q.value
+      count++
+    }
+    // Pay whole cores, biggest first, as far as the outputs have room
+    let whole = Math.floor(bank)
+    ;[['kubejs:ascension_singularity', 81], ['kubejs:dense_ascension_core', 9], ['kubejs:ascension_core', 1]].forEach(u => {
+      let n = Math.floor(whole / u[1])
+      while (n > 0) {
+        let batch = Math.min(n, 64)
+        let left = faMoveOut(output, Item.of(u[0], batch), false)
+        let paid = batch - left.getCount()
+        whole -= paid * u[1]
+        bank -= paid * u[1]
+        n -= batch
+        if (paid < batch) break
+      }
+    })
+    sal.faSetBank(bank)
+    sal.faReport(count, value)
+    if (count > 0) {
+      let at = (pos.getX() + 0.5) + ' ' + (pos.getY() + 1.05) + ' ' + (pos.getZ() + 0.5)
+      level.getServer().runCommandSilent('execute in ' + level.dimension + ' run particle minecraft:crit ' + at + ' 0.25 0.1 0.25 0.05 6 normal')
+    }
+    return count
+  }
+  global.FA_runSalvager = (level, pos) => faRunSalvager(level, pos)
+
+  // ---- Tome Fusion Table ----
+  // What the table's slots make: { result, text, ok, use: [[slot, count]], cores }
+  let faFusionPlan = items => {
+    let F = global.FA.machines.fusionTable
+    let E = global.FA.enchants
+    let tomes = []
+    for (let i = 0; i < 3; i++) {
+      let st = items.getStackInSlot(i)
+      let id = faTomeId(st)
+      if (id) tomes.push({ slot: i, stack: st, id: id, count: st.getCount(), level: faAppliedLevel(st, id) })
+    }
+    let cores = items.getStackInSlot(3).isEmpty() ? 0 : items.getStackInSlot(3).getCount()
+    let none = text => ({ result: Item.empty, text: text, ok: false })
+    if (tomes.length == 0) return none('')
+    let ids = tomes.map(t => t.id).filter((id, k, a) => a.indexOf(id) == k)
+    if (ids.length == 1) {
+      // Merge: every tome in the slots adds its applied level (foil included)
+      let id = ids[0]
+      let total = tomes.reduce((a, t) => a + t.count, 0)
+      if (total < 2) return none('Add another ' + E[id].name + ' tome to merge, or a Fusion partner')
+      let max = faMaxLevel(id)
+      let level = Math.min(max, tomes.reduce((a, t) => a + t.count * t.level, 0))
+      if (tomes.every(t => t.level >= max)) return none(E[id].name + ' is already at its max level')
+      let plan = { result: faMakeTome(id, level), use: tomes.map(t => [t.slot, t.count]), cores: F.mergeCores }
+      plan.text = 'Merge ' + total + ' tomes: ' + E[id].name + ' ' + global.FA_num(level)
+      plan.ok = cores >= F.mergeCores
+      if (!plan.ok) plan.text += ' (needs ' + F.mergeCores + ' cores)'
+      return plan
+    }
+    // A Fusion / Triad from its parents: one of each
+    let key = ids.slice().sort().join('+')
+    let fid = Object.keys(E).filter(k => E[k].type == 'fusion' && E[k].parts && E[k].parts.slice().sort().join('+') == key)[0]
+    if (!fid) return none('No Fusion uses ' + ids.map(id => E[id].name).join(' + '))
+    let need = E[fid].triad ? F.triadCores : F.fusionCores
+    let level = F.keepLevel ? Math.min.apply(null, tomes.map(t => t.level)) : 1
+    level = Math.min(faMaxLevel(fid), Math.max(1, level))
+    let plan = { result: faMakeTome(fid, level), use: ids.map(id => [tomes.filter(t => t.id == id)[0].slot, 1]), cores: need }
+    plan.text = (E[fid].triad ? 'Triad: ' : 'Fusion: ') + E[fid].name + (level > 1 ? ' ' + global.FA_num(level) : '')
+    plan.ok = cores >= need
+    if (!plan.ok) plan.text += ' (needs ' + need + ' core' + (need > 1 ? 's' : '') + ')'
+    return plan
+  }
+
+  let faFusionPreview = table => {
+    let plan = faFusionPlan(table.faItems())
+    table.faSetPreview(plan.result, plan.text, plan.ok && table.faItems().getStackInSlot(4).isEmpty())
+    return plan
+  }
+
+  let faFuse = (table, player) => {
+    let items = table.faItems()
+    let plan = faFusionPlan(items)
+    if (!plan.ok || !items.getStackInSlot(4).isEmpty()) {
+      faFusionPreview(table)
+      return 0
+    }
+    plan.use.forEach(u => items.extractItem(u[0], u[1], false))
+    if (plan.cores > 0) items.extractItem(3, plan.cores, false)
+    items.setStackInSlot(4, plan.result.copy())
+    if (player) {
+      faSound(player, 'minecraft:block.enchantment_table.use', 1.2)
+      player.displayClientMessage(Text.lightPurple(plan.text.replace(/ \(needs.*$/, '')), true)
+    }
+    faFusionPreview(table)
+    return 1
+  }
+
+  global.FA_onMachine = event => {
+    let kind = String(event.getKind())
+    let be = event.getBlockEntity()
+    if (!be) return
+    if (kind == 'salvage') faRunSalvager(event.getLevel(), event.getPos())
+    else if (kind == 'preview' && be.faItems) faFusionPreview(be)
+    else if (kind == 'fuse' && be.faItems) faFuse(be, event.hasPlayer() ? event.getPlayer() : false)
+  }
+  global.FA_fusionPlanText = table => faFusionPlan(table.faItems()).text
+  global.FA_fuseTable = (table, player) => faFuse(table, player)
 }

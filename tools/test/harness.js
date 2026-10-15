@@ -311,7 +311,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js', 'startup_scripts/97_fa_mod.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js',
@@ -447,6 +447,12 @@ var partTomes = Object.keys(global.FA_TOME_CATALYSTS).filter(function (t) { retu
 check('13 tomes use a mob part tied to their effect (Night Sight: Fried Pig Eyes, Vitality: Seared Cow Heart...)', partTomes.length == 13 &&
   global.FA_TOME_CATALYSTS.night_sight.indexOf('kubejs:fried_pig_eyes') >= 0 && global.FA_TOME_CATALYSTS.vitality.indexOf('kubejs:seared_cow_heart') >= 0, partTomes.join(','))
 check('starter recipes: brass, precision mechanism, blaze burner, TFMG steel', ['starter_brass', 'starter_precision_mechanism', 'starter_blaze_burner', 'starter_steel'].every(function (id) { return !!byId(id) }))
+check('easy start: casings by hand, belts from leather, bulk cogwheels and shafts', ['easy_andesite_casing', 'easy_belt', 'easy_cogwheels', 'easy_shafts'].every(function (id) { return !!byId(id) }))
+check('the mod machine recipes and rules stay off without the mod (Half download)', !byId('machine_salvager') && !byId('machine_engine_core') && !global.FA_onMachine)
+check('every mod machine has a config recipe, and the engine needs nothing past iron and copper', ['salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
+  'engine_gearbox', 'engine_burner'].every(function (b) { return !!global.FA.machines.recipes[b] }) &&
+  ['engine_core', 'engine_coil', 'engine_gearbox', 'engine_burner'].every(function (b) { var k = global.FA.machines.recipes[b][1]; return Object.keys(k).every(function (c) { return k[c].indexOf('kubejs:') != 0 }) }))
+check('smelter tiers line up with its upgrades', global.FA.machines.smelter.tiers.length == global.FA.machines.smelter.upgrades.length + 1)
 // Tags and the ore's loot table
 var tagged = {}
 ;['item', 'block'].forEach(function (t) { (handlers.tags[t] || []).forEach(function (fn) { fn({ add: function (tag, id) { (tagged[t + ' ' + tag] = tagged[t + ' ' + tag] || []).push(id) } }) }) })
@@ -2201,10 +2207,12 @@ var badNames = []
     text.split('\n').forEach(function (line, n) {
       var code = line.replace(/\/\/.*$/, '')
       banned.forEach(function (b) { if (b[0].test(code)) badNames.push(files[i].getName() + ':' + (n + 1) + ' (use ' + b[1] + ')') })
+      // KubeJS's Rhino rejects a const inside a block ("redeclaration of var"), and in a startup script that crashes the game
+      if (/^\s+const\s/.test(code)) badNames.push(files[i].getName() + ':' + (n + 1) + ' (const inside a block: use let)')
     })
   }
 })
-check('no script uses a method KubeJS hides or renames', badNames.length == 0, badNames.slice(0, 6).join(', '))
+check('no script uses a method KubeJS hides or renames, or a const inside a block', badNames.length == 0, badNames.slice(0, 6).join(', '))
 
 print('\n' + (failures ? failures + ' FAILED' : 'all checks passed'))
 if (failures) java.lang.System.exit(1)

@@ -2,7 +2,8 @@
 // Factory Ascension - Ascendite and starter recipes.
 // Ascendite is an early ore (y -48 to 80). It gives:
 //   - its own tools and armor (between iron and diamond)
-//   - cheap ways into the factory: brass without a Blaze Burner, Precision Mechanisms without sequenced assembly,
+//   - cheap ways into the factory (config easyStart): casings by hand, belts from leather, bulk cogwheels and shafts;
+//     brass without a Blaze Burner, Precision Mechanisms without sequenced assembly,
 //     a Blaze Burner without a Nether trip, early TFMG steel
 //   - Ascension Cores without the diamond line: by hand, from shards, or in a heated mixer (no sequencing)
 // Later it's renewable: blow Crushed Raw Iron through soul fire (Encased Fan) for Crushed Raw Ascendite.
@@ -131,6 +132,17 @@ ServerEvents.recipes(event => {
       results: [{ item: 'tfmg:steel_ingot' }],
       heatRequirement: 'heated'
     }).id(id('starter_steel'))
+  }
+
+  // ---- Easy start (config: easyStart): Create's first machines without the usual detours ----
+  let ES = global.FA.easyStart
+  if (ES.enabled) {
+    if (ES.casingsPerLog > 0) event.shapeless(Item.of('create:andesite_casing', ES.casingsPerLog), ['#minecraft:logs', 'create:andesite_alloy'])
+      .id(id('easy_andesite_casing'))
+    if (ES.beltFromLeather) event.shapeless('create:belt_connector', ['minecraft:leather', 'minecraft:leather', 'minecraft:leather']).id(id('easy_belt'))
+    if (ES.cogwheelsPerAlloy > 0) event.shaped(Item.of('create:cogwheel', ES.cogwheelsPerAlloy), ['PPP', 'PAP', 'PPP'], { P: '#minecraft:planks', A: 'create:andesite_alloy' })
+      .id(id('easy_cogwheels'))
+    if (ES.shaftsPerAlloy > 0) event.shapeless(Item.of('create:shaft', ES.shaftsPerAlloy), ['create:andesite_alloy', 'minecraft:stick']).id(id('easy_shafts'))
   }
 
   // Polishing Cloth: rerolls a piece of gear's condition, keeping the better grade

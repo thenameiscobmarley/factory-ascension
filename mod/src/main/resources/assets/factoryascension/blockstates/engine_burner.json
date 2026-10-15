@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "factoryascension:block/engine_burner"
+    },
+    "lit=true": {
+      "model": "factoryascension:block/engine_burner_lit"
+    }
+  }
+}

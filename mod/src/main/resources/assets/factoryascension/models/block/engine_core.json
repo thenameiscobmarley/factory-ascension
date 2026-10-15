@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "factoryascension:block/engine_core_side",
+    "north": "factoryascension:block/engine_core_front",
+    "south": "factoryascension:block/engine_core_side",
+    "east": "factoryascension:block/engine_core_side",
+    "west": "factoryascension:block/engine_core_side",
+    "up": "factoryascension:block/engine_core_top",
+    "down": "factoryascension:block/engine_core_top"
+  }
+}

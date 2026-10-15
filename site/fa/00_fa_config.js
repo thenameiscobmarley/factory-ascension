@@ -969,12 +969,60 @@ global.FA = {
     // Ascension Vault: 108 slots, +108 per upgrade. Right-click the vault holding the next upgrade's items.
     vaultUpgrades: [['kubejs:voidsteel_ingot', 8], ['kubejs:celestium_ingot', 8], ['kubejs:ascendium_ingot', 4]],
     openerSeconds: 1,          // the Pack Opener opens one pack this often
+    // Salvager: /ascension sell as a machine (same prices). Loot it can't sell passes straight through to its outputs.
+    salvager: {
+      seconds: 1,              // it salvages this often...
+      itemsPerRun: 4,          // ...this many items each time
+      artifacts: false         // never grinds up an Artifact (it passes through instead)
+    },
+    // Tome Fusion Table: merge copies of one tome (their levels add up; foils are baked into the level),
+    // or build a Fusion / Triad from its parent tomes (the same tomes the mixer recipe uses)
+    fusionTable: {
+      mergeCores: 0,           // Ascension Cores used per merge
+      fusionCores: 1,          // ...per Fusion (like the mixer recipe)
+      triadCores: 2,           // ...per Triad
+      keepLevel: true          // a Fusion made here starts at its weakest parent's level (the mixer always makes level 1)
+    },
+    // Super Smelter (Create machine; shaft in the back): smelts a batch at once, faster the faster it spins.
+    // tiers: [items per batch, stress in SU per RPM]; upgrades: right-click it with these to reach the next tier.
+    smelter: {
+      tiers: [[4, 4], [8, 6], [16, 8], [32, 12]],
+      upgrades: [['kubejs:voidsteel_ingot', 8], ['kubejs:celestium_ingot', 8], ['kubejs:ascendium_ingot', 4]],
+      cookTicksAt64Rpm: 40,    // ticks per batch at 64 RPM (half that at 128, a quarter at 256)
+      minRpm: 8
+    },
+    // Modular Engine (Create generator): an Engine Core plus modules touching it or each other, in any shape.
+    // Coil: +suPerCoil stress capacity. Gearbox: next speed in rpm. Burner: burns furnace fuel, powers coilsPerBurner Coils.
+    engine: {
+      suPerCoil: 256,          // a Coil is worth about a water wheel
+      coilsPerBurner: 4,
+      maxModules: 32,
+      rpm: [16, 32, 64, 128, 256],   // speed with 0, 1, 2, 3, 4+ Gearboxes (same SU, faster shaft)
+      fuelMultiplier: 1        // fuel lasts this many times its furnace burn time (1 coal = 80 s)
+    },
     recipes: {
       ascension_vault: [['ABA', 'CDC', 'ABA'], { A: 'kubejs:ascendite_ingot', B: 'kubejs:ascendite_block', C: 'minecraft:chest', D: 'kubejs:dense_ascension_core' }],
       card_binder: [['LBL', 'BCB', 'AAA'], { L: 'minecraft:leather', B: 'minecraft:book', C: 'kubejs:ascension_core', A: 'kubejs:ascendite_ingot' }],
       essence_forge: [['IAI', 'BDB', 'OOO'], { I: 'kubejs:ascendite_ingot', A: 'minecraft:anvil', B: 'create:brass_casing', D: 'kubejs:dense_ascension_core', O: 'minecraft:obsidian' }],
-      pack_opener: [['IPI', 'CDC', 'IRI'], { I: 'kubejs:ascendite_ingot', P: 'minecraft:piston', C: 'minecraft:chest', D: 'kubejs:dense_ascension_core', R: 'minecraft:redstone_block' }]
+      pack_opener: [['IPI', 'CDC', 'IRI'], { I: 'kubejs:ascendite_ingot', P: 'minecraft:piston', C: 'minecraft:chest', D: 'kubejs:dense_ascension_core', R: 'minecraft:redstone_block' }],
+      salvager: [['IHI', 'GCG', 'IAI'], { I: 'kubejs:ascendite_ingot', H: 'minecraft:hopper', G: 'minecraft:grindstone', C: 'kubejs:ascension_core', A: 'create:andesite_casing' }],
+      tome_fusion_table: [['BEB', 'LCL', 'AAA'], { B: 'minecraft:book', E: 'minecraft:enchanting_table', L: 'minecraft:lapis_block', C: 'kubejs:ascension_core', A: 'kubejs:ascendite_ingot' }],
+      super_smelter: [['IBI', 'FCF', 'ISI'], { I: 'kubejs:ascendite_ingot', B: 'minecraft:blast_furnace', F: 'minecraft:furnace', C: 'kubejs:ascension_core', S: 'create:shaft' }],
+      // The engine is for day one: iron, copper, Create's andesite parts and a furnace
+      engine_core: [['ICI', 'SFS', 'IAI'], { I: 'minecraft:iron_ingot', C: 'create:cogwheel', S: 'create:shaft', F: 'minecraft:furnace', A: 'create:andesite_alloy' }],
+      engine_coil: [['CAC', 'ARA', 'CAC'], { C: 'minecraft:copper_ingot', A: 'create:andesite_alloy', R: 'minecraft:redstone' }],
+      engine_gearbox: [['ICI', 'CGC', 'ICI'], { I: 'minecraft:iron_ingot', C: 'create:cogwheel', G: 'create:large_cogwheel' }],
+      engine_burner: [['III', 'IFI', 'BBB'], { I: 'minecraft:iron_ingot', F: 'minecraft:furnace', B: 'minecraft:bricks' }]
     }
+  },
+
+  // ---- Easy start: cheaper ways into Create's first machines (both downloads) ----
+  easyStart: {
+    enabled: true,
+    casingsPerLog: 2,          // any log + Andesite Alloy in a crafting grid -> Andesite Casings (no deployer needed)
+    beltFromLeather: true,     // 3 leather -> a Mechanical Belt (no kelp farm needed)
+    cogwheelsPerAlloy: 4,      // 8 planks around an Andesite Alloy -> this many cogwheels
+    shaftsPerAlloy: 8          // Andesite Alloy + a stick -> this many shafts
   },
 
   // ---- Home: /sethome saves where you stand, /home takes you back (any dimension) ----

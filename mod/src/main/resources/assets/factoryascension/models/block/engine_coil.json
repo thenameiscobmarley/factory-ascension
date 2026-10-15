@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "side": "factoryascension:block/engine_coil_side",
+    "end": "factoryascension:block/engine_coil_top"
+  }
+}

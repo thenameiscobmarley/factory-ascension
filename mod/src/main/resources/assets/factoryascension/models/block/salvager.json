@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "factoryascension:block/salvager_front",
+    "side": "factoryascension:block/salvager_side",
+    "top": "factoryascension:block/salvager_top"
+  }
+}

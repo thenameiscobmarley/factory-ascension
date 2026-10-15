@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "factoryascension:block/tome_fusion_table_front",
+    "side": "factoryascension:block/tome_fusion_table_side",
+    "top": "factoryascension:block/tome_fusion_table_top"
+  }
+}

@@ -16,6 +16,8 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
@@ -80,6 +82,18 @@ public abstract class MachineBlock extends BaseEntityBlock {
             if (be instanceof DropsContents drops) drops.dropContents(level, pos);
         }
         super.onRemove(state, level, pos, newState, moving);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide ? null : (l, p, s, be) -> {
+            if (be instanceof Ticking t) t.serverTick();
+        };
+    }
+
+    /** Block entities that do something every server tick. */
+    public interface Ticking {
+        void serverTick();
     }
 
     /** Block entities that spill their items when the block is broken. */

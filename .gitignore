@@ -2,3 +2,4 @@
 __pycache__/
 dist/
 !mod/gradle/wrapper/gradle-wrapper.jar
+mod/libs/

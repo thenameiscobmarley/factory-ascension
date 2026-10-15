@@ -17,7 +17,9 @@ RES = os.path.join(os.path.dirname(__file__), "..", "mod", "src", "main", "resou
 ASSETS = os.path.join(RES, "assets", "factoryascension")
 DATA = os.path.join(RES, "data", "factoryascension")
 S = 32
-BLOCKS = ["ascension_vault", "card_binder", "essence_forge", "pack_opener"]
+BLOCKS = ["ascension_vault", "card_binder", "essence_forge", "pack_opener", "salvager", "tome_fusion_table", "super_smelter",
+          "engine_core", "engine_coil", "engine_gearbox", "engine_burner"]
+gear_art.MATERIALS.setdefault("copper", ((255, 196, 150), (200, 110, 62), (96, 44, 24)))
 
 
 def canvas():
@@ -159,13 +161,258 @@ def opener_front():
     return px
 
 
+def shaft_socket(px, cx=16, cy=16):
+    """A round Create shaft hole with an andesite collar: where the rotation goes in or out."""
+    for y in range(S):
+        for x in range(S):
+            d = ((x - cx + 0.5) ** 2 + (y - cy + 0.5) ** 2) ** 0.5
+            if d < 8:
+                px[y][x] = _shade("iron", 0.25 + d / 20) + (255,)
+            if d < 5.5:
+                px[y][x] = _shade("steel_dk", 0.75) + (255,)
+            if d < 3.2:
+                px[y][x] = _shade("wood", 0.35 + (x - cx) / 12) + (255,)
+    for k in (-2, 2):                                # the shaft's square key
+        px[cy][cx + k] = _shade("steel_dk", 0.9) + (255,)
+
+
+def salvager_front():
+    px = side()
+    plate(px, 5, 6, 22, 18, "steel_dk")              # grinder mouth
+    frame(px, "gold", 5)
+    for i, x in enumerate(range(8, 25, 4)):          # two rows of teeth
+        for y in range(9, 13):
+            px[y][x + (y - 9) // 2] = _shade("iron", 0.15 + 0.1 * (i % 2)) + (255,)
+        for y in range(17, 21):
+            px[y][x + 2 - (y - 17) // 2] = _shade("iron", 0.2) + (255,)
+    for x in range(8, 25):                           # glowing seam where the loot goes
+        px[14][x] = _shade("teal", 0.2) + (255,)
+        px[15][x] = _shade("teal", 0.45) + (255,)
+    plate(px, 9, 25, 14, 3, "gold")                  # core chute
+    return px
+
+
+def salvager_top():
+    px = top()
+    plate(px, 7, 7, 18, 18, "steel_dk")              # hopper opening
+    for y in range(10, 22):
+        for x in range(10, 22):
+            d = max(abs(x - 15.5), abs(y - 15.5))
+            px[y][x] = _shade("steel_dk", 0.5 + d / 14) + (255,)
+    for k in range(10, 22, 3):
+        px[15][k] = _shade("iron", 0.2) + (255,)
+    return px
+
+
+def fusion_top():
+    px = canvas()
+    plate(px, 0, 0, S, S, "wood")
+    frame(px)
+    for page, flip in ((4, 0), (17, 1)):             # an open tome
+        plate(px, page, 6, 11, 20, "cloth")
+        for y in range(9, 24, 3):                    # glowing rune lines
+            for x in range(page + 2, page + 9):
+                if (x * 7 + y * 3 + flip) % 5:
+                    px[y][x] = _mix(_shade("gem", 0.3), _shade("teal", 0.3), (x - page) / 9) + (255,)
+    for y in range(6, 26):
+        px[y][15] = _shade("gold", 0.6) + (255,)
+        px[y][16] = _shade("gold", 0.3) + (255,)
+    gem(px, 16, 4, 1)
+    return px
+
+
+def fusion_side():
+    px = canvas()
+    plate(px, 0, 0, S, S, "wood")
+    frame(px)
+    rivets(px)
+    for i, x0 in enumerate((5, 12, 19)):             # three tome spines merging into one glow
+        col = ("red", "teal", "gem")[i]
+        plate(px, x0, 7, 6, 13, col)
+        for y in (9, 17):
+            for x in range(x0, x0 + 6):
+                px[y][x] = _shade("gold", 0.4) + (255,)
+    line(px, 8, 22, 16, 26, "gem")
+    line(px, 15, 22, 16, 26, "gem")
+    line(px, 22, 22, 16, 26, "gem")
+    gem(px, 16, 26, 1)
+    return px
+
+
+def smelter_front(lit=False):
+    px = side()
+    plate(px, 5, 6, 22, 20, "steel_dk")
+    frame(px, "gold", 5)
+    for y in range(10, 23):                          # a wide furnace mouth (it smelts in rows)
+        for x in range(8, 24):
+            if lit:
+                heat = (y - 10) / 12
+                px[y][x] = _mix(_shade("fire", 0.1 + 0.6 * (1 - heat)), (255, 240, 160), 0.25 if (x + y) % 4 == 0 else 0) + (255,)
+            else:
+                px[y][x] = _shade("steel_dk", 0.8 + 0.1 * ((x + y) % 2)) + (255,)
+    for x in range(8, 24, 4):                        # grate bars
+        for y in range(10, 23):
+            px[y][x] = _shade("iron", 0.35) + (255,)
+    for x in range(8, 24):
+        px[16][x] = _shade("gold", 0.5) + (255,)     # the lane divider
+    return px
+
+
+def smelter_back():
+    px = side()
+    shaft_socket(px)
+    return px
+
+
+def smelter_top():
+    px = top()
+    for x in range(8, 25, 4):                        # vents
+        for y in range(7, 25):
+            px[y][x] = _shade("steel_dk", 0.85) + (255,)
+    return px
+
+
+def engine_front():
+    px = canvas()
+    plate(px, 0, 0, S, S, "iron")
+    frame(px, "copper")
+    rivets(px)
+    shaft_socket(px)
+    return px
+
+
+def engine_side():
+    px = canvas()
+    plate(px, 0, 0, S, S, "iron")
+    frame(px, "copper")
+    rivets(px)
+    for y in range(8, 25, 4):                        # cooling fins
+        for x in range(6, 26):
+            px[y][x] = _shade("steel_dk", 0.6) + (255,)
+            px[y + 1][x] = _shade("iron", 0.15) + (255,)
+    line(px, 16, 6, 16, 26, "teal")
+    return px
+
+
+def engine_top():
+    px = canvas()
+    plate(px, 0, 0, S, S, "iron")
+    frame(px, "copper")
+    plate(px, 9, 9, 14, 14, "steel_dk")
+    gem(px, 16, 16, 2)
+    return px
+
+
+def coil_side():
+    px = canvas()
+    plate(px, 0, 0, S, S, "steel_dk")
+    for y in range(3, 29):                           # copper windings
+        for x in range(4, 28):
+            t = 0.15 + 0.6 * (y % 3) / 2 + 0.1 * ((x - 4) / 24)
+            px[y][x] = _shade("copper", t) + (255,)
+    for x in range(4, 28):
+        px[15][x] = _shade("teal", 0.25) + (255,)    # the charged band
+        px[16][x] = _shade("teal", 0.5) + (255,)
+    frame(px, "iron")
+    return px
+
+
+def gearbox_side():
+    px = canvas()
+    plate(px, 0, 0, S, S, "iron")
+    frame(px, "copper")
+    for y in range(S):                               # a big gear with teeth
+        for x in range(S):
+            dx, dy = x - 15.5, y - 15.5
+            d = (dx * dx + dy * dy) ** 0.5
+            import math
+            a = math.atan2(dy, dx)
+            r = 10 + (1.6 if math.cos(a * 10) > 0.2 else 0)
+            if d < r:
+                px[y][x] = _shade("gold", 0.25 + d / 25) + (255,)
+            if d < 5:
+                px[y][x] = _shade("steel_dk", 0.6) + (255,)
+            if d < 2.5:
+                px[y][x] = _shade("teal", 0.3) + (255,)
+    rivets(px)
+    return px
+
+
+def burner_side(lit=False):
+    px = canvas()
+    plate(px, 0, 0, S, S, "iron")
+    frame(px, "copper")
+    plate(px, 6, 10, 20, 15, "steel_dk")
+    for y in range(13, 23):
+        for x in range(8, 24):
+            if lit:
+                px[y][x] = _shade("fire", 0.05 + 0.08 * abs(x - 15.5) + 0.03 * (22 - y)) + (255,)
+            else:
+                px[y][x] = _shade("steel_dk", 0.85) + (255,)
+    for x in range(8, 24, 3):                        # grate
+        for y in range(13, 23):
+            px[y][x] = _shade("iron", 0.4) + (255,)
+    for x in range(6, 26):
+        px[6][x] = _shade("copper", 0.3) + (255,)
+        px[7][x] = _shade("copper", 0.6) + (255,)
+    return px
+
+
+def burner_top():
+    px = canvas()
+    plate(px, 0, 0, S, S, "iron")
+    frame(px, "copper")
+    plate(px, 8, 8, 16, 16, "steel_dk")
+    for k in range(10, 22, 3):
+        for j in range(10, 22):
+            px[j][k] = _shade("iron", 0.3) + (255,)
+    return px
+
+
 FACES = {
     "ascension_vault": {"front": vault_front, "side": side, "top": top},
     "card_binder": {"front": binder_side, "side": binder_side, "top": binder_top},
     "essence_forge": {"front": forge_front, "side": side, "top": forge_top},
     "pack_opener": {"front": opener_front, "side": side, "top": top},
+    "salvager": {"front": salvager_front, "side": side, "top": salvager_top},
+    "tome_fusion_table": {"front": fusion_side, "side": fusion_side, "top": fusion_top},
+    "super_smelter": {"front": smelter_front, "front_lit": lambda: smelter_front(True), "back": smelter_back, "side": side, "top": smelter_top},
+    "engine_core": {"front": engine_front, "side": engine_side, "top": engine_top},
+    "engine_coil": {"side": coil_side, "top": engine_top},
+    "engine_gearbox": {"side": gearbox_side, "top": engine_top},
+    "engine_burner": {"side": burner_side, "side_lit": lambda: burner_side(True), "top": burner_top},
 }
-NAMES = {"ascension_vault": "Ascension Vault", "card_binder": "Card Binder", "essence_forge": "Essence Forge", "pack_opener": "Pack Opener"}
+NAMES = {"ascension_vault": "Ascension Vault", "card_binder": "Card Binder", "essence_forge": "Essence Forge", "pack_opener": "Pack Opener",
+         "salvager": "Salvager", "tome_fusion_table": "Tome Fusion Table", "super_smelter": "Super Smelter",
+         "engine_core": "Modular Engine Core", "engine_coil": "Engine Coil Module", "engine_gearbox": "Engine Gearbox Module",
+         "engine_burner": "Engine Burner Module"}
+FACINGS = (("north", 0), ("east", 90), ("south", 180), ("west", 270))
+
+
+def cube(north, south, side, up, down=None):
+    t = lambda n: "factoryascension:block/" + n
+    return {"parent": "minecraft:block/cube", "textures": {"particle": t(side), "north": t(north), "south": t(south), "east": t(side),
+                                                           "west": t(side), "up": t(up), "down": t(down or up)}}
+
+
+def models(b):
+    """{model name: model json} for a block, and its blockstate variants."""
+    t = "factoryascension:block/"
+    if b == "super_smelter":
+        m = {b: cube(b + "_front", b + "_back", b + "_side", b + "_top"), b + "_lit": cube(b + "_front_lit", b + "_back", b + "_side", b + "_top")}
+        v = {"facing=%s,lit=%s" % (d, lit): {"model": t + b + ("_lit" if lit == "true" else ""), **({"y": r} if r else {})}
+             for d, r in FACINGS for lit in ("false", "true")}
+        return m, v
+    if b == "engine_core":
+        return {b: cube(b + "_front", b + "_side", b + "_side", b + "_top")}, \
+            {"facing=%s" % d: {"model": t + b, **({"y": r} if r else {})} for d, r in FACINGS}
+    if b in ("engine_coil", "engine_gearbox"):
+        return {b: {"parent": "minecraft:block/cube_column", "textures": {"side": t + b + "_side", "end": t + b + "_top"}}}, {"": {"model": t + b}}
+    if b == "engine_burner":
+        col = lambda sd: {"parent": "minecraft:block/cube_column", "textures": {"side": t + sd, "end": t + b + "_top"}}
+        return {b: col(b + "_side"), b + "_lit": col(b + "_side_lit")}, {"lit=false": {"model": t + b}, "lit=true": {"model": t + b + "_lit"}}
+    return {b: {"parent": "minecraft:block/orientable", "textures": {"front": t + b + "_front", "side": t + b + "_side", "top": t + b + "_top"}}}, \
+        {"facing=%s" % d: {"model": t + b, **({"y": r} if r else {})} for d, r in FACINGS}
 
 
 def write_json(path, obj):
@@ -181,21 +428,18 @@ def main():
     for b, faces in FACES.items():
         for face, draw in faces.items():
             make_textures.png(os.path.join(tex, "%s_%s.png" % (b, face)), draw())
-        write_json(os.path.join(ASSETS, "models", "block", b + ".json"), {
-            "parent": "minecraft:block/orientable",
-            "textures": {"front": "factoryascension:block/%s_front" % b, "side": "factoryascension:block/%s_side" % b,
-                         "top": "factoryascension:block/%s_top" % b}})
+        mods, variants = models(b)
+        for name, model in mods.items():
+            write_json(os.path.join(ASSETS, "models", "block", name + ".json"), model)
         write_json(os.path.join(ASSETS, "models", "item", b + ".json"), {"parent": "factoryascension:block/" + b})
-        write_json(os.path.join(ASSETS, "blockstates", b + ".json"), {"variants": {
-            "facing=%s" % d: {"model": "factoryascension:block/" + b, **({"y": r} if r else {})}
-            for d, r in (("north", 0), ("east", 90), ("south", 180), ("west", 270))}})
+        write_json(os.path.join(ASSETS, "blockstates", b + ".json"), {"variants": variants})
         write_json(os.path.join(DATA, "loot_tables", "blocks", b + ".json"), {
             "type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "factoryascension:" + b}],
                                                   "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
     write_json(os.path.join(RES, "data", "minecraft", "tags", "blocks", "mineable", "pickaxe.json"),
                {"replace": False, "values": ["factoryascension:" + b for b in BLOCKS]})
     write_json(os.path.join(RES, "data", "minecraft", "tags", "blocks", "needs_iron_tool.json"),
-               {"replace": False, "values": ["factoryascension:" + b for b in BLOCKS]})
+               {"replace": False, "values": ["factoryascension:" + b for b in BLOCKS if not b.startswith("engine_")]})   # engine parts: any pickaxe
     lang = {"itemGroup.factoryascension": "Factory Ascension"}
     for b in BLOCKS:
         lang["block.factoryascension." + b] = NAMES[b]
@@ -210,6 +454,21 @@ def main():
         "gui.factoryascension.packs": "Packs",
         "gui.factoryascension.cards": "Cards",
         "gui.factoryascension.opened": "Opened: %s",
+        "gui.factoryascension.salvager_loot": "Loot in, cores out",
+        "gui.factoryascension.salvager_total": "Salvaged %s items: %s Essence",
+        "gui.factoryascension.fuse": "Fuse",
+        "gui.factoryascension.fusion_help": "Put in copies of one tome to merge them, or a Fusion's parent tomes and cores",
+        "gui.factoryascension.smelter_tier": "Tier %s: %s at once",
+        "gui.factoryascension.smelter_stressed": "Overstressed: needs more power",
+        "gui.factoryascension.smelter_idle": "Turn the shaft in the back",
+        "gui.factoryascension.smelter_rpm": "%s RPM, %s smelted",
+        "gui.factoryascension.engine_jammed": "Two Engine Cores share these modules: use one core per engine",
+        "gui.factoryascension.engine_no_coils": "Attach Coil Modules (and a Burner) to the core",
+        "gui.factoryascension.engine_no_fuel": "No fuel: fill a Burner Module (%s attached)",
+        "gui.factoryascension.engine_status": "%s RPM, %s SU from %s coils, %s gearboxes, %s/%s burners lit",
+        "gui.factoryascension.engine_modules": "Modules: %s coils, %s gearboxes, %s burners (%s/%s)",
+        "gui.factoryascension.engine_too_big": "Too many modules: the extra ones do nothing",
+        "gui.factoryascension.burner_status": "Fuel: %s %s, about %ss of burning",
     })
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), lang)
     print("wrote textures, models, block states, loot tables, tags and lang for %d blocks" % len(BLOCKS))

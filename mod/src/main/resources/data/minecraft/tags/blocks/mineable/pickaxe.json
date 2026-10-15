@@ -4,6 +4,13 @@
     "factoryascension:ascension_vault",
     "factoryascension:card_binder",
     "factoryascension:essence_forge",
-    "factoryascension:pack_opener"
+    "factoryascension:pack_opener",
+    "factoryascension:salvager",
+    "factoryascension:tome_fusion_table",
+    "factoryascension:super_smelter",
+    "factoryascension:engine_core",
+    "factoryascension:engine_coil",
+    "factoryascension:engine_gearbox",
+    "factoryascension:engine_burner"
   ]
 }

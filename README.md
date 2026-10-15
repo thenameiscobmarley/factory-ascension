@@ -12,8 +12,8 @@ so going AFK is always safe.
 
 | Download | What's in it |
 |---|---|
-| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar (Ascension Vault, Card Binder, Essence Forge, Pack Opener) |
-| **Half** | The KubeJS scripts only. Everything works except those four blocks |
+| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar: the Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge and Pack Opener |
+| **Half** | The KubeJS scripts only. Everything works except the mod's blocks |
 
 Each comes as a plain zip and as a **CurseForge** zip you import straight into the CurseForge app (it downloads the mods for you).
 **Install:** follow [INSTALL.md](INSTALL.md).
@@ -501,8 +501,31 @@ Leaping (Roasted Rabbit Leg), Bane (Spider Legs), Smite (Zombie Brain), Bulwark 
 
 ## Factory Ascension blocks (Full download)
 
-The Full download adds a small mod with four blocks, styled like the Ascendite gear. Find them in the
-**Factory Ascension** creative tab or in JEI. Recipes are in the `machines` section of the config.
+The Full download adds a Forge mod with eleven blocks, styled like the Ascendite gear. Find them in the
+**Factory Ascension** creative tab or in JEI. Recipes and every number are in the `machines` section of the config.
+
+### Modular Engine: power from day one
+
+An **Engine Core** plus modules touching it, or touching each other, in any shape. It's a real Create generator: put a
+shaft on the core's front face.
+
+| Module | What it does |
+|---|---|
+| **Coil** | +256 SU of stress capacity (about a water wheel), while a Burner powers it |
+| **Gearbox** | Each one takes the engine to its next speed: 16, 32, 64, 128, 256 RPM. Same SU, faster shaft |
+| **Burner** | Holds any furnace fuel (hoppers and chutes fill it). Each lit Burner powers 4 Coils; spare Burners wait |
+
+Everything is made from iron, copper, a furnace and Create's andesite parts, so it's the first power you build.
+Right-click the core (or wear Engineer's Goggles) to see its speed, power and modules. One core per engine: two cores
+touching the same modules jam. Up to 32 modules.
+
+### The other machines
+
+| Block | What it does |
+|---|---|
+| **Super Smelter** | A Create machine (shaft in the back). Smelts a batch at once: 4, 8, 16 or 32 items by tier, upgraded like the vault (8 Voidsteel, 8 Celestium, 4 Ascendium ingots). The faster it spins the faster it goes: at 64 RPM a batch takes 2 seconds. Hoppers and funnels work |
+| **Salvager** | `/ascension sell` as a machine: loot in the top row, Ascension Cores out of the bottom row, at the same prices. Anything it can't sell passes straight through. It never grinds up an Artifact |
+| **Tome Fusion Table** | Merge copies of one tome: their levels add up (foils are baked into the level). Or put in a Fusion's parent tomes and 1 core (2 for a Triad) and press Fuse: the Fusion starts at its weakest parent's level. It shows the result before you commit |
 
 | Block | What it does |
 |---|---|
@@ -511,7 +534,12 @@ The Full download adds a small mod with four blocks, styled like the Ascendite g
 | **Essence Forge** | Put gear in the slot and pipe or pour Liquid Essence in (16 buckets). It levels the gear by the same rules as the Ascension Altar, once a second |
 | **Pack Opener** | Feed it Enchantment Packs (hoppers work). It opens one a second into 27 output slots and flips the cards on screen |
 
-Without the jar (Half download) the pack still works; these four blocks just don't exist.
+Without the jar (Half download) the pack still works; these blocks just don't exist.
+
+### Easy start (both downloads)
+
+Config `easyStart`: Andesite Casings by hand (any log + Andesite Alloy = 2), a Mechanical Belt from 3 leather,
+4 cogwheels from 8 planks around an Andesite Alloy, and 8 shafts from an Andesite Alloy and a stick.
 
 ## Danger zones
 
@@ -638,12 +666,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 55 checks (60 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 55 checks (64 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 457 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 461 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar
@@ -674,11 +702,23 @@ Condensed Essence, Mythic Fragments, Chaos Tomes, absorbing cores, socketing gem
 
 ## Website
 
-`site/` is the project website, built with [UI Vault](https://github.com/thenameiscobmarley/ui-vault):
-the home page (enchant browser, Chaos Forge, danger journey), a **[Gear Builder](https://thenameiscobmarley.github.io/factory-ascension/builder.html)**
+`site/` is the project website: a pixel-art book in the style of the pack's tome textures (covers and frames drawn by
+`tools/site_art.py`, fonts Pixelify Sans and Silkscreen under the SIL Open Font License). One chapter is open at a time:
+Home, Luck (a real pack opener), Gear, Enchants (browser, Mythic, Ultimates, Chaos Forge), Machines (with an engine
+builder), World (danger zones) and Download. There's also a **[Gear Builder](https://thenameiscobmarley.github.io/factory-ascension/builder.html)**
 (theorycraft all six slots with stars, gems, rolls and sets, then share the link) and a
 **[Recipes](https://thenameiscobmarley.github.io/factory-ascension/recipes.html)** page (every item's full factory chain).
 The builder's math (`site/calc.js`) is checked against the game engine by the test harness on 300 random builds.
 It runs the pack's real config in the browser, so every number on it matches the game.
-After changing the config or textures, rebuild it with `tools/build_site.sh [path/to/ui-vault]` and commit.
+After changing the config or textures, rebuild it with `tools/build_site.sh [path/to/ui-vault]` and commit
+(`FA_VERSION=x.y.z` points the download buttons at a release before it's tagged; `RHINO=path/to/rhino.jar` counts the checks).
 Pushing to `main` deploys it to GitHub Pages, and the deploy fails if the site's copy of the config is out of date.
+
+## Building the mod and the downloads
+
+```sh
+tools/mod_libs.sh                       # once: Create (and what it bundles) into mod/libs, to compile against
+cd mod && ./gradlew build && cd ..      # mod/build/libs/factoryascension-<version>.jar (JDK 17)
+python3 tools/make_mod_assets.py        # after changing block art, models or names
+python3 tools/package.py 1.1.0          # dist/: Full and Half, plain and CurseForge-import zips
+```

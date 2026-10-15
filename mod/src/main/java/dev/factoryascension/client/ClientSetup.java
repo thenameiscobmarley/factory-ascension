@@ -21,6 +21,9 @@ public final class ClientSetup {
             MenuScreens.register(FactoryAscension.BINDER_MENU.get(), BinderScreen::new);
             MenuScreens.register(FactoryAscension.FORGE_MENU.get(), ForgeScreen::new);
             MenuScreens.register(FactoryAscension.OPENER_MENU.get(), OpenerScreen::new);
+            MenuScreens.register(FactoryAscension.SALVAGER_MENU.get(), SalvagerScreen::new);
+            MenuScreens.register(FactoryAscension.FUSION_MENU.get(), FusionScreen::new);
+            MenuScreens.register(FactoryAscension.SMELTER_MENU.get(), SmelterScreen::new);
         });
     }
 

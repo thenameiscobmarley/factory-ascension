@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "factoryascension:block/super_smelter_side",
+    "north": "factoryascension:block/super_smelter_front",
+    "south": "factoryascension:block/super_smelter_back",
+    "east": "factoryascension:block/super_smelter_side",
+    "west": "factoryascension:block/super_smelter_side",
+    "up": "factoryascension:block/super_smelter_top",
+    "down": "factoryascension:block/super_smelter_top"
+  }
+}

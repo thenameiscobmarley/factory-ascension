@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "factoryascension:block/salvager"
+    },
+    "facing=east": {
+      "model": "factoryascension:block/salvager",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "factoryascension:block/salvager",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "factoryascension:block/salvager",
+      "y": 270
+    }
+  }
+}
