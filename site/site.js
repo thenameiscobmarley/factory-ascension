@@ -552,6 +552,12 @@
     return '<figure><div class="glass-wall">' + tiles + "</div>" + g[1] + " Glass</figure>";
   }).join("");
 
+  // ---------- WORLD: skinwalkers ----------
+  const SKW = FA.skinwalkers;
+  $("#skinOdds").textContent = "About " + oneIn(SKW.chance) + " animals spawning at danger " + SKW.minDanger + " or deeper. It watches you at least " +
+    SKW.minStalkSeconds + " seconds first. Its true form is " + SKW.dangerBonus + " danger levels nastier than where it turned, and drops " + SKW.lootRolls +
+    " extra loot rolls a tier better (and maybe a Mythic Fragment).";
+
   // ---------- WORLD: Bestiary (fa/mobs.js from tools/mob_art.py; parts from the config) ----------
   const MOBS = window.FA_MOBS || [];
   const partOf = id => FA.mobFood.foods.find(f => f.mobs.indexOf("factoryascension:" + id) >= 0);

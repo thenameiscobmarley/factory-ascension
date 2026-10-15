@@ -1102,6 +1102,32 @@ global.FA = {
     ]
   },
 
+  // ---- Skinwalkers: some animals out in the wilderness aren't animals ----
+  // A rare passive animal spawning in the danger zones is secretly a skinwalker. It looks and acts normal, until a player
+  // comes near: then it follows them at a distance and stops to stare. After a while (sooner at night), or the moment
+  // it's hit, it shapeshifts (twitching, cracking, rising) into a strong mob, and only then is it revealed:
+  // always an Elite, sometimes a rare variant as well, with extra loot.
+  skinwalkers: {
+    enabled: true,
+    chance: 0.02,              // per animal spawning at danger minDanger or deeper
+    minDanger: 2,
+    animals: ['minecraft:cow', 'minecraft:pig', 'minecraft:sheep', 'minecraft:chicken', 'minecraft:horse', 'minecraft:donkey', 'minecraft:goat',
+      'minecraft:llama', 'minecraft:rabbit', 'minecraft:fox', 'minecraft:mooshroom', 'factoryascension:copper_cow', 'factoryascension:ember_hen'],
+    noticeRange: 48,           // it starts following a player this close
+    stareRange: 12,            // ...and stops to stare from about this far
+    minStalkSeconds: 20,       // it watches you at least this long before it can turn
+    shiftChancePerSecond: 0.03,
+    nightMult: 2.5,            // more likely at night
+    // What it turns into: [mob, weight]. Mobs from mods that aren't installed are skipped.
+    forms: [['minecraft:ravager', 3], ['minecraft:vindicator', 4], ['minecraft:evoker', 2], ['minecraft:zoglin', 4], ['minecraft:wither_skeleton', 3],
+      ['minecraft:enderman', 2], ['factoryascension:void_stalker', 3], ['factoryascension:ascendite_husk', 3], ['factoryascension:frost_revenant', 2],
+      ['factoryascension:factory_raider', 3]],
+    dangerBonus: 5,            // the form is this much more dangerous than where it turned
+    variantChance: 0.35,       // chance the form is also a rare variant (Blazing, Frozen, Storm, Shiny or Golden)
+    lootRolls: 2,              // extra loot rolls when you kill it, one tier better
+    fragmentChance: 0.5        // and maybe a Mythic Fragment
+  },
+
   // ---- The Factory Ascension mod's own 20 mobs (Full download): how deep out each starts spawning ----
   // Natural spawns below this danger level are cancelled, so the strange ones live out in the danger zones.
   // (The Nether and End count their own danger bonus; no home set yet means danger 0 everywhere.)
@@ -1561,6 +1587,18 @@ global.FA_roomSpot = (plan, i) => {
 global.FA_roomMiddle = plan => {
   let u = Math.floor((plan.umin + plan.umax) / 2), v = Math.floor((plan.L + 1) / 2)
   return { x: plan.cx + u * plan.rx + v * plan.fx, y: plan.floorY + 1, z: plan.cz + u * plan.rz + v * plan.fz }
+}
+
+// A skinwalker's true form: one of skinwalkers.forms by weight, skipping mods that aren't installed. loaded(id) -> bool
+global.FA_skinwalkerForm = (rnd, loaded) => {
+  let forms = global.FA.skinwalkers.forms.filter(f => loaded(f[0]))
+  let total = forms.reduce((a, f) => a + f[1], 0)
+  let pick = rnd() * total
+  for (let i = 0; i < forms.length; i++) {
+    pick -= forms[i][1]
+    if (pick < 0) return forms[i][0]
+  }
+  return forms.length ? forms[forms.length - 1][0] : 'minecraft:vindicator'
 }
 
 // ---- Mythic helpers (shared by the effects and the descriptions) ----

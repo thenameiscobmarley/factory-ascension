@@ -544,6 +544,19 @@ Without the jar (Half download) the pack still works; these blocks just don't ex
 Config `easyStart`: Andesite Casings by hand (any log + Andesite Alloy = 2), a Mechanical Belt from 3 leather,
 4 cogwheels from 8 planks around an Andesite Alloy, and 8 shafts from an Andesite Alloy and a stick.
 
+## Skinwalkers
+
+Out in the wilderness, not every animal is an animal. About 1 in 50 cows, pigs, sheep, chickens, horses, goats, llamas,
+rabbits and foxes spawning at danger 2 or deeper (from your home) is a skinwalker. It looks and acts completely normal:
+no name, no glow. When you come near it follows you, keeping its distance, and stops to stare. After at least 20 seconds
+(and more likely at night), or the moment anything hits it, it shapeshifts: it freezes and twitches, its bones crack,
+it rises off the ground, nearby players get Darkness and Nausea, and it bursts into its true form, only now named
+**☠ Skinwalker**: a Ravager, Vindicator, Evoker, Zoglin, Wither Skeleton, Enderman (or, with the Full download, a Void
+Stalker, Ascendite Husk, Frost Revenant or Factory Raider). It's always an Elite, 5 danger levels nastier than where it
+turned, and sometimes a rare variant too. Killing it drops 2 extra loot rolls a tier better and maybe a Mythic Fragment.
+Falls, lava, the void and `/kill` still hurt a disguised one normally; only a creature's hit makes it turn. Every number
+is in the `skinwalkers` section of the config.
+
 ## Bestiary: 20 new mobs (Full download)
 
 Each is a vanilla mob's body and brain (so it moves and fights the way you'd expect) with its own skin, stats and
@@ -753,7 +766,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 59 checks (72 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 62 checks (75 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 

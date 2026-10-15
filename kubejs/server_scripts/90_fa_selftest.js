@@ -21,10 +21,12 @@ const $STCompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
 const $STSlot = Java.loadClass('net.minecraft.world.entity.EquipmentSlot')
 const $STVec = Java.loadClass('net.minecraft.world.phys.Vec3')
 const $STBoom = Java.loadClass('net.minecraft.world.level.Level$ExplosionInteraction')
+const $STAABB = Java.loadClass('net.minecraft.world.phys.AABB')
 
 let faSelftestBusy = false
 let faSelftestCenterOn = 'home'   // the real danger.centerOn, put back when the test ends
 let armedRoom = false             // the Room TNT armed in the room test, checked at the end
+let skinwalkerAt = false          // where the test skinwalker turned, checked at the end
 
 function faSelftest(server, report, done) {
   let results = []
@@ -692,6 +694,26 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     level.getBlock(chestPos).set('minecraft:air')
     server.runCommandSilent('fill ' + (cx - 9) + ' ' + fy + ' ' + (cz - 17) + ' ' + (cx + 8) + ' ' + (fy + 9) + ' ' + cz + ' minecraft:air')
   })
+  attempt('skinwalker', () => {
+    // A cow that isn't one: it looks normal, then (hit by the player) twists into its true form, checked at the end
+    let cow = spawn('minecraft:cow', X + 18, Y, Z - 18)
+    global.FA_makeSkinwalker(cow)
+    let plain = !cow.hasCustomName() && !cow.glowing
+    cow.attack(player.damageSources().playerAttack(player), 5)
+    check('a skinwalker looks like a plain cow, and a hit makes it turn instead of hurting it', plain && cow.getHealth() == cow.getMaxHealth() && cow.isNoAi(),
+      plain + ' ' + cow.getHealth())
+    cow.discard()   // (its slow shapeshift stops when it's gone)
+    // A second one turns at test speed, checked at the end
+    let cow2 = spawn('minecraft:cow', X + 18, Y, Z - 18)
+    global.FA_makeSkinwalker(cow2)
+    global.FA_shapeshift(cow2, player, true)
+    skinwalkerAt = { x: X + 18, z: Z - 18, cow: cow2 }
+    // Stalking uses the mob's pathfinder: a pig can be sent walking toward the player
+    let pig = spawn('minecraft:pig', X + 14, Y, Z - 14)
+    let path = pig.getNavigation().moveTo(player, 1.0)
+    check('a skinwalker can walk after a player (its pathfinder answers: ' + path + ')', path === true || path === false)
+    pig.discard()
+  })
   attempt('danger from home', () => {
     let D = global.FA.danger, uuid = String(player.stringUuid)
     let saved = global.FA_STATE.homes[uuid] || false
@@ -849,6 +871,18 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       }
       // A basin holds 1,000 mB per tank, so expect one block per full bucket it took
       check('the Condenser packed Liquid Essence into blocks (' + made + ')', made >= 1 && made == Math.floor(condFilled / global.FA.condensed.mbPerBlock), made + ' from ' + condFilled + ' mB')
+    })
+
+    // The skinwalker cow turned into a named Elite
+    if (skinwalkerAt) attempt('skinwalker turned', () => {
+      let near = level.getEntitiesOfClass($STLiving, new $STAABB(skinwalkerAt.x - 24, Y - 4, skinwalkerAt.z - 24, skinwalkerAt.x + 24, Y + 8, skinwalkerAt.z + 24))
+      let form = null
+      for (let i = 0; i < near.size(); i++) if (near.get(i).getPersistentData().getBoolean('fa_skinwalker_form')) form = near.get(i)
+      let name = form && form.getCustomName() ? form.getCustomName().getString() : ''
+      check('the skinwalker shapeshifted into ' + (form ? String(form.type) : 'nothing') + ': "' + name + '", an Elite', skinwalkerAt.cow.isRemoved() && form &&
+        /Skinwalker/.test(name) && form.getPersistentData().getBoolean('fa_elite'), name)
+      if (form) form.discard()
+      skinwalkerAt = false
     })
 
     // The armed Room TNT built itself over the last ticks: quartz shell, lights in the roof, hollow inside

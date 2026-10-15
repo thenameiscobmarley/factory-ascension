@@ -320,7 +320,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
 ;['startup_scripts/00_fa_config.js', 'startup_scripts/01_fa_conflicts.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/72_fa_mod_mobs.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js', 'startup_scripts/97_fa_mod.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/72_fa_mod_mobs.js', 'startup_scripts/76_fa_skinwalkers.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js', 'startup_scripts/97_fa_mod.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js', 'server_scripts/48_fa_rooms.js',
@@ -2258,6 +2258,18 @@ check('after every test, nothing reachable from global holds null', nullPaths.le
 // ---------------- KubeJS-real method names ----------------
 // KubeJS hides or renames many vanilla methods (found on a real server). A script using one of these only fails
 // in game, never here, so they're banned outright. Comments are skipped.
+// ---------------- Skinwalkers ----------------
+print('\nskinwalkers')
+var SW = global.FA.skinwalkers
+var formSeen = {}
+for (var fi = 0; fi < 400; fi++) formSeen[global.FA_skinwalkerForm(Math.random, function (id) { return id.indexOf('minecraft:') == 0 })] = true
+check('a skinwalker turns into one of its strong forms, never a mob from a mod that isn\'t installed (' + Object.keys(formSeen).length + ' seen)',
+  Object.keys(formSeen).every(function (f) { return f.indexOf('minecraft:') == 0 }) && Object.keys(formSeen).length >= 4, Object.keys(formSeen).join(', '))
+check('skinwalkers hide among ordinary animals, only out in the wilderness, and always come back Elite', SW.animals.indexOf('minecraft:cow') >= 0 &&
+  SW.minDanger >= 1 && SW.chance > 0 && SW.chance < 0.1 && SW.forms.every(function (f) { return f[1] > 0 }))
+var swText = String(new java.lang.String(java.nio.file.Files.readAllBytes(new java.io.File('kubejs/startup_scripts/76_fa_skinwalkers.js').toPath()), 'UTF-8'))
+check('only a creature\'s hit makes it turn: falls, the void and /kill still work on it', /if \(!\(who instanceof \$FALiving\)\) return\s+event.setCanceled\(true\)/.test(swText))
+
 // ---------------- Conflicts: a mod that does the same job turns the pack's version off ----------------
 print('\nconflicts')
 var realIsLoaded = Platform.isLoaded
@@ -2278,7 +2290,7 @@ var banned = [
   [/\.level\(\)/, '.level'], [/getGameTime\(/, 'faNow()'], [/\.dimension\(\)/, 'String(level.dimension)'],
   [/get[XY]Rot\(/, 'yaw / pitch'], [/clearFire\(/, 'extinguish()'], [/\.hurt\(/, 'attack(src, amount)'],
   [/getMsgId\(/, 'source.getType()'], [/getDirectEntity\(/, 'source.immediate'], [/setDeltaMovement\(/, 'setMotion'],
-  [/\.moveTo\(/, 'setPosition'], [/\.teleportTo\(/, 'setPositionAndRotation'], [/setGlowingTag\(/, 'glowing = true'],
+  [/^(?!.*getNavigation\(\)\.moveTo).*\.moveTo\(/, 'setPosition (getNavigation().moveTo, the pathfinder, is fine)'], [/\.teleportTo\(/, 'setPositionAndRotation'], [/setGlowingTag\(/, 'glowing = true'], [/isCurrentlyGlowing\(/, 'the glowing property'],
   [/tickCount/, 'age'], [/noCollision\(/, 'faClear()'], [/new \$?\w*FluidStack\(/, "Fluid.of(id, mb)"],
   [/getType\(\)\.(getDescription|create)\(/, 'getDisplayName / level.createEntity(e.type)'], [/BLOCK\.getKey\(/, 'level.getBlock(pos).id'],
   [/state\.is\(/, 'getBlock(pos).hasTag(id)'], [/Array\.from\(/, 'a for loop (KubeJS drops its mapping function)'], [/source\.getEntity\(\)|getSource\(\)\.getEntity\(\)/, 'source.actual']

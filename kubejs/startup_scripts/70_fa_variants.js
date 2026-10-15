@@ -70,7 +70,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
       return
     }
     let data = mob.getPersistentData()
-    if (data.contains('fa_variant') || data.getBoolean('fa_boss') || data.getBoolean('fa_elite') || data.getBoolean('fa_minion') ||
+    if (data.contains('fa_variant') || data.getBoolean('fa_skinwalker') || data.getBoolean('fa_boss') || data.getBoolean('fa_elite') || data.getBoolean('fa_minion') ||
       faIsBoss(mob) || mob.hasCustomName()) return
     let id = global.FA_rollVariant(Math.random, mob instanceof $FAEnemy)
     if (id) global.FA_makeVariant(mob, id)

@@ -1,1 +1,1 @@
-window.FA_PACK = { version: "1.4.0", checks: 480, selftest: 72 };
+window.FA_PACK = { version: "1.5.0", checks: 483, selftest: 75 };

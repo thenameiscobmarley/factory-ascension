@@ -400,6 +400,12 @@ html.js .ch { display: none; } html.js .ch.is-open { display: block; animation: 
 .beast .part-line { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--text); grid-column: 1 / -1; margin-top: 4px; }
 .beast .part-line img { width: 24px; height: 24px; }
 
+.skin-row { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; }
+@media (max-width: 700px) { .skin-row { grid-template-columns: 1fr; } }
+.skin-pair { display: flex; gap: 8px; align-items: center; font: 700 26px var(--pixel); color: var(--lava); }
+.skin-pair img { width: 64px; height: 64px; }
+.skin-pair img:last-child { filter: drop-shadow(0 0 6px #ff3030); }
+
 /* ---- world: danger ---- */
 .danger-ui { text-align: center; }
 .zone { font: 700 clamp(40px, 7vw, 80px)/1 var(--pixel); margin: 4px 0; color: var(--zt, #8ef0a0); text-shadow: calc(var(--px) * 1.5) calc(var(--px) * 1.5) 0 #000; }
