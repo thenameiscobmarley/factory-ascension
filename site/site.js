@@ -104,6 +104,13 @@
   ["mouseover", "focusin"].forEach(ev => $("#ladder").addEventListener(ev, e => { const i = e.target.closest("img"); if (i) ladderInfo(+i.dataset.t); }));
   ladderInfo(tiers);
 
+  // ---------- hero stats (counted from the config) ----------
+  const PACK = window.FA_PACK || { version: "1.0.0", checks: 457, selftest: 60 };
+  const HERO = [[ids.length, "enchants"], [FA.foils.types.length, "foils"], [4, "new metals"], [4, "machines"], ["&infin;", "level cap"], [PACK.checks, "safety checks"]];
+  $("#heroStats").innerHTML = HERO.map(h => typeof h[0] == "number" ? '<div><b data-uv-count="' + h[0] + '">0</b><small>' + h[1] + "</small></div>"
+    : "<div><b>" + h[0] + "</b><small>" + h[1] + "</small></div>").join("");
+  $("#enchCount").textContent = ids.length;
+
   // ---------- ticker ----------
   const tickerHtml = ids.filter(id => E[id].type != "fusion").map(id => '<span><img src="' + tex("tome_" + id) + '" alt="" />' + esc(E[id].name) + (E[id].mythic ? " ✦" : "") + "</span>").join("");
   $("#tickerA").innerHTML = tickerHtml;
@@ -141,7 +148,7 @@
   const PRESETS = [1, 10, 100, 1000, 3000, 100000];
   const toLevel = v => Math.max(1, Math.round(Math.pow(10, (v / 1000) * 5)));      // slider 0..1000 -> level 1..100,000 (log)
   const toSlider = l => Math.round(Math.log10(l) / 5 * 1000);
-  let level = 1, group = "All", query = "";
+  let level = 1, group = "All", query = "", foilMult = 1;
 
   const chips = ["All"].concat(GROUPS.map(g => g[0]), ["Mythic", "Ultimate", "Fusion", "Triad"]);
   $("#chips").innerHTML = chips.map(g => '<button class="uv-chip' + (g == "All" ? " is-active" : "") + '" role="tab" data-g="' + g + '">' + g +
@@ -152,7 +159,7 @@
   const grid = $("#grid");
   grid.innerHTML = ids.map(id => {
     const e = E[id];
-    return '<article class="ench' + (e.ultimate ? " is-ultimate" : e.mythic ? " is-mythic" : e.type == "fusion" ? " is-fusion" : "") + '" data-id="' + id + '">' +
+    return '<article class="ench' + (e.ultimate ? " is-ultimate" : e.mythic ? " is-mythic" : e.triad ? " is-fusion is-triad" : e.type == "fusion" ? " is-fusion" : "") + '" data-id="' + id + '">' +
       '<img src="' + tex("tome_" + id) + '" alt="" loading="lazy" width="48" height="48" />' +
       "<h3>" + (e.ultimate ? "☄ " : e.mythic ? "✦ " : "") + esc(e.name) + '<span class="lv"></span></h3>' +
       '<p class="what"></p><span class="cost"></span>' +
@@ -169,10 +176,12 @@
   const near = new Set();
   const parts = new Map(cards.map(c => [c, { lv: c.querySelector(".lv"), what: c.querySelector(".what"), cost: c.querySelector(".cost") }]));
   function paint(card) {
-    if (card._lv === level) return;
-    card._lv = level;
+    const key = level + "x" + foilMult;
+    if (card._lv === key) return;
+    card._lv = key;
     const id = card.dataset.id, e = E[id], p = parts.get(card);
-    const l = e.maxLevel ? Math.min(e.maxLevel, level) : level;
+    const want = Math.max(1, Math.round(level * foilMult));
+    const l = e.maxLevel ? Math.min(e.maxLevel, want) : want;
     p.lv.textContent = e.maxLevel == 1 ? "" : global.FA_num(l);
     p.what.textContent = global.FA_describe(id, l);
     p.cost.textContent = global.FA_num(totalCost(id, l)) + " Essence to reach";
@@ -184,7 +193,7 @@
   let lastFilter = null;
   function render() {
     let shown = 0;
-    $("#lvlOut").textContent = global.FA_num(level);
+    $("#lvlOut").textContent = global.FA_num(level) + (foilMult > 1 ? " → " + global.FA_num(Math.round(level * foilMult)) : "");
     const filter = group + "|" + query;
     cards.forEach(card => {
       const id = card.dataset.id;
@@ -212,6 +221,16 @@
     if (pending === null) requestAnimationFrame(() => { const l = pending; pending = null; setLevel(l); });
     pending = toLevel(+slider.value);
   });
+  // Foil: what the same tome goes on as with each foil
+  $("#foilPick").innerHTML = '<button class="uv-btn uv-btn--sm uv-btn--ghost is-active" data-m="1">No foil</button>' +
+    FA.foils.types.map(f => '<button class="uv-btn uv-btn--sm uv-btn--ghost" data-m="' + f.mult + '">' + f.name + " x" + f.mult + "</button>").join("");
+  $("#foilPick").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    foilMult = +b.dataset.m;
+    $("#foilPick").querySelectorAll("button").forEach(x => x.classList.toggle("is-active", x === b));
+    render();
+  });
   $("#presets").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setLevel(+b.dataset.l); });
   $("#chips").addEventListener("click", e => {
     const b = e.target.closest("button");
@@ -223,6 +242,186 @@
   let qTimer;
   $("#search").addEventListener("input", e => { clearTimeout(qTimer); qTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); render(); }, 80); });
   setLevel(1);
+
+  // ---------- shared bits for the luck and gear sections ----------
+  const MC_HEX = { white: "#e9e4de", gray: "#a8a8a8", dark_gray: "#7a7a7a", green: "#5fd47a", aqua: "#4fe3e8", blue: "#5b8cff", light_purple: "#d48cff",
+    dark_purple: "#a64df0", gold: "#ffb84d", yellow: "#f3e15a", red: "#ff4d4d", dark_red: "#d42a2a" };
+  const hexOf = c => MC_HEX[c] || "#e9e4de";
+  const oneIn = p => p >= 1 ? "always" : "1 in " + global.FA_num(Math.round(1 / p));
+  const pct = p => (p * 100 >= 10 ? Math.round(p * 100) : Math.round(p * 1000) / 10) + "%";
+  const FOILS = FA.foils.types;
+  // A tome icon, with its foil's overlay on top when it has one (the same overlay the game draws)
+  const tomeImg = (id, foil, size) => '<span class="tome" style="--s:' + (size || 64) + 'px"><img src="' + tex("tome_" + id) + '" alt="" />' +
+    (foil >= 0 ? '<img class="ov f-' + FOILS[foil].id + '" src="' + tex("foil_overlay_" + FOILS[foil].id) + '" alt="" />' : "") + "</span>";
+  const oddsBar = (el, weights, colors, names) => {
+    const total = weights.reduce((a, b) => a + b, 0);
+    el.innerHTML = weights.map((w, i) => '<i style="flex-grow:' + (w / total * 1000).toFixed(2) + ";background:" + colors[i] + '" title="' + esc(names[i]) + " " + pct(w / total) + '"></i>').join("");
+  };
+  const confetti = (el, count, colors) => {
+    if (reduce || !(window.UV && UV.confetti) || document.documentElement.classList.contains("lite")) return;
+    const r = el.getBoundingClientRect();
+    UV.confetti({ x: r.left + r.width / 2, y: r.top + 30, count: count, colors: colors });
+  };
+
+  // ---------- card packs (global.FA_openPack: the game's own odds) ----------
+  const P = FA.packs;
+  const rarHex = i => hexOf(P.rarities[i].color);
+  const pTotal = P.rarities.reduce((a, R) => a + R.weight, 0);
+  oddsBar($("#packOdds"), P.rarities.map(R => R.weight), P.rarities.map(R => hexOf(R.color)), P.rarities.map(R => R.name));
+  $("#packKey").innerHTML = P.rarities.map(R => '<span><b style="color:' + hexOf(R.color) + '">' + R.name + "</b> " + pct(R.weight / pTotal) + "</span>").join("");
+  let packsOpened = 0, bestPull = -1;
+  const cardHtml = (c, i) => {
+    const R = P.rarities[c.rarity], e = E[c.id], F = c.foil >= 0 ? FOILS[c.foil] : null;
+    const applied = Math.round(c.level * (F ? F.mult : 1));
+    return '<article class="card r' + c.rarity + (R.holo ? " holo" : "") + (F ? " foiled" : "") + '" style="--rc:' + hexOf(R.color) + ";--d:" + (i * 140) + 'ms">' +
+      '<small class="rar">' + (R.holo ? "✦ " : "") + R.name + "</small>" + tomeImg(c.id, c.foil, 64) +
+      "<b>" + esc(e.name) + "</b>" +
+      '<span class="lv">' + (e.maxLevel == 1 ? "&nbsp;" : "Level " + global.FA_num(c.level)) + "</span>" +
+      (F ? '<span class="foil-tag" style="--fc:' + hexOf(F.color) + '">' + F.name + " foil x" + F.mult + (e.maxLevel == 1 ? "" : " &rarr; " + global.FA_num(applied)) + "</span>" : '<span class="foil-tag none">no foil</span>') +
+      "</article>";
+  };
+  const packStats = () => { $("#packStats").textContent = packsOpened + " pack" + (packsOpened == 1 ? "" : "s") + " opened · best: " + P.rarities[bestPull].name; };
+  const shakeArt = () => { const a = $("#packArt"); a.classList.remove("shake"); void a.offsetWidth; a.classList.add("shake"); };
+  $("#openPack").addEventListener("click", () => {
+    const cards = global.FA_openPack(Math.random);
+    packsOpened++;
+    cards.forEach(c => { if (c.rarity > bestPull) bestPull = c.rarity; });
+    shakeArt();
+    $("#cards").innerHTML = cards.map(cardHtml).join("");
+    $("#boxSum").innerHTML = "";
+    packStats();
+    const top = cards.reduce((a, c) => c.rarity > a.rarity ? c : a, cards[0]);
+    if (top.rarity >= 3) setTimeout(() => confetti($("#cards"), top.rarity >= 5 ? 200 : 90, [rarHex(top.rarity), "#fff"]), 600);
+  });
+  $("#openBox").addEventListener("click", () => {
+    const all = [];
+    for (let i = 0; i < P.boxPacks; i++) all.push.apply(all, global.FA_openPack(Math.random));
+    packsOpened += P.boxPacks;
+    all.forEach(c => { if (c.rarity > bestPull) bestPull = c.rarity; });
+    shakeArt();
+    // The five best pulls (rarity, then foil, then level)
+    const score = c => c.rarity * 1e9 + (c.foil + 1) * 1e7 + c.level;
+    const best = all.slice().sort((a, b) => score(b) - score(a)).slice(0, P.cards);
+    $("#cards").innerHTML = best.map(cardHtml).join("");
+    const counts = P.rarities.map((_, i) => all.filter(c => c.rarity == i).length);
+    const foiled = all.filter(c => c.foil >= 0).length;
+    const top = all.reduce((a, c) => c.level > a.level ? c : a, all[0]);
+    $("#boxSum").innerHTML = "<b>" + P.boxPacks + " packs, " + all.length + " cards:</b> " + counts.map((n, i) => n ? '<span style="color:' + rarHex(i) + '">' + n + " " + P.rarities[i].name + "</span>" : "").filter(Boolean).join(" · ") +
+      " · " + foiled + " foiled · highest level: " + esc(E[top.id].name) + " " + global.FA_num(top.level) + "<small>Showing the five best.</small>";
+    packStats();
+    if (best[0].rarity >= 3) setTimeout(() => confetti($("#cards"), 140, [rarHex(best[0].rarity), "#fff"]), 600);
+  });
+
+  // ---------- foils ----------
+  const fTotal = FOILS.reduce((a, f) => a + f.weight, 0);
+  $("#foils").innerHTML = FOILS.map((f, i) => '<div class="foil" style="--fc:' + hexOf(f.color) + '">' + tomeImg("sharpness", i, 56) +
+    '<img class="sheet" src="' + tex("foil_sheet_" + f.id) + '" alt="" width="28" height="28" />' +
+    "<b>" + f.name + "</b><span class=\"mult\">x" + f.mult + "</span><small>" + pct(f.weight / fTotal) + " of foils</small></div>").join("");
+
+  // ---------- Sealed Gear Caches (FA_cacheQuality + FA_makeRelic) ----------
+  const CQ = FA.caches.qualities;
+  const QHEX = { rare: "#4fe3e8", epic: "#d48cff", legendary: "#ffb84d", mythic: "#ff4d4d" };
+  let cacheLvl = 0;
+  const cacheOdds = () => {
+    $("#cacheLvlOut").textContent = cacheLvl;
+    oddsBar($("#cacheOdds"), CQ.map(q => q.weight * Math.pow(1 + q.growth, cacheLvl)), CQ.map(q => QHEX[q.quality]), CQ.map(q => q.quality));
+  };
+  $("#cacheLvl").addEventListener("input", e => { cacheLvl = +e.target.value; e.target.style.setProperty("--v", cacheLvl / 40 * 100 + "%"); cacheOdds(); });
+  cacheOdds();
+  const relicHtml = (relic, art) => {
+    const ench = Object.keys(relic.enchants).map(id => "<li>" + esc(E[id].name) + " <b>" + global.FA_num(relic.enchants[id]) + "</b></li>").join("");
+    const gems = relic.gems.map(g => '<img src="' + tex(global.FA_gemId(g[0], g[1]).replace("kubejs:", "")) + '" alt="" title="' + esc(FA.gems.tiers[g[1] - 1].name + " " + FA.gems.types[g[0]].name) + '" width="22" height="22" />').join("");
+    const head = art ? '<p class="art-name" style="color:' + hexOf(art.color) + '">' + esc(art.name) + ", " + esc(art.title) + "</p>" : "";
+    return '<div class="relic-card q-' + relic.quality + '" style="--qc:' + QHEX[relic.quality] + '">' + head +
+      '<small class="rar">' + relic.quality + (relic.stars ? " ★" : "") + (art ? " · Artifact" : "") + "</small><b>" + esc(relic.name) + "</b>" +
+      '<span class="dim">' + esc(relic.item.replace("minecraft:", "").replace(/_/g, " ")) + "</span><ul>" + ench + "</ul>" + (gems ? '<div class="gems">' + gems + "</div>" : "") +
+      (art ? '<ul class="quirks">' + art.quirks.map(q => "<li>" + esc(global.FA_quirkText(q.id, q.power)) + "</li>").join("") + "</ul>" : "") + "</div>";
+  };
+  $("#openCache").addEventListener("click", () => {
+    const q = global.FA_cacheQuality(Math.random, cacheLvl);
+    const relic = global.FA_makeRelic(Math.random, q, cacheLvl);
+    const AR = FA.artifacts;
+    const art = q == "mythic" && AR.enabled && Math.random() < AR.relicChance ? global.FA_rollArtifact(Math.random, relic.kind == "weapon" ? "weapon" : relic.kind == "tool" ? "tool" : "armor") : null;
+    $("#relic").innerHTML = relicHtml(relic, art);
+    if (q == "legendary" || q == "mythic") confetti($("#relic"), q == "mythic" ? 160 : 70, [QHEX[q], "#fff"]);
+  });
+
+  // ---------- jackpot tail (P(mult >= k) = k^-alpha) ----------
+  const J = FA.jackpot;
+  $("#tail").innerHTML = [10, 100, 1000, 10000].map(k => "<li><b>x" + global.FA_num(k) + "</b> the normal level <span>" + oneIn(Math.pow(k, -J.levelAlpha)) + "</span></li>").join("") +
+    "<li><b>" + global.FA_num(J.levelCap) + "</b> the hard cap <span>it happens</span></li>";
+  $("#chestJackpot").textContent = pct(J.chestChance);
+
+  // ---------- rare mob variants ----------
+  const V = FA.variants;
+  const HIT = { fire: "hits set you on fire", frost: "hits slow you", storm: "hits call lightning (+" + Math.round(V.stormBonus * 100) + "%)" };
+  $("#variants").innerHTML = V.types.map(t => '<div class="variant" style="--vc:' + hexOf(t.color) + '"><b>' + (t.symbol ? t.symbol + " " : "") + t.name + "</b><span>" + oneIn(t.chance) +
+    (t.elemental ? " hostile mobs" : " mobs") + "</span><small>" + (t.onHit ? HIT[t.onHit] + " · " : t.glow ? "glows through walls · " : "sparkles · ") + "x" + t.xp + " XP · " + t.lootRolls +
+    " loot roll" + (t.lootRolls > 1 ? "s" : "") + (t.lootBump ? " (better)" : "") + "</small></div>").join("");
+
+  // ---------- gear tiers (config: ascendite, gearTiers; diamond and netherite for comparison) ----------
+  const armorSum = a => a.protection.reduce((x, y) => x + y, 0);
+  const TIERS = [
+    { id: "ascendite", name: "Ascendite", t: FA.ascendite.tools, a: FA.ascendite.armor, note: "Between iron and diamond. Mines diamonds." },
+    { name: "Diamond", ref: true, t: { uses: 1561, attackDamageBonus: 3, speed: 8 }, a: { protection: [3, 6, 8, 3], toughness: 2, knockbackResistance: 0 } },
+    { id: "voidsteel", note: "Between diamond and netherite." },
+    { name: "Netherite", ref: true, t: { uses: 2031, attackDamageBonus: 4, speed: 9 }, a: { protection: [3, 6, 8, 3], toughness: 3, knockbackResistance: 0.1 } },
+    { id: "celestium", note: "Past netherite." },
+    { id: "ascendium", note: "The endgame metal." }
+  ].map(T => T.id && FA.gearTiers[T.id] ? Object.assign({ name: FA.gearTiers[T.id].name, t: FA.gearTiers[T.id].tools, a: FA.gearTiers[T.id].armor }, T) : T);
+  const maxOf = f => Math.max.apply(null, TIERS.map(f));
+  const STATS = [["Durability", T => T.t.uses, v => global.FA_num(v)], ["Damage", T => T.t.attackDamageBonus, v => "+" + v],
+    ["Armor", T => armorSum(T.a), v => v], ["Toughness", T => T.a.toughness, v => v]];
+  const maxes = STATS.map(s => maxOf(s[1]));
+  $("#tiers").innerHTML = TIERS.map(T => '<div class="tier' + (T.ref ? " ref" : " t-" + T.id) + '">' +
+    (T.ref ? '<div class="tier-icons"><span class="ref-dot"></span></div>' : '<div class="tier-icons"><img src="' + tex(T.id + "_sword") + '" alt="" /><img src="' + tex(T.id + "_chestplate") + '" alt="" /><img src="' + tex(T.id + "_ingot") + '" alt="" /></div>') +
+    "<b>" + T.name + "</b>" + (T.ref ? "<small>vanilla, for comparison</small>" : "<small>" + esc(T.note) + "</small>") +
+    STATS.map((s, i) => { const v = s[1](T); return '<div class="bar"><span>' + s[0] + "</span><i style=\"--w:" + (v / maxes[i] * 100).toFixed(1) + '%"></i><em>' + s[2](v) + "</em></div>"; }).join("") +
+    "</div>").join("");
+
+  // ---------- condition grades ----------
+  const G = FA.condition.grades;
+  oddsBar($("#grades"), G.map(g => g.weight), G.map(g => hexOf(g.color)), G.map(g => g.name));
+  const gradeLine = g => "<b style=\"color:" + hexOf(g.color) + "\">" + g.name + "</b> · " + (g.damage >= 1 ? "+" : "") + Math.round((g.damage - 1) * 100) + "% damage · " +
+    (g.defense <= 1 ? "-" : "+") + Math.abs(Math.round((g.defense - 1) * 1000) / 10) + "% damage taken per piece" + (g.wear ? " · " + Math.round(g.wear * 100) + "% worn" : "");
+  $("#rollGrade").addEventListener("click", () => {
+    const i = global.FA_rollCondition(Math.random);
+    $("#gradeOut").innerHTML = gradeLine(G[i]) + " <span class=\"dim\">(" + pct(G[i].weight / G.reduce((a, g) => a + g.weight, 0)) + " of gear)</span>";
+    if (i == G.length - 1) confetti($("#gradeOut"), 60, ["#ffb84d", "#fff"]);
+  });
+
+  // ---------- attachments ----------
+  const AT = FA.attachments.list;
+  $("#attach").innerHTML = AT.map(a => '<button class="att" data-id="' + a.id + '" title="' + esc(a.name) + '"><img src="' + tex("attachment_" + a.id) + '" alt="' + esc(a.name) + '" /></button>').join("");
+  const showAtt = id => { const a = global.FA_attachmentDef(id); $("#attachOut").innerHTML = "<b>" + esc(a.name) + "</b> <span class=\"dim\">(" + a.fits + ")</span> " + esc(a.text.replace("{p}", a.power)); };
+  ["mouseover", "focusin", "click"].forEach(ev => $("#attach").addEventListener(ev, e => { const b = e.target.closest(".att"); if (b) showAtt(b.dataset.id); }));
+  showAtt("jetpack");
+
+  // ---------- artifacts (FA_rollArtifact) ----------
+  const AR = FA.artifacts;
+  $("#awakenLvls").textContent = global.FA_num(AR.awakenLevels);
+  $("#relicArt").textContent = "Or get lucky: " + Math.round(AR.relicChance * 100) + "% of Mythic relics drop already awakened.";
+  let artKind = "weapon", serial = 0;
+  const KIND_ICON = { weapon: "ascendium_sword", armor: "ascendium_chestplate", tool: "ascendium_pickaxe" };
+  const awaken = () => {
+    const a = global.FA_rollArtifact(Math.random, artKind);
+    serial++;
+    const c = hexOf(a.color);
+    $("#artCard").style.setProperty("--ac", c);
+    $("#artCard").innerHTML = '<img src="' + tex(KIND_ICON[artKind]) + '" alt="" width="72" height="72" /><small class="rar">Artifact · No. ' + serial + "</small>" +
+      "<b>" + esc(a.name) + "</b><span class=\"title\">" + esc(a.title) + "</span><i>“" + esc(a.lore) + "”</i><ul>" +
+      a.quirks.map(q => "<li>" + esc(global.FA_quirkText(q.id, q.power)) + "</li>").join("") + "</ul>";
+    if (!reduce) { const el = $("#artCard"); el.classList.remove("flip"); void el.offsetWidth; el.classList.add("flip"); }
+  };
+  $("#artKind").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    artKind = b.dataset.k;
+    $("#artKind").querySelectorAll("button").forEach(x => x.classList.toggle("is-active", x === b));
+    awaken();
+  });
+  $("#awaken").addEventListener("click", awaken);
+  awaken();
 
   // ---------- mythic ----------
   const F = FA.fragments;
@@ -424,14 +623,75 @@
   else addEventListener("scroll", () => { const r = $("#danger").getBoundingClientRect(); journey(-r.top / Math.max(1, r.height - innerHeight)); }, { passive: true });
   journey(0);
 
-  // ---------- install ----------
+  // ---------- machines (the Full download's blocks; recipes and numbers from config.machines) ----------
+  const M = FA.machines;
+  const vaultSlots = 108 * (M.vaultUpgrades.length + 1);
+  const itemName = id => {
+    const t = id.indexOf("kubejs:tome_") === 0 && E[id.slice(12)];
+    return t ? "Tome of " + t.name : id.replace(/^[a-z_]+:/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  };
+  const MACHINES = [
+    ["ascension_vault", "Ascension Vault", "A storage chest with a search bar, a Sort button and a scroll bar. Starts at 108 slots; right-click it with " +
+      M.vaultUpgrades.map(u => u[1] + " " + itemName(u[0])).join(", then ") + " for +108 each (" + vaultSlots + " max). Hoppers and funnels work."],
+    ["card_binder", "Card Binder", "Holds 54 tome cards and nothing else. Shows how much of the " + ids.length + "-card collection you own, and floats your best card above the block."],
+    ["essence_forge", "Essence Forge", "Put gear in the slot and pipe Liquid Essence into its 16-bucket tank. It levels the gear by the same rules as the Ascension Altar, once a second."],
+    ["pack_opener", "Pack Opener", "Feed it Enchantment Packs with a hopper. It opens one every " + (M.openerSeconds == 1 ? "second" : M.openerSeconds + " seconds") + " into 27 output slots and flips the cards on screen."]
+  ];
+  const recipeHtml = r => {
+    const rows = r[0], keys = r[1];
+    const cell = ch => {
+      if (ch == " ") return "<i></i>";
+      const id = keys[ch], k = id.indexOf("kubejs:") === 0;
+      return k ? '<i title="' + esc(itemName(id)) + '"><img src="' + tex(id.slice(7)) + '" alt="" /></i>' : '<i title="' + esc(itemName(id)) + '"><b>' + ch + "</b></i>";
+    };
+    const legend = Object.keys(keys).filter(ch => keys[ch].indexOf("kubejs:") !== 0).map(ch => "<b>" + ch + "</b> " + esc(itemName(keys[ch]))).join(" · ");
+    return '<div class="recipe"><div class="craft">' + rows.join("").split("").map(cell).join("") + '</div><small>' + legend + "</small></div>";
+  };
+  $("#machines").innerHTML = MACHINES.map(m => {
+    const f = "fa/blocks/" + m[0];
+    return '<article class="machine"><div class="cube-wrap"><div class="cube">' +
+      '<i class="f" style="background-image:url(' + f + '_front.png)"></i><i class="r" style="background-image:url(' + f + '_side.png)"></i>' +
+      '<i class="l" style="background-image:url(' + f + '_side.png)"></i><i class="b" style="background-image:url(' + f + '_side.png)"></i>' +
+      '<i class="t" style="background-image:url(' + f + '_top.png)"></i></div></div>' +
+      "<h3>" + m[1] + "</h3><p>" + esc(m[2]) + "</p>" + recipeHtml(M.recipes[m[0]]) + "</article>";
+  }).join("");
+
+  // ---------- survival kit ----------
+  const H = FA.hammer, S = FA.sell;
+  const KIT = [
+    ["ascendite_ore", "Glowing ores", "Ascendite and every valuable ore give off light, so veins show up in dark caves. Diamonds glow at " + FA.glowingOres.light["minecraft:diamond_ore"] + "."],
+    ["ascendite_rock_hammer", "Rock Hammers", "Hammer in one hand, rocks in the other: smash cobblestone into gravel, nuggets and the odd Raw Ascendite. The Ascendite hammer is " +
+      H.tools["kubejs:ascendite_rock_hammer"].luck + "x as lucky. A Deployer can swing it for you."],
+    ["ascension_core", "/ascension sell", "Turn loot you don't need into Ascension Cores or Liquid Essence. A Booster Box sells for " + S.items["kubejs:booster_box"] +
+      " Essence, an Artifact for " + S.artifact + " more. Foiled tomes sell for their foil's multiplier."],
+    ["ascendium_boots", "/sethome and /home", "One home, any dimension. Locked for " + FA.home.combatSeconds + "s after a fight, with a " + FA.home.cooldownSeconds + "s cooldown."],
+    ["gem_sapphire_3", "Gems", "Socket up to " + FA.gems.sockets + " gems into any gear for free enchant levels: Chipped +" + FA.gems.tiers[0].levels + ", Flawless +" + FA.gems.tiers[1].levels + ", Perfect +" + FA.gems.tiers[2].levels + "."],
+    ["ascension_singularity", "Zone titles", "Cross into a new danger zone and its name fills the screen, with a rumble that gets deeper the further out you go."]
+  ];
+  $("#kitGrid").innerHTML = KIT.map(k => '<article class="kit-card"><img src="' + tex(k[0]) + '" alt="" width="40" height="40" /><b>' + k[1] + "</b><p>" + esc(k[2]) + "</p></article>").join("");
+  const MF = FA.mobFood.foods;
+  const effName = e => e[0].replace("minecraft:", "").replace(/_/g, " ") + (e[2] ? " " + ["", "II", "III", "IV"][e[2]] : "") + " " + e[1] + "s";
+  $("#food").innerHTML = MF.map((f, i) => '<button class="att" data-i="' + i + '"><img src="' + tex(f.cooked) + '" alt="' + esc(f.cookedName) + '" /></button>').join("");
+  const showFood = i => {
+    const f = MF[i];
+    $("#foodOut").innerHTML = "<b>" + esc(f.cookedName) + "</b> <span class=\"dim\">from " + esc(f.rawName) + " (" + f.mobs.map(m => m.replace("minecraft:", "").replace(/_/g, " ")).join(", ") + ", " +
+      Math.round(f.chance * 100) + "%)</span> · " + f.hunger + " hunger · " + esc(effName(f.effect));
+  };
+  ["mouseover", "focusin", "click"].forEach(ev => $("#food").addEventListener(ev, e => { const b = e.target.closest(".att"); if (b) showFood(+b.dataset.i); }));
+  showFood(0);
+
+  // ---------- downloads (version from fa/pack.js, written by tools/build_site.sh) ----------
+  const REL = "https://github.com/thenameiscobmarley/factory-ascension/releases/download/v" + PACK.version + "/FactoryAscension-";
+  document.querySelectorAll("[data-dl]").forEach(a => {
+    a.href = REL + a.dataset.dl + "-" + PACK.version + (a.dataset.cf ? "-CurseForge" : "") + ".zip";
+    a.textContent += " · v" + PACK.version;
+  });
   const MODS = [
     ["Create", "create", 1], ["KubeJS", "kubejs", 1], ["Rhino", "rhino", 1], ["Architectury API", "architectury-api", 1],
-    ["Create: The Factory Must Grow", "create-industry"], ["Mekanism", "mekanism"], ["Tinkers' Construct", "tinkers-construct"],
-    ["Create Enchantment Industry", "create-enchantment-industry"], ["Twilight Forest", "the-twilight-forest"],
-    ["Ice and Fire", "ice-and-fire-dragons"], ["When Dungeons Arise", "when-dungeons-arise"], ["JEI", "jei"], ["Jade", "jade"],
-    ["Sophisticated Backpacks", "sophisticated-backpacks"], ["Sophisticated Core", "sophisticated-core"],
-    ["Embeddium", "embeddium"], ["ModernFix", "modernfix"], ["FerriteCore", "ferritecore"]
+    ["Create: The Factory Must Grow", "create-industry"], ["Mekanism", "mekanism"], ["JEI", "jei"], ["Waystones", "waystones"], ["Balm", "balm"],
+    ["Sophisticated Backpacks", "sophisticated-backpacks"], ["Sophisticated Core", "sophisticated-core"], ["Tinkers' Construct", "tinkers-construct"],
+    ["Create Enchantment Industry", "create-enchantment-industry"], ["Twilight Forest", "the-twilight-forest"], ["Ice and Fire", "ice-and-fire-dragons"],
+    ["When Dungeons Arise", "when-dungeons-arise"], ["Jade", "jade"], ["Embeddium", "embeddium"], ["ModernFix", "modernfix"], ["FerriteCore", "ferritecore"]
   ];
   $("#mods").innerHTML = MODS.map(m => '<a class="uv-chip' + (m[2] ? " req" : "") + '" href="https://www.curseforge.com/minecraft/mc-mods/' + m[1] + '">' + esc(m[0]) + "</a>").join("");
   document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
@@ -449,7 +709,7 @@
     if (UV.scrollbar) UV.scrollbar();
     if (!reduce && matchMedia("(pointer: fine)").matches) {
       document.querySelectorAll(".magnet").forEach(el => UV.magnetic && UV.magnetic(el, { strength: 0.25 }));
-      document.querySelectorAll(".myth, .safety .uv-card").forEach(el => UV.tilt && UV.tilt(el, { max: 6 }));
+      document.querySelectorAll(".myth, .safety .uv-card, .machine, .tier:not(.ref)").forEach(el => UV.tilt && UV.tilt(el, { max: 6 }));
     }
   }
 })();

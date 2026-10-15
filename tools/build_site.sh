@@ -14,12 +14,19 @@ if [ ! -f "$uivault/lib/uivault.css" ]; then
 fi
 
 rm -rf site/fa site/vendor
-mkdir -p site/fa/items site/vendor/uivault
+mkdir -p site/fa/items site/fa/blocks site/vendor/uivault
 cp kubejs/startup_scripts/00_fa_config.js kubejs/startup_scripts/10_fa_items.js site/fa/
 cp kubejs/server_scripts/20_fa_core_recipes.js kubejs/server_scripts/25_fa_tome_recipes.js kubejs/server_scripts/30_fa_material_recipes.js \
    kubejs/server_scripts/35_fa_starter_recipes.js kubejs/server_scripts/37_fa_food_recipes.js site/fa/
 cp kubejs/assets/kubejs/textures/item/*.png site/fa/items/
 cp kubejs/assets/kubejs/textures/block/*.png site/fa/items/   # blocks (altar, condenser, condensed essence) use their block texture as the icon
+cp mod/src/main/resources/assets/factoryascension/textures/block/*.png site/fa/blocks/   # the mod's machines (Full download)
+# Release version (download links) and test counts for the page
+version="$(git describe --tags --abbrev=0 2>/dev/null || true)"; version="${version#v}"
+# RHINO=path/to/rhino.jar counts the harness checks for real; otherwise the last known count
+checks=457
+if [ -n "${RHINO:-}" ]; then checks="$(java -jar "$RHINO" -version 200 tools/test/harness.js 2>&1 | grep -c '^  ok')"; fi
+echo "window.FA_PACK = { version: \"${version:-1.0.0}\", checks: $checks };" > site/fa/pack.js
 cp "$uivault/lib/uivault.css" "$uivault/lib/uivault.js" "$uivault/lib/css/fonts.css" site/vendor/uivault/
 cp "$uivault/LICENSE" site/vendor/uivault/LICENSE
 echo "UI Vault $(git -C "$uivault" rev-parse --short HEAD 2>/dev/null || echo '?')" > site/vendor/uivault/VERSION
