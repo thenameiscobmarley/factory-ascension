@@ -71,7 +71,7 @@ ItemEvents.rightClicked('kubejs:booster_box', event => {
 const FA_RELIC_TEXT = { aqua: 'aqua', light_purple: 'lightPurple', gold: 'gold', red: 'red' }
 
 function faOpenCache(player, cache) {
-  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ())
+  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ(), player)
   let quality = global.FA_cacheQuality(Math.random, danger)
   let relic = global.FA_makeRelic(Math.random, quality, danger)
   let stack = global.FA_relicStack(relic)

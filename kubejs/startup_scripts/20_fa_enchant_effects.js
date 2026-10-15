@@ -886,7 +886,7 @@ let FA_TEXT_COLORS = { green: 'green', yellow: 'yellow', gold: 'gold', red: 'red
 
 function faDangerNotice(player) {
   let uuid = player.stringUuid
-  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ())
+  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ(), player)
   let last = faLastDanger[uuid]
   faLastDanger[uuid] = danger
   if (danger > 0) faStat(player, 'max_danger', danger, 'max')

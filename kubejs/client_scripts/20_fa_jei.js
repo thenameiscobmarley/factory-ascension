@@ -53,7 +53,7 @@ if (typeof JEIEvents != 'undefined') {
       'Right-click in the air to absorb: ' + essence(global.FA_condensedValue(0)) + '. Sneak to absorb the whole stack.'
     ])
     info('kubejs:mythic_fragment', [
-      'Drops from hostile mobs out in the danger zones (more than ' + FA.danger.safeRadius + ' blocks from spawn), when a player gets the kill.',
+      'Drops from hostile mobs out in the danger zones (more than ' + FA.danger.safeRadius + ' blocks from ' + (FA.danger.centerOn == 'home' ? 'your home' : 'spawn') + '), when a player gets the kill.',
       'Elites drop them often, other mobs rarely. Ascended bosses always drop several. Blood Moons double the odds.',
       'Mythic tomes need 4 of them.'
     ])

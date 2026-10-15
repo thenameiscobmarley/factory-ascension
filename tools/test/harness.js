@@ -805,6 +805,9 @@ Object.keys(E).forEach(function (id) {
 
 // ---------------- Danger ----------------
 print('\ndanger')
+// These tests measure from world spawn (danger.centerOn 'spawn'); 'danger from home' below covers the default
+var defaultCenterOn = global.FA.danger.centerOn
+global.FA.danger.centerOn = 'spawn'
 var join = handlers.forge['EntityJoinLevelEvent']
 function spawn(mob2, x, opts) {
   opts = opts || {}
@@ -816,26 +819,28 @@ function spawn(mob2, x, opts) {
 Math.random = function () { return 0.5 }
 check('mobs near spawn stay normal', !spawn(makeMob(), 500).pdata.contains('fa_danger'))
 var far = spawn(makeMob(), 6000)
-check('6000 blocks out = danger 11', far.pdata.getInt('fa_danger') == 11, far.pdata.getInt('fa_danger'))
+check('6000 blocks out = danger 21 (a level every 250 blocks past 1000)', far.pdata.getInt('fa_danger') == 21, far.pdata.getInt('fa_danger'))
 check('mobs loaded from a save are not re-rolled', !spawn(makeMob(), 6000, { fromDisk: true }).pdata.contains('fa_danger'))
 var farBoss = makeMob(); farBoss.boss = true
 check('bosses never scale', !spawn(farBoss, 6000).pdata.contains('fa_danger'))
 check('passive mobs never scale', !spawn(makeMob(LivingClass), 6000).pdata.contains('fa_danger'))
-check('Nether: 1000 blocks counts as 8000, +3 bonus = 18', spawn(makeMob(), 1000, { dim: 'minecraft:the_nether' }).pdata.getInt('fa_danger') == 18)
-check('the End is always at least danger 6', spawn(makeMob(), 0, { dim: 'minecraft:the_end' }).pdata.getInt('fa_danger') == 6)
+check('Nether: 1000 blocks counts as 8000, +4 bonus = 33', spawn(makeMob(), 1000, { dim: 'minecraft:the_nether' }).pdata.getInt('fa_danger') == 33)
+check('the End is always at least danger 7', spawn(makeMob(), 0, { dim: 'minecraft:the_end' }).pdata.getInt('fa_danger') == 7)
 Math.random = function () { return 0 }
 var elite = spawn(makeMob(), 6000)
-check('elites get a visible name with their level', elite.pdata.getBoolean('fa_elite') && elite.nameVisible && /Elite Zombie .* Lv 11/.test(elite.customName), elite.customName)
+check('elites get a visible name with their level', elite.pdata.getBoolean('fa_elite') && elite.nameVisible && /Elite Zombie .* Lv 21/.test(elite.customName), elite.customName)
 Math.random = realRandom
 
 var plainHero = makePlayer(server, 'plain')
-// The curve: x(1 + perLevel * level^1.35). At danger 11 that's x4.06 damage and /6.09 health
-var curve = Math.pow(11, 1.35)
-check('danger 11 mob deals x' + (1 + 0.12 * curve).toFixed(2) + ' damage (danger^1.35 curve)', near(hit(far, plainHero, 10), 10 * (1 + 0.12 * curve)), hit(far, plainHero, 10))
-check('danger 11 mob takes damage / ' + (1 + 0.2 * curve).toFixed(2), near(hit(plainHero, far, 10 * (1 + 0.2 * curve)), 10))
-check('elite takes another /3', near(hit(plainHero, elite, 30 * (1 + 0.2 * curve)), 10))
-check('the curve is gentle near home and steeper far out, but not quadratic', global.FA_dangerMult(1, false).health < 1.3 &&
-  global.FA_dangerMult(40, false).health / global.FA_dangerMult(20, false).health < 2.6)
+// The curve: x(1 + 0.5 * (blocks / 1000) ^ 2.807), by where the zone starts. Danger 21 starts at 6000 blocks
+var curve = 1 + 0.5 * Math.pow(6, 2.807)
+check('danger 21 mob deals x' + curve.toFixed(1) + ' damage', near(hit(far, plainHero, 10), 10 * curve), hit(far, plainHero, 10))
+check('danger 21 mob takes damage / ' + curve.toFixed(1), near(hit(plainHero, far, 10 * curve), 10))
+check('elite takes another /3', near(hit(plainHero, elite, 30 * curve), 10))
+var dm = function (l) { return global.FA_dangerMult(l, false).health }
+check('x1.5 at 1000 blocks, x4.5 at 2000, with 3 steps in between (' + [1, 2, 3, 4, 5].map(function (l) { return dm(l).toFixed(2) }).join(', ') + ')',
+  near(dm(1), 1.5) && Math.abs(dm(5) - 4.5) < 0.02 && dm(1) < dm(2) && dm(2) < dm(3) && dm(3) < dm(4) && dm(4) < dm(5) && dm(0) == 1)
+check('then x11.9 at 3000 and x47 at 5000', Math.abs(dm(9) - 11.9) < 0.1 && Math.abs(dm(17) - 46.8) < 0.3, dm(9) + ' / ' + dm(17))
 check('/kill still works on scaled mobs', hit(null, far, 50, { bypass: true }) == 50)
 var tenMob = makeMob(); tenMob.pdata.putInt('fa_danger', 10)
 // No loot roll or fragment this time (they're random), so only the drop multiplier is measured
@@ -873,19 +878,19 @@ server.commands = []
 tick({ phase: 'END', player: explorer })
 explorer.x = 6000
 tick({ phase: 'END', player: explorer })
-check('crossing into a new zone shows its title', server.commands.some(function (c) { return /Dread Reaches/.test(c) }), server.commands.join(' | '))
+check('crossing into a new zone shows its title', server.commands.some(function (c) { return /The Abyss/.test(c) }), server.commands.join(' | '))
 check('going deeper plays a cave sound', server.commands.some(function (c) { return /ambient.cave/.test(c) }))
 server.commands = []; explorer.bar = []
 explorer.x = 6600
 tick({ phase: 'END', player: explorer })
-check('a new level inside the same zone shows on the action bar only', server.commands.length == 0 && /Danger 12/.test(explorer.bar[0]), explorer.bar[0])
+check('a new level inside the same zone shows on the action bar only', server.commands.length == 0 && /Danger 23/.test(explorer.bar[0]), explorer.bar[0])
 explorer.x = 0
 tick({ phase: 'END', player: explorer })
 check('heading home shows Safe Lands', server.commands.some(function (c) { return /Safe Lands/.test(c) }))
 // Logging in out in a danger zone announces it; logging in at home stays quiet
 var returning = makePlayer(server, 'returning'); returning.age = 20; returning.x = 6000
 server.commands = []
-check('logging in inside a danger zone shows its title', global.FA_dangerNotice(returning) == 'zone' && server.commands.some(function (c) { return /Dread Reaches/.test(c) }))
+check('logging in inside a danger zone shows its title', global.FA_dangerNotice(returning) == 'zone' && server.commands.some(function (c) { return /The Abyss/.test(c) }))
 var homebody = makePlayer(server, 'homebody'); homebody.age = 20
 check('logging in at spawn shows nothing', global.FA_dangerNotice(homebody) == '')
 // KubeJS hands back a fresh copy of config objects on every read of global: zones must compare by name
@@ -900,7 +905,7 @@ check('after logging out and back in, the zone is announced again', global.FA_da
 explorer.messages = []
 explorer.x = 6000
 faShowDanger(explorer)
-check('/ascension danger explains the area', explorer.messages.length == 4 && /Dread Reaches/.test(explorer.messages[0].s), explorer.messages.map(function (t) { return t.s }).join(' | '))
+check('/ascension danger explains the area', explorer.messages.length == 4 && /The Abyss/.test(explorer.messages[0].s), explorer.messages.map(function (t) { return t.s }).join(' | '))
 print('  sample: ' + explorer.messages.map(function (t) { return t.s }).join(' |'))
 var zones = [0, 1000, 3500, 6000, 11000, 21000, 41000, 100000].map(function (x) {
   var lvl = global.FA_dangerLevel(explorer.level, x, 0)
@@ -1600,7 +1605,7 @@ evServer.overworld = function () { return { isNight: function () { return true }
 global.FA_startEvent(evServer, 'bloodMoon')
 Math.random = function () { return 0.99 }
 var bmMob = spawn(makeMob(), 6000)
-check('Blood Moon: everything spawns +10 danger', bmMob.pdata.getInt('fa_danger') == 21, bmMob.pdata.getInt('fa_danger'))
+check('Blood Moon: everything spawns +10 danger', bmMob.pdata.getInt('fa_danger') == 31, bmMob.pdata.getInt('fa_danger'))
 Math.random = realRandom
 global.FA_endEvent(evServer)
 check('events end cleanly', !global.FA_STATE.event)
@@ -2006,17 +2011,44 @@ print('\nsafe zone center')
 var mover = makePlayer(server, 'mover')
 server.overworld = function () { return { getSharedSpawnPos: function () { return { getX: function () { return 0 }, getZ: function () { return 0 } } } } }
 mover.x = 6000; mover.z = 0
-check('6000 blocks from spawn is danger 11', global.FA_dangerLevel(mover.level, 6000, 0) == 11)
+check('6000 blocks from spawn is danger 21', global.FA_dangerLevel(mover.level, 6000, 0) == 21)
 faCenterCommand(mover, 'set')
 check('/ascension center set: where you stand becomes the middle of the safe zone', global.FA_dangerLevel(mover.level, 6000, 0) == 0 &&
-  global.FA_dangerLevel(mover.level, 0, 0) == 11 && global.FA_STATE.center.x == 6000)
+  global.FA_dangerLevel(mover.level, 0, 0) == 21 && global.FA_STATE.center.x == 6000)
 var netherLvl = { dimension: 'minecraft:the_nether' }
 check('the Nether\'s safe zone follows it (Overworld 6000 = Nether 750)', global.FA_dangerLevel(netherLvl, 750, 0) == global.FA.danger.netherBonus)
 global.FA_STATE.center = false
 faLoadCenter(server)
 check('the center is saved with the world and loads back', global.FA_STATE.center && global.FA_STATE.center.x == 6000)
 faCenterCommand(mover, 'reset')
-check('/ascension center reset: back to world spawn (and never null on global)', global.FA_STATE.center === false && global.FA_dangerLevel(mover.level, 6000, 0) == 11)
+check('/ascension center reset: back to world spawn (and never null on global)', global.FA_STATE.center === false && global.FA_dangerLevel(mover.level, 6000, 0) == 21)
+
+// ---------------- Danger from your home (the default) ----------------
+print('\ndanger from home')
+global.FA.danger.centerOn = 'home'
+check('the config measures danger from homes by default', defaultCenterOn == 'home', defaultCenterOn)
+var settler = makePlayer(server, 'settler'), stranger = makePlayer(server, 'stranger')
+settler.x = 50000; settler.z = 0; stranger.x = 3000; stranger.z = 0
+check('no home yet: nothing scales anywhere, so you can explore for a base', global.FA_dangerLevel(settler.level, 50000, 0, settler) == 0 && global.FA_dangerLevel(settler.level, 99000, 0, settler) == 0)
+settler.level.dimension = 'minecraft:overworld'
+faSetHome(settler)
+check('/home set makes your home the middle (and says what it means)', global.FA_STATE.homes[settler.stringUuid].x == 50000 &&
+  global.FA_dangerLevel(settler.level, 50000, 0, settler) == 0 && global.FA_dangerLevel(settler.level, 50999, 0, settler) == 0 &&
+  global.FA_dangerLevel(settler.level, 51000, 0, settler) == 1 && global.FA_dangerLevel(settler.level, 50000, 2000, settler) == 5 &&
+  settler.messages.some(function (t) { return /danger zones start here/i.test(t.s) }), settler.messages.map(function (t) { return t.s }).join(' | '))
+check('someone else\'s home doesn\'t count for you', global.FA_dangerLevel(stranger.level, 52000, 0, stranger) == 0)
+// Mobs use the nearest player's home
+var worldLvl = { dimension: 'minecraft:overworld', getServer: function () { return { getPlayerList: function () { return { getPlayers: function () { return [settler, stranger] } } } } } }
+check('a mob near you uses your home; a mob near someone without a home doesn\'t scale', global.FA_dangerLevel(worldLvl, 50000, 3000) == 9 && global.FA_dangerLevel(worldLvl, 3100, 0) == 0)
+var netherWorld = { dimension: 'minecraft:the_nether', getServer: worldLvl.getServer }
+settler.level = { dimension: 'minecraft:the_nether' }
+check('in the Nether your home counts at 1/8 (Overworld 50000 = Nether 6250)', global.FA_dangerLevel(netherWorld, 6250, 0, settler) == global.FA.danger.netherBonus)
+settler.level = { dimension: 'minecraft:overworld' }
+var homes0 = global.FA_STATE.homes
+global.FA_STATE.homes = {}
+faLoadHomes(server)
+check('homes load back with the world', global.FA_STATE.homes[settler.stringUuid] && global.FA_STATE.homes[settler.stringUuid].x == 50000)
+check('/ascension center does nothing while danger follows homes', faCenterCommand(mover, 'set') == 0 && global.FA_STATE.center === false)
 check('two more starter recipes: an amethyst Ascension Core and an Ascendite alloy ingot', !!byId('core_from_amethyst') && !!byId('ascendite_alloy'))
 var pressAsc = byId('press_cobblestone_ascendite')
 check('a Mechanical Press over a Basin turns ' + global.FA.ascendite.pressCobble + ' cobblestone into Raw Ascendite', !!pressAsc && pressAsc.json.type == 'create:compacting' &&

@@ -333,13 +333,17 @@ function faShowDanger(player) {
     player.tell(Text.gray('Danger scaling is turned off.'))
     return 1
   }
-  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ())
+  let danger = global.FA_dangerLevel(player.level, player.getX(), player.getZ(), player)
   let zone = global.FA_zone(danger)
   let m = global.FA_dangerMult(danger, false)
   let elite = Math.min(d.eliteChanceCap, d.eliteChancePerLevel * danger)
   player.tell(Text.gold(zone.name + '  ').append(Text.gray('Danger ' + danger)).bold(true))
   if (danger == 0) {
-    player.tell(Text.gray(' Mobs are normal here. Danger starts ' + d.safeRadius + ' blocks from world spawn.'))
+    if (d.centerOn == 'home' && !global.FA_STATE.homes[String(player.stringUuid)]) {
+      player.tell(Text.gray(' Mobs are normal everywhere until you set a home: explore, find a spot, then ').append(Text.white('/home set')).append(Text.gray('.')))
+    } else {
+      player.tell(Text.gray(' Mobs are normal here. Danger starts ' + global.FA_num(d.safeRadius) + ' blocks from ' + (d.centerOn == 'home' ? 'your home.' : 'world spawn.')))
+    }
     return 1
   }
   player.tell(Text.gray(' Mobs: ').append(Text.red('x' + m.health.toFixed(1) + ' health, x' + m.damage.toFixed(1) + ' damage')))
@@ -711,6 +715,11 @@ ServerEvents.loaded(event => faLoadCenter(event.server))
 
 function faCenterCommand(player, mode) {
   let D = global.FA.danger
+  if (D.centerOn == 'home') {
+    player.tell(Text.yellow('Danger is measured from each player\'s own home (/home set), so there\'s no shared center to move. ')
+      .append(Text.gray('Set danger.centerOn to \'spawn\' in the config to use one.')))
+    return 0
+  }
   if (mode == 'set') {
     if (String(player.level.dimension) != 'minecraft:overworld') {
       player.tell(Text.red('Stand in the Overworld to move the safe zone.'))
@@ -724,7 +733,7 @@ function faCenterCommand(player, mode) {
   let spawn = player.getServer().overworld().getSharedSpawnPos()
   let where = c ? 'X ' + c.x + ', Z ' + c.z : 'world spawn (X ' + spawn.getX() + ', Z ' + spawn.getZ() + ')'
   player.tell(Text.green(mode ? 'Safe zone ' + (mode == 'set' ? 'moved' : 'reset') + ': ' : 'Safe zone: ').append(Text.white('centered on ' + where)))
-  player.tell(Text.gray('No extra danger within ' + D.safeRadius + ' blocks of it, then +1 danger every ' + D.blocksPerLevel + ' blocks. ')
+  player.tell(Text.gray('No extra danger within ' + global.FA_num(D.safeRadius) + ' blocks of it, then +1 danger every ' + D.blocksPerLevel + ' blocks. ')
     .append(Text.darkGray('Mobs that already spawned keep their old level.')))
   return 1
 }

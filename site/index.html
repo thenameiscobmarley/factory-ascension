@@ -7,7 +7,7 @@
 <meta name="description" content="A Minecraft Create modpack where your factory is your power and every chest is a lottery: 486 uncapped enchants, foil card packs, one-of-one Artifacts, danger zones and a mod full of machines." />
 <meta name="theme-color" content="#140c07" />
 <link rel="icon" href="fa/items/ascension_core.png" />
-<link rel="stylesheet" href="site.css?v=e96459806e" />
+<link rel="stylesheet" href="site.css?v=fa95893b91" />
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
@@ -293,12 +293,13 @@
 <section class="ch" id="world">
   <header class="ch-head"><img src="fa/items/mythic_fragment.png" alt="" />
     <div><p class="mono">Chapter 5</p><h2>The further you go, the scarier it gets</h2>
-    <p class="sub">Near spawn, mobs are normal. Past the safe zone every few hundred blocks adds a danger level, with no cap: tougher mobs, better loot. Time never matters, so AFK is always safe.</p></div></header>
+    <p class="sub">Explore freely: nothing scales until you pick a base and type <code>/home set</code>. From then on your home is the middle of your danger zones:
+      normal within <b id="safeR"></b> blocks, then a new level every <b id="perLvl"></b> blocks, with tougher mobs and better loot. Time never matters, so AFK is always safe.</p></div></header>
   <div class="cover green danger-ui" id="danger">
     <h3 class="zone" id="zoneName">Safe Lands</h3>
-    <div class="dist"><b id="dist">0</b><span>blocks from spawn</span></div>
+    <div class="dist"><b id="dist">0</b><span>blocks from your home</span></div>
     <div class="travel">
-      <input class="range" id="travel" type="range" min="0" max="1000" value="0" aria-label="Distance from spawn" />
+      <input class="range" id="travel" type="range" min="0" max="1000" value="0" aria-label="Distance from your home" />
       <div class="rail-labels" id="railZones"></div>
     </div>
     <div class="readout">
@@ -399,9 +400,9 @@
     }
   };
 </script>
-<script src="fa/00_fa_config.js?v=e96459806e"></script>
-<script src="fa/25_fa_tome_recipes.js?v=e96459806e"></script>
-<script src="fa/pack.js?v=e96459806e"></script>
-<script src="site.js?v=e96459806e"></script>
+<script src="fa/00_fa_config.js?v=fa95893b91"></script>
+<script src="fa/25_fa_tome_recipes.js?v=fa95893b91"></script>
+<script src="fa/pack.js?v=fa95893b91"></script>
+<script src="site.js?v=fa95893b91"></script>
 </body>
 </html>

@@ -63,9 +63,9 @@ kubejs/
    All 486 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
-4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 55 checks (64 with the Full jar)
+4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 56 checks (65 with the Full jar)
    with a fake player (Essence, a real tome right-click, leveled tomes and extracting, enchants, danger zones, Ascendite, mob food, Rock Hammers, gear condition, rare variants, glowing ores, the safe-zone center, /home, card packs, Artifacts, gems, rebirth,
-   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **55 / 55 passed** (**64 / 64** with Full).
+   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **56 / 56 passed** (**65 / 65** with Full).
    Any FAIL line says which part is broken.
 5. Full only: open the **Factory Ascension** creative tab, place each block and open it. The Vault should scroll, search and sort;
    drop an Enchantment Pack into the Pack Opener and watch the cards flip. Build an engine: an Engine Core, a Coil and a Burner

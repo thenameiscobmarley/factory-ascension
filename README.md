@@ -543,32 +543,36 @@ Config `easyStart`: Andesite Casings by hand (any log + Andesite Alloy = 2), a M
 
 ## Danger zones
 
-Near spawn, mobs are normal. Past 1000 blocks, every 500 blocks adds a **danger level**, with no cap.
+**Danger is measured from your home.** Until you type `/home set`, nothing scales anywhere, so you can explore the map
+and pick a base first. After that, mobs stay normal within 1,000 blocks of your home; past that, every 250 blocks adds a
+**danger level**, with no cap. That's 3 in-between steps from one 1,000 blocks to the next, so it never jumps all at once.
+Moving your home moves your zones (mobs that already spawned keep their level). A mob uses the home of the player it
+spawns nearest to; near someone who hasn't set a home, mobs stay normal.
+
 Crossing into a new zone puts its name and danger on screen as a big title, with a sound (a cave rumble going deeper).
 A new danger level inside the same zone shows above the hotbar. Logging in out in a danger zone shows it too.
-Far-out mobs are tougher, but drop more.
 
-| Distance from spawn | Zone | Danger | Mobs | Loot |
+| Distance from home | Zone | Danger | Mob health and damage | Loot |
 |---|---|---|---|---|
-| 0 - 1000 | Safe Lands | 0 | normal | normal |
-| 1000+ | The Frontier | 1+ | x1.2 health, x1.1 damage | x1.1 |
-| 3500 | The Wilds | 6 | x3.2 health, x2.3 damage | x1.6 |
-| 6000 | Dread Reaches | 11 | x6.1 health, x4.1 damage | x2.1 |
-| 11000 | The Abyss | 21 | x13 health, x8.3 damage | x3.1 |
-| 21000 | Nightmare | 41 | x31 health, x19 damage | x5.1 |
-| 41000+ | The Void Beyond | 81+ | x76+ health, x46+ damage | x9+ |
+| 0 - 1,000 | Safe Lands | 0 | normal | normal |
+| 1,000 | The Frontier | 1 | x1.5 | x1.1 |
+| 1,250 / 1,500 / 1,750 | The Frontier | 2 / 3 / 4 | x1.9 / x2.6 / x3.4 | x1.2 - x1.4 |
+| 2,000 | The Wilds | 5 | x4.5 | x1.5 |
+| 3,000 | Dread Reaches | 9 | x11.9 | x1.9 |
+| 5,000 | The Abyss | 17 | x47 | x2.7 |
+| 10,000 | Nightmare | 37 | x322 | x4.7 |
+| 20,000+ | The Void Beyond | 77+ | x2,245+ | x8.7+ |
 
-Mob toughness follows a **danger^1.35 curve** (`exponent` in the config): gentle near home, steeper the farther out you
-go, but not quadratic, so the deep zones are dangerous without being impossible to roam.
+Mob toughness follows `x(1 + 0.5 * (blocks / 1000) ^ 2.807)`, measured where each level starts: x1.5 at 1,000 blocks and
+x4.5 at 2,000 (`healthScale`, `damageScale` and `exponent` in the config).
 
 - **Elites:** 1% of mobs per danger level (max 25%) spawn as named Elites, like `☠ Elite Zombie · Lv 23`.
   They have x3 health, x1.5 damage and x3 loot on top of the zone's numbers.
-- **The Nether** counts distance x8 and is always at least danger 3. **The End** is always at least danger 6.
+- **The Nether** counts distance from your home x8 and is always at least danger 4. **The End** is always at least danger 7.
 - Only hostile, non-boss mobs scale. Boss fights from other mods stay as their makers designed them.
 - `/ascension danger` shows the danger where you're standing.
-- Ops can move the safe zone: `/ascension center set` makes where you stand the middle of it (Overworld; the Nether's
-  center follows at 1/8), `/ascension center reset` puts it back on world spawn, `/ascension center` shows it. It's saved
-  with the world. Mobs that already spawned keep their old level.
+- Prefer one shared center? Set `centerOn: 'spawn'` in the config: then danger counts from world spawn, and ops can move
+  it with `/ascension center set` / `reset` (saved with the world).
 - Every number is in the `danger` section of `00_fa_config.js`. Set `enabled: false` to turn it off.
 
 ## How to use it
@@ -653,7 +657,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension` | Everyone | Essence bank + upgrade menu for the held item |
 | `/ascension upgrade <enchant> <levels>` | Everyone | What the menu buttons run |
 | `/ascension danger` | Everyone | Danger level, zone and mob multipliers where you stand |
-| `/sethome` (or `/home set`) | Everyone | Save where you stand as your home (any dimension) |
+| `/sethome` (or `/home set`) | Everyone | Save where you stand as your home (any dimension). It's also the middle of your danger zones |
 | `/home` | Everyone | Teleport home. Not while in combat (10s after hitting or being hit), 30s cooldown |
 | `/ascension awaken` | Everyone | Awaken the held gear into an Artifact (what the menu button runs) |
 | `/ascension sell` | Everyone | Quote the held stack, then sell it for Cores or Liquid Essence |
@@ -662,11 +666,11 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension rebirth` | Everyone | Rebirth the held item (asks to confirm) |
 | `/ascension event` | Everyone | The current world event |
 | `/ascension event start <name>` / `stop` | Ops | Start or stop a world event |
-| `/ascension center` / `set` / `reset` | Ops | Show, move to you, or reset the safe zone's center |
+| `/ascension center` / `set` / `reset` | Ops | With `centerOn: 'spawn'`: show, move to you, or reset the shared safe-zone center |
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 55 checks (64 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 56 checks (65 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 

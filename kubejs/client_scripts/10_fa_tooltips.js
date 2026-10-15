@@ -296,7 +296,7 @@ ItemEvents.tooltip(event => {
     tip('  Other mobs: ' + (F.normalChancePerLevel * 100).toFixed(1) + '% per danger level (max ' + pct(F.normalChanceCap) + '). Bosses drop several.'),
     use('Mythic tomes (4 each) and Ultimate tomes (4 each)')])
   details('kubejs:ascended_soul', 'Still screaming, faintly.', () => [
-    from('Ascended bosses only: rare giant mobs at danger ' + FA.bosses.minDanger + '+ (' + global.FA_num((FA.bosses.minDanger - 1) * FA.danger.blocksPerLevel + FA.danger.safeRadius) + '+ blocks from spawn)'),
+    from('Ascended bosses only: rare giant mobs at danger ' + FA.bosses.minDanger + '+ (' + global.FA_num(global.FA_dangerBlocks(FA.bosses.minDanger)) + '+ blocks from ' + (FA.danger.centerOn == 'home' ? 'your home)' : 'spawn)')),
     use('Ultimate tomes (2 each)')])
 
   // Gems

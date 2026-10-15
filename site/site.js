@@ -512,19 +512,20 @@
 
   // ---------- WORLD: danger zones (drag to travel) ----------
   const D = FA.danger;
-  const overworld = { dimension: "minecraft:overworld", getSharedSpawnPos: () => ({ getX: () => 0, getZ: () => 0 }) };
   const ZONE_HEX = { green: "#5fd47a", yellow: "#f3d34a", gold: "#ffb84d", red: "#ff5a3d", dark_red: "#e04040", dark_purple: "#b06cf0", dark_gray: "#a0a0a0" };
-  const MAX_DIST = 100000;
+  const MAX_DIST = 30000;
   const distAt = p => MAX_DIST * Math.pow(p, 3);   // slow start, so every zone gets room on the slider
   // Labels sit where those distances really are on the (cube-root) slider
-  $("#railZones").innerHTML = [[0, "0"], [1000, "1k"], [10000, "10k"], [30000, "30k"], [100000, "100k"]]
+  $("#safeR").textContent = global.FA_num(D.safeRadius);
+  $("#perLvl").textContent = global.FA_num(D.blocksPerLevel);
+  $("#railZones").innerHTML = [[0, "home"], [1000, "1k"], [2000, "2k"], [5000, "5k"], [10000, "10k"], [30000, "30k"]]
     .map(d => '<span style="left:' + (Math.cbrt(d[0] / MAX_DIST) * 100).toFixed(1) + '%">' + d[1] + "</span>").join("");
   const TIER_HEX = { white: "#e9e4de", green: "#5fd47a", aqua: "#4fe3e8", light_purple: "#d48cff", gold: "#ffb84d", red: "#ff5a5a" };
   $("#lootBar").innerHTML = FA.loot.tiers.map(t => '<i style="background:' + TIER_HEX[t.color] + '" title="' + t.name + '"></i>').join("");
   let lootLvl = 0;
   function journey(p) {
     const dist = distAt(Math.max(0, Math.min(1, p)));
-    const lvl = global.FA_dangerLevel(overworld, dist, 0), zone = global.FA_zone(lvl), m = global.FA_dangerMult(lvl, false);
+    const lvl = global.FA_dangerAtDistance(dist, 0), zone = global.FA_zone(lvl), m = global.FA_dangerMult(lvl, false);
     $("#dist").textContent = Math.round(dist).toLocaleString("en-US");
     $("#dLevel").textContent = lvl;
     $("#dHealth").textContent = "x" + m.health.toFixed(1);
@@ -593,7 +594,7 @@
   document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => { copy(b.dataset.copy); b.classList.add("is-active"); setTimeout(() => b.classList.remove("is-active"), 600); }));
   $("#term").innerHTML = '<span class="dim">$ java -jar rhino.jar tools/test/harness.js</span>\n  <span class="ok">ok</span>   Essence is conserved\n  <span class="ok">ok</span>   a failed upgrade is rolled back\n' +
     '  <span class="ok">ok</span>   gear drops are never duplicated\n<b class="ok">all checks passed</b> <span class="dim">(' + PACK.checks + ')</span>\n\n<span class="dim">&gt; /ascension selftest</span>\n' +
-    '<b class="ok">' + (PACK.selftest || 64) + " / " + (PACK.selftest || 64) + " passed</b> <span class=\"dim\">(with the Full jar)</span>";
+    '<b class="ok">' + (PACK.selftest || 65) + " / " + (PACK.selftest || 65) + " passed</b> <span class=\"dim\">(with the Full jar)</span>";
 
   route();
 })();

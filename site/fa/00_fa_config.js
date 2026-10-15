@@ -620,21 +620,25 @@ global.FA = {
     ['triad_patient_vein', 'Patient Vein', 'magnetism', 'restoration', 'wisdom']
   ],
 
-  // ---- Danger: the farther from spawn, the nastier the mobs (and the better the loot) ----
-  // Danger level = (distance from world spawn - safeRadius) / blocksPerLevel, no cap.
+  // ---- Danger: the farther from home, the nastier the mobs (and the better the loot) ----
+  // Danger level = (distance from the center - safeRadius) / blocksPerLevel + 1, no cap.
   // Only hostile, non-boss mobs scale. Being AFK changes nothing: it's all about where you are.
   danger: {
     enabled: true,
-    safeRadius: 1000,          // normal mobs within this many blocks of world spawn
-    blocksPerLevel: 500,       // +1 danger level every 500 blocks past that
+    // 'home': danger is measured from each player's home (/home set), and nothing scales until they set one, so you
+    //         can explore for a base first. Mobs use the home of the player they spawn nearest to.
+    // 'spawn': from world spawn, or wherever an op moved it (/ascension center set).
+    centerOn: 'home',
+    safeRadius: 1000,          // normal mobs within this many blocks of the center
+    blocksPerLevel: 250,       // +1 danger level every 250 blocks past that: 1,000 / 1,250 / 1,500 / 1,750 / 2,000 ...
     netherScale: 8,            // Nether distance counts x8, like Nether travel
-    netherBonus: 3,            // the Nether is always at least this dangerous
-    endBonus: 6,               // the End too (the main island is inside safeRadius of 0,0)
-    // Mobs get tougher on a curve: x(1 + perLevel * level ^ exponent). 1.35 is gentle near home and steeper far out,
-    // but not quadratic (2), so the far zones stay roamable. Set exponent: 1 for a straight line.
-    exponent: 1.35,
-    healthPerLevel: 0.2,       // mobs take damage / (1 + 0.2 * level^1.35), like having more health
-    damagePerLevel: 0.12,      // mobs deal x(1 + 0.12 * level^1.35) damage
+    netherBonus: 4,            // the Nether is always at least this dangerous
+    endBonus: 7,               // the End too (the main island is inside safeRadius of 0,0)
+    // Mobs get tougher on a curve by how far out their zone starts: x(1 + scale * (blocks / 1000) ^ exponent).
+    // 0.5 and 2.807 give x1.5 at 1,000 blocks and x4.5 at 2,000, then x11.9 at 3,000, x26 at 4,000, x47 at 5,000.
+    exponent: 2.807,
+    healthScale: 0.5,          // mobs take damage / that, like having more health
+    damageScale: 0.5,          // mobs deal x that damage
     lootPerLevel: 0.1,         // mob drops x(1 + 0.1 * level)
     xpPerLevel: 0.2,           // mob XP x(1 + 0.2 * level)
     // Elites: rare, named, much tougher, much better loot
@@ -647,12 +651,12 @@ global.FA = {
     // Zone names shown when you cross into them, by minimum danger level (title colors are Minecraft color names)
     zones: [
       { from: 0, name: 'Safe Lands', color: 'green' },
-      { from: 1, name: 'The Frontier', color: 'yellow' },
-      { from: 5, name: 'The Wilds', color: 'gold' },
-      { from: 10, name: 'Dread Reaches', color: 'red' },
-      { from: 20, name: 'The Abyss', color: 'dark_red' },
-      { from: 40, name: 'Nightmare', color: 'dark_purple' },
-      { from: 80, name: 'The Void Beyond', color: 'dark_gray' }
+      { from: 1, name: 'The Frontier', color: 'yellow' },       // 1,000 blocks out
+      { from: 5, name: 'The Wilds', color: 'gold' },            // 2,000
+      { from: 9, name: 'Dread Reaches', color: 'red' },         // 3,000
+      { from: 17, name: 'The Abyss', color: 'dark_red' },       // 5,000
+      { from: 37, name: 'Nightmare', color: 'dark_purple' },    // 10,000
+      { from: 77, name: 'The Void Beyond', color: 'dark_gray' } // 20,000
     ]
   },
 
@@ -1201,7 +1205,7 @@ global.FA = {
 // Runtime state shared between scripts lives in this object. Nothing reachable from `global` may ever hold null:
 // in KubeJS `global` is a Java map, and reading a key that holds null crashes the game (it did, in the server tick).
 // Objects stored on it may be read the same way, so "no value" is written as false instead.
-global.FA_STATE = { event: false, center: false }
+global.FA_STATE = { event: false, center: false, homes: {} }   // homes: uuid -> {x, z, end} (Overworld coordinates)
 
 // Fusion enchants become ordinary enchant entries (type 'fusion'), so tomes, upgrades, the altar, tooltips,
 // JEI and the website all handle them like any other enchant
@@ -1331,33 +1335,62 @@ global.FA_describeDef = (e, level) => {
 
 // ---- Danger helpers ----
 
-// Danger level at a position in a level (world). Overworld: distance from world spawn.
-// Nether: distance from 0,0 x netherScale. Everything else: distance from 0,0.
-global.FA_dangerLevel = (level, x, z) => {
+// Danger level at a position: distance from the center (a player's home, or spawn) past safeRadius, a level every
+// blocksPerLevel. Nether distances count x netherScale; the End measures from its own 0, 0.
+
+// The player nearest to (x, z) in this world, or false
+function faNearestPlayer(level, x, z) {
+  let server = level.getServer ? level.getServer() : null
+  if (!server) return false
+  let dim = String(level.dimension), best = false, bestD = Infinity
+  server.getPlayerList().getPlayers().forEach(p => {
+    if (String(p.level.dimension) != dim) return
+    let d = Math.pow(p.getX() - x, 2) + Math.pow(p.getZ() - z, 2)
+    if (d < bestD) { bestD = d; best = p }
+  })
+  return best
+}
+
+// Danger level at `dist` blocks (Overworld-sized) from the center, plus a dimension's bonus
+global.FA_dangerAtDistance = (dist, bonus) => {
+  let d = global.FA.danger
+  let danger = dist < d.safeRadius ? 0 : Math.floor((dist - d.safeRadius) / d.blocksPerLevel) + 1
+  danger += bonus || 0
+  return d.maxLevel > 0 ? Math.min(d.maxLevel, danger) : danger
+}
+
+// Where a danger level starts, in blocks from the center (level 1 = safeRadius)
+global.FA_dangerBlocks = danger => danger <= 0 ? 0 : global.FA.danger.safeRadius + (danger - 1) * global.FA.danger.blocksPerLevel
+
+// The center danger is measured from, in Overworld coordinates: { x, z, end } or false (no scaling at all).
+// `who`: the player it's for (zone titles, /ascension); mobs pass nothing and use the nearest player.
+global.FA_dangerCenter = (level, x, z, who) => {
+  let d = global.FA.danger
+  if (d.centerOn == 'home') {
+    let p = who && who.stringUuid ? who : faNearestPlayer(level, x, z)
+    let h = p ? global.FA_STATE.homes[String(p.stringUuid)] : false
+    return h || false
+  }
+  let center = global.FA_STATE.center
+  if (center) return { x: center.x, z: center.z }
+  let spawn = level.getSharedSpawnPos ? level.getSharedSpawnPos() : null
+  return spawn ? { x: spawn.getX(), z: spawn.getZ() } : { x: 0, z: 0 }
+}
+
+global.FA_dangerLevel = (level, x, z, who) => {
   let d = global.FA.danger
   if (!d.enabled) return 0
+  let c = global.FA_dangerCenter(level, x, z, who)
+  if (!c) return 0
   let dim = String(level.dimension)
-  let dist
-  let bonus = 0
-  // The safe zone is centered on world spawn, or wherever an op moved it (/ascension center set)
-  let center = global.FA_STATE.center
-  if (dim == 'minecraft:overworld') {
-    let cx = center ? center.x : level.getSharedSpawnPos().getX()
-    let cz = center ? center.z : level.getSharedSpawnPos().getZ()
-    dist = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(z - cz, 2))
-  } else if (dim == 'minecraft:the_nether') {
-    // Nether coordinates are 1/8 of the Overworld's, so the Nether's center follows a moved center too
-    let nx = center ? center.x / d.netherScale : 0
-    let nz = center ? center.z / d.netherScale : 0
-    dist = Math.sqrt(Math.pow(x - nx, 2) + Math.pow(z - nz, 2)) * d.netherScale
-    bonus = d.netherBonus
-  } else {
-    dist = Math.sqrt(x * x + z * z)
-    if (dim == 'minecraft:the_end') bonus = d.endBonus
+  if (dim == 'minecraft:the_nether') {
+    // Nether coordinates are 1/8 of the Overworld's: measure there, then scale up
+    let dist = Math.sqrt(Math.pow(x - c.x / d.netherScale, 2) + Math.pow(z - c.z / d.netherScale, 2)) * d.netherScale
+    return global.FA_dangerAtDistance(dist, d.netherBonus)
   }
-  let danger = Math.max(0, Math.floor((dist - d.safeRadius) / d.blocksPerLevel) + 1) + bonus
-  if (dist < d.safeRadius) danger = bonus
-  return d.maxLevel > 0 ? Math.min(d.maxLevel, danger) : danger
+  if (dim == 'minecraft:overworld' && !c.end) return global.FA_dangerAtDistance(Math.sqrt(Math.pow(x - c.x, 2) + Math.pow(z - c.z, 2)), 0)
+  // The End and other dimensions: from their 0, 0
+  return global.FA_dangerAtDistance(Math.sqrt(x * x + z * z), dim == 'minecraft:the_end' ? d.endBonus : 0)
 }
 
 global.FA_zone = danger => {
@@ -1371,8 +1404,8 @@ global.FA_zone = danger => {
 global.FA_dangerMult = (danger, elite) => {
   let d = global.FA.danger
   return {
-    health: (1 + d.healthPerLevel * Math.pow(danger, d.exponent || 1)) * (elite ? d.eliteHealth : 1),
-    damage: (1 + d.damagePerLevel * Math.pow(danger, d.exponent || 1)) * (elite ? d.eliteDamage : 1),
+    health: (danger > 0 ? 1 + d.healthScale * Math.pow(global.FA_dangerBlocks(danger) / 1000, d.exponent) : 1) * (elite ? d.eliteHealth : 1),
+    damage: (danger > 0 ? 1 + d.damageScale * Math.pow(global.FA_dangerBlocks(danger) / 1000, d.exponent) : 1) * (elite ? d.eliteDamage : 1),
     loot: (1 + d.lootPerLevel * danger) * (elite ? d.eliteLoot : 1),
     xp: (1 + d.xpPerLevel * danger) * (elite ? d.eliteLoot : 1)
   }
@@ -1887,11 +1920,11 @@ global.FA_validate = cfg => {
   })
 
   let d = cfg.danger
-  let dangerOk = ['safeRadius', 'netherScale', 'netherBonus', 'endBonus', 'healthPerLevel', 'damagePerLevel', 'lootPerLevel',
+  let dangerOk = ['safeRadius', 'netherScale', 'netherBonus', 'endBonus', 'healthScale', 'damageScale', 'exponent', 'lootPerLevel',
     'xpPerLevel', 'eliteChancePerLevel', 'eliteChanceCap', 'maxLevel'].every(f => need(d[f], 'danger.' + f, 0)) &&
     need(d.blocksPerLevel, 'danger.blocksPerLevel', 1) && need(d.eliteHealth, 'danger.eliteHealth', 1) &&
     need(d.eliteDamage, 'danger.eliteDamage', 0) && need(d.eliteLoot, 'danger.eliteLoot', 0) &&
-    d.zones && d.zones.length > 0 && d.zones[0].from == 0
+    d.zones && d.zones.length > 0 && d.zones[0].from == 0 && (d.centerOn == 'home' || d.centerOn == 'spawn')
   if (!dangerOk && d.enabled) {
     problems.push('danger settings are broken, so danger scaling was switched off')
     d.enabled = false

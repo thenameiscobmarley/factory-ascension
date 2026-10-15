@@ -22,6 +22,7 @@ const $STSlot = Java.loadClass('net.minecraft.world.entity.EquipmentSlot')
 const $STVec = Java.loadClass('net.minecraft.world.phys.Vec3')
 
 let faSelftestBusy = false
+let faSelftestCenterOn = 'home'   // the real danger.centerOn, put back when the test ends
 
 function faSelftest(server, report, done) {
   let results = []
@@ -29,6 +30,9 @@ function faSelftest(server, report, done) {
   let X = 100000, Y = 120, Z = 100000
   let spawned = []
   let placed = []
+  // The test's fake player isn't in the player list, so mobs at the test site measure danger from spawn while it runs
+  faSelftestCenterOn = global.FA.danger.centerOn
+  global.FA.danger.centerOn = 'spawn'
   let check = (name, ok, detail) => {
     results.push({ name: name, ok: !!ok })
     report((ok ? '§aPASS§r ' : '§cFAIL§r ') + name + (ok || detail === undefined ? '' : '  (' + detail + ')'))
@@ -613,6 +617,21 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let dl = level.getBlockState(dpos).getLightEmission(), al = level.getBlockState(apos).getLightEmission()
     check('ores glow in the dark (diamond ore ' + dl + ', Ascendite ore ' + al + ')', dl == G['minecraft:diamond_ore'] && al == G['kubejs:ascendite_ore'], dl + ' / ' + al)
   })
+  attempt('danger from home', () => {
+    let D = global.FA.danger, uuid = String(player.stringUuid)
+    let saved = global.FA_STATE.homes[uuid] || false
+    D.centerOn = 'home'
+    faPutHomeCenter(uuid, false)
+    let none = global.FA_dangerLevel(level, X + 3000, Z, player)
+    faPutHomeCenter(uuid, faHomeCenter('minecraft:overworld', X, Z))
+    let near = global.FA_dangerLevel(level, X + 500, Z, player)
+    let at1 = global.FA_dangerLevel(level, X + 1000, Z, player), at2 = global.FA_dangerLevel(level, X, Z + 2000, player)
+    let m1 = global.FA_dangerMult(at1, false).health, m2 = global.FA_dangerMult(at2, false).health
+    faPutHomeCenter(uuid, saved)
+    D.centerOn = 'spawn'
+    check('danger counts from your home: none before /home set, 500 blocks -> ' + near + ', 1,000 -> ' + at1 + ' (x' + m1.toFixed(1) + '), 2,000 -> ' + at2 + ' (x' + m2.toFixed(1) + ')',
+      none == 0 && near == 0 && at1 == 1 && at2 == 5 && Math.abs(m1 - 1.5) < 0.01 && Math.abs(m2 - 4.5) < 0.05, none + ' ' + near + ' ' + at1 + ' ' + at2)
+  })
   attempt('safe zone center', () => {
     let saved = global.FA_STATE.center
     faCenterCommand(player, 'set')
@@ -682,7 +701,8 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       global.FA.loot.chanceCap = 1
       let before = level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().inflate(12)).size()
       let z = spawn('minecraft:zombie', X + 1, Y, Z + 1)
-      z.attack(player.damageSources().playerAttack(player), 100000)
+      // 100,000 blocks out a zombie has x200,000 health: hit it hard enough
+      z.attack(player.damageSources().playerAttack(player), 1e12)
       let after = level.getEntitiesOfClass($STItemEntity, player.getBoundingBox().inflate(12)).size()
       check('a danger-zone kill by a player drops loot', after > before, before + ' -> ' + after)
     })
@@ -772,6 +792,7 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     server.persistentData.remove(essenceKey)
     server.runCommandSilent('forceload remove ' + (X - 32) + ' ' + (Z - 32) + ' ' + (X + 32) + ' ' + (Z + 32))
 
+    global.FA.danger.centerOn = faSelftestCenterOn
     let failed = results.filter(r => !r.ok)
     report((failed.length ? '§c' : '§a') + 'Self test: ' + (results.length - failed.length) + ' / ' + results.length + ' passed' +
       (failed.length ? ' - failed: ' + failed.map(r => r.name).join('; ') : ''))
