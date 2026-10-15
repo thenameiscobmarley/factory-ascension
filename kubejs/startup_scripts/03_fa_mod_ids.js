@@ -7,6 +7,7 @@ global.FA_MOD_CONTENT = {
   "ascendite_backpack",
   "ascendite_glass",
   "ascendium_backpack",
+  "ascension_quarry",
   "ascension_vault",
   "ascension_workbench",
   "astral_ore",
@@ -21,6 +22,7 @@ global.FA_MOD_CONTENT = {
   "factory_glass",
   "gilded_glass",
   "mini_crusher",
+  "mob_grinder",
   "pack_opener",
   "realm_crystal",
   "realm_gate",
@@ -33,7 +35,8 @@ global.FA_MOD_CONTENT = {
   "super_smelter",
   "tome_fusion_table",
   "voidsteel_backpack",
-  "voidsteel_ore"
+  "voidsteel_ore",
+  "warp_hopper"
  ],
  "items": [
   "ascended_backpack",
@@ -144,6 +147,9 @@ global.FA_MOD_CONTENT = {
   "essence_crystal_ore": "Essence Crystal Ore",
   "voidsteel_ore": "Voidsteel Ore",
   "astral_ore": "Astral Ore",
-  "realm_gate": "Realm Gate"
+  "realm_gate": "Realm Gate",
+  "ascension_quarry": "Ascension Quarry",
+  "mob_grinder": "Mob Grinder",
+  "warp_hopper": "Warp Hopper"
  }
 }

@@ -1016,6 +1016,8 @@ def main():
     realm_gen.main()          # the Ascended Realm's blocks and worldgen (adds to the lang file)
     import structure_gen
     structure_gen.main()      # the structures' placement and chest loot
+    import machine_gen
+    machine_gen.main()        # Quarry, Mob Grinder, Warp Hopper
     mod_id_list()
     print("wrote textures, models, block states, loot tables, tags and lang for %d blocks" % len(BLOCKS))
 

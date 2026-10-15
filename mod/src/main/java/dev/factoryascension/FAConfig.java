@@ -6,12 +6,41 @@ package dev.factoryascension;
  */
 public final class FAConfig {
     // Super Smelter, per tier: items smelted at once, and stress (SU per RPM)
-    public static int[] smelterLanes = {4, 8, 16, 32};
-    public static float[] smelterStress = {4, 6, 8, 12};
+    public static int[] smelterLanes = {4, 8, 16, 32, 64, 128};
+    public static float[] smelterStress = {4, 6, 8, 12, 16, 24};
     /** Ticks per batch at 64 RPM (faster spins smelt faster). */
     public static int smelterCookTicks = 40;
     /** Below this speed the smelter doesn't run. */
     public static float smelterMinRpm = 8;
+
+    // Ascension Quarry: square radius, work per block (RPM adds up each tick), most blocks a tick, slowest speed, stress
+    public static int quarryRadius = 8;
+    public static float quarryWork = 128;
+    public static int quarryMaxPerTick = 8;
+    public static float quarryMinRpm = 8;
+    public static float quarryStress = 16;
+    // Mob Grinder: reach in front, damage per RPM, ticks between hits at 64 RPM, slowest speed, stress
+    public static int grinderReach = 5;
+    public static float grinderDamagePerRpm = 0.5f;
+    public static int grinderInterval = 20;
+    public static float grinderMinRpm = 8;
+    public static float grinderStress = 12;
+
+    public static void setQuarry(int radius, double work, int maxPerTick, double minRpm, double stress) {
+        quarryRadius = Math.max(0, Math.min(64, radius));
+        quarryWork = (float) Math.max(1, work);
+        quarryMaxPerTick = Math.max(1, maxPerTick);
+        quarryMinRpm = (float) Math.max(0, minRpm);
+        quarryStress = (float) Math.max(0, stress);
+    }
+
+    public static void setGrinder(int reach, double damagePerRpm, int interval, double minRpm, double stress) {
+        grinderReach = Math.max(1, Math.min(16, reach));
+        grinderDamagePerRpm = (float) Math.max(0, damagePerRpm);
+        grinderInterval = Math.max(1, interval);
+        grinderMinRpm = (float) Math.max(0, minRpm);
+        grinderStress = (float) Math.max(0, stress);
+    }
 
     // Modular Engine
     public static float engineSuPerCoil = 256;

@@ -694,6 +694,22 @@ ItemEvents.tooltip(event => {
       BPT[i + 1] ? up('the ' + global.FA_num(BPT[i + 1].slots) + '-slot tier: ' + shapedList([BPT[i + 1].recipe[0], Object.assign({ B: 'this backpack' }, BPT[i + 1].recipe[1])]))
         : tip('The biggest backpack there is')]))
 
+    // Quarry, Mob Grinder, Warp Hopper
+    let QY = M.quarry, GR = M.grinder
+    block('ascension_quarry', 'It digs so you don\'t have to.', () => [
+      use('mining out the ' + (2 * QY.radius + 1) + ' x ' + (2 * QY.radius + 1) + ' square under it, layer by layer, to the bottom of the world'),
+      tip('Turn the shaft in its back (at least ' + QY.minRpm + ' RPM, ' + QY.stress + ' SU per RPM). Faster spins dig faster.'),
+      tip('Mines like a diamond pickaxe; skips bedrock, fluids, chests and machines. Put a chest on top for the drops.'),
+      tip('Right-click: which layer it\'s on')])
+    block('mob_grinder', 'The factory fights back.', () => [
+      use('killing mobs in the ' + GR.reach + ' x 5 x 3 box in front of it: ' + GR.damagePerRpm + ' damage per RPM a hit'),
+      tip('Counts as your kill: rare drops and loot rolls. Never hits players, villagers, pets or named mobs.'),
+      tip('Turn the shaft in its back (at least ' + GR.minRpm + ' RPM, ' + GR.stress + ' SU per RPM). Put a chest under it for the drops.')])
+    block('warp_hopper', 'Hoppers, but everywhere.', () => [
+      use('sending items anywhere: what goes in comes out in the chest under every other Warp Hopper with the same key'),
+      tip('Right-click with any item to key it to that item. Any distance, any dimension (both ends loaded).'),
+      tip('Several receivers take turns. Feed it with a hopper, funnel or chute.')])
+
     // The Ascended Realm
     block('realm_gate', 'A door with a sky on the other side.', () => [
       use('right-click: go to the Ascended Realm, floating islands where danger starts at ' + FA.danger.realmBonus),

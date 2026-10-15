@@ -214,6 +214,93 @@
 		}
 		{
 			dependencies: [
+				"B55AA7E0DAED9B69"
+			]
+			description: [
+				"Turn its shaft and it mines out the 17 x 17 square under it, to the bottom of the world. Chest on top."
+			]
+			icon: "factoryascension:ascension_quarry"
+			id: "F6B2E5E579111BDF"
+			rewards: [
+				{
+					count: 4
+					id: "264644D354AF81B5"
+					item: "minecraft:chest"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "217DA6F5E021FF24"
+					item: "factoryascension:ascension_quarry"
+					type: "item"
+				}
+			]
+			title: "Dig Deep"
+			x: 4.0d
+			y: 3.0d
+		}
+		{
+			dependencies: [
+				"B55AA7E0DAED9B69"
+			]
+			description: [
+				"Hits every mob in front of it, harder the faster it spins. Counts as your kill. Chest under it."
+			]
+			icon: "factoryascension:mob_grinder"
+			id: "3F5B8F50D41CD3E5"
+			rewards: [
+				{
+					count: 8
+					id: "9B347834AB4AE1C4"
+					item: "kubejs:ascension_core"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "B1F9DAEEB6B67E37"
+					item: "factoryascension:mob_grinder"
+					type: "item"
+				}
+			]
+			title: "The Factory Fights Back"
+			x: 6.0d
+			y: 3.0d
+		}
+		{
+			dependencies: [
+				"D82A14CA58C8F7B9"
+			]
+			description: [
+				"Key two Warp Hoppers to the same item: what goes into one comes out under the other, in any dimension."
+			]
+			icon: "factoryascension:warp_hopper"
+			id: "2C464447F77A06C2"
+			rewards: [
+				{
+					count: 8
+					id: "293B15344946EDDD"
+					item: "minecraft:ender_pearl"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 2L
+					id: "9BCE19B9F11E5E86"
+					item: "factoryascension:warp_hopper"
+					type: "item"
+				}
+			]
+			title: "Hoppers, Everywhere"
+			x: 6.0d
+			y: -1.0d
+		}
+		{
+			dependencies: [
 				"CE1708D670779055"
 			]
 			description: [

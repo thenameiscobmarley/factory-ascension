@@ -1167,11 +1167,21 @@ global.FA = {
     // Super Smelter (Create machine; shaft in the back): smelts a batch at once, faster the faster it spins.
     // tiers: [items per batch, stress in SU per RPM]; upgrades: right-click it with these to reach the next tier.
     smelter: {
-      tiers: [[4, 4], [8, 6], [16, 8], [32, 12]],
-      upgrades: [['kubejs:voidsteel_ingot', 8], ['kubejs:celestium_ingot', 8], ['kubejs:ascendium_ingot', 4]],
+      tiers: [[4, 4], [8, 6], [16, 8], [32, 12], [64, 16], [128, 24]],
+      upgrades: [['kubejs:voidsteel_ingot', 8], ['kubejs:celestium_ingot', 8], ['kubejs:ascendium_ingot', 4],
+        ['kubejs:ascension_singularity', 4], ['kubejs:ascended_soul', 2]],
       cookTicksAt64Rpm: 40,    // ticks per batch at 64 RPM (half that at 128, a quarter at 256)
       minRpm: 8
     },
+    // Ascension Quarry (Create machine; shaft in the back): mines out the square below it, layer by layer, down to the
+    // bottom of the world, like a diamond pickaxe. Each block costs `work` (the shaft's RPM adds up every tick: 128 work
+    // at 128 RPM = a block a tick). Skips bedrock, fluids and anything with an inventory. Drops go into a chest on top.
+    quarry: { radius: 8, work: 128, maxPerTick: 8, minRpm: 8, stress: 16 },
+    // Mob Grinder (Create machine; shaft in the back): hits every mob in a box in front of it (reach deep, 5 wide, 3 high)
+    // for damagePerRpm x RPM, every interval ticks at 64 RPM (faster at higher speed). Kills count as a player's (rare
+    // drops, loot rolls). Never hits players, villagers, pets or named mobs. Drops go into a chest under it.
+    grinder: { reach: 5, damagePerRpm: 0.5, interval: 20, minRpm: 8, stress: 12 },
+
     // Modular Engine (Create generator): an Engine Core plus modules touching it or each other, in any shape.
     // Coil: +suPerCoil stress capacity. Gearbox: next speed in rpm. Burner: burns furnace fuel, powers coilsPerBurner Coils.
     engine: {
@@ -1220,6 +1230,9 @@ global.FA = {
       ascension_workbench: [['GTG', 'WCW', 'I I'], { G: 'kubejs:ascendite_ingot', T: 'minecraft:smithing_table', W: 'minecraft:crafting_table', C: 'kubejs:ascension_core', I: 'minecraft:iron_block' }],
       // The Mini Crusher: no crushing wheels, just iron, flint, a hopper and a casing
       mini_crusher: [['IHI', 'FCF', 'IBI'], { I: 'minecraft:iron_ingot', H: 'minecraft:hopper', F: 'minecraft:flint', C: 'create:andesite_casing', B: 'minecraft:iron_block' }],
+      ascension_quarry: [['IDI', 'PCP', 'ISI'], { I: 'kubejs:ascendite_ingot', D: 'minecraft:diamond_pickaxe', P: 'minecraft:piston', C: 'kubejs:dense_ascension_core', S: 'create:shaft' }],
+      mob_grinder: [['ISI', 'SCS', 'IHI'], { I: 'kubejs:ascendite_ingot', S: 'minecraft:iron_sword', C: 'kubejs:ascension_core', H: 'minecraft:hopper' }],
+      warp_hopper: [['IEI', 'PHP', 'IEI'], { I: 'kubejs:ascendite_ingot', E: 'minecraft:ender_pearl', P: 'minecraft:amethyst_shard', H: 'minecraft:hopper' }],
       // The Realm Gate (Full download): the way into the Ascended Realm. Build it once; going through is free
       realm_gate: [['OMO', 'ESE', 'OMO'], { O: 'minecraft:crying_obsidian', M: 'kubejs:mythic_fragment', E: 'minecraft:ender_eye', S: 'kubejs:ascension_singularity' }],
       storage_linker: [['  A', ' N ', 'I  '], { A: 'minecraft:amethyst_shard', N: 'kubejs:ascendite_nugget', I: 'kubejs:ascendite_ingot' }]
@@ -2055,6 +2068,7 @@ global.FA_meteorPool = () => {
     put(P.engine, ['engine_core', 'engine_coil', 'engine_gearbox', 'engine_burner', 'storage_linker', 'mini_crusher'].concat(Object.keys(FA.machines.glass)).map(b => 'factoryascension:' + b))
     put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['ascension_vault', 'essence_forge', 'ascension_workbench'].map(b => 'factoryascension:' + b))
+    put(P.machines, ['ascension_quarry', 'mob_grinder', 'warp_hopper'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
     if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))
   }

@@ -168,5 +168,8 @@
   "block.factoryascension.realm_gate": "Realm Gate",
   "biome.factoryascension.ascended_shelf": "Ascended Shelf",
   "biome.factoryascension.void_garden": "Void Garden",
-  "biome.factoryascension.astral_peaks": "Astral Peaks"
+  "biome.factoryascension.astral_peaks": "Astral Peaks",
+  "block.factoryascension.ascension_quarry": "Ascension Quarry",
+  "block.factoryascension.mob_grinder": "Mob Grinder",
+  "block.factoryascension.warp_hopper": "Warp Hopper"
 }

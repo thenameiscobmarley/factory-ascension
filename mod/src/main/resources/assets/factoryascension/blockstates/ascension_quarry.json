@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "factoryascension:block/ascension_quarry"
+    },
+    "facing=east": {
+      "model": "factoryascension:block/ascension_quarry",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "factoryascension:block/ascension_quarry",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "factoryascension:block/ascension_quarry",
+      "y": 270
+    }
+  }
+}

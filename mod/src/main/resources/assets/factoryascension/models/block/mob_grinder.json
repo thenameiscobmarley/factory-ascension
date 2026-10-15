@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "front": "factoryascension:block/grinder_front",
+    "side": "factoryascension:block/machine_side_plain",
+    "top": "factoryascension:block/machine_top_plain",
+    "bottom": "factoryascension:block/machine_top_plain"
+  }
+}

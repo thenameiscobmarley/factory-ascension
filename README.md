@@ -221,6 +221,18 @@ next to a gate that takes you back to where you left. Going through is free.
   **Astral** (1-2 Mythic Fragments). Fortune works on all of them; Silk Touch keeps the ore.
 - Platform height and size are in `realm`. Two quests in the Endgame chapter lead there.
 
+## Quarry, Mob Grinder and Warp Hopper (Full download)
+
+- **Ascension Quarry**: turn the shaft in its back and it mines out the 17 x 17 square under it (`machines.quarry.radius`),
+  layer by layer, to the bottom of the world, like a diamond pickaxe. It skips bedrock, fluids, chests and machines.
+  Faster spins dig faster. Put a chest on top for what it digs. Right-click it to see which layer it's on.
+- **Mob Grinder**: turn its shaft and it hits every mob in the 5 x 5 x 3 box in front of it for 0.5 damage per RPM.
+  Kills count as a player's, so you get rare drops and loot rolls. It never hits players, villagers, pets or named mobs.
+  Put a chest under it for the drops.
+- **Warp Hopper**: right-click it with any item to key it to that item. Items fed into it come out in the chest under every
+  other Warp Hopper with the same key, at any distance and in any dimension.
+- **Super Smelter**: two new tiers, 64 items at once (4 Singularities) and 128 at once (2 Ascended Souls).
+
 ## Structures (Full download)
 
 Four new places to find, each with chests that join the lottery (packs, Booster Boxes and Gear Caches on top of their own loot):

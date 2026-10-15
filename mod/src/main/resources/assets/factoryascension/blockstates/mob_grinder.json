@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "factoryascension:block/mob_grinder"
+    },
+    "facing=east": {
+      "model": "factoryascension:block/mob_grinder",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "factoryascension:block/mob_grinder",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "factoryascension:block/mob_grinder",
+      "y": 270
+    }
+  }
+}

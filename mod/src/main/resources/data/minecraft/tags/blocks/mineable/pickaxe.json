@@ -21,6 +21,9 @@
     "factoryascension:essence_crystal_ore",
     "factoryascension:voidsteel_ore",
     "factoryascension:astral_ore",
-    "factoryascension:realm_gate"
+    "factoryascension:realm_gate",
+    "factoryascension:ascension_quarry",
+    "factoryascension:mob_grinder",
+    "factoryascension:warp_hopper"
   ]
 }

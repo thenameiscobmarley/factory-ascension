@@ -287,6 +287,9 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let saved = foods.map(fd => fd.chance)
     foods.forEach(fd => { fd.chance = 1 })
     let pig = spawn('minecraft:pig', X - 6, Y, Z + 8)
+    // A plain pig (out here it can spawn as an elite or boss that shrugs off the hit)
+    ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => pig.getPersistentData().remove(k))
+    pig.setHealth(2)
     pig.attack(player.damageSources().playerAttack(player), 1000)
     foods.forEach((fd, i) => { fd.chance = saved[i] })
     let parts = []
@@ -707,7 +710,8 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       benchFanged && benchStars == 1 && benchRefused && benchSideGone, [benchFanged, benchStars, benchRefused, benchSideGone].join(' '))
     global.FA.legendary.costs[0].forEach((c, i) => player.getInventory().setItem(30 + i, Item.of('minecraft:air')))
     let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
-      'engine_gearbox', 'engine_burner', 'storage_terminal', 'storage_linker', 'ascension_workbench', 'mini_crusher'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
+      'engine_gearbox', 'engine_burner', 'storage_terminal', 'storage_linker', 'ascension_workbench', 'mini_crusher', 'realm_gate', 'ascension_quarry', 'mob_grinder',
+      'warp_hopper'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
       .concat(Object.keys(global.FA.machines.glass).map(g => 'glass_' + g).filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent()))
     check('the mod blocks and its 4 glasses have recipes', recipes.length == 0, recipes.join(', '))
   })
@@ -1039,6 +1043,55 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       let z = spawn('minecraft:zombie', X + 3, Y, Z - 3)
       global.FA_makeBoss(z, 40)
       check('a mob becomes an Ascended boss', z.getPersistentData().getBoolean('fa_boss') && !!z.getCustomName())
+    })
+    // Quarry, Mob Grinder and Warp Hoppers (Full download): real rotation from Creative Motors, checked 100 ticks later
+    if (Platform.isLoaded('factoryascension')) attempt('new machines', () => {
+      let $Cfg = Java.loadClass('dev.factoryascension.FAConfig')
+      let Q = global.FA.machines.quarry
+      $Cfg.setQuarry(1, Q.work, Q.maxPerTick, Q.minRpm, Q.stress)    // a 3 x 3 hole, so it stays out of the other tests' way
+      let qx = X + 20, qy = Y + 4, qz = Z - 20
+      let quarryPos = place(qx, qy, qz, 'factoryascension:ascension_quarry')
+      place(qx, qy + 1, qz, 'minecraft:chest')
+      let motor1 = place(qx, qy, qz + 1, 'minecraft:air')
+      level.getBlock(motor1).set('create:creative_motor', { facing: 'north' })
+      let gx = X + 24, gz = Z - 20
+      let grinderPos = place(gx, Y, gz, 'factoryascension:mob_grinder')
+      place(gx, Y - 1, gz, 'minecraft:chest')
+      let motor2 = place(gx, Y, gz + 1, 'minecraft:air')
+      level.getBlock(motor2).set('create:creative_motor', { facing: 'north' })
+      let pig = spawn('minecraft:pig', gx + 0.5, Y, gz - 2.5)
+      ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => pig.getPersistentData().remove(k))
+      pig.setCustomName(null)
+      pig.setHealth(2)
+      let wA = place(X + 27, Y, Z - 24, 'factoryascension:warp_hopper')
+      let wB = place(X + 29, Y + 1, Z - 24, 'factoryascension:warp_hopper')
+      let wChest = place(X + 29, Y, Z - 24, 'minecraft:chest')
+      after(5, () => attempt('warp hoppers', () => {
+        let diamond = Item.of('minecraft:diamond').getItem()
+        level.getBlockEntity(wA).setKey(diamond)
+        level.getBlockEntity(wB).setKey(diamond)
+        let left = level.getBlockEntity(wA).faInput().insertItem(0, Item.of('minecraft:diamond', 5), false)
+        let got = level.getBlockEntity(wChest).getItem(0)
+        check('Warp Hoppers: 5 diamonds into one come out in the chest under the other (' + got.getCount() + ' ' + got.getId() + ')',
+          left.isEmpty() && String(got.getId()) == 'minecraft:diamond' && got.getCount() == 5, left.getCount() + ' left, ' + got.getCount() + ' ' + got.getId())
+      }))
+      after(100, () => attempt('quarry and grinder', () => {
+        let q = level.getBlockEntity(quarryPos)
+        let qChest = level.getBlockEntity(new $STBlockPos(qx, qy + 1, qz))
+        let dug = []
+        for (let i = 0; i < 27; i++) { let st = qChest.getItem(i); if (!st.isEmpty()) dug.push(st.getCount() + ' ' + st.getId()) }
+        check('Ascension Quarry: a Creative Motor turns it and it digs (' + q.faMined() + ' blocks, now at y=' + q.faLayer() + '; chest: ' + dug.join(', ') + ')',
+          q.faMined() > 0 && dug.length > 0, q.status().getString())
+        let g = level.getBlockEntity(grinderPos)
+        let gChest = level.getBlockEntity(new $STBlockPos(gx, Y - 1, gz))
+        let loot = []
+        for (let i = 0; i < 27; i++) { let st = gChest.getItem(i); if (!st.isEmpty()) loot.push(st.getCount() + ' ' + st.getId()) }
+        for (let i = 0; i < 27; i++) { let st = g.faOutput().getStackInSlot(i); if (!st.isEmpty()) loot.push(st.getCount() + ' ' + st.getId() + ' (inside)') }
+        check('Mob Grinder: a Creative Motor turns it and it grinds the pig in front (' + g.faKills() + ' kills; drops: ' + loot.join(', ') + ')',
+          g.faKills() >= 1 && !pig.isAlive() && loot.length > 0, g.status().getString())
+        $Cfg.setQuarry(Q.radius, Q.work, Q.maxPerTick, Q.minRpm, Q.stress)
+        ;[motor1, motor2].forEach(m => level.getBlock(m).set('minecraft:air'))
+      }))
     })
     after(20, faUltimateStage)
   }

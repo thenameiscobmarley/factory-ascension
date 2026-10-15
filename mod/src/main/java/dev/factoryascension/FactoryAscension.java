@@ -115,6 +115,19 @@ public class FactoryAscension {
     public static final RegistryObject<Block> ASTRAL_ORE = block("astral_ore", () -> new Block(realmStone().strength(6f, 12f).lightLevel(s -> 10)));
     public static final RegistryObject<Block> REALM_GATE = block("realm_gate", () -> new Block(machine().lightLevel(s -> 15)));
 
+    // Machines in dev.factoryascension.machine: Quarry and Mob Grinder (Create, shaft in the back), Warp Hopper
+    public static final RegistryObject<Block> QUARRY = block("ascension_quarry", () -> new dev.factoryascension.machine.KineticMachineBlock<>(machine(),
+        dev.factoryascension.machine.QuarryBlockEntity.class, () -> FactoryAscension.QUARRY_BE.get()));
+    public static final RegistryObject<Block> GRINDER = block("mob_grinder", () -> new dev.factoryascension.machine.KineticMachineBlock<>(machine(),
+        dev.factoryascension.machine.GrinderBlockEntity.class, () -> FactoryAscension.GRINDER_BE.get()));
+    public static final RegistryObject<Block> WARP_HOPPER = block("warp_hopper", () -> new dev.factoryascension.machine.WarpHopperBlock(machine().lightLevel(s -> 7)));
+    public static final RegistryObject<BlockEntityType<dev.factoryascension.machine.QuarryBlockEntity>> QUARRY_BE = BLOCK_ENTITIES.register("ascension_quarry",
+        () -> BlockEntityType.Builder.of(dev.factoryascension.machine.QuarryBlockEntity::create, QUARRY.get()).build(null));
+    public static final RegistryObject<BlockEntityType<dev.factoryascension.machine.GrinderBlockEntity>> GRINDER_BE = BLOCK_ENTITIES.register("mob_grinder",
+        () -> BlockEntityType.Builder.of(dev.factoryascension.machine.GrinderBlockEntity::create, GRINDER.get()).build(null));
+    public static final RegistryObject<BlockEntityType<dev.factoryascension.machine.WarpHopperBlockEntity>> WARP_HOPPER_BE = BLOCK_ENTITIES.register("warp_hopper",
+        () -> BlockEntityType.Builder.of((pos, st) -> new dev.factoryascension.machine.WarpHopperBlockEntity(FactoryAscension.WARP_HOPPER_BE.get(), pos, st), WARP_HOPPER.get()).build(null));
+
     // Ascension Workbench: two blocks wide
     public static final RegistryObject<Block> WORKBENCH = block("ascension_workbench", () -> new WorkbenchBlock(machine()));
     // Mini Crusher: crushing without the big wheels (a motor and a battery)
@@ -191,6 +204,8 @@ public class FactoryAscension {
             out.accept(SMELTER.get());
             out.accept(WORKBENCH.get());
             out.accept(MINI_CRUSHER.get());
+            for (RegistryObject<Block> r : java.util.List.of(QUARRY, GRINDER, WARP_HOPPER))
+                out.accept(r.get());
             for (RegistryObject<Block> r : java.util.List.of(REALM_GATE, REALM_STONE, REALM_MOSS, REALM_CRYSTAL, ESSENCE_CRYSTAL_ORE, VOIDSTEEL_ORE, ASTRAL_ORE))
                 out.accept(r.get());
             out.accept(TERMINAL.get());
@@ -237,6 +252,8 @@ public class FactoryAscension {
         event.enqueueWork(() -> {
             if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks")) dev.factoryascension.compat.SophisticatedBackpacks.allowPlacing();
             BlockStressValues.IMPACTS.register(SMELTER.get(), () -> FAConfig.smelterStress[0]);
+            BlockStressValues.IMPACTS.register(QUARRY.get(), () -> FAConfig.quarryStress);
+            BlockStressValues.IMPACTS.register(GRINDER.get(), () -> FAConfig.grinderStress);
             BlockStressValues.CAPACITIES.register(ENGINE_CORE.get(), () -> FAConfig.engineSuPerCoil / FAConfig.engineRpm[0]);
         });
     }
