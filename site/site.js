@@ -56,7 +56,7 @@
   addEventListener("hashchange", route);
 
   // ---------- hero stats (straight from the config: no counting animation, so the numbers never disagree) ----------
-  $("#heroStats").innerHTML = [[ids.length, "enchants"], [FA.foils.types.length, "foils"], [4, "new metals"], [11, "machines"], ["∞", "level cap"], [PACK.checks, "safety checks"]]
+  $("#heroStats").innerHTML = [[ids.length, "enchants"], [FA.foils.types.length, "foils"], [4, "new metals"], [11, "machines"], [12, "room TNTs"], ["∞", "level cap"], [PACK.checks, "safety checks"]]
     .map(h => '<div class="slot-card"><b>' + (typeof h[0] == "number" ? global.FA_num(h[0]) : h[0]) + "</b><small>" + h[1] + "</small></div>").join("");
   $("#enchCount").textContent = global.FA_num(ids.length);
   $("#newVersion").textContent = PACK.version.replace(/\.0$/, "");
@@ -510,6 +510,37 @@
     [true, "Ascension Cores by hand", "from day one, from amethyst, or from Ascension Shards"]
   ].filter(x => x[0]).map(x => '<li class="slot-card"><b>' + x[1] + "</b><span>" + esc(x[2]) + "</span></li>").join("");
 
+  // ---------- MACHINES: Factory Room TNT (shape from global.FA_roomPlan / FA_roomKind, like the game) ----------
+  const RC = FA.roomCharges;
+  const rgb = c => "rgb(" + c.join(",") + ")";
+  let roomPick = [RC.styles[0].id, RC.sizes[RC.sizes.length - 1].id];
+  $("#roomPick").innerHTML = RC.styles.map(st => RC.sizes.map(sz => '<button class="att" type="button" data-st="' + st.id + '" data-sz="' + sz.id + '" title="' +
+    sz.size[0] + "x" + sz.size[1] + " " + esc(st.name) + ' Light Factory TNT"><img src="' + tex("room_tnt_" + st.id + "_" + sz.id) + '" alt="" /></button>').join("")).join("");
+  const drawRoom = () => {
+    const st = RC.styles.find(x => x.id == roomPick[0]), sz = RC.sizes.find(x => x.id == roomPick[1]);
+    const plan = global.FA_roomPlan(sz.id, 0, 0, 0, 0, -1), c = $("#roomMap"), g = c.getContext("2d");
+    c.width = plan.cols; c.height = plan.rows + 1;
+    g.fillStyle = "#3a3a3a"; g.fillRect(0, 0, c.width, c.height);
+    for (let v = 0; v < plan.rows; v++) for (let col = 0; col < plan.cols; col++) {
+      const u = plan.umin - 1 + col, y = plan.rows - 1 - v;   // far wall at the top, you at the bottom
+      const floor = global.FA_roomKind(plan, u, v, 1), roof = global.FA_roomKind(plan, u, v, plan.H + 1);
+      g.fillStyle = floor == "air" && v == 0 ? "#1d140d" : roof == "light" ? "#ffe680" : floor == "air" ? "#4a3a2a" : rgb(st.color);
+      g.fillRect(col, y, 1, 1);
+    }
+    g.fillStyle = "#ff5a5a"; g.fillRect(-plan.umin + 1, plan.rows, 1, 1);
+    c.style.setProperty("--shell", rgb(st.color));
+    document.querySelector(".k-shell").style.background = rgb(st.color);
+    let lights = 0;
+    for (let i = 0; i < plan.total; i++) if (global.FA_roomSpot(plan, i).kind == "light") lights++;
+    const idx = RC.sizes.indexOf(sz);
+    $("#roomInfo").innerHTML = "<b>" + sz.size[0] + "x" + sz.size[1] + " " + esc(st.name) + " Light Factory TNT</b><br>" + sz.size[0] + " x " + sz.size[1] + " inside, " + sz.size[2] +
+      " high · walls of " + esc(itemName(st.shell)) + " · " + lights + " " + esc(itemName(st.light)) + "s in the roof<br>Made from " +
+      (idx == 0 ? "TNT, 4 " + esc(itemName(st.shell)) + " and 2 " + esc(itemName(st.light)) : sz.craft + " of the " + RC.sizes[idx - 1].size[0] + "x" + RC.sizes[idx - 1].size[1]);
+    $("#roomPick").querySelectorAll(".att").forEach(b => b.classList.toggle("is-active", b.dataset.st == st.id && b.dataset.sz == sz.id));
+  };
+  $("#roomPick").addEventListener("click", e => { const b = e.target.closest(".att"); if (b) { roomPick = [b.dataset.st, b.dataset.sz]; drawRoom(); } });
+  drawRoom();
+
   // ---------- WORLD: danger zones (drag to travel) ----------
   const D = FA.danger;
   const ZONE_HEX = { green: "#5fd47a", yellow: "#f3d34a", gold: "#ffb84d", red: "#ff5a3d", dark_red: "#e04040", dark_purple: "#b06cf0", dark_gray: "#a0a0a0" };
@@ -594,7 +625,7 @@
   document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => { copy(b.dataset.copy); b.classList.add("is-active"); setTimeout(() => b.classList.remove("is-active"), 600); }));
   $("#term").innerHTML = '<span class="dim">$ java -jar rhino.jar tools/test/harness.js</span>\n  <span class="ok">ok</span>   Essence is conserved\n  <span class="ok">ok</span>   a failed upgrade is rolled back\n' +
     '  <span class="ok">ok</span>   gear drops are never duplicated\n<b class="ok">all checks passed</b> <span class="dim">(' + PACK.checks + ')</span>\n\n<span class="dim">&gt; /ascension selftest</span>\n' +
-    '<b class="ok">' + (PACK.selftest || 65) + " / " + (PACK.selftest || 65) + " passed</b> <span class=\"dim\">(with the Full jar)</span>";
+    '<b class="ok">' + (PACK.selftest || 68) + " / " + (PACK.selftest || 68) + " passed</b> <span class=\"dim\">(with the Full jar)</span>";
 
   route();
 })();

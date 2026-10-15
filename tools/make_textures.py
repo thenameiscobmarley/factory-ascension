@@ -743,6 +743,24 @@ def armor_layer(layer):
     return px
 
 
+def _room_config():
+    cfg = open(os.path.join(os.path.dirname(__file__), "..", "kubejs", "startup_scripts", "00_fa_config.js")).read()
+    i = cfg.index("roomCharges: {")
+    return cfg[i:cfg.index("\n  },", i)]
+
+
+def room_styles():
+    """(id, wall color, light color) for each roomCharges style in the config."""
+    import re
+    return [(m.group(1), tuple(int(v) for v in m.group(2).split(",")), tuple(int(v) for v in m.group(3).split(",")))
+            for m in re.finditer(r"\{ id: '(\w+)'.*?color: \[([\d, ]+)\], lightColor: \[([\d, ]+)\]", _room_config())]
+
+
+def room_sizes():
+    import re
+    return re.findall(r"\{ id: '(\d+)', size:", _room_config())
+
+
 def ascendite_textures(textures):
     for name, rows in ASC_SPRITES.items():
         textures[name] = outline(from_mask(rows, asc), (8, 40, 48, 255))
@@ -763,6 +781,11 @@ def ascendite_textures(textures):
     for name, draw in gear_art.HAMMERS.items():
         px = draw()
         textures[name] = Outlined(px, px, (10, 12, 20, 255))
+    # Factory Room TNT: one icon per style and size, from the config's roomCharges
+    for style, shell, light in room_styles():
+        for i, size in enumerate(room_sizes()):
+            px = gear_art.room_tnt(shell, light, i)
+            textures["room_tnt_%s_%s" % (style, size)] = Outlined(px, px, (24, 8, 6, 255))
     textures["raw_ascendite"] = outline(raw_ascendite(), (8, 40, 48, 255))
     textures["crushed_raw_ascendite"] = outline(crushed_ascendite(), (8, 40, 48, 255))
     textures["ascension_shard"] = outline(ascension_shard(), (30, 10, 50, 255))

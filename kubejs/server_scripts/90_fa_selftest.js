@@ -23,6 +23,7 @@ const $STVec = Java.loadClass('net.minecraft.world.phys.Vec3')
 
 let faSelftestBusy = false
 let faSelftestCenterOn = 'home'   // the real danger.centerOn, put back when the test ends
+let armedRoom = false             // the Room TNT armed in the room test, checked at the end
 
 function faSelftest(server, report, done) {
   let results = []
@@ -471,7 +472,8 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     opener.faInput().setStackInSlot(0, Item.of('kubejs:enchantment_pack', 2))
     global.FA_runOpener(level, opos)
     let out = 0
-    for (let i = 0; i < opener.faOutput().getSlots(); i++) if (!opener.faOutput().getStackInSlot(i).isEmpty()) out++
+    // Count cards, not slots: two identical cards stack into one slot
+    for (let i = 0; i < opener.faOutput().getSlots(); i++) out += opener.faOutput().getStackInSlot(i).getCount()
     check('Pack Opener: opens a pack into ' + out + ' cards and shows them', out == global.FA.packs.cards && opener.recent().size() == global.FA.packs.cards &&
       opener.faInput().getStackInSlot(0).getCount() == 1, out)
     // Salvager: a pack goes in, its value comes out as cores (or waits in the bank)
@@ -616,6 +618,39 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let apos = place(X + 12, Y, Z + 13, 'kubejs:ascendite_ore')
     let dl = level.getBlockState(dpos).getLightEmission(), al = level.getBlockState(apos).getLightEmission()
     check('ores glow in the dark (diamond ore ' + dl + ', Ascendite ore ' + al + ')', dl == G['minecraft:diamond_ore'] && al == G['kubejs:ascendite_ore'], dl + ' / ' + al)
+  })
+  attempt('room TNT', () => {
+    // A solid block of stone with a chest and an iron ore inside, then a 16x16 Sandstone room carved into it (facing north)
+    let cx = X, fy = Y + 20, cz = Z - 5
+    server.runCommandSilent('fill ' + (cx - 9) + ' ' + fy + ' ' + (cz - 17) + ' ' + (cx + 8) + ' ' + (fy + 9) + ' ' + cz + ' minecraft:stone')
+    let chestPos = new $STBlockPos(cx, fy + 2, cz - 8)
+    level.getBlock(chestPos).set('minecraft:chest')
+    level.getBlock(new $STBlockPos(cx + 3, fy + 3, cz - 5)).set('minecraft:iron_ore')
+    let job = global.FA_carveRoomNow(level, '16', 'sandstone', cx, fy, cz, 0, -1)
+    let id = (x, y, z) => String(level.getBlock(new $STBlockPos(x, y, z)).id)
+    let inside = id(cx - 4, fy + 4, cz - 10), floor = id(cx - 4, fy, cz - 10), wall = id(cx - 9, fy + 4, cz - 10), door = id(cx, fy + 1, cz)
+    let lights = 0
+    for (let x = cx - 8; x <= cx + 7; x++) for (let z = cz - 16; z <= cz - 1; z++) if (id(x, fy + 9, z) == 'minecraft:glowstone') lights++
+    let chestKept = id(cx, fy + 2, cz - 8) == 'minecraft:chest'
+    check('Room TNT: 16x16 room carved (inside ' + inside + ', floor ' + floor + ', wall ' + wall + ', doorway ' + door + ', ' + lights + ' lights), the chest kept, the ore collected',
+      inside == 'minecraft:air' && floor == 'minecraft:smooth_sandstone' && wall == 'minecraft:smooth_sandstone' && door == 'minecraft:air' && lights >= 4 &&
+      chestKept && job.ores['minecraft:iron_ore'] == 1 && job.kept == 1, job.changed + ' changed, kept ' + job.kept)
+    // Arming by hand, 40 blocks up (clear of the test site), with no fuse: the server builds it over the next ticks;
+    // the last stage checks it and clears it away
+    let jobs = global.FA_roomJobCount()
+    let tnt = Item.of('kubejs:room_tnt_quartz_16', 2)
+    let fuse = global.FA.roomCharges.fuseSeconds
+    let px = player.getX(), py = player.getY(), pz = player.getZ()
+    player.setPosition(X + 0.5, Y + 41, Z + 0.5)
+    global.FA.roomCharges.fuseSeconds = 0
+    let armed = global.FA_armRoom(player, level, new $STBlockPos(X, Y + 40, Z), tnt)
+    global.FA.roomCharges.fuseSeconds = fuse
+    let f = faFacing(player.yaw)
+    armedRoom = global.FA_roomPlan('16', X, Y + 40, Z, f[0], f[1])
+    player.setPosition(px, py, pz)
+    check('arming a Room TNT uses one and lights the fuse', armed == 1 && global.FA_roomJobCount() == jobs + 1 && (player.isCreative() || tnt.getCount() == 1), armed + ' / ' + tnt.getCount())
+    level.getBlock(chestPos).set('minecraft:air')
+    server.runCommandSilent('fill ' + (cx - 9) + ' ' + fy + ' ' + (cz - 17) + ' ' + (cx + 8) + ' ' + (fy + 9) + ' ' + cz + ' minecraft:air')
   })
   attempt('danger from home', () => {
     let D = global.FA.danger, uuid = String(player.stringUuid)
@@ -774,6 +809,25 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       }
       // A basin holds 1,000 mB per tank, so expect one block per full bucket it took
       check('the Condenser packed Liquid Essence into blocks (' + made + ')', made >= 1 && made == Math.floor(condFilled / global.FA.condensed.mbPerBlock), made + ' from ' + condFilled + ' mB')
+    })
+
+    // The armed Room TNT built itself over the last ticks: quartz shell, lights in the roof, hollow inside
+    if (armedRoom) attempt('room TNT built', () => {
+      let kinds = { air: 0, shell: 0, light: 0 }, right = { air: 0, shell: 0, light: 0 }
+      let want = { air: 'minecraft:air', shell: 'minecraft:smooth_quartz', light: 'minecraft:sea_lantern' }
+      for (let i = 0; i < armedRoom.total; i++) {
+        let sp = global.FA_roomSpot(armedRoom, i)
+        if (!sp.kind) continue
+        kinds[sp.kind]++
+        if (String(level.getBlock(new $STBlockPos(sp.x, sp.y, sp.z)).id) == want[sp.kind]) right[sp.kind]++
+      }
+      check('an armed 16x16 Quartz Room TNT built itself: ' + right.air + '/' + kinds.air + ' hollow, ' + right.shell + '/' + kinds.shell + ' wall, ' + right.light + '/' + kinds.light + ' lights',
+        right.air == kinds.air && right.shell == kinds.shell && right.light == kinds.light && global.FA_roomJobCount() == 0)
+      for (let i = 0; i < armedRoom.total; i++) {
+        let sp = global.FA_roomSpot(armedRoom, i)
+        if (sp.kind) level.getBlock(new $STBlockPos(sp.x, sp.y, sp.z)).set('minecraft:air')
+      }
+      armedRoom = false
     })
 
     // Clean up: entities, blocks, machine registrations, forceload, test Essence

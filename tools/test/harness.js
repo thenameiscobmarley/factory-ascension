@@ -143,8 +143,17 @@ var JEIEvents = {
 }
 var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
 var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn },
-  rightClicked: function (fn) { handlers.blockClick = fn } }
-var ServerEvents = { loaded: function (fn) { handlers.loaded = fn }, chestLootTables: function (fn) { handlers.chestLoot = fn }, recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { handlers.tick = fn },
+  // Every generic block right-click handler runs, like in KubeJS (the hammer's and the room charge's)
+  rightClicked: function (a, b) {
+    var fn = typeof a == 'function' ? a : b
+    if (typeof a != 'function') return
+    var all = handlers.blockClicks = handlers.blockClicks || []
+    all.push(fn)
+    handlers.blockClick = function (e) { all.forEach(function (f) { f(e) }) }
+  } }
+// Like KubeJS, every handler registered for an event runs
+function allOf(name, fn) { var list = handlers[name + 'List'] = handlers[name + 'List'] || []; list.push(fn); handlers[name] = function (e) { list.forEach(function (f) { f(e) }) } }
+var ServerEvents = { loaded: function (fn) { allOf('loaded', fn) }, chestLootTables: function (fn) { handlers.chestLoot = fn }, recipes: function (fn) { handlers.recipes.push(fn) }, commandRegistry: function (fn) { handlers.commands.push(fn) }, tick: function (fn) { allOf('tick', fn) },
   tags: function (type, fn) { (handlers.tags[type] = handlers.tags[type] || []).push(fn) }, highPriorityData: function (fn) { handlers.data.push(fn) } }
 var ItemEvents = { rightClicked: function (id, fn) { handlers.rightClicked[id] = fn }, tooltip: function (fn) { handlers.tooltip.push(fn) },
   crafted: function (fn) { handlers.crafted = fn },
@@ -314,7 +323,7 @@ PlayerClass.prototype = Object.create(LivingClass.prototype)
   'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js', 'startup_scripts/97_fa_mod.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
-  'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js',
+  'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js', 'server_scripts/48_fa_rooms.js',
   'client_scripts/10_fa_tooltips.js', 'client_scripts/20_fa_jei.js'].forEach(function (f) {
   load('kubejs/' + f)
   print('loaded ' + f)
@@ -375,7 +384,8 @@ check('486 enchants (59 + 15 Mythic + 200 Fusion + 200 Triad + 12 Ultimate)', en
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.foils.types.length, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.foils.types.length +
+  global.FA.roomCharges.styles.length * global.FA.roomCharges.sizes.length, created.length)
 check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
   return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
@@ -447,6 +457,27 @@ var partTomes = Object.keys(global.FA_TOME_CATALYSTS).filter(function (t) { retu
 check('13 tomes use a mob part tied to their effect (Night Sight: Fried Pig Eyes, Vitality: Seared Cow Heart...)', partTomes.length == 13 &&
   global.FA_TOME_CATALYSTS.night_sight.indexOf('kubejs:fried_pig_eyes') >= 0 && global.FA_TOME_CATALYSTS.vitality.indexOf('kubejs:seared_cow_heart') >= 0, partTomes.join(','))
 check('starter recipes: brass, precision mechanism, blaze burner, TFMG steel', ['starter_brass', 'starter_precision_mechanism', 'starter_blaze_burner', 'starter_steel'].every(function (id) { return !!byId(id) }))
+// ---- Factory Room TNT: the room's shape ----
+var roomPlan = global.FA_roomPlan('50', 100, 10, 200, 0, -1)   // facing north
+var rc = { air: 0, shell: 0, light: 0 }, roomSpots = []
+for (var ri = 0; ri < roomPlan.total; ri++) { var sp = global.FA_roomSpot(roomPlan, ri); if (sp.kind) { rc[sp.kind]++; roomSpots.push(sp) } }
+var door = global.FA.roomCharges.doorway
+check('a 50x50 room: 50 x 50 x 16 hollowed out plus a ' + door[0] + 'x' + door[1] + ' doorway (' + rc.air + ' air)', rc.air == 50 * 50 * 16 + door[0] * door[1], rc.air)
+check('it has a full shell: floor, roof, four walls (' + rc.shell + ' blocks) with ' + rc.light + ' lights in the roof',
+  rc.shell + rc.light + rc.air == 52 * 52 * 18 && rc.light >= 64 && roomSpots.filter(function (x) { return x.kind == 'light' }).every(function (x) { return x.y == 10 + 17 }), rc.shell + ' / ' + rc.light)
+check('the room opens away from you (facing north: all of it is north of the clicked block) and the floor is the layer under your feet',
+  roomSpots.every(function (x) { return x.z <= 200 && x.y >= 10 && x.y <= 27 }) && roomSpots.some(function (x) { return x.z == 200 - 51 }) &&
+  global.FA_roomSpot(roomPlan, 0).y == 27, '')
+check('every direction works the same (east: room east of you)', [[1, 0], [-1, 0], [0, 1]].every(function (f) {
+  var pl = global.FA_roomPlan('16', 0, 0, 0, f[0], f[1]), ok = true, n = 0
+  for (var k = 0; k < pl.total; k++) { var q = global.FA_roomSpot(pl, k); if (q.kind == 'air') { n++; if ((q.x * f[0] + q.z * f[1]) < 0) ok = false } }
+  return ok && n == 16 * 16 * 8 + door[0] * door[1] }))
+check('the roof goes in first (top layer comes before anything below it)', global.FA_roomSpot(roomPlan, 0).y > global.FA_roomSpot(roomPlan, roomPlan.total - 1).y)
+check('Factory Room TNT: TNT + 4 wall blocks + 2 lights, and each size up takes ' + global.FA.roomCharges.sizes[1].craft + ' then ' + global.FA.roomCharges.sizes[2].craft + ' of the last',
+  global.FA.roomCharges.styles.every(function (st) {
+    var small = byId('room_tnt_' + st.id + '_16'), mid = byId('room_tnt_' + st.id + '_32'), big = byId('room_tnt_' + st.id + '_50')
+    return small && mid && big && JSON.stringify(small.json).indexOf('minecraft:tnt') >= 0 && JSON.stringify(mid.json).split('room_tnt_' + st.id + '_16').length - 1 == 4
+  }))
 check('easy start: casings by hand, belts from leather, bulk cogwheels and shafts', ['easy_andesite_casing', 'easy_belt', 'easy_cogwheels', 'easy_shafts'].every(function (id) { return !!byId(id) }))
 check('the mod machine recipes and rules stay off without the mod (Half download)', !byId('machine_salvager') && !byId('machine_engine_core') && !global.FA_onMachine)
 check('every mod machine has a config recipe, and the engine needs nothing past iron and copper', ['salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
@@ -2229,7 +2260,7 @@ var banned = [
   [/\.moveTo\(/, 'setPosition'], [/\.teleportTo\(/, 'setPositionAndRotation'], [/setGlowingTag\(/, 'glowing = true'],
   [/tickCount/, 'age'], [/noCollision\(/, 'faClear()'], [/new \$?\w*FluidStack\(/, "Fluid.of(id, mb)"],
   [/getType\(\)\.(getDescription|create)\(/, 'getDisplayName / level.createEntity(e.type)'], [/BLOCK\.getKey\(/, 'level.getBlock(pos).id'],
-  [/state\.is\(/, 'getBlock(pos).hasTag(id)'], [/source\.getEntity\(\)|getSource\(\)\.getEntity\(\)/, 'source.actual']
+  [/state\.is\(/, 'getBlock(pos).hasTag(id)'], [/Array\.from\(/, 'a for loop (KubeJS drops its mapping function)'], [/source\.getEntity\(\)|getSource\(\)\.getEntity\(\)/, 'source.actual']
 ]
 var badNames = []
 ;['startup_scripts', 'server_scripts', 'client_scripts'].forEach(function (dir) {

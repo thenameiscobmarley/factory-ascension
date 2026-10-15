@@ -400,6 +400,18 @@ ItemEvents.tooltip(event => {
     tip('Rare (iron) and Epic (diamond) gear is common; Legendary and Mythic get likelier the more dangerous the place you open it'),
     tip('Found in dungeon, temple, stronghold, village smithy, nether, bastion, mansion, ancient city and end city chests')])
 
+  // Factory Room TNT
+  let RC = FA.roomCharges
+  RC.styles.forEach(st => RC.sizes.forEach((sz, i) => {
+    details('kubejs:room_tnt_' + st.id + '_' + sz.id, 'Some assembly required. Not much, though.', () => [
+      Text.gray('Right-click a block: after ' + RC.fuseSeconds + 's it blasts out a ').append(Text.white(sz.size[0] + ' x ' + sz.size[1] + ' room, ' + sz.size[2] + ' high inside')),
+      tip('In front of you, floor level with your feet, with a ' + RC.doorway[0] + '-wide doorway where you stand'),
+      tip('Floor, walls and roof lined with ' + faItemName(st.shell) + ', ' + faItemName(st.light) + ' set into the roof every ' + RC.lightSpacing + ' blocks'),
+      tip('Never breaks bedrock, chests or machines' + (RC.collectOres ? '. Ores it blasts through drop in the middle of the room' : '')),
+      made(i == 0 ? 'TNT, 4 ' + faItemName(st.shell) + ', 2 ' + faItemName(st.light) + ' (crafting grid)'
+        : sz.craft + ' of the ' + RC.sizes[i - 1].size[0] + 'x' + RC.sizes[i - 1].size[1] + ' ' + st.name + ' TNT')])
+  }))
+
   // Polishing Cloth
   details('kubejs:polishing_cloth', 'A little elbow grease goes a long way.', () => [
     Text.gray('Use: ').append(Text.white('hold gear in your other hand and right-click the cloth')),

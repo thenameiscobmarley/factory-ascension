@@ -27,6 +27,13 @@ StartupEvents.registry('item', event => {
     event.create('tome_' + id).displayName((e.ultimate ? 'Ultimate Tome: ' : e.mythic ? 'Mythic Tome of ' : e.triad ? 'Triad Tome of ' : e.type == 'fusion' ? 'Fusion Tome of ' : 'Tome of ') + e.name).rarity('epic').glow(true)
   })
 
+  // Factory Room TNT: carves a lined, lit room (config: roomCharges; rules in server_scripts/48_fa_rooms.js)
+  global.FA.roomCharges.styles.forEach(st => {
+    global.FA.roomCharges.sizes.forEach(sz => {
+      event.create('room_tnt_' + st.id + '_' + sz.id).displayName(sz.size[0] + 'x' + sz.size[1] + ' ' + st.name + ' Light Factory TNT').rarity('uncommon')
+    })
+  })
+
   // Rolls a random enchant (rarity, name and effects) onto gear
   event.create('chaos_tome').displayName('Chaos Tome').rarity('epic').glow(true)
 

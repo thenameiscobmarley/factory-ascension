@@ -541,6 +541,31 @@ Without the jar (Half download) the pack still works; these blocks just don't ex
 Config `easyStart`: Andesite Casings by hand (any log + Andesite Alloy = 2), a Mechanical Belt from 3 leather,
 4 cogwheels from 8 planks around an Andesite Alloy, and 8 shafts from an Andesite Alloy and a stick.
 
+## Factory Room TNT: an underground room in one click
+
+Right-click a block with one: after a 3 second fuse it blasts out a room **in front of you**, floor level with your
+feet, then lines the floor, walls and roof with its block, sets lights into the roof every 6 blocks and leaves a
+3x3 doorway where you're standing. It's built over a few ticks, roof first, so big rooms don't freeze the server or
+drop sand on you.
+
+| Size | Inside | Recipe |
+|---|---|---|
+| 16x16 | 16 x 16, 8 high | TNT + 4 wall blocks + 2 lights (crafting grid) |
+| 32x32 | 32 x 32, 12 high | 4 of the 16x16 |
+| 50x50 | 50 x 50, 16 high | 3 of the 32x32 |
+
+| Style | Walls | Lights |
+|---|---|---|
+| Sandstone | Smooth Sandstone | Glowstone |
+| Stone Brick | Stone Bricks | Sea Lanterns |
+| Deepslate | Deepslate Tiles | Ochre Froglights |
+| Quartz | Smooth Quartz | Sea Lanterns |
+
+So a **50x50 Sandstone Light Factory TNT** gives you a 50 x 50 x 16 sandstone hall with glowstone in the ceiling.
+It never breaks bedrock, chests, Create machines or anything else with an inventory or machinery inside, and ores it
+blasts through drop in the middle of the room as ore blocks (ready for a crusher). Sizes, styles, spacing and speed are
+in the `roomCharges` section of the config.
+
 ## Danger zones
 
 **Danger is measured from your home.** Until you type `/home set`, nothing scales anywhere, so you can explore the map
@@ -670,7 +695,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 56 checks (65 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 59 checks (68 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 

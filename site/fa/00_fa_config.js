@@ -1020,6 +1020,33 @@ global.FA = {
     }
   },
 
+  // ---- Factory Room TNT: blasts out a ready-made underground room ----
+  // Right-click a block with one. After the fuse it hollows out a room in front of you (width x length x height inside),
+  // lines the floor, walls and roof with the style's block, sets its lights into the roof every lightSpacing blocks and
+  // leaves a doorway on your side, level with your feet. It never touches bedrock or anything with an inventory or a
+  // machine inside (chests, Create machines, spawners), and ores it blasts through drop in the middle of the room.
+  roomCharges: {
+    enabled: true,
+    fuseSeconds: 3,
+    blocksPerTick: 6000,       // spread over a few ticks so the server never freezes
+    lightSpacing: 6,
+    doorway: [3, 3],           // width, height of the opening on your side
+    collectOres: true,
+    // size: [width, length, height inside]; craft: how many of the next size down make one
+    sizes: [
+      { id: '16', size: [16, 16, 8] },
+      { id: '32', size: [32, 32, 12], craft: 4 },
+      { id: '50', size: [50, 50, 16], craft: 3 }
+    ],
+    // The smallest size is TNT + 4 wall blocks + 2 lights; color / lightColor are only for the item icons
+    styles: [
+      { id: 'sandstone', name: 'Sandstone', shell: 'minecraft:smooth_sandstone', light: 'minecraft:glowstone', color: [226, 208, 152], lightColor: [255, 214, 120] },
+      { id: 'stone_brick', name: 'Stone Brick', shell: 'minecraft:stone_bricks', light: 'minecraft:sea_lantern', color: [140, 140, 140], lightColor: [196, 236, 230] },
+      { id: 'deepslate', name: 'Deepslate', shell: 'minecraft:deepslate_tiles', light: 'minecraft:ochre_froglight', color: [70, 70, 80], lightColor: [250, 220, 140] },
+      { id: 'quartz', name: 'Quartz', shell: 'minecraft:smooth_quartz', light: 'minecraft:sea_lantern', color: [236, 230, 222], lightColor: [196, 236, 230] }
+    ]
+  },
+
   // ---- Easy start: cheaper ways into Create's first machines (both downloads) ----
   easyStart: {
     enabled: true,
@@ -1409,6 +1436,52 @@ global.FA_dangerMult = (danger, elite) => {
     loot: (1 + d.lootPerLevel * danger) * (elite ? d.eliteLoot : 1),
     xp: (1 + d.xpPerLevel * danger) * (elite ? d.eliteLoot : 1)
   }
+}
+
+// ---- Factory Room TNT: the room's shape (shared by the game, the tests and the website) ----
+// A room is laid out in local coordinates: u across (right is +), v forward (away from you), h up from the floor layer.
+// The inside is W x L x H; around it is a one-block shell (floor, walls, roof) with lights in the roof and a doorway
+// in the near wall. (cx, cz): the block you clicked (the middle of the near wall); floorY: the floor layer, one below
+// your feet; (fx, fz): the way you face (one of the four directions).
+global.FA_roomPlan = (sizeId, cx, floorY, cz, fx, fz) => {
+  let R = global.FA.roomCharges
+  let S = R.sizes.filter(z => z.id == sizeId)[0]
+  if (!S) return false
+  let W = S.size[0], L = S.size[1], H = S.size[2]
+  let umin = -Math.floor(W / 2)
+  return { cx: cx, cz: cz, floorY: floorY, fx: fx, fz: fz, rx: -fz, rz: fx, W: W, L: L, H: H, umin: umin, umax: umin + W - 1,
+    cols: W + 2, rows: L + 2, layers: H + 2, total: (W + 2) * (L + 2) * (H + 2), spacing: Math.max(2, R.lightSpacing), door: R.doorway }
+}
+
+// What goes at a local spot: 'air' (inside or the doorway), 'shell', 'light', or false (outside the room)
+global.FA_roomKind = (plan, u, v, h) => {
+  if (u < plan.umin - 1 || u > plan.umax + 1 || v < 0 || v > plan.L + 1 || h < 0 || h > plan.H + 1) return false
+  let inside = u >= plan.umin && u <= plan.umax && v >= 1 && v <= plan.L
+  if (inside && h >= 1 && h <= plan.H) return 'air'
+  // The doorway: the middle of the near wall, from the floor up
+  let half = Math.floor(plan.door[0] / 2)
+  if (v == 0 && Math.abs(u) <= half && h >= 1 && h <= Math.min(plan.H, plan.door[1])) return 'air'
+  if (inside && h == plan.H + 1) {
+    let sp = plan.spacing, off = Math.floor(sp / 2)
+    if ((u - plan.umin) % sp == off && (v - 1) % sp == off) return 'light'
+  }
+  return 'shell'
+}
+
+// The i-th spot of a room (0 .. total - 1), top layer first so the roof goes in before anything below it is hollowed out
+global.FA_roomSpot = (plan, i) => {
+  let per = plan.cols * plan.rows
+  let h = plan.H + 1 - Math.floor(i / per)
+  let rest = i % per
+  let u = plan.umin - 1 + (rest % plan.cols)
+  let v = Math.floor(rest / plan.cols)
+  return { x: plan.cx + u * plan.rx + v * plan.fx, y: plan.floorY + h, z: plan.cz + u * plan.rz + v * plan.fz, kind: global.FA_roomKind(plan, u, v, h) }
+}
+
+// The middle of the room's floor (where the ores it blasted through land)
+global.FA_roomMiddle = plan => {
+  let u = Math.floor((plan.umin + plan.umax) / 2), v = Math.floor((plan.L + 1) / 2)
+  return { x: plan.cx + u * plan.rx + v * plan.fx, y: plan.floorY + 1, z: plan.cz + u * plan.rz + v * plan.fz }
 }
 
 // ---- Mythic helpers (shared by the effects and the descriptions) ----

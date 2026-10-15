@@ -40,7 +40,7 @@ kubejs/
                   60_fa_mob_food.js, 70_fa_variants.js, 80_fa_combat.js, 90_fa_artifacts.js, 95_fa_attachments.js, 97_fa_mod.js
   server_scripts/10_fa_ascension.js, 15_fa_home.js, 16_fa_packs.js, 17_fa_sell.js, 18_fa_attachments.js, 19_fa_foils.js, 20_fa_core_recipes.js, 25_fa_tome_recipes.js, 30_fa_material_recipes.js,
                  32_fa_ascendite_data.js, 35_fa_starter_recipes.js, 37_fa_food_recipes.js, 38_fa_hammer.js, 39_fa_condition.js, 40_fa_progress.js, 45_fa_altar.js,
-                 46_fa_machines.js, 90_fa_selftest.js
+                 46_fa_machines.js, 48_fa_rooms.js, 90_fa_selftest.js
   client_scripts/10_fa_tooltips.js, 20_fa_jei.js
   data/kubejs/   (Ascendite ore worldgen: worldgen/ and forge/biome_modifier/)
   assets/kubejs/textures/item/   (item textures)
@@ -63,9 +63,9 @@ kubejs/
    All 486 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
-4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 56 checks (65 with the Full jar)
+4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 59 checks (68 with the Full jar)
    with a fake player (Essence, a real tome right-click, leveled tomes and extracting, enchants, danger zones, Ascendite, mob food, Rock Hammers, gear condition, rare variants, glowing ores, the safe-zone center, /home, card packs, Artifacts, gems, rebirth,
-   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **56 / 56 passed** (**65 / 65** with Full).
+   altar, condenser, loot, hordes, events, bosses, an Ultimate), cleans up, and prints **59 / 59 passed** (**68 / 68** with Full).
    Any FAIL line says which part is broken.
 5. Full only: open the **Factory Ascension** creative tab, place each block and open it. The Vault should scroll, search and sort;
    drop an Enchantment Pack into the Pack Opener and watch the cards flip. Build an engine: an Engine Core, a Coil and a Burner

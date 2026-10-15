@@ -349,6 +349,52 @@ ATTACHMENTS = {
 }
 
 
+def room_tnt(shell, light, size_index):
+    """Factory Room TNT: a TNT block whose label band is the room's wall block, with a glowing lamp (the room's lights),
+    gold dots for the size (1, 2 or 3) and a lit fuse on top."""
+    px = [[(0, 0, 0, 0)] * S for _ in range(S)]
+    red = ((255, 120, 110), (200, 40, 36), (96, 14, 12))
+
+    def tone(pal, t):
+        t = max(0.0, min(1.0, t))
+        return _mix(pal[0], pal[1], t * 2) if t < 0.5 else _mix(pal[1], pal[2], (t - 0.5) * 2)
+    for y in range(8, 29):
+        for x in range(5, 27):
+            top = y < 12
+            side = x > 21
+            if top and (x - 5) < (12 - y) - 1:
+                continue                                   # the top face's slanted left edge
+            if top:
+                c = tone(red, 0.25 + 0.05 * ((x + y) % 2))
+            elif side:
+                c = tone(red, 0.8)
+            else:
+                c = tone(red, 0.45 + 0.04 * ((x // 3) % 2))  # TNT sticks
+                if (x - 5) % 4 == 0:
+                    c = tone(red, 0.7)
+            if 16 <= y <= 22 and not top:                  # label band in the wall block's color
+                c = _mix(shell, (0, 0, 0), 0.38) if side else _mix(shell, (255, 255, 255), 0.12 if y == 16 else 0)
+                if y == 22:
+                    c = _mix(shell, (0, 0, 0), 0.5)
+            if y == 12 and not side:
+                c = tone(red, 0.9)
+            px[y][x] = c + (255,)
+    for y in range(17, 22):                                # the lamp
+        for x in range(7, 11):
+            px[y][x] = _mix(light, (255, 255, 255), 0.35 if (x, y) == (8, 18) else 0) + (255,)
+    for i in range(size_index + 1):                        # size dots
+        cx = 13 + i * 3
+        px[19][cx] = _shade('gold', 0.2) + (255,)
+        px[19][cx + 1] = _shade('gold', 0.45) + (255,)
+        px[20][cx] = _shade('gold', 0.55) + (255,)
+        px[20][cx + 1] = _shade('gold', 0.8) + (255,)
+    for k, (x, y) in enumerate(((15, 10), (15, 9), (16, 8), (16, 7), (17, 6))):   # fuse
+        px[y][x] = (60, 50, 44, 255)
+    for x, y, c in ((18, 5, (255, 244, 170)), (17, 4, (255, 180, 60)), (19, 4, (255, 146, 30)), (18, 3, (255, 210, 120)), (19, 6, (255, 120, 30))):
+        px[y][x] = c + (255,)
+    return px
+
+
 HAMMERS = {'rock_hammer': rock_hammer, 'ascendite_rock_hammer': ascendite_rock_hammer, 'polishing_cloth': polishing_cloth,
            'enchantment_pack': enchantment_pack, 'booster_box': booster_box, 'gear_cache': gear_cache}
 

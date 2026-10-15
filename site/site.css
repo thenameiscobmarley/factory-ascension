@@ -116,8 +116,7 @@ html.js .ch { display: none; } html.js .ch.is-open { display: block; animation: 
 .shelf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; justify-items: center; }
 .shelf img { width: 100%; max-width: 112px; aspect-ratio: 1; filter: drop-shadow(var(--px) var(--px) 0 #000); animation: bob 3s steps(6) infinite alternate; animation-delay: var(--d, 0s); }
 @keyframes bob { to { transform: translateY(calc(var(--px) * -3)); } }
-.stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 22px; }
-@media (max-width: 860px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; margin-top: 22px; }
 .stats > div { text-align: center; padding: 10px 6px; }
 .stats b { display: block; font: 700 34px/1 var(--pixel); color: var(--gold-l); text-shadow: var(--shadow); }
 .stats small { font: 12px var(--label); color: var(--muted); text-transform: uppercase; }
@@ -371,6 +370,18 @@ html.js .ch { display: none; } html.js .ch.is-open { display: block; animation: 
 .engine-note { margin: 8px 0 0; font-size: 15px; color: var(--muted); min-height: 1.4em; }
 .easy { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
 .easy li { display: grid; gap: 2px; } .easy b { color: var(--gold-l); } .easy span { color: var(--muted); font-size: 15px; }
+
+.rooms { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+@media (max-width: 860px) { .rooms { grid-template-columns: 1fr; } }
+.room-pick { display: grid; grid-template-columns: repeat(auto-fill, 56px); gap: 4px; }
+.room-pick .att { width: 56px; height: 56px; }
+.room-pick .att.is-active { border-color: var(--gold); }
+.room-info { margin: 10px 0 0; color: var(--muted); font-size: 15px; } .room-info b { color: var(--gold-l); }
+.room-map-wrap { display: grid; gap: 8px; justify-items: center; }
+#roomMap { width: 100%; max-width: 288px; image-rendering: pixelated; background: #3a3a3a; }
+.room-key { margin: 0; font: 12px var(--label); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.room-key i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; }
+.k-shell { background: var(--shell, #e2d098); } .k-light { background: #ffe680; } .k-door { background: #1d140d; outline: 1px solid #555; } .k-you { background: #ff5a5a; }
 
 /* ---- world: danger ---- */
 .danger-ui { text-align: center; }

@@ -7,7 +7,7 @@
 <meta name="description" content="A Minecraft Create modpack where your factory is your power and every chest is a lottery: 486 uncapped enchants, foil card packs, one-of-one Artifacts, danger zones and a mod full of machines." />
 <meta name="theme-color" content="#140c07" />
 <link rel="icon" href="fa/items/ascension_core.png" />
-<link rel="stylesheet" href="site.css?v=fa95893b91" />
+<link rel="stylesheet" href="site.css?v=4adee21bed" />
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
@@ -72,6 +72,7 @@
         <a href="#machines"><img src="fa/blocks/super_smelter_front_lit.png" alt="" /><b>Super Smelter</b><span>Smelts up to 32 at once, faster the faster it spins.</span></a>
         <a href="#machines"><img src="fa/blocks/salvager_front.png" alt="" /><b>Salvager</b><span>Feed it loot, get Ascension Cores back.</span></a>
         <a href="#machines"><img src="fa/blocks/tome_fusion_table_top.png" alt="" /><b>Tome Fusion Table</b><span>Merge tomes and build Fusions in one screen.</span></a>
+        <a href="#machines"><img src="fa/items/room_tnt_sandstone_50.png" alt="" /><b>Factory Room TNT</b><span>A lined, lit factory room in one click, up to 50 x 50.</span></a>
         <a href="#machines"><img src="fa/items/ascendite_ingot.png" alt="" /><b>Easy start</b><span>Casings by hand, belts from leather, cheap cogs and shafts.</span></a>
       </div>
     </div>
@@ -283,6 +284,21 @@
   <div class="cover steel">
     <div class="machines" id="machinesGrid"></div>
   </div>
+  <div class="cover red">
+    <p class="part">Factory Room TNT <small>both downloads</small></p>
+    <div class="rooms">
+      <div>
+        <p class="sub">Right-click a block: after the fuse it blasts out a room in front of you, lines it, lights it and leaves a doorway where you stand.
+          Never touches bedrock, chests or machines; ores it hits drop in the middle. Pick one:</p>
+        <div class="room-pick" id="roomPick"></div>
+        <p class="room-info" id="roomInfo"></p>
+      </div>
+      <div class="slot-card room-map-wrap">
+        <canvas id="roomMap" width="52" height="53" aria-label="Top-down map of the room"></canvas>
+        <p class="room-key"><i class="k-shell"></i>wall <i class="k-light"></i>light (in the roof) <i class="k-door"></i>doorway <i class="k-you"></i>you</p>
+      </div>
+    </div>
+  </div>
   <div class="cover brown">
     <p class="part">Easy start <small>both downloads</small></p>
     <ul class="easy" id="easy"></ul>
@@ -400,9 +416,9 @@
     }
   };
 </script>
-<script src="fa/00_fa_config.js?v=fa95893b91"></script>
-<script src="fa/25_fa_tome_recipes.js?v=fa95893b91"></script>
-<script src="fa/pack.js?v=fa95893b91"></script>
-<script src="site.js?v=fa95893b91"></script>
+<script src="fa/00_fa_config.js?v=4adee21bed"></script>
+<script src="fa/25_fa_tome_recipes.js?v=4adee21bed"></script>
+<script src="fa/pack.js?v=4adee21bed"></script>
+<script src="site.js?v=4adee21bed"></script>
 </body>
 </html>
