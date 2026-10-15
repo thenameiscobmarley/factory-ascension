@@ -11,6 +11,33 @@
 		{
 			dependencies: [ ]
 			description: [
+				"Hold right-click to aim down the sights, left-click to fire, R to reload. Tomes work on it like any weapon."
+			]
+			icon: "factoryascension:shotgun"
+			id: "FE90476A607C62E0"
+			rewards: [
+				{
+					count: 32
+					id: "0E2107225F080816"
+					item: "factoryascension:shotgun_shell"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "477D4B9AF4B85981"
+					item: "factoryascension:shotgun"
+					type: "item"
+				}
+			]
+			title: "Boomstick"
+			x: 0.0d
+			y: 4.0d
+		}
+		{
+			dependencies: [ ]
+			description: [
 				"Iron, an Ender Pearl and a gold nugget. Right-click to call your pets to you."
 			]
 			icon: "kubejs:pet_whistle"

@@ -179,5 +179,9 @@
   "biome.factoryascension.astral_peaks": "Astral Peaks",
   "block.factoryascension.ascension_quarry": "Ascension Quarry",
   "block.factoryascension.mob_grinder": "Mob Grinder",
-  "block.factoryascension.warp_hopper": "Warp Hopper"
+  "block.factoryascension.warp_hopper": "Warp Hopper",
+  "item.factoryascension.shotgun": "Ascension Shotgun",
+  "item.factoryascension.shotgun_shell": "Shotgun Shell",
+  "key.factoryascension.reload": "Reload gun",
+  "key.categories.factoryascension": "Factory Ascension"
 }

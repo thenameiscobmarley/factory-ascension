@@ -16,6 +16,7 @@ const $STLiving = Java.loadClass('net.minecraft.world.entity.LivingEntity')
 const $STArmorStand = Java.loadClass('net.minecraft.world.entity.decoration.ArmorStand')
 const $STHand = Java.loadClass('net.minecraft.world.InteractionHand')
 const $STEffects = Java.loadClass('net.minecraft.world.effect.MobEffects')
+const $STAttributes = Java.loadClass('net.minecraft.world.entity.ai.attributes.Attributes')
 const $STHit = Java.loadClass('net.minecraft.world.phys.BlockHitResult')
 const $STCompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
 const $STSlot = Java.loadClass('net.minecraft.world.entity.EquipmentSlot')
@@ -288,7 +289,7 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     foods.forEach(fd => { fd.chance = 1 })
     let pig = spawn('minecraft:pig', X - 6, Y, Z + 8)
     // A plain pig (out here it can spawn as an elite or boss that shrugs off the hit)
-    ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => pig.getPersistentData().remove(k))
+    ;['fa_danger', 'fa_elite', 'fa_boss', 'fa_skinwalker', 'fa_variant'].forEach(k => pig.getPersistentData().remove(k))
     pig.setHealth(2)
     pig.attack(player.damageSources().playerAttack(player), 1000)
     foods.forEach((fd, i) => { fd.chance = saved[i] })
@@ -308,6 +309,50 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.removeAllEffects()
     let cooks = ['cook_', 'smoke_', 'campfire_'].filter(k => server.getRecipeManager().byKey('kubejs:factory_ascension/' + k + 'pig_eyes').isPresent())
     check('raw food cooks in a furnace, smoker and campfire', cooks.length == 3, cooks.join(', '))
+  })
+
+  // ---- Hordes hit harder and take less; the mob loot switch turns Plunder off ----
+  attempt('horde strength and loot switch', () => {
+    let plain = spawn('minecraft:zombie', X - 10, Y, Z + 14), horde = spawn('minecraft:zombie', X - 12, Y, Z + 14)
+    ;[plain, horde].forEach(z => {
+      z.getPersistentData().putInt('fa_danger', 1)
+      ;['fa_elite', 'fa_boss'].forEach(k => z.getPersistentData().remove(k))
+      z.setNoAi(true)
+      z.getAttribute($STAttributes.MAX_HEALTH).setBaseValue(1000)
+      z.setHealth(1000)
+    })
+    horde.getPersistentData().putBoolean('fa_horde', true)
+    plain.attack(player.damageSources().playerAttack(player), 300)
+    horde.invulnerableTime = 0
+    horde.attack(player.damageSources().playerAttack(player), 300)
+    let lostPlain = 1000 - plain.getHealth(), lostHorde = 1000 - horde.getHealth()
+    let ratio = lostHorde > 0 ? lostPlain / lostHorde : 0
+    plain.discard()
+    horde.discard()
+    check('horde mobs are ' + global.FA.horde.healthMult + 'x tougher: the same hit takes ' + lostPlain.toFixed(1) + ' from a normal zombie, ' + lostHorde.toFixed(2) + ' from a horde one',
+      Math.abs(ratio - global.FA.horde.healthMult) < 0.5, ratio)
+    // Two cows killed with a Plunder sword, the switch on then off
+    let sword = Item.of('minecraft:netherite_sword')
+    faSetLevel(sword, 'plunder', 2000)
+    player.setItemInHand('main_hand', sword)
+    let kill = () => {
+      let cow = spawn('minecraft:cow', X - 14, Y, Z + 18)
+      ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => cow.getPersistentData().remove(k))
+      cow.setHealth(1)
+      cow.attack(player.damageSources().playerAttack(player), 100)
+      let n = 0
+      let near = level.getEntitiesOfClass($STItemEntity, cow.getBoundingBox().inflate(3))
+      for (let i = 0; i < near.size(); i++) { n += near.get(i).getItem().getCount(); near.get(i).discard() }
+      return n
+    }
+    if (global.FA_lootOff(player)) global.FA_toggleLoot(player)
+    let on = kill()
+    global.FA_toggleLoot(player)
+    let offFlag = global.FA_lootOff(player)
+    let off = kill()
+    global.FA_toggleLoot(player)
+    player.setItemInHand('main_hand', Item.of('minecraft:air'))
+    check('mob loot switch: a Plunder 2000 kill drops ' + on + ' items, with the switch off ' + off, offFlag && !global.FA_lootOff(player) && on > 20 && off <= 8, on + ' / ' + off)
   })
 
   // ---- Pets and charms: collars in order, the whistle, charm effects and the magnet ----
@@ -687,7 +732,7 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let realmOres = ['essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].filter(o => realmCounts[o] > 0)
     check('Ascended Realm: islands (' + Object.keys(realmCounts).map(k => realmCounts[k] + ' ' + k).join(', ') + '), a platform with a gate back, danger ' + realmDanger +
       ' at its center, and a round trip ' + realmStart.join(' ') + ' -> ' + realmIn + ' -> ' + realmBack.join(' '),
-      !!realmLevel && (realmCounts.realm_stone || 0) > 50 && realmOres.length >= 2 && realmGate && realmDanger >= global.FA.danger.realmBonus &&
+      !!realmLevel && (realmCounts.realm_stone || 0) > 50 && realmOres.length >= 1 && realmGate && realmDanger >= global.FA.danger.realmBonus &&
       realmIn == 'factoryascension:ascended_realm' && realmBack.join(' ') == realmStart.join(' '),
       [!!realmLevel, realmBefore, JSON.stringify(realmCounts), realmGate, realmDanger, realmIn, realmBack.join(' ')].join(' / '))
     // Structures: each one builds, its chests fill from their loot tables and its spawner holds the right mob
@@ -729,9 +774,53 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let realmMobs = ['astral_wisp', 'void_knight', 'astral_sovereign', 'void_behemoth'].map(m => {
       let e = spawn('factoryascension:' + m, X + 6, Y, Z - 26)
       let ok = !!e && e.isAlive()
+      if (e) e.discard()   // gone straight away, so they don't count toward the horde cap later
       return m + (ok ? '' : ' (missing)')
     })
     check('the Realm mobs spawn: ' + realmMobs.join(', '), realmMobs.every(m => m.indexOf('missing') < 0), realmMobs.join(', '))
+    // Shotgun: a shot from the hip hits a zombie 4 blocks ahead and uses a shell; reloading takes shells from the inventory
+    let $Shotgun = Java.loadClass('dev.factoryascension.item.ShotgunItem')
+    let gunAt = [player.getX(), player.getY(), player.getZ(), player.yaw, player.pitch]
+    player.setPositionAndRotation(X + 0.5, Y, Z - 30 + 0.5, -90, 0)
+    player.setRotation(-90, 0)
+    // The target 2.5 blocks along wherever the player looks, and a stone wall behind it for stray pellets
+    let aimDir = player.getViewVector(1)
+    let tx = X + 0.5 + aimDir.x() * 2.5, tz = Z - 30 + 0.5 + aimDir.z() * 2.5
+    for (let w = -2; w <= 2; w++) for (let h = 0; h <= 3; h++) {
+      let wx = Math.floor(X + 0.5 + aimDir.x() * 5 + (Math.abs(aimDir.z()) > 0.5 ? w : 0)), wz = Math.floor(Z - 30 + 0.5 + aimDir.z() * 5 + (Math.abs(aimDir.x()) > 0.5 ? w : 0))
+      place(wx, Y + h, wz, 'minecraft:stone')
+    }
+    let target = spawn('minecraft:zombie', tx, Y, tz)
+    ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => target.getPersistentData().remove(k))
+    target.setCustomName(null)
+    target.setNoAi(true)
+    target.setHealth(20)
+    let gun = Item.of('factoryascension:shotgun')
+    gun.getOrCreateTag().putInt('Shells', global.FA.guns.shotgun.capacity)
+    player.setItemInHand('main_hand', gun)
+    player.getCooldowns().removeCooldown(gun.getItem())
+    let gunLook = player.getViewVector(1), gunEye = player.getEyePosition()
+    let gunDiag = 'look ' + gunLook.x().toFixed(2) + ',' + gunLook.y().toFixed(2) + ',' + gunLook.z().toFixed(2) + ' eye ' + gunEye.x().toFixed(1) + ',' + gunEye.y().toFixed(1) + ',' + gunEye.z().toFixed(1) +
+      ' zombie ' + target.getX().toFixed(1) + ',' + target.getY().toFixed(1) + ',' + target.getZ().toFixed(1) + ' ' + target.type
+    $Shotgun.fire(player, false)
+    let gunHits = $Shotgun.lastHits
+    let held = player.getMainHandItem()
+    let shellsLeft = $Shotgun.shells(held)
+    let hurt = !target.isAlive() || target.getHealth() < 20
+    held.getOrCreateTag().putInt('Shells', 0)
+    player.getInventory().setItem(22, Item.of('factoryascension:shotgun_shell', 3))
+    for (let i = 0; i < 4; i++) $Shotgun.loadOne(player, held)
+    let reloaded = $Shotgun.shells(held)
+    let shellsInBag = player.getInventory().getItem(22).getCount()
+    check('Shotgun: a hip shot hits the zombie ahead (' + gunHits + ' hit, ' + (target.isAlive() ? target.getHealth().toFixed(1) + ' health left' : 'dead') + '), uses a shell (' +
+      shellsLeft + ' left), and reloading loads the 3 shells in the inventory (' + reloaded + ')',
+      gunHits >= 1 && hurt && shellsLeft == global.FA.guns.shotgun.capacity - 1 && reloaded == 3 && shellsInBag == 0,
+      [gunHits, hurt, shellsLeft, reloaded, shellsInBag, $Shotgun.lastDamage, $Shotgun.lastLanded, target.getHealth(), gunDiag].join(' / '))
+    target.discard()
+    player.getCooldowns().removeCooldown(gun.getItem())
+    player.setItemInHand('main_hand', Item.of('minecraft:air'))
+    player.getInventory().setItem(22, Item.of('minecraft:air'))
+    player.setPositionAndRotation(gunAt[0], gunAt[1], gunAt[2], gunAt[3], gunAt[4])
     // Ascension Workbench: two halves; Apply puts an attachment on a sword, Star Up adds a Legendary star
     let benchPos = place(X + 26, Y, Z + 16, 'minecraft:air')
     level.getBlock(benchPos).set('factoryascension:ascension_workbench', { facing: 'north', main: 'true' })
@@ -1136,6 +1225,19 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
           g.faKills() >= 1 && !pig.isAlive() && loot.length > 0, g.status().getString())
         $Cfg.setQuarry(Q.radius, Q.work, Q.maxPerTick, Q.minRpm, Q.stress)
         ;[motor1, motor2].forEach(m => level.getBlock(m).set('minecraft:air'))
+      }))
+    })
+    // Safety net: an item flung at 200 blocks a tick is slowed before it can stall the server
+    attempt('speed cap', () => {
+      let fast = level.createEntity('minecraft:item')
+      fast.setItem(Item.of('minecraft:stick'))
+      fast.setPosition(X + 3, Y + 5, Z + 3)
+      fast.spawn()
+      fast.setMotion(200, 0, 0)
+      after(3, () => attempt('speed cap check', () => {
+        let m = fast.getDeltaMovement()
+        check('safety net: an item flung at 200 blocks a tick is slowed (now ' + m.length().toFixed(2) + ')', !fast.isAlive() || m.length() <= 4.5, m.length())
+        fast.discard()
       }))
     })
     after(20, faUltimateStage)

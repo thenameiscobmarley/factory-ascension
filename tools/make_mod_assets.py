@@ -1019,6 +1019,8 @@ def main():
     structure_gen.main()      # the structures' placement and chest loot
     import machine_gen
     machine_gen.main()        # Quarry, Mob Grinder, Warp Hopper
+    import gun_gen
+    gun_gen.main()            # the shotgun and its shells
     mod_id_list()
     print("wrote textures, models, block states, loot tables, tags and lang for %d blocks" % len(BLOCKS))
 

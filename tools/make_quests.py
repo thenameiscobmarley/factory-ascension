@@ -114,6 +114,8 @@ CHAPTERS = [
          ["Factory Room TNT blasts out a lit, lined room in front of you."], 0, 3),
     ]),
     ("companions", "Pets and Charms", "kubejs:ascendite_collar", [
+        ("shotgun", "Boomstick", M + "shotgun", [("item", M + "shotgun", 1)], [("item", M + "shotgun_shell", 32)], [],
+         ["Hold right-click to aim down the sights, left-click to fire, R to reload. Tomes work on it like any weapon."], 0, 4),
         ("whistle", "Here, Boy!", "kubejs:pet_whistle", [("item", "kubejs:pet_whistle", 1)], [("item", "minecraft:bone", 16)], [],
          ["Iron, an Ender Pearl and a gold nugget. Right-click to call your pets to you."], 0, 0),
         ("collar", "A Good Collar", "kubejs:ascendite_collar", [("item", "kubejs:ascendite_collar", 1)], [("item", "kubejs:ascension_core", 4)], ["whistle"],

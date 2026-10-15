@@ -221,6 +221,14 @@ next to a gate that takes you back to where you left. Going through is free.
   **Astral** (1-2 Mythic Fragments). Fortune works on all of them; Silk Touch keeps the ore.
 - Platform height and size are in `realm`. Two quests in the Endgame chapter lead there.
 
+## The Ascension Shotgun (Full download)
+
+A pump shotgun with a full 3D model. **Hold right-click** to aim down the sights (zoom, tighter spread), **left-click** to
+fire (hold it to keep firing as fast as the pump racks), **R** to reload one shell at a time from your inventory. 8 pellets
+x 5 damage, 6 shells, up to 40 blocks, less damage past 10. The pellets are your attack: Ascended tomes go on it like on
+any weapon and your gear counts. It shatters glass. Shotgun Shells: 8 from paper, gunpowder, iron nuggets and a gold
+nugget. Every number is in `guns`.
+
 ## Pets and charms
 
 - **Ascension Collars** (5 tiers): right-click your own tamed pet (wolf, cat, parrot, horse...) with one. It gets the
@@ -270,11 +278,18 @@ About once every 20 minutes something happens to the whole server:
 
 `/ascension event` shows the current one. Ops can `/ascension event start <bloodMoon|meteorShower|goldenHour>` and `/ascension event stop`.
 
+## Mob loot switch
+
+Too many mob parts? **Sneak + swap hands (F)** (or `/ascension loot`) turns your mob loot enchants off: Plunder (and every
+Fusion or Triad with it), Midas, Gem Hunter, the heads enchant and vanilla Looting stop adding drops. Do it again to turn
+them back on. The action bar says which. Danger-zone loot rolls and Mythic Fragments still drop either way.
+
 ## Hordes and loot drops
 
 **Hordes:** in the danger zones every hostile spawn brings extra copies of itself: +1 per 20 danger levels
 (danger 60 = packs of 4), up to +6, in clear space beside it. Extras never bring their own extras or become bosses, and none
-spawn while 60 hostiles are already within 48 blocks, so it stays playable.
+spawn while 60 hostiles are already within 48 blocks, so it stays playable. The extras are **15x stronger** than the mob that brought them
+(they take damage / 15 and hit 15x as hard, on top of the zone's scaling: `horde.healthMult`, `horde.damageMult`).
 
 **Loot drops:** danger-zone kills can drop a loot roll (12% at 1,000 blocks out, 24% at 2,000, 54% at 3,000, up to 75%).
 Elites roll twice and lean a tier up, Ascended bosses roll four times and lean two up. The odds grow exponentially with

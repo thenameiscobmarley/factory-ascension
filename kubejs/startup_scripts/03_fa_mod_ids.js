@@ -67,6 +67,8 @@ global.FA_MOD_CONTENT = {
   "rust_walker_spawn_egg",
   "sand_wraith_spawn_egg",
   "shadow_skeleton_spawn_egg",
+  "shotgun",
+  "shotgun_shell",
   "spark_spider_spawn_egg",
   "storage_linker",
   "storm_wisp_spawn_egg",
@@ -152,6 +154,8 @@ global.FA_MOD_CONTENT = {
   "realm_gate": "Realm Gate",
   "ascension_quarry": "Ascension Quarry",
   "mob_grinder": "Mob Grinder",
-  "warp_hopper": "Warp Hopper"
+  "warp_hopper": "Warp Hopper",
+  "shotgun": "Ascension Shotgun",
+  "shotgun_shell": "Shotgun Shell"
  }
 }

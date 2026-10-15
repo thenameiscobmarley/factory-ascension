@@ -137,3 +137,12 @@ ServerEvents.recipes(event => {
 global.FA_applyCollar = (pet, tier) => faApplyCollar(pet, tier)
 global.FA_charmTick = player => faCharmTick(player)
 global.FA_whistle = player => faWhistle(player)
+
+// /ascension loot: the same switch as sneak + swap hands (startup_scripts/20_fa_enchant_effects.js)
+ServerEvents.commandRegistry(event => {
+  let { commands: Commands } = event
+  event.register(Commands.literal('ascension').then(Commands.literal('loot').executes(ctx => {
+    global.FA_toggleLoot(ctx.source.getPlayerOrException())
+    return 1
+  })))
+})

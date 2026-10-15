@@ -29,6 +29,9 @@ if (Platform.isLoaded(FA_MOD)) {
       event.custom({ type: 'sophisticatedbackpacks:backpack_upgrade', pattern: t.recipe[0], key: key, result: { item: 'factoryascension:' + t.id + '_backpack' } })
         .id('kubejs:factory_ascension/backpack_' + t.id)
     })
+    let G = global.FA.guns
+    event.shaped(FA_MOD + ':shotgun', G.shotgun.recipe[0], G.shotgun.recipe[1]).id('kubejs:factory_ascension/shotgun')
+    event.shaped(Item.of(FA_MOD + ':shotgun_shell', G.shellsPerCraft), G.shells[0], G.shells[1]).id('kubejs:factory_ascension/shotgun_shell')
     let GL = global.FA.machines.glass
     Object.keys(GL).forEach(g => event.shaped(Item.of(FA_MOD + ':' + g, 8), ['GGG', 'GCG', 'GGG'], { G: 'minecraft:glass', C: GL[g] })
       .id('kubejs:factory_ascension/glass_' + g))

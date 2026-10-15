@@ -159,7 +159,10 @@ global.FA = {
     extraPerLevel: 0.05,       // danger 20 -> +1 mob per spawn, danger 60 -> +3
     maxExtra: 6,
     nearbyCap: 60,
-    radius: 3
+    radius: 3,
+    // Horde mobs are much stronger than the mob that brought them (on top of the danger zone's scaling)
+    healthMult: 15,            // they take damage / 15
+    damageMult: 15             // and hit 15x as hard
   },
 
   // ---- Loot drops: danger-zone kills can drop a loot roll, Common to Mythic ----
@@ -1250,6 +1253,21 @@ global.FA = {
   // Astral (Mythic Fragments). Danger there starts at danger.realmBonus.
   realm: { platformY: 128, platformRadius: 3, cooldownTicks: 40 },
 
+  // ---- Guns (Full download) ----
+  // Shotgun: hold right-click to aim (zoom, tighter spread), left-click to fire, R to reload one shell at a time.
+  // Pellets are your attack, so tomes on it and your gear count. Damage falls off past fullDamageRange to
+  // `falloff` x at `range`. All pellets that hit one target land as one hit.
+  guns: {
+    shotgun: {
+      pellets: 8, pelletDamage: 5, spreadHip: 7, spreadAim: 2.5, range: 40, fullDamageRange: 10, falloff: 0.35,
+      cooldownTicks: 16, capacity: 6, reloadTicks: 10, kickback: 0.15, breaksGlass: true,
+      recipe: [['  I', 'SBP', 'W  '], { I: 'minecraft:iron_ingot', S: 'kubejs:ascendite_ingot', B: 'create:fluid_pipe', P: 'minecraft:piston', W: 'minecraft:spruce_log' }]
+    },
+    // 8 shells: paper, gunpowder, iron nuggets and a gold nugget for the head
+    shells: [[' P ', 'GNG', ' U '], { P: 'minecraft:paper', G: 'minecraft:gunpowder', N: 'minecraft:iron_nugget', U: 'minecraft:gold_nugget' }],
+    shellsPerCraft: 8
+  },
+
   // ---- Pets: Ascension Collars and the Pet Whistle ----
   // Right-click your own tamed pet (wolf, cat, parrot, horse, ...) with a collar: it gets the collar's health, attack
   // and armor, heals fully, stops taking fire and fall damage, and keeps it all. Each collar needs the one before.
@@ -2117,6 +2135,8 @@ global.FA_meteorPool = () => {
     put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['ascension_vault', 'essence_forge', 'ascension_workbench'].map(b => 'factoryascension:' + b))
     put(P.machines, ['ascension_quarry', 'mob_grinder', 'warp_hopper'].map(b => 'factoryascension:' + b))
+    put(P.machines, ['factoryascension:shotgun'])
+    put(P.basics, ['factoryascension:shotgun_shell'])
     put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
     if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))
   }
@@ -2587,7 +2607,7 @@ global.FA_validate = cfg => {
     b.enabled = false
   }
   let hz = cfg.horde
-  if (hz && hz.enabled && !(okNum(hz.extraPerLevel, 0) && okNum(hz.maxExtra, 0) && hz.maxExtra <= 20 && okNum(hz.nearbyCap, 1) && okNum(hz.radius, 1))) {
+  if (hz && hz.enabled && !(okNum(hz.extraPerLevel, 0) && okNum(hz.maxExtra, 0) && hz.maxExtra <= 20 && okNum(hz.nearbyCap, 1) && okNum(hz.radius, 1) && okNum(hz.healthMult == null ? 1 : hz.healthMult, 0.01) && okNum(hz.damageMult == null ? 1 : hz.damageMult, 0))) {
     problems.push('horde settings are broken, hordes were switched off')
     hz.enabled = false
   }

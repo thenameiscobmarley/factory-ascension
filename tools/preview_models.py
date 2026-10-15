@@ -18,7 +18,10 @@ from pngread import read as read_png  # noqa: E402
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 ASSETS = {"kubejs": os.path.join(ROOT, "kubejs", "assets", "kubejs"),
           "factoryascension": os.path.join(ROOT, "mod", "src", "main", "resources", "assets", "factoryascension")}
-CELL = 192
+CELL = int(os.environ.get("PREVIEW_CELL", "192"))
+# PREVIEW_VIEW="rx,ry,rz" looks from that angle instead of the gui one; PREVIEW_FIT=1 centers and fills the cell
+VIEW = os.environ.get("PREVIEW_VIEW")
+FIT = os.environ.get("PREVIEW_FIT") == "1"
 SHADE = {"up": 1.0, "down": 0.5, "north": 0.8, "south": 0.8, "east": 0.6, "west": 0.6}
 
 
@@ -84,21 +87,32 @@ FACE_CORNERS = {  # corners in uv order: (u0,v0) (u1,v0) (u1,v1) (u0,v1)
 }
 
 
-def view(p, rx, ry):
-    """Turn a model point (0-16 space, centered) the way the gui display does: y rotation, then x."""
-    x, y, z = p[0] - 8, p[1] - 8, p[2] - 8
+def view(p, rx, ry, rz=0, c=(8, 8, 8)):
+    """Turn a model point (0-16 space, centered) the way the gui display does: y rotation, then x, then z."""
+    x, y, z = p[0] - c[0], p[1] - c[1], p[2] - c[2]
     a = math.radians(ry)
     x, z = x * math.cos(a) + z * math.sin(a), -x * math.sin(a) + z * math.cos(a)
     b = math.radians(rx)
     y, z = y * math.cos(b) - z * math.sin(b), y * math.sin(b) + z * math.cos(b)
+    g = math.radians(rz)
+    x, y = x * math.cos(g) - y * math.sin(g), x * math.sin(g) + y * math.cos(g)
     return x, y, z
 
 
 def render(ref, img, ox):
     m = load_model(ref)
     gui = m.get("display", {}).get("gui")
-    rx, ry = (gui["rotation"][0], gui["rotation"][1]) if gui else (30, 225)
+    rx, ry, rz = (gui["rotation"][0], gui["rotation"][1], gui["rotation"][2]) if gui else (30, 225, 0)
+    if VIEW:
+        rx, ry, rz = (float(v) for v in VIEW.split(","))
     scale = (gui["scale"][0] if gui else 0.625) * CELL / 16.0 * 0.95
+    center = (8, 8, 8)
+    if FIT:
+        pts = [p for el in m.get("elements", []) for p in (el["from"], el["to"])]
+        lo = [min(p[k] for p in pts) for k in range(3)]
+        hi = [max(p[k] for p in pts) for k in range(3)]
+        center = tuple((lo[k] + hi[k]) / 2 for k in range(3))
+        scale = CELL * 0.9 / max(hi[k] - lo[k] for k in range(3))
     quads = []
     for el in m.get("elements", []):
         f, t = el["from"], el["to"]
@@ -111,7 +125,7 @@ def render(ref, img, ox):
             if tex is None:
                 continue
             uv = fd.get("uv", [0, 0, 16, 16])
-            quads.append(([view(c, rx, ry) for c in corners], tex, uv, SHADE[fname]))
+            quads.append(([view(c, rx, ry, rz, center) for c in corners], tex, uv, SHADE[fname]))
     # Split every face into texel cells and paint them back to front
     cells = []
     for corners, tex, uv, shade in quads:

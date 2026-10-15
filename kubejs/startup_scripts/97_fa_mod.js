@@ -11,6 +11,9 @@ if (Platform.isLoaded('factoryascension')) {
   $FAModConfig.setEngine(M.engine.suPerCoil, M.engine.coilsPerBurner, M.engine.maxModules, M.engine.fuelMultiplier)
   M.engine.rpm.forEach((r, i) => $FAModConfig.setEngineRpm(i, r))
   $FAModConfig.setStorage(M.storage.range, M.storage.maxLinks)
+  let SG = global.FA.guns.shotgun
+  $FAModConfig.setShotgun(SG.pellets, SG.pelletDamage, SG.spreadHip, SG.spreadAim, SG.range, SG.fullDamageRange, SG.falloff,
+    SG.cooldownTicks, SG.capacity, SG.reloadTicks, SG.kickback, SG.breaksGlass)
   $FAModConfig.setQuarry(M.quarry.radius, M.quarry.work, M.quarry.maxPerTick, M.quarry.minRpm, M.quarry.stress)
   $FAModConfig.setGrinder(M.grinder.reach, M.grinder.damagePerRpm, M.grinder.interval, M.grinder.minRpm, M.grinder.stress)
   global.FA.backpacks.tiers.forEach((t, i) => $FAModConfig.setBackpack(i, t.slots, t.upgrades))

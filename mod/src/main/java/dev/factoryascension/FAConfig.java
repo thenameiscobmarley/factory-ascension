@@ -42,6 +42,32 @@ public final class FAConfig {
         grinderStress = (float) Math.max(0, stress);
     }
 
+    // Shotgun (item/ShotgunItem): pellets a shot, damage each, spread in degrees (hip / aimed), range, full damage
+    // within, damage left at max range, ticks between shots, shells held, ticks per shell reloaded, kick, glass
+    public static int gunPellets = 8;
+    public static float gunPelletDamage = 5;
+    public static float gunSpreadHip = 7, gunSpreadAim = 2.5f;
+    public static float gunRange = 40, gunFullDamageRange = 10, gunFalloff = 0.35f;
+    public static int gunCooldown = 16, gunCapacity = 6, gunReloadTicks = 10;
+    public static float gunKnockback = 0.15f;
+    public static boolean gunBreaksGlass = true;
+
+    public static void setShotgun(int pellets, double damage, double spreadHip, double spreadAim, double range, double fullRange, double falloff,
+                                  int cooldown, int capacity, int reloadTicks, double knockback, boolean breaksGlass) {
+        gunPellets = Math.max(1, Math.min(64, pellets));
+        gunPelletDamage = (float) Math.max(0, damage);
+        gunSpreadHip = (float) Math.max(0, Math.min(45, spreadHip));
+        gunSpreadAim = (float) Math.max(0, Math.min(45, spreadAim));
+        gunRange = (float) Math.max(1, Math.min(256, range));
+        gunFullDamageRange = (float) Math.max(0, fullRange);
+        gunFalloff = (float) Math.max(0, Math.min(1, falloff));
+        gunCooldown = Math.max(1, cooldown);
+        gunCapacity = Math.max(1, Math.min(64, capacity));
+        gunReloadTicks = Math.max(1, reloadTicks);
+        gunKnockback = (float) Math.max(0, knockback);
+        gunBreaksGlass = breaksGlass;
+    }
+
     // Modular Engine
     public static float engineSuPerCoil = 256;
     public static int engineCoilsPerBurner = 4;

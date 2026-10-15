@@ -22,6 +22,7 @@ import java.util.List;
 public final class EntitySanity {
     private static final Logger LOG = LoggerFactory.getLogger("Factory Ascension");
     private static final double LIMIT = 3.0E7;
+    private static final double FAST = 64, SANE = 4;   // blocks a tick
 
     private EntitySanity() {
     }
@@ -44,6 +45,18 @@ public final class EntitySanity {
             if (e != null && broken(e)) {
                 if (fix == null) fix = new ArrayList<>();
                 fix.add(e);
+            }
+        }
+        // Absurdly fast (but finite) entities: each tick Minecraft checks collisions along the whole path, so an item
+        // moving hundreds of blocks a tick makes it scan every entity section in a huge box and the tick never ends.
+        // Slow them to a sane speed instead.
+        for (Entity e : level.getAllEntities()) {
+            if (e == null || e instanceof ServerPlayer || (fix != null && fix.contains(e))) continue;
+            Vec3 m = e.getDeltaMovement();
+            double speed = m.length();
+            if (speed > FAST) {
+                LOG.warn("Slowed {} moving {} blocks a tick (it would stall the server)", e, Math.round(speed));
+                e.setDeltaMovement(m.scale(SANE / speed));
             }
         }
         if (fix == null) return;

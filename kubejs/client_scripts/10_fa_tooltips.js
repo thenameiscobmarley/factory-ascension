@@ -721,6 +721,17 @@ ItemEvents.tooltip(event => {
       tip('Right-click with any item to key it to that item. Any distance, any dimension (both ends loaded).'),
       tip('Several receivers take turns. Feed it with a hopper, funnel or chute.')])
 
+    // Shotgun and shells
+    let SG = FA.guns.shotgun
+    details('factoryascension:shotgun', 'Pump action. Factory made.', () => [
+      use('hold right-click to aim down the sights, left-click to fire (hold it to keep firing), R to reload'),
+      tip(SG.pellets + ' pellets x ' + SG.pelletDamage + ' damage, ' + SG.capacity + ' shells, up to ' + SG.range + ' blocks; aiming tightens the spread'),
+      tip('Your attack: Ascended tomes go on it like any weapon, and your gear counts. Shatters glass.'),
+      made(shapedList(SG.recipe) + ' (crafting grid)')])
+    details('factoryascension:shotgun_shell', 'Mind the recoil.', () => [
+      use('loading the Shotgun (R reloads one shell at a time from your inventory)'),
+      made(FA.guns.shellsPerCraft + ' from ' + shapedList(FA.guns.shells) + ' (crafting grid)')])
+
     // The Ascended Realm
     block('realm_gate', 'A door with a sky on the other side.', () => [
       use('right-click: go to the Ascended Realm, floating islands where danger starts at ' + FA.danger.realmBonus),

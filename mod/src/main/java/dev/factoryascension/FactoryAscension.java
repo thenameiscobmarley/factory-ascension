@@ -135,6 +135,8 @@ public class FactoryAscension {
     // Universal Storage Terminal and its Storage Linker
     public static final RegistryObject<Block> TERMINAL = block("storage_terminal", () -> new TerminalBlock(machine()));
     public static final RegistryObject<Item> LINKER = ITEMS.register("storage_linker", () -> new StorageLinkerItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> SHOTGUN = ITEMS.register("shotgun", () -> new dev.factoryascension.item.ShotgunItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> SHOTGUN_SHELL = ITEMS.register("shotgun_shell", () -> new Item(new Item.Properties().stacksTo(64)));
     // Modular Engine: early-game parts (iron-tier, mine with any pickaxe)
     public static final RegistryObject<Block> ENGINE_CORE = block("engine_core", () -> new EngineBlock(engine()));
     public static final RegistryObject<Block> COIL = block("engine_coil", () -> new EngineModuleBlock(engine()));
@@ -210,6 +212,8 @@ public class FactoryAscension {
                 out.accept(r.get());
             out.accept(TERMINAL.get());
             out.accept(LINKER.get());
+            out.accept(SHOTGUN.get());
+            out.accept(SHOTGUN_SHELL.get());
             out.accept(ENGINE_CORE.get());
             out.accept(COIL.get());
             out.accept(GEARBOX.get());

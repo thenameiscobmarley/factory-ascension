@@ -319,6 +319,10 @@ function faDanger(entity) {
     mult.health *= global.FA.bosses.healthMult
     mult.damage *= global.FA.bosses.damageMult
   }
+  if (data.getBoolean('fa_horde')) {
+    mult.health *= global.FA.horde.healthMult || 1
+    mult.damage *= global.FA.horde.damageMult || 1
+  }
   return mult
 }
 
@@ -733,6 +737,41 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingExperienceDrop
   }
 })
 
+// ---- Mob loot toggle: sneak + swap hands (F) turns a player's mob loot enchants off or on ----
+// Plunder, Midas, Gem Hunter, the heads enchant and vanilla Looting all stop adding drops while it's off.
+function faLootOff(player) {
+  return !!player && player instanceof $FAPlayer && player.getPersistentData().getBoolean('fa_loot_off')
+}
+
+global.FA_toggleLoot = player => {
+  let off = !faLootOff(player)
+  player.getPersistentData().putBoolean('fa_loot_off', off)
+  player.displayClientMessage(off ? Text.red('Mob loot enchants: OFF').append(Text.gray(' (no extra mob drops; sneak + F to turn them back on)'))
+    : Text.green('Mob loot enchants: ON').append(Text.gray(' (sneak + F to turn them off)')), true)
+  return off
+}
+global.FA_lootOff = player => faLootOff(player)
+
+ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingSwapItemsEvent$Hands', event => {
+  try {
+    let player = event.getEntity()
+    if (!(player instanceof $FAPlayer) || player.level.isClientSide() || !player.isShiftKeyDown()) return
+    global.FA_toggleLoot(player)
+    event.setCanceled(true)
+  } catch (err) {
+    faWarnOnce('loot toggle', err)
+  }
+})
+
+ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LootingLevelEvent', event => {
+  try {
+    let src = event.getDamageSource()
+    if (src && faLootOff(src.actual)) event.setLootingLevel(0)
+  } catch (err) {
+    faWarnOnce('loot toggle', err)
+  }
+})
+
 // Fractional amounts become a chance for one more: 2.3 -> 2, or 3 with 30% chance
 function faRoll(exact) {
   let n = Math.floor(exact)
@@ -779,15 +818,17 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
       let server = killer.getServer()
       if (server) server.tell(Text.gold(killer.username).append(Text.yellow(' slew ').append(event.getEntity().getDisplayName())).append(Text.yellow('!')))
     }
-    faIds('heads').forEach(id => {
+    // Sneak + swap hands turns a player's mob loot enchants off (see faLootOff): no heads, Plunder, Midas or Gem Hunter
+    let lootOff = byPlayer && faLootOff(killer)
+    if (!lootOff) faIds('heads').forEach(id => {
       let level = levels[id] || 0
       let head = FA_HEADS[String(event.getEntity().type)]
       if (level > 0 && head && Math.random() < Math.min(1, faE(id).perLevel * level)) addStacks(Item.of(head), 1)
     })
 
-    // Plunder and danger: multiply what dropped
+    // Plunder and danger: multiply what dropped (Plunder skipped while the killer has mob loot bonuses off)
     let mult = 1
-    faIds('plunder').forEach(id => { mult += faE(id).perLevel * (levels[id] || 0) })
+    if (!lootOff) faIds('plunder').forEach(id => { mult += faE(id).perLevel * (levels[id] || 0) })
     if (danger) mult *= danger.boss ? 1 : danger.loot
     if (byPlayer && faEvent('goldenHour')) mult *= global.FA.events.goldenHour.lootMult
     let it = drops.iterator()
@@ -805,7 +846,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.living.LivingDropsEvent', e
     }
 
     // Midas, Gem Hunter: bonus items
-    faIds('drop').forEach(id => {
+    if (!lootOff) faIds('drop').forEach(id => {
       let level = levels[id] || 0
       if (level <= 0) return
       let count = faRoll(faE(id).perLevel * level)
