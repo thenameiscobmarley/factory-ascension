@@ -389,7 +389,7 @@ last is always Rare or better.
 A **Booster Box** holds 12 packs. Packs turn up in dungeon, mineshaft, temple, shipwreck, stronghold, nether fortress,
 bastion, mansion, ancient city and end city chests, and in danger-zone loot. Boxes only in the best chests and Epic+ loot.
 
-## Attachments: a light on your helmet, a chainsaw on your sword
+## Attachments: a light on your helmet, a chainsaw or an electric spike wrap on your sword
 
 Craft an attachment, hold it with the gear in your other hand and right-click. Every piece of gear has **2 slots**, and
 `/ascension` lists them with a **[Detach]** button that gives the attachment back. Armor attachments work while worn;
@@ -411,11 +411,30 @@ weapon, bow and tool ones while held.
 | Weapon | Taser | 15% chance to stun for a second | 2 copper, 2 redstone, Ascendite nugget |
 | Weapon | Flamethrower Nozzle | sets targets on fire for 5s | flint and steel, copper, blaze rod |
 | Weapon | Serrated Edge | targets bleed (Wither) for 3s | 3 flint, iron |
+| Weapon | ⚡ Electric Spike Wrap | +2 spike damage always; powered, every hit shocks for +6 and arcs to 2 enemies nearby (1 charge) | 2 iron, 2 copper, redstone, lightning rod |
+| Weapon | ⚡ Plasma Edge | powered, +40% damage and sets targets on fire (1 charge) | 2 Ascendite ingots, blaze powder, redstone, glowstone dust |
+| Weapon | ⚡ Overcharger | powered, every 5th hit releases a shock nova on everything within 4 blocks (5 charge) | Ascendite ingot, redstone block, lightning rod, Ascension Core |
+| Weapon | ⚡ Tesla Guard | powered, anything that hits you while you hold it is zapped for 8 and knocked back (2 charge) | lightning rod, 2 copper, redstone block |
+| Weapon | Vampire Fangs | heal 10% of the damage you deal | 2 bones, fermented spider eye, iron |
+| Weapon | Weighted Pommel | +2 knockback | iron block, chain |
+| Weapon | Targeting Lens | 20% chance a hit crits for x1.5 | spyglass, redstone, Ascendite nugget |
 | Bow / crossbow | Scope | +25% arrow damage | spyglass, glass pane, iron |
 | Pickaxe / shovel / hoe | Drill Bit | Haste II while held | 3 iron, diamond, Create cogwheel |
 | Pickaxe / shovel / hoe | Mining Lamp | a light that follows you while held | 2 torches, iron, glass pane |
 
-Everything is in the `attachments` section of the config.
+**⚡ Batteries:** powered attachments draw charge from a battery anywhere in your inventory, the emptiest one first. A
+battery's durability bar is its charge. With every battery flat, powered effects stop (the Spike Wrap's spikes still cut)
+and the action bar tells you. Creative players need no charge.
+
+| Battery | Charge | Recipe | Recharge (crafting grid or Mechanical Mixer, no heat) |
+|---|---|---|---|
+| Copper Battery | 200 | 2 copper, 2 redstone, iron nugget | + 1 redstone |
+| Ascendite Battery | 1,000 | 2 Ascendite ingots, redstone block, copper | + 1 redstone block |
+| Essence Cell | 6,000 | Dense Ascension Core, 2 Ascendite ingots, glass, redstone block | + 1 Ascension Core |
+
+Two part-used batteries of the same kind also combine in a crafting grid, like tools.
+
+Everything is in the `attachments` section of the config (`list` and `batteries`).
 
 ## Selling: turn loot into Essence
 
@@ -834,12 +853,12 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 65 checks (82 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 66 checks (83 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 
 `tools/test/harness.js` runs every script in plain Rhino against small fakes of the
-KubeJS API and runs 497 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
+KubeJS API and runs 506 checks, including a duplication fuzz test: recipes, Essence, tomes, upgrades, every enchant type, every Mythic, loot, danger zones and tooltips:
 
 ```sh
 curl -LO https://repo1.maven.org/maven2/org/mozilla/rhino/1.7.15/rhino-1.7.15.jar

@@ -348,6 +348,58 @@ ATTACHMENTS = {
     'mining_lamp': _att([('steel', add(rect(0.3, 0.2, 0.7, 0.8))), ('glass', add(rect(0.36, 0.3, 0.64, 0.7))), ('fire', add(ell(0.5, 0.52, 0.08, 0.12))), ('steel', add(arc(0.5, 0.2, 0.14, 180, 360, 0.05)))]),
 }
 
+MATERIALS.setdefault('copper', ((255, 196, 150), (200, 110, 62), (96, 44, 24)))
+MATERIALS.setdefault('bone', ((250, 248, 236), (214, 206, 180), (140, 130, 104)))
+MATERIALS.setdefault('plasma', ((230, 250, 255), (120, 200, 255), (40, 90, 200)))
+
+
+def _bolt(x, y, k=1.0):
+    """A small lightning bolt centered near (x, y)."""
+    return add(poly([(x - 0.04 * k, y - 0.16 * k), (x + 0.08 * k, y - 0.16 * k), (x + 0.01 * k, y - 0.02 * k), (x + 0.09 * k, y - 0.02 * k),
+                     (x - 0.07 * k, y + 0.2 * k), (x - 0.01 * k, y + 0.03 * k), (x - 0.09 * k, y + 0.03 * k)]))
+
+
+ATTACHMENTS.update({
+    # Copper wire wound round a grip, iron spikes poking out, a spark
+    'electric_spike_wrap': _att([('copper', add(*[seg(0.22, 0.3 + k * 0.1, 0.78, 0.38 + k * 0.1, 0.05) for k in range(5)])),
+                                 ('iron', add(*[poly([(0.14, 0.32 + k * 0.14), (0.24, 0.28 + k * 0.14), (0.24, 0.38 + k * 0.14)]) for k in range(4)],
+                                              *[poly([(0.86, 0.36 + k * 0.14), (0.76, 0.32 + k * 0.14), (0.76, 0.42 + k * 0.14)]) for k in range(4)])),
+                                 ('teal', _bolt(0.5, 0.16, 0.9))]),
+    # A blade edge glowing blue-white
+    'plasma_edge': _att([('steel', add(poly([(0.08, 0.72), (0.86, 0.22), (0.92, 0.3), (0.16, 0.82)]))),
+                         ('plasma', add(poly([(0.1, 0.66), (0.84, 0.18), (0.88, 0.22), (0.12, 0.72)]))), ('gold', add(rect(0.06, 0.74, 0.2, 0.86)))]),
+    # A capacitor can with a charge gauge and a bolt
+    'overcharger': _att([('steel', add(rect(0.26, 0.2, 0.74, 0.86))), ('gold', add(rect(0.22, 0.14, 0.78, 0.24), rect(0.22, 0.82, 0.78, 0.9))),
+                         ('teal', add(rect(0.34, 0.36, 0.66, 0.42), rect(0.34, 0.5, 0.66, 0.56), rect(0.34, 0.64, 0.66, 0.7))), ('gem', _bolt(0.5, 0.06, 0.6))]),
+    # A crossguard with two copper coils and an arc between them
+    'tesla_guard': _att([('steel', add(rect(0.1, 0.54, 0.9, 0.66))), ('copper', add(*[rect(0.14, 0.22 + k * 0.08, 0.3, 0.27 + k * 0.08) for k in range(4)],
+                                                                                   *[rect(0.7, 0.22 + k * 0.08, 0.86, 0.27 + k * 0.08) for k in range(4)])),
+                         ('teal', add(arc(0.5, 0.3, 0.22, 180, 360, 0.04))), ('grip', add(rect(0.44, 0.66, 0.56, 0.94)))]),
+    # Two white fangs on a red band
+    'vampire_fangs': _att([('red', add(rect(0.12, 0.2, 0.88, 0.36))), ('bone', add(poly([(0.24, 0.36), (0.42, 0.36), (0.33, 0.86)]), poly([(0.58, 0.36), (0.76, 0.36), (0.67, 0.86)]))),
+                           ('red', add(circ(0.33, 0.82, 0.04), circ(0.67, 0.82, 0.04)))]),
+    # A heavy iron ball on a chain link
+    'weighted_pommel': _att([('steel_dk', add(arc(0.5, 0.2, 0.1, 0, 360, 0.05))), ('iron', add(circ(0.5, 0.6, 0.28))), ('gold', add(rect(0.38, 0.3, 0.62, 0.36)))]),
+    # A round lens with red crosshairs
+    'targeting_lens': _att([('steel', add(circ(0.5, 0.5, 0.36))), ('glass', add(circ(0.5, 0.5, 0.27))),
+                            ('red', add(rect(0.48, 0.26, 0.52, 0.74), rect(0.26, 0.48, 0.74, 0.52))), ('red', add(circ(0.5, 0.5, 0.06)))]),
+})
+
+
+def _battery(body, band, cells):
+    """An upright battery: colored body, steel caps, a + terminal and teal charge cells."""
+    return _att([(body, add(rect(0.28, 0.2, 0.72, 0.9))), ('steel', add(rect(0.26, 0.16, 0.74, 0.24), rect(0.26, 0.86, 0.74, 0.94), rect(0.42, 0.06, 0.58, 0.16))),
+                 (band, add(rect(0.28, 0.3, 0.72, 0.36))),
+                 ('teal', add(*[rect(0.38, 0.44 + k * (0.36 / cells), 0.62, 0.44 + k * (0.36 / cells) + 0.36 / cells - 0.03) for k in range(cells)]))])
+
+
+BATTERIES = {
+    'copper_battery': _battery('copper', 'steel_dk', 2),
+    'ascendite_battery': _battery('steel_dk', 'gold', 3),
+    'essence_cell': _att([('glass', add(rect(0.26, 0.16, 0.74, 0.9))), ('gem', add(rect(0.32, 0.3, 0.68, 0.84))), ('gold', add(rect(0.22, 0.1, 0.78, 0.18), rect(0.22, 0.88, 0.78, 0.96))),
+                          ('teal', _bolt(0.5, 0.56, 1.1))]),
+}
+
 
 def room_tnt(shell, light, size_index):
     """Factory Room TNT: a TNT block whose label band is the room's wall block, with a glowing lamp (the room's lights),

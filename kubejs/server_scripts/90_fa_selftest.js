@@ -432,6 +432,27 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     check('a Headlamp places a real light block at your head (light ' + lit + ') and cleans it up', lit == 15 && cleared, lit + ' / ' + cleared)
     player.setItemSlot($STSlot.HEAD, Item.of('minecraft:air'))
     player.setPositionAndRotation(X, Y, Z, 0, 0)
+    // Electric Spike Wrap on a real sword, powered by a real battery in the inventory
+    let zapSword = Item.of('minecraft:iron_sword')
+    player.setItemInHand('main_hand', Item.of('kubejs:attachment_electric_spike_wrap'))
+    player.setItemInHand('off_hand', zapSword)
+    player.gameMode.useItem(player, level, player.getMainHandItem(), $STHand.MAIN_HAND)
+    player.setItemInHand('main_hand', player.getOffhandItem())
+    player.setItemInHand('off_hand', Item.of('minecraft:air'))
+    let cellSlot = 20
+    player.getInventory().setItem(cellSlot, Item.of('kubejs:copper_battery'))
+    let target = spawn('minecraft:husk', X - 3, Y, Z - 3)
+    ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => target.getPersistentData().remove(k))
+    target.setHealth(20)
+    target.invulnerableTime = 0
+    let hp0 = target.getHealth()
+    target.attack(player.damageSources().playerAttack(player), 1)
+    let used = player.getInventory().getItem(cellSlot).getDamageValue()
+    let W = global.FA_attachmentDef('electric_spike_wrap')
+    check('Electric Spike Wrap + Copper Battery: a 1-damage hit does ' + (hp0 - target.getHealth()).toFixed(1) + ' and uses ' + used + ' charge',
+      used == W.charge && hp0 - target.getHealth() >= (1 + W.spikes + W.power) * 0.85, used + ' / ' + (hp0 - target.getHealth()))
+    player.getInventory().setItem(cellSlot, Item.of('minecraft:air'))
+    target.discard()
     player.setItemInHand('main_hand', sword)
   })
 

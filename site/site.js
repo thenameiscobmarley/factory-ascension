@@ -200,7 +200,7 @@
     if (i == G.length - 1) confetti($("#gradeOut"), 50, ["#ffb84d", "#ffffff"]);
   });
   $("#attach").innerHTML = FA.attachments.list.map(a => '<button class="att" data-id="' + a.id + '" title="' + esc(a.name) + '" type="button"><img src="' + tex("attachment_" + a.id) + '" alt="' + esc(a.name) + '" /></button>').join("");
-  const showAtt = id => { const a = global.FA_attachmentDef(id); $("#attachOut").innerHTML = "<b>" + esc(a.name) + '</b> <span class="dim">(' + a.fits + ")</span> " + esc(a.text.replace("{p}", a.power)); };
+  const showAtt = id => { const a = global.FA_attachmentDef(id); $("#attachOut").innerHTML = "<b>" + esc(a.name) + '</b> <span class="dim">(' + a.fits + ")</span> " + esc(global.FA_attachmentEffect(a)); };
   ["mouseover", "focusin", "click"].forEach(ev => $("#attach").addEventListener(ev, e => { const b = e.target.closest(".att"); if (b) showAtt(b.dataset.id); }));
   showAtt("jetpack");
   const AR = FA.artifacts;

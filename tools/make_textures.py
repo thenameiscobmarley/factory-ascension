@@ -778,6 +778,9 @@ def ascendite_textures(textures):
     for name, draw in gear_art.ATTACHMENTS.items():
         px = draw()
         textures["attachment_" + name] = Outlined(px, px, (10, 12, 20, 255))
+    for name, draw in gear_art.BATTERIES.items():
+        px = draw()
+        textures[name] = Outlined(px, px, (10, 12, 20, 255))
     for name, draw in gear_art.HAMMERS.items():
         px = draw()
         textures[name] = Outlined(px, px, (10, 12, 20, 255))

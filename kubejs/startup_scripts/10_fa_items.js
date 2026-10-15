@@ -90,6 +90,8 @@ StartupEvents.registry('item', event => {
 
   // Attachments: add-ons for gear (config: attachments)
   global.FA.attachments.list.forEach(at => event.create('attachment_' + at.id).displayName(at.name).rarity('uncommon').maxStackSize(16))
+  // Batteries: their durability bar is their charge (config: attachments.batteries)
+  global.FA.attachments.batteries.forEach((b, i) => event.create(b.id).displayName(b.name).rarity(['common', 'uncommon', 'rare'][Math.min(i, 2)]).maxDamage(b.charge))
 
   // Rerolls a piece of gear's condition, keeping the better grade (config: condition)
   event.create('polishing_cloth').displayName('Polishing Cloth').rarity('uncommon')

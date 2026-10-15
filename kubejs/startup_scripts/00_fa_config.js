@@ -1265,6 +1265,8 @@ global.FA = {
   // Hold an attachment with the gear in your other hand and right-click. Each piece of gear has `slots` slots;
   // /ascension shows them with a [Detach] button. fits: helmet, chest, legs, boots, weapon, bow or tool (pickaxe,
   // shovel, hoe). power: the number the effect uses. recipe: shapeless crafting ingredients.
+  // charge: powered attachments use this much battery charge each time they fire, from a battery anywhere in your
+  // inventory (the emptiest one first). With no charge left they don't fire (spikes and blades still cut).
   attachments: {
     enabled: true,
     slots: 2,
@@ -1302,7 +1304,43 @@ global.FA = {
       { id: 'drill_bit', name: 'Drill Bit', fits: 'tool', power: 2, text: 'Haste {p} while you hold it',
         recipe: ['minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:diamond', 'create:cogwheel'] },
       { id: 'mining_lamp', name: 'Mining Lamp', fits: 'tool', power: 15, text: 'lights up the area around you while held (light {p})',
-        recipe: ['minecraft:torch', 'minecraft:torch', 'minecraft:iron_ingot', 'minecraft:glass_pane'] }
+        recipe: ['minecraft:torch', 'minecraft:torch', 'minecraft:iron_ingot', 'minecraft:glass_pane'] },
+      // Sword attachments (any weapon). Powered ones need battery charge.
+      { id: 'electric_spike_wrap', name: 'Electric Spike Wrap', fits: 'weapon', power: 6, charge: 1, spikes: 2, arcs: 2,
+        text: '+{s} spike damage; powered, every hit shocks for +{p} and arcs to {a} enemies nearby',
+        recipe: ['minecraft:iron_ingot', 'minecraft:iron_ingot', 'minecraft:copper_ingot', 'minecraft:copper_ingot', 'minecraft:redstone', 'minecraft:lightning_rod'] },
+      { id: 'plasma_edge', name: 'Plasma Edge', fits: 'weapon', power: 40, charge: 1,
+        text: 'powered, +{p}% damage and sets targets on fire',
+        recipe: ['kubejs:ascendite_ingot', 'kubejs:ascendite_ingot', 'minecraft:blaze_powder', 'minecraft:redstone', 'minecraft:glowstone_dust'] },
+      { id: 'overcharger', name: 'Overcharger', fits: 'weapon', power: 5, charge: 5,
+        text: 'powered, every {p}th hit releases a shock nova that hits everything within 4 blocks',
+        recipe: ['kubejs:ascendite_ingot', 'minecraft:redstone_block', 'minecraft:lightning_rod', 'kubejs:ascension_core'] },
+      { id: 'tesla_guard', name: 'Tesla Guard', fits: 'weapon', power: 8, charge: 2,
+        text: 'powered, anything that hits you while you hold it is zapped for {p} and knocked back',
+        recipe: ['minecraft:lightning_rod', 'minecraft:copper_ingot', 'minecraft:copper_ingot', 'minecraft:redstone_block'] },
+      { id: 'vampire_fangs', name: 'Vampire Fangs', fits: 'weapon', power: 10,
+        text: 'heal {p}% of the damage you deal',
+        recipe: ['minecraft:bone', 'minecraft:bone', 'minecraft:fermented_spider_eye', 'minecraft:iron_ingot'] },
+      { id: 'weighted_pommel', name: 'Weighted Pommel', fits: 'weapon', power: 2,
+        text: 'knocks targets back much harder (+{p} knockback)',
+        recipe: ['minecraft:iron_block', 'minecraft:chain'] },
+      { id: 'targeting_lens', name: 'Targeting Lens', fits: 'weapon', power: 20,
+        text: '{p}% chance a hit is a critical strike for x1.5 damage',
+        recipe: ['minecraft:spyglass', 'minecraft:redstone', 'kubejs:ascendite_nugget'] }
+    ],
+    // Batteries: carry one to power attachments. charge: how much it holds (its durability bar shows what's left).
+    // Recharge an empty one in a crafting grid or a Mechanical Mixer (no heat) with its `recharge` items; two part-used
+    // batteries of the same kind also combine in a crafting grid like tools do.
+    batteries: [
+      { id: 'copper_battery', name: 'Copper Battery', charge: 200,
+        recipe: ['minecraft:copper_ingot', 'minecraft:copper_ingot', 'minecraft:redstone', 'minecraft:redstone', 'minecraft:iron_nugget'],
+        recharge: ['minecraft:redstone'] },
+      { id: 'ascendite_battery', name: 'Ascendite Battery', charge: 1000,
+        recipe: ['kubejs:ascendite_ingot', 'kubejs:ascendite_ingot', 'minecraft:redstone_block', 'minecraft:copper_ingot'],
+        recharge: ['minecraft:redstone_block'] },
+      { id: 'essence_cell', name: 'Essence Cell', charge: 6000,
+        recipe: ['kubejs:dense_ascension_core', 'kubejs:ascendite_ingot', 'kubejs:ascendite_ingot', 'minecraft:glass', 'minecraft:redstone_block'],
+        recharge: ['kubejs:ascension_core'] }
     ]
   },
 
@@ -1889,7 +1927,7 @@ global.FA_meteorPool = () => {
     'polishing_cloth', 'rock_hammer', 'ascendite_rock_hammer', 'liquid_essence_bucket'].map(k))
   put(P.food, [].concat.apply([], FA.mobFood.foods.map(fd => [k(fd.raw), k(fd.cooked)])))
   put(P.ascenditeGear, gear('ascendite').filter(id => id != k('ascendite_ingot')))
-  put(P.attachments, FA.attachments.list.map(a => k('attachment_' + a.id)))
+  put(P.attachments, FA.attachments.list.map(a => k('attachment_' + a.id)).concat(FA.attachments.batteries.map(b => k(b.id))))
   put(P.packs, [k('enchantment_pack'), k('gear_cache')])
   put(P.denseCore, [k('dense_ascension_core')])
   put(P.baseTomes, tomes(e => !e.mythic && !e.ultimate && e.type != 'fusion'))
@@ -2175,8 +2213,11 @@ global.FA_rollArtifact = (rnd, kind) => {
 // "Headlamp: lights up the area around you (light 15)"
 global.FA_attachmentText = id => {
   let a = global.FA.attachments.list.filter(x => x.id == id)[0]
-  return a ? a.name + ': ' + a.text.replace('{p}', String(a.power)) : id
+  return a ? a.name + ': ' + global.FA_attachmentEffect(a) : id
 }
+// What an attachment does, with its numbers filled in: {p} power, {s} spikes, {a} arcs; powered ones say so
+global.FA_attachmentEffect = a => a.text.replace('{p}', String(a.power)).replace('{s}', String(a.spikes || 0)).replace('{a}', String(a.arcs || 0)) +
+  (a.charge ? ' (' + a.charge + ' battery charge each)' : '')
 global.FA_attachmentDef = id => global.FA.attachments.list.filter(x => x.id == id)[0]
 
 // "Echo Strike: 23% chance a hit lands twice"

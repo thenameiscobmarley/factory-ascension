@@ -289,7 +289,7 @@ ItemEvents.tooltip(event => {
   let details = (id, lore, lines) => {
     event.addAdvanced(id, (item, advanced, text) => {
       text.add(Text.darkPurple(lore).italic(true))
-      if (event.isShift()) lines().forEach(l => text.add(l))
+      if (event.isShift()) lines(item).forEach(l => text.add(l))
       else text.add(Text.darkGray('Hold ').append(Text.yellow('Shift')).append(Text.darkGray(' for details')))
     })
   }
@@ -476,10 +476,23 @@ ItemEvents.tooltip(event => {
   // Attachments
   let fitsText = { helmet: 'Helmets', chest: 'Chestplates', legs: 'Leggings', boots: 'Boots', weapon: 'Weapons (swords, axes...)', bow: 'Bows and crossbows', tool: 'Pickaxes, shovels and hoes' }
   FA.attachments.list.forEach(at => details('kubejs:attachment_' + at.id, 'Some assembly required.', () => [
-    Text.gray('Fits: ').append(Text.white(fitsText[at.fits])).append(Text.gray('  \u2192  ')).append(Text.gold(at.text.replace('{p}', String(at.power)))),
+    Text.gray('Fits: ').append(Text.white(fitsText[at.fits])).append(Text.gray('  \u2192  ')).append(Text.gold(global.FA_attachmentEffect(at))),
     Text.gray('Use: ').append(Text.white('hold the gear in your other hand and right-click this')),
     tip('Up to ' + FA.attachments.slots + ' attachments per item. Take one off with [Detach] in /ascension.'),
-    made(itemList(at.recipe) + ' (crafting grid)')]))
+    made(itemList(at.recipe) + ' (crafting grid)')].concat(at.charge ? [Text.yellow('\u26a1 Powered: ').append(Text.white('uses ' + at.charge + ' charge each time, from a battery you carry (' +
+      FA.attachments.batteries.map(b => b.name).join(', ') + ')'))] : [])))
+
+  // Batteries
+  let batteryLore = ['Two copper plates and a lot of hope.', 'Hums quietly with teal light.', 'A whole storm in a glass jar.']
+  FA.attachments.batteries.forEach((b, i) => details('kubejs:' + b.id, batteryLore[i] || 'Fully charged.', item => [
+    Text.gray('Charge: ').append(Text.aqua(global.FA_num(Math.max(0, b.charge - (item && item.getDamageValue ? item.getDamageValue() : 0))) + ' / ' + global.FA_num(b.charge)))
+      .append(Text.darkGray('  (the bar shows what is left)')),
+    Text.gray('Use: ').append(Text.white('carry it: powered attachments draw charge from it')),
+    tip('Powered: ' + FA.attachments.list.filter(a => a.charge).map(a => a.name + ' (' + a.charge + ')').join(', ')),
+    made(itemList(b.recipe) + ' (crafting grid)'),
+    tip('Recharge: the battery + ' + itemList(b.recharge) + ' in a crafting grid or a Mechanical Mixer (no heat)'),
+    FA.attachments.batteries[i + 1] ? up('the ' + FA.attachments.batteries[i + 1].name + ' holds ' + global.FA_num(FA.attachments.batteries[i + 1].charge) + ': ' + itemList(FA.attachments.batteries[i + 1].recipe))
+      : tip('The biggest battery')]))
 
   // Foil Sheets
   FA.foils.types.forEach((f, i) => details('kubejs:foil_sheet_' + f.id, ['Cheap shine, honest work.', 'Polished to a mirror.', 'Every collector wants one.', 'It shifts color as you turn it.',

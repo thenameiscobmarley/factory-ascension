@@ -6,6 +6,14 @@ ServerEvents.recipes(event => {
   global.FA.attachments.list.forEach(at => {
     event.shapeless('kubejs:attachment_' + at.id, at.recipe).id('kubejs:factory_ascension/attachment_' + at.id)
   })
+  // Batteries: craft one, then recharge it (any charge level) by hand or in a Mechanical Mixer, no heat needed
+  global.FA.attachments.batteries.forEach(b => {
+    let id = 'kubejs:' + b.id
+    event.shapeless(id, b.recipe).id('kubejs:factory_ascension/battery_' + b.id)
+    event.shapeless(id, [id].concat(b.recharge)).id('kubejs:factory_ascension/recharge_' + b.id)
+    event.custom({ type: 'create:mixing', ingredients: [{ item: id }].concat(b.recharge.map(r => ({ item: r }))), results: [{ item: id }] })
+      .id('kubejs:factory_ascension/mixer_recharge_' + b.id)
+  })
 })
 
 const FA_FITS_TEXT = { helmet: 'a helmet', chest: 'a chestplate', legs: 'leggings', boots: 'boots', weapon: 'a weapon', bow: 'a bow or crossbow', tool: 'a pickaxe, shovel or hoe' }
@@ -38,7 +46,7 @@ function faAttach(player, item, id, gear) {
   tag.put(FA_ITEM_TAG, data)
   item.shrink(1)
   faSound(player, 'minecraft:block.smithing_table.use', 1.2)
-  player.tell(Text.gold(def.name + ' attached to ').append(gear.getHoverName()).append(Text.gold('! ')).append(Text.gray(def.text.replace('{p}', String(def.power)))))
+  player.tell(Text.gold(def.name + ' attached to ').append(gear.getHoverName()).append(Text.gold('! ')).append(Text.gray(global.FA_attachmentEffect(def))))
   return 1
 }
 

@@ -394,7 +394,7 @@ check('486 enchants (59 + 15 Mythic + 200 Fusion + 200 Triad + 12 Ultimate)', en
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.foils.types.length +
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.attachments.batteries.length + global.FA.foils.types.length +
   global.FA.roomCharges.styles.length * global.FA.roomCharges.sizes.length, created.length)
 var vanillaMobs = {}
 MF.foods.forEach(function (fd) { fd.mobs.forEach(function (m) { vanillaMobs[m] = true }) })
@@ -1793,7 +1793,9 @@ recipes.forEach(function (r) {
   var ins = (r.json.ingredients || []).map(function (i) { return i.item || 'fluid:' + i.fluid }).concat(r.json.ingredient ? [r.json.ingredient.item] : [])
   ;(r.json.results || []).forEach(function (o) {
     var out = o.item || 'fluid:' + o.fluid
-    if (ins.indexOf(out) >= 0 && out != 'kubejs:incomplete_ascension_core') outputs[r.rid] = out
+    // A battery recharge takes one battery and gives back one (charged): not a duplication
+    var recharge = /recharge_/.test(r.rid) && ins.filter(function (i) { return i == out }).length == 1 && (o.count || 1) == 1
+    if (ins.indexOf(out) >= 0 && out != 'kubejs:incomplete_ascension_core' && !recharge) outputs[r.rid] = out
   })
 })
 check('no recipe gives back its own input (no duplication loops)', Object.keys(outputs).length == 0, JSON.stringify(outputs))
@@ -2017,6 +2019,38 @@ var near1 = makeMob(), victimA = makeMob(); victimA.nearby = [near1]
 check('Chainsaw: +30% damage and it rips into enemies next to the target', near(hit(sawer, victimA, 10), 13) && near1.hurtBy.length == 1, near1.hurtBy.join())
 sawer.off = cs; sawer.main = stack(0)
 check('a weapon attachment only works from the main hand', hit(sawer, makeMob(), 10) == 10)
+// Sword attachments and batteries
+function swordWith(id) { var g = gearOf('weapon'); faSetLevel(g, 'sharpness', 0); var t = g.getOrCreateTag(), d = t.getCompound('FactoryAscension'), a = new Compound(); a.putString('0', id); d.put('attach', a); t.put('FactoryAscension', d); return g }
+function battery(kind, used) { var b = stack(1, 1); b.id = 'kubejs:' + kind; b.maxDamage = global.FA.attachments.batteries.filter(function (x) { return x.id == kind })[0].charge; b.damage = used || 0; return b }
+var zapper = makePlayer(server, 'zapper'), cell = battery('copper_battery'); zapper.main = swordWith('electric_spike_wrap'); zapper.inv = [cell]
+var arcA = makeMob(), zapped = makeMob(); zapped.nearby = [arcA]
+var W = global.FA_attachmentDef('electric_spike_wrap')
+check('Electric Spike Wrap: +' + W.spikes + ' spikes +' + W.power + ' shock, arcs to a nearby enemy, uses ' + W.charge + ' battery charge',
+  near(hit(zapper, zapped, 10), 10 + W.spikes + W.power) && arcA.hurtBy.length == 1 && cell.damage == W.charge, cell.damage + ' / ' + arcA.hurtBy.join())
+var flat = makePlayer(server, 'flat'); flat.main = swordWith('electric_spike_wrap'); flat.inv = [battery('copper_battery', 200)]
+check('...with every battery flat only the spikes cut, and it says why', near(hit(flat, makeMob(), 10), 10 + W.spikes) && flat.bar.some(function (m) { return /No battery charge/.test(m) }), flat.bar.join(' | '))
+var picky = makePlayer(server, 'picky'), fresh = battery('ascendite_battery', 10), old = battery('copper_battery', 150); picky.main = swordWith('plasma_edge'); picky.inv = [fresh, old]
+var burnt = makeMob()
+check('Plasma Edge: +40% and fire, drawing from the emptiest battery first', near(hit(picky, burnt, 10), 14) && burnt.fire > 0 && old.damage == 151 && fresh.damage == 10, old.damage + ' ' + fresh.damage)
+var builder = makePlayer(server, 'builder'), spare = battery('copper_battery'); builder.creative = true; builder.main = swordWith('plasma_edge'); builder.inv = [spare]
+check('Creative players need no charge', near(hit(builder, makeMob(), 10), 14) && spare.damage == 0)
+var biter = makePlayer(server, 'biter'); biter.main = swordWith('vampire_fangs')
+hit(biter, makeMob(), 10)
+check('Vampire Fangs: heal 10% of the damage dealt', near(biter.healed, 1), biter.healed)
+var guard = makePlayer(server, 'guard'), thug = makeMob(); guard.main = swordWith('tesla_guard'); guard.inv = [battery('copper_battery')]
+hit(thug, guard, 5)
+check('Tesla Guard: whatever hits you is zapped for 8', thug.hurtBy[0] == 8 && guard.inv[0].damage == 2, thug.hurtBy.join() + ' / ' + guard.inv[0].damage)
+var charger = makePlayer(server, 'charger'), novaA = makeMob(), dummy = makeMob(); charger.main = swordWith('overcharger'); charger.inv = [battery('essence_cell')]; dummy.nearby = [novaA]
+for (var oc = 0; oc < 4; oc++) hit(charger, dummy, 10)
+var beforeNova = novaA.hurtBy.length
+hit(charger, dummy, 10)
+check('Overcharger: the 5th hit releases a shock nova', beforeNova == 0 && novaA.hurtBy.length == 1 && charger.inv[0].damage == 5, beforeNova + ' ' + novaA.hurtBy.length)
+var lensed = makePlayer(server, 'lensed'); lensed.main = swordWith('targeting_lens'); Math.random = function () { return 0.1 }
+check('Targeting Lens: a lucky hit crits for x1.5', near(hit(lensed, makeMob(), 10), 15))
+Math.random = realRandom
+check('batteries: crafted, recharged by hand and in a Mixer, never a duplication', global.FA.attachments.batteries.every(function (b) {
+  return ['battery_', 'recharge_', 'mixer_recharge_'].every(function (k) { return recipes.some(function (r) { return r.rid == 'kubejs:factory_ascension/' + k + b.id }) })
+}))
 // Armor attachments
 function wearWith(kind, id) { var g = gearOf(kind); var t = g.getOrCreateTag(), d = t.getCompound('FactoryAscension'), a = new Compound(); a.putString('0', id); d.put('attach', a); t.put('FactoryAscension', d); return g }
 var padded = makePlayer(server, 'padded'); padded.armor = [wearWith('legs', 'knee_pads')]
