@@ -270,10 +270,13 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     // The ore feature is in the world's worldgen registry: place one vein into a block of stone and look for ore
     let sx = X + 10, sy = Y + 2, sz = Z - 14
     for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) for (let dz = -3; dz <= 3; dz++) place(sx + dx, sy + dy, sz + dz, 'minecraft:stone')
-    server.runCommandSilent('execute in minecraft:overworld run place feature kubejs:ore_ascendite ' + sx + ' ' + sy + ' ' + sz)
+    // A vein is random and can miss the stone, so give it a few tries
     let ores = 0
-    for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) for (let dz = -3; dz <= 3; dz++) {
-      if (String(level.getBlock(new $STBlockPos(sx + dx, sy + dy, sz + dz)).id) == 'kubejs:ascendite_ore') ores++
+    for (let tries = 0; tries < 5 && ores == 0; tries++) {
+      server.runCommandSilent('execute in minecraft:overworld run place feature kubejs:ore_ascendite ' + sx + ' ' + sy + ' ' + sz)
+      for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) for (let dz = -3; dz <= 3; dz++) {
+        if (String(level.getBlock(new $STBlockPos(sx + dx, sy + dy, sz + dz)).id) == 'kubejs:ascendite_ore') ores++
+      }
     }
     check('Ascendite ore worldgen is loaded (a vein placed ' + ores + ' ore)', ores > 0, ores)
   })
@@ -646,6 +649,41 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       !!realmLevel && (realmCounts.realm_stone || 0) > 50 && realmOres.length >= 2 && realmGate && realmDanger >= global.FA.danger.realmBonus &&
       realmIn == 'factoryascension:ascended_realm' && realmBack.join(' ') == realmStart.join(' '),
       [!!realmLevel, realmBefore, JSON.stringify(realmCounts), realmGate, realmDanger, realmIn, realmBack.join(' ')].join(' / '))
+    // Structures: each one builds, its chests fill from their loot tables and its spawner holds the right mob
+    let stChest = (lvl, x, y, z) => {
+      let be = lvl.getBlockEntity(new $STBlockPos(x, y, z))
+      if (!be || !be.unpackLootTable) return -1
+      be.unpackLootTable(null)
+      let n = 0
+      for (let i = 0; i < be.getContainerSize(); i++) if (!be.getItem(i).isEmpty()) n++
+      return n
+    }
+    let stSpawner = (lvl, x, y, z) => { let be = lvl.getBlockEntity(new $STBlockPos(x, y, z)); return be ? String(be.saveWithoutMetadata()) : '' }
+    let stOut = {}
+    // Factory Ruin on the test floor (its chest is somewhere near the middle)
+    server.runCommandSilent('place feature factoryascension:factory_ruin ' + (X - 18) + ' ' + Y + ' ' + (Z - 18))
+    for (let dx = -5; dx <= 5; dx++) for (let dz = -5; dz <= 5; dz++) for (let dy = 0; dy <= 6; dy++) placed.push(new $STBlockPos(X - 18 + dx, Y + dy, Z - 18 + dz))
+    stOut.ruin = -1
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++)
+      if (String(level.getBlock(X - 18 + dx, Y, Z - 18 + dz).id) == 'minecraft:chest') stOut.ruin = stChest(level, X - 18 + dx, Y, Z - 18 + dz)
+    // Ascension Crypt below the floor
+    server.runCommandSilent('place feature factoryascension:ascension_crypt ' + (X - 18) + ' ' + (Y - 12) + ' ' + (Z + 18))
+    stOut.crypt = stChest(level, X - 21, Y - 12, Z + 18) + stChest(level, X - 15, Y - 12, Z + 18)
+    stOut.cryptMob = /ascendite_(skeleton|husk)/.test(stSpawner(level, X - 18, Y - 12, Z + 18))
+    for (let dx = -4; dx <= 4; dx++) for (let dz = -4; dz <= 4; dz++) for (let dy = -1; dy <= 4; dy++) placed.push(new $STBlockPos(X - 18 + dx, Y - 12 + dy, Z + 18 + dz))
+    // Realm Vault (inside Realm Stone) and Sky Shrine (on Realm Moss), in the Realm's forceloaded chunk
+    if (realmLevel) {
+      let vx = X + 8, vz = Z + 8
+      server.runCommandSilent('execute in factoryascension:ascended_realm run fill ' + (vx - 5) + ' 59 ' + (vz - 5) + ' ' + (vx + 5) + ' 66 ' + (vz + 5) + ' factoryascension:realm_stone')
+      server.runCommandSilent('execute in factoryascension:ascended_realm run place feature factoryascension:realm_vault ' + vx + ' 60 ' + vz)
+      stOut.vault = stChest(realmLevel, vx, 60, vz - 3) + stChest(realmLevel, vx, 60, vz + 3)
+      stOut.vaultMob = /void_(stalker|archer)/.test(stSpawner(realmLevel, vx, 60, vz))
+      server.runCommandSilent('execute in factoryascension:ascended_realm run fill ' + (vx - 4) + ' 89 ' + (vz - 4) + ' ' + (vx + 4) + ' 89 ' + (vz + 4) + ' factoryascension:realm_moss')
+      server.runCommandSilent('execute in factoryascension:ascended_realm run place feature factoryascension:sky_shrine ' + vx + ' 90 ' + vz)
+      stOut.shrine = stChest(realmLevel, vx, 90, vz)
+    }
+    check('Structures: Factory Ruin, Ascension Crypt, Realm Vault and Sky Shrine build, fill their chests and set their spawners (' + JSON.stringify(stOut) + ')',
+      stOut.ruin > 0 && stOut.crypt > 1 && stOut.cryptMob && stOut.vault > 1 && stOut.vaultMob && stOut.shrine > 0, JSON.stringify(stOut))
     // Ascension Workbench: two halves; Apply puts an attachment on a sword, Star Up adds a Legendary star
     let benchPos = place(X + 26, Y, Z + 16, 'minecraft:air')
     level.getBlock(benchPos).set('factoryascension:ascension_workbench', { facing: 'north', main: 'true' })

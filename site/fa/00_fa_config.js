@@ -1069,7 +1069,10 @@ global.FA = {
       'minecraft:chests/stronghold_corridor': [0.3, 0.03], 'minecraft:chests/stronghold_library': [0.6, 0.08],
       'minecraft:chests/nether_bridge': [0.25, 0.02], 'minecraft:chests/bastion_treasure': [0.6, 0.15],
       'minecraft:chests/woodland_mansion': [0.5, 0.1], 'minecraft:chests/ancient_city': [0.6, 0.15],
-      'minecraft:chests/end_city_treasure': [0.6, 0.2]
+      'minecraft:chests/end_city_treasure': [0.6, 0.2],
+      // The pack's structures (Full download)
+      'factoryascension:chests/factory_ruin': [0.5, 0.03], 'factoryascension:chests/ascension_crypt': [0.6, 0.08],
+      'factoryascension:chests/sky_shrine': [0.8, 0.15], 'factoryascension:chests/realm_vault': [1, 0.35]
     }
   },
 
@@ -1096,7 +1099,9 @@ global.FA = {
       'minecraft:chests/nether_bridge': [0.55, 0.2], 'minecraft:chests/bastion_treasure': [0.9, 0.6],
       'minecraft:chests/bastion_other': [0.5, 0.15], 'minecraft:chests/bastion_bridge': [0.5, 0.15],
       'minecraft:chests/woodland_mansion': [0.8, 0.4], 'minecraft:chests/ancient_city': [0.9, 0.5],
-      'minecraft:chests/end_city_treasure': [0.9, 0.6]
+      'minecraft:chests/end_city_treasure': [0.9, 0.6],
+      'factoryascension:chests/factory_ruin': [0.4, 0.1], 'factoryascension:chests/ascension_crypt': [0.7, 0.3],
+      'factoryascension:chests/sky_shrine': [0.8, 0.4], 'factoryascension:chests/realm_vault': [1, 0.8]
     }
   },
 

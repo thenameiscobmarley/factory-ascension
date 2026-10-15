@@ -220,6 +220,9 @@ def worldgen(lang):
                 {"type": "minecraft:matching_blocks", "offset": [0, -1, 0], "blocks": NS + ":realm_moss"}]}},
             {"type": "minecraft:biome"}]})
         steps = [[] for _ in range(11)]
+        import structure_gen
+        for step, ids in structure_gen.REALM_STEPS.items():
+            steps[step] = ids
         steps[6] = ore_ids
         steps[9] = [NS + ":realm_crystal_" + b]
         monsters = [{"type": (m if ":" in m else NS + ":" + m), "weight": w, "minCount": 1, "maxCount": 1 if w <= 1 else 2} for m, w in mobs + COMMON_MOBS]

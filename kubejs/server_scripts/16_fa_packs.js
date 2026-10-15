@@ -104,7 +104,10 @@ ItemEvents.rightClicked('kubejs:gear_cache', event => {
 // Vanilla chests: packs, boxes and gear caches as extra rolls (each table modified once)
 ServerEvents.chestLootTables(event => {
   let pools = {}
-  let add = (table, item, chance) => { if (chance > 0) (pools[table] = pools[table] || []).push([item, chance]) }
+  let add = (table, item, chance) => {
+    if (table.indexOf('factoryascension:') == 0 && !Platform.isLoaded('factoryascension')) return   // its structures need the mod
+    if (chance > 0) (pools[table] = pools[table] || []).push([item, chance])
+  }
   let P = global.FA.packs.chests
   Object.keys(P).forEach(t => { add(t, 'kubejs:enchantment_pack', P[t][0]); add(t, 'kubejs:booster_box', P[t][1]) })
   let C = global.FA.caches.chests

@@ -88,8 +88,12 @@
     [],
     [],
     [],
-    [],
-    [],
+    [
+      "factoryascension:realm_vault"
+    ],
+    [
+      "factoryascension:sky_shrine"
+    ],
     [
       "factoryascension:realm_essence_crystal_ore",
       "factoryascension:realm_voidsteel_ore",

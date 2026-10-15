@@ -32,7 +32,7 @@ function faRealmUse(player, pos) {
   let data = player.persistentData
   let isPlayer = player.isPlayer()
   let now = player.getServer().getTickCount()
-  if (now - data.getLong('fa_realm_last') < global.FA.realm.cooldownTicks) return
+  if (data.contains('fa_realm_last') && Math.abs(now - data.getLong('fa_realm_last')) < global.FA.realm.cooldownTicks) return
   data.putLong('fa_realm_last', now)
   let here = String(player.level.dimension)
   if (here == FA_REALM) {

@@ -1014,6 +1014,8 @@ def main():
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), lang)
     import realm_gen
     realm_gen.main()          # the Ascended Realm's blocks and worldgen (adds to the lang file)
+    import structure_gen
+    structure_gen.main()      # the structures' placement and chest loot
     mod_id_list()
     print("wrote textures, models, block states, loot tables, tags and lang for %d blocks" % len(BLOCKS))
 

@@ -222,6 +222,7 @@ public class FactoryAscension {
         if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks"))
             dev.factoryascension.compat.SophisticatedBackpacks.register(BLOCKS, ITEMS, BACKPACKS);
         MinecraftForge.EVENT_BUS.addListener(FAMobs::onDetonate);
+        dev.factoryascension.worldgen.FAStructures.register(bus);
         BLOCKS.register(bus);
         ITEMS.register(bus);
         BLOCK_ENTITIES.register(bus);

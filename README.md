@@ -221,6 +221,17 @@ next to a gate that takes you back to where you left. Going through is free.
   **Astral** (1-2 Mythic Fragments). Fortune works on all of them; Silk Touch keeps the ore.
 - Platform height and size are in `realm`. Two quests in the Endgame chapter lead there.
 
+## Structures (Full download)
+
+Four new places to find, each with chests that join the lottery (packs, Booster Boxes and Gear Caches on top of their own loot):
+
+| Structure | Where | Inside |
+|---|---|---|
+| **Factory Ruin** | Overworld surface | A collapsed Create workshop: Create parts, Ascendite and cores |
+| **Ascension Crypt** | Overworld, underground | An Ascendite Skeleton or Husk spawner and two chests: gold, diamonds, cores, Chaos Tomes |
+| **Sky Shrine** | On the Realm's islands | Crystal pillars around an offering chest: Mythic Fragments, cores, sometimes a Singularity |
+| **Realm Vault** | Inside the Realm's islands | A Void Stalker or Void Archer spawner and two chests with the best loot: Singularities, Ascended Souls, Ascendium |
+
 ## World events
 
 About once every 20 minutes something happens to the whole server:
