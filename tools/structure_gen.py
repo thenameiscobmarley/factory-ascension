@@ -14,10 +14,10 @@ DATA = A.DATA
 
 # id: (rarity: 1 in N chunks, placement, where)
 STRUCTURES = {
-    "factory_ruin": (40, "surface", "overworld"),
-    "ascension_crypt": (55, ("uniform", -40, 30), "overworld"),
-    "realm_vault": (4, ("uniform", 40, 200), "realm"),
-    "sky_shrine": (9, "surface", "realm"),
+    "factory_ruin": (400, "surface", "overworld"),        # about one in every 20 x 20 chunks (and only on flat ground)
+    "ascension_crypt": (300, ("uniform", -40, 30), "overworld"),
+    "realm_vault": (25, ("uniform", 40, 200), "realm"),   # most tries miss the islands, so this is rarer than it looks
+    "sky_shrine": (60, "surface", "realm"),
 }
 
 

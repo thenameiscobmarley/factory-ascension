@@ -100,6 +100,25 @@ def main():
     T.png(os.path.join(OUT, "pet_whistle.png"), T.hd_item(draw(WHISTLE, {"#": (140, 90, 30), "g": GOLD, "c": CORD}), GOLD, "pet_whistle")); n += 1
     for cid, (med, sym) in CHARMS.items():
         T.png(os.path.join(OUT, cid + ".png"), T.hd_item(draw(CHARM, {"c": CORD, "#": GOLD, "m": med, "s": sym}), med, cid)); n += 1
+    scroll = [
+        "................",
+        "..############..",
+        ".#pppppppppppp#.",
+        "..#pppppppppp#..",
+        "..#plllllllp#...",
+        "..#pppppppppp#..",
+        "..#plllllvlp#...",
+        "..#ppppppvvpp#..",
+        "..#plllllvlp#...",
+        "..#pppppppppp#..",
+        "..#pllllllllp#..",
+        "..#pppppppppp#..",
+        ".#pppppppppppp#.",
+        "..############..",
+        "................",
+        "................",
+    ]
+    T.png(os.path.join(OUT, "unbinding_scroll.png"), T.hd_item(draw(scroll, {"#": (150, 104, 62), "p": (240, 228, 196), "l": (150, 120, 90), "v": (170, 96, 255)}), (150, 104, 62), "unbinding_scroll")); n += 1
     print("wrote %d pet and charm items" % n)
 
 

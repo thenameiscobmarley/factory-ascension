@@ -467,7 +467,7 @@ footer p { margin: 4px 0; }
 }
 
 /* ======================================================================================================
-   Tome theme (the default): the site dressed like the pack's enchant tomes. Deep violet velvet pages, covers with a
+   Tome theme (the option; Classic is the default): the site dressed like the pack's enchant tomes. Deep violet velvet pages, covers with a
    gold foil frame and violet gem corners, a glowing teal rune spine, gilt page edges, holographic foil headings.
    "Classic" (data-theme="classic") is the original look above, unchanged. The switch is in the top bar.
    ====================================================================================================== */
@@ -499,3 +499,60 @@ html[data-theme="tome"] .input, html[data-theme="tome"] .uv-input, html[data-the
 html[data-theme="tome"] code { background: #0e071899; }
 /* The switch */
 .theme-switch { flex: none; }
+
+/* ---- New / Everything-before books (site.js + news.js) ---- */
+.shelf-books { display: flex; gap: 14px; flex-wrap: wrap; margin: 14px 0 4px; }
+.shelf-book { --c: url(art/cover_purple.png); position: relative; display: grid; gap: 2px; align-content: center; text-align: left; cursor: pointer;
+  min-width: 190px; padding: 12px 16px 12px 30px; color: var(--cream); font: 600 17px/1.1 var(--pixel);
+  border-style: solid; border-color: transparent; border-width: calc(var(--px) * 3) calc(var(--px) * 5) calc(var(--px) * 6) calc(var(--px) * 9);
+  border-image: var(--c) 3 5 6 9 fill / calc(var(--px) * 3) calc(var(--px) * 5) calc(var(--px) * 6) calc(var(--px) * 9) round; image-rendering: pixelated;
+  background: none; text-shadow: var(--shadow); transition: transform .18s ease; }
+.shelf-book small { font: 12px var(--label); color: var(--gold-l); letter-spacing: .05em; text-transform: uppercase; }
+.shelf-book.is-new b::after { content: " ★"; color: var(--gold-l); }
+.shelf-book:hover:not(:disabled) { transform: translateY(-4px) rotate(-1deg); }
+.shelf-book:disabled { opacity: .45; cursor: default; }
+.shelf-book:focus-visible { outline: var(--px) solid var(--gold-l); outline-offset: 3px; }
+
+body.book-lock { overflow: hidden; }
+.book-stage { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; }
+.book-dim { position: absolute; inset: 0; background: #0a0604d9; }
+.book3d { --c: url(art/cover_purple.png); position: relative; width: min(920px, 100%); height: min(560px, calc(100vh - 32px)); perspective: 2200px; transform-style: preserve-3d; }
+.book-pages { position: absolute; inset: 0 0 52px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; transform-style: preserve-3d; }
+.book-page { position: relative; overflow: hidden; padding: 26px 26px 18px; color: #2a1608; font: 17px/1.45 var(--pixel); transform-origin: left center;
+  background: repeating-linear-gradient(#f0e4c4 0 27px, #e2d2aa 27px 28px), #f0e4c4;
+  border: calc(var(--px) * 2) solid #8c6a3c; box-shadow: inset 0 0 0 var(--px) #fff7e0, inset calc(var(--px) * -4) 0 0 #d8c69c; }
+.book-page.left { transform-origin: right center; box-shadow: inset 0 0 0 var(--px) #fff7e0, inset calc(var(--px) * 4) 0 0 #d8c69c; opacity: 0; }
+/* Once the cover has swung over, the left page sits just in front of it (same plane otherwise: the cover would win) */
+.book3d.open .book-page.left { transform: translateZ(2px); animation: fa-pagein .3s .45s both; }
+@keyframes fa-pagein { from { opacity: 0; } to { opacity: 1; } }
+/* The cover: closed it lies over the right page; it swings open around the spine onto the left */
+.book-cover { position: absolute; top: 0; bottom: 52px; left: 50%; width: 50%; transform-origin: left center; transform-style: preserve-3d; z-index: 3; pointer-events: none; }
+.book3d.open .book-cover { z-index: 0; }
+/* Fully open: the left page lies over the inside of the cover */
+.book3d.opened .book-cover { visibility: hidden; }
+.book-cover-face, .book-cover-back { position: absolute; inset: 0; backface-visibility: hidden; }
+.book-cover-face { display: grid; place-content: center; text-align: center; gap: 10px; padding: 30px; color: var(--gold-l); text-shadow: var(--shadow);
+  border-style: solid; border-color: transparent; border-width: calc(var(--px) * 3) calc(var(--px) * 5) calc(var(--px) * 6) calc(var(--px) * 9);
+  border-image: var(--c) 3 5 6 9 fill / calc(var(--px) * 3) calc(var(--px) * 5) calc(var(--px) * 6) calc(var(--px) * 9) round; image-rendering: pixelated; }
+.book-cover-face b { font: 700 34px/1.1 var(--pixel); }
+.book-cover-face span { font: 14px var(--label); color: var(--cream); text-transform: uppercase; letter-spacing: .06em; }
+.book-cover-back { transform: rotateY(180deg); background: #5a3a20; border: calc(var(--px) * 2) solid #2a1608; }
+.book-nav { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 10px; align-items: center; justify-content: center; color: var(--cream); font: 14px var(--label); }
+.bk-entry { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: start; margin: 0 0 18px; }
+.bk-entry img { width: 40px; height: 40px; image-rendering: pixelated; }
+.bk-entry b { display: block; font: 600 19px/1.2 var(--pixel); color: #5a2a8a; margin-bottom: 3px; }
+.bk-entry p { margin: 0 0 4px; }
+.bk-entry small { font: 11px var(--label); color: #8c6a3c; text-transform: uppercase; letter-spacing: .05em; }
+.bk-empty { color: #8c6a3c; }
+/* Words glide in from the left in reading order (each has its own --d delay) */
+.book-page .w { display: inline-block; opacity: 0; }
+.book3d.reading .w { animation: fa-glide .5s cubic-bezier(.2,.7,.2,1) var(--d) both; }
+@keyframes fa-glide { from { opacity: 0; transform: translateX(-10px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+.book3d.reading .bk-entry img { animation: fa-glide .5s ease both; }
+@media (max-width: 759px) {
+  .book-pages { grid-template-columns: 1fr; }
+  .book-page.right { display: none; }
+  .book-page.left { opacity: 1; }
+  .book-cover { left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .book3d.reading .w, .book3d.reading .bk-entry img { animation: none; opacity: 1; } .book-page .w { opacity: 1; } }

@@ -59,7 +59,7 @@
   $("#heroStats").innerHTML = [[ids.length, "enchants"], [FA.foils.types.length, "foils"], [4, "new metals"], [11, "machines"], [(window.FA_MOBS || []).length || 34, "new mobs"], [FA.mobFood.foods.length, "mob parts"], ["∞", "level cap"], [PACK.checks, "safety checks"]]
     .map(h => '<div class="slot-card"><b>' + (typeof h[0] == "number" ? global.FA_num(h[0]) : h[0]) + "</b><small>" + h[1] + "</small></div>").join("");
   $("#enchCount").textContent = global.FA_num(ids.length);
-  $("#newVersion").textContent = PACK.version.replace(/\.0$/, "");
+  $("#newVersion").textContent = "v" + PACK.version.replace(/\.0$/, "");
 
   // ---------- Liquid Essence color + the density ladder ----------
   document.documentElement.style.setProperty("--essence", "#" + ("000000" + FA.altar.color.toString(16)).slice(-6));
@@ -647,8 +647,9 @@
   // ---------- DOWNLOAD ----------
   const REL = "https://github.com/thenameiscobmarley/factory-ascension/releases/download/v" + PACK.version + "/FactoryAscension-";
   document.querySelectorAll("[data-dl]").forEach(a => {
-    a.href = REL + a.dataset.dl + "-" + PACK.version + (a.dataset.cf ? "-CurseForge" : "") + ".zip";
-    a.textContent += " · v" + PACK.version;
+    // From v19 the files carry the Minecraft version too: FactoryAscension-Full-v19.0.0-MC1.20.1-CurseForge.zip
+    a.href = REL + a.dataset.dl + "-v" + PACK.version + "-MC" + (PACK.mc || "1.20.1") + (a.dataset.cf ? "-CurseForge" : "") + ".zip";
+    a.textContent += " · v" + PACK.version + " for Minecraft " + (PACK.mc || "1.20.1");
   });
   $("#mods").innerHTML = [["Create", "create", 1], ["KubeJS", "kubejs", 1], ["Rhino", "rhino", 1], ["Architectury API", "architectury-api", 1],
     ["Create: The Factory Must Grow", "create-industry"], ["Mekanism", "mekanism"], ["JEI", "jei"], ["Waystones", "waystones"], ["Balm", "balm"],
@@ -674,5 +675,176 @@
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem("fa-theme", next); } catch (e) { /* private mode: it just won't be remembered */ }
     label();
+  });
+})();
+
+// ---- What's new / everything before: books that slide down, open, and read themselves in ----
+(() => {
+  const NEWS = window.FA_NEWS || [];
+  if (!NEWS.length) return;
+  const $ = s => document.querySelector(s);
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const cmp = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if (x[i] != y[i]) return x[i] - y[i]; return 0; };
+  const latest = NEWS.map(n => n.v).sort(cmp).pop();
+  const label = v => "v" + v.replace(/\.0$/, "");
+  const AREAS = { home: "the pack", luck: "Luck", gear: "Gear", enchants: "Enchants", machines: "Machines", world: "the World" };
+  const COVER = { all: "purple", home: "purple", luck: "red", gear: "steel", enchants: "teal", machines: "brown", world: "green" };
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // The home card: only the newest release
+  if ($("#newVersion")) $("#newVersion").textContent = label(latest);
+  const box = $("#newsLatest");
+  if (box) box.innerHTML = NEWS.filter(n => n.v == latest).map(n =>
+    '<a href="#' + (n.area == "home" ? "home" : n.area) + '"><img src="fa/' + esc(n.icon) + '" alt="" /><b>' + esc(n.title) + "</b><span>" + esc(n.text) + "</span></a>").join("");
+
+  // A pair of books on every chapter: what's new there, and everything before
+  ["luck", "gear", "enchants", "machines", "world"].forEach(id => {
+    const head = document.querySelector("#" + id + " > .ch-head");
+    if (head && !head.nextElementSibling?.classList.contains("shelf-books")) head.insertAdjacentHTML("afterend", '<div class="shelf-books" data-area="' + id + '"></div>');
+  });
+  const pick = (area, isNew) => NEWS.filter(n => (area == "all" || n.area == area) && (isNew ? n.v == latest : n.v != latest));
+  document.querySelectorAll(".shelf-books").forEach(shelf => {
+    const area = shelf.dataset.area, where = area == "all" ? "" : " in " + AREAS[area];
+    const fresh = pick(area, true), old = pick(area, false);
+    shelf.innerHTML = [[true, fresh, "New in " + label(latest), fresh.length + " new" + where], [false, old, "Everything before", old.length + " things" + where]]
+      .map(([isNew, list, title, sub]) => '<button type="button" class="shelf-book' + (isNew ? " is-new" : "") + '" data-new="' + (isNew ? 1 : 0) + '" style="--c:url(art/cover_' + COVER[area] + '.png)"' +
+        (list.length ? "" : " disabled") + '><span class="sb-spine"></span><b>' + esc(title) + "</b><small>" + esc(sub) + "</small></button>").join("");
+    shelf.addEventListener("click", e => {
+      const b = e.target.closest(".shelf-book");
+      if (!b || b.disabled) return;
+      const isNew = b.dataset.new == "1";
+      openBook(pick(area, isNew), isNew ? "New in " + label(latest) : "Everything before", (isNew ? "What " + label(latest) + " added" : "Every release before " + label(latest)) + where, b, COVER[area]);
+    });
+  });
+
+  // ---- The book ----
+  const stage = $("#bookStage"), book = $("#book3d"), cover = $("#bookCover"), L = $("#bookLeft"), R = $("#bookRight");
+  if (!stage) return;
+  let pages = [], spread = 0, from = null, busy = false;
+  const perPage = () => (innerWidth < 760 ? 3 : 3);
+  const twoPages = () => innerWidth >= 760;
+
+  // Every word gets its own delay, so the page reads itself in left to right, top to bottom
+  let wordIndex = 0;
+  const words = text => esc(text).split(/\s+/).map(w => '<span class="w" style="--d:' + (wordIndex++ * 28) + 'ms">' + w + "</span>").join(" ");
+  const pageHtml = list => list.map(n => '<div class="bk-entry"><img src="fa/' + esc(n.icon) + '" alt="" /><div><b>' + words(n.title) + '</b><p>' + words(n.text) +
+    '</p><small class="w" style="--d:' + (wordIndex++ * 28) + 'ms">' + label(n.v) + " · " + esc(AREAS[n.area] || n.area) + "</small></div></div>").join("") || '<p class="bk-empty">' + words("Nothing here yet.") + "</p>";
+
+  const render = () => {
+    wordIndex = 0;
+    const per = twoPages() ? 2 : 1;
+    L.innerHTML = pageHtml(pages[spread * per] || []);
+    R.innerHTML = per == 2 ? pageHtml(pages[spread * per + 1] || []) : "";
+    const total = Math.max(1, Math.ceil(pages.length / per));
+    $("#bookPageNo").textContent = (spread + 1) + " / " + total;
+    $("#bookPrev").disabled = spread == 0;
+    $("#bookNext").disabled = spread >= total - 1;
+    book.classList.remove("reading");
+    void book.offsetWidth;            // restart the word animations
+    book.classList.add("reading");
+  };
+
+  const anim = (el, frames, opts) => reduced ? Promise.resolve() : el.animate(frames, Object.assign({ fill: "forwards" }, opts)).finished.catch(() => {});
+
+  async function openBook(list, title, sub, origin, color) {
+    if (busy) return;
+    busy = true;
+    from = origin;
+    pages = [];
+    for (let i = 0; i < list.length; i += perPage()) pages.push(list.slice(i, i + perPage()));
+    spread = 0;
+    $("#bookTitle").textContent = title;
+    $("#bookSub").textContent = sub;
+    book.style.setProperty("--c", "url(art/cover_" + color + ".png)");
+    book.classList.remove("open", "opened", "reading");
+    L.innerHTML = R.innerHTML = "";
+    stage.hidden = false;
+    document.body.classList.add("book-lock");
+    // Slide down from the shelf book that was clicked
+    const a = origin.getBoundingClientRect(), b = book.getBoundingClientRect();
+    const dx = a.left + a.width / 2 - (b.left + b.width / 2), dy = a.top + a.height / 2 - (b.top + b.height / 2), s = Math.max(0.15, a.width / b.width);
+    anim(stage.querySelector(".book-dim"), [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+    await anim(book, [{ transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: 0.6 }, { transform: "translate(0, 0) scale(1)", opacity: 1 }], { duration: 650, easing: "cubic-bezier(.2,.8,.2,1)" });
+    // Open the cover, then read
+    book.classList.add("open");
+    await anim(cover, [{ transform: "rotateY(0deg)" }, { transform: "rotateY(-180deg)" }], { duration: 800, easing: "cubic-bezier(.5,0,.2,1)" });
+    book.classList.add("opened");
+    render();
+    busy = false;
+    $("#bookClose").focus();
+  }
+
+  async function closeBook() {
+    if (busy || stage.hidden) return;
+    busy = true;
+    book.classList.remove("reading");
+    await anim(book.querySelector(".book-pages"), [{ opacity: 1 }, { opacity: 0.4 }], { duration: 200 });
+    book.classList.remove("open", "opened");
+    await anim(cover, [{ transform: "rotateY(-180deg)" }, { transform: "rotateY(0deg)" }], { duration: 550, easing: "cubic-bezier(.5,0,.2,1)" });
+    if (from) {
+      const a = from.getBoundingClientRect(), b = book.getBoundingClientRect();
+      anim(stage.querySelector(".book-dim"), [{ opacity: 1 }, { opacity: 0 }], { duration: 450 });
+      await anim(book, [{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${a.left + a.width / 2 - (b.left + b.width / 2)}px, ${a.top + a.height / 2 - (b.top + b.height / 2)}px) scale(${Math.max(0.15, a.width / b.width)})`, opacity: 0 }], { duration: 500, easing: "cubic-bezier(.6,0,.8,.4)" });
+    }
+    book.getAnimations().forEach(x => x.cancel());
+    cover.getAnimations().forEach(x => x.cancel());
+    book.querySelector(".book-pages").getAnimations().forEach(x => x.cancel());
+    stage.querySelectorAll(".book-dim").forEach(d => d.getAnimations().forEach(x => x.cancel()));
+    stage.hidden = true;
+    document.body.classList.remove("book-lock");
+    busy = false;
+    if (from) from.focus();
+  }
+
+  const turn = async step => {
+    if (busy) return;
+    busy = true;
+    const page = step > 0 ? R : L;
+    await anim(page, [{ transform: "rotateY(0)", opacity: 1 }, { transform: step > 0 ? "rotateY(-90deg)" : "rotateY(90deg)", opacity: 0.3 }], { duration: 220, easing: "ease-in" });
+    spread += step;
+    render();
+    await anim(page, [{ transform: step > 0 ? "rotateY(90deg)" : "rotateY(-90deg)", opacity: 0.3 }, { transform: "rotateY(0)", opacity: 1 }], { duration: 220, easing: "ease-out" });
+    page.getAnimations().forEach(x => x.cancel());
+    busy = false;
+  };
+  // Test hook for screenshots: ?booktest=area,new|old,ms shows that book as it looks ms into opening (slide 0-650 ms,
+  // cover 650-1450 ms, then the words), built synchronously so a plain page screenshot catches it
+  const bt = new URLSearchParams(location.search).get("booktest");
+  if (bt && !reduced) {
+    const [area, kind, ms] = bt.split(","), t = +ms;
+    const btn = document.querySelector('.shelf-books[data-area="' + area + '"] .shelf-book[data-new="' + (kind == "new" ? 1 : 0) + '"]');
+    if (btn) {
+      const isNew = kind == "new", list = pick(area, isNew);
+      pages = [];
+      for (let i = 0; i < list.length; i += perPage()) pages.push(list.slice(i, i + perPage()));
+      $("#bookTitle").textContent = isNew ? "New in " + label(latest) : "Everything before";
+      $("#bookSub").textContent = isNew ? "What " + label(latest) + " added" : "Every release before " + label(latest);
+      book.style.setProperty("--c", "url(art/cover_" + COVER[area] + ".png)");
+      stage.hidden = false;
+      const a = btn.getBoundingClientRect(), b = book.getBoundingClientRect();
+      const slide = book.animate([{ transform: `translate(${a.left + a.width / 2 - (b.left + b.width / 2)}px, ${a.top + a.height / 2 - (b.top + b.height / 2)}px) scale(${Math.max(0.15, a.width / b.width)})`, opacity: 0.6 },
+        { transform: "none", opacity: 1 }], { duration: 650, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+      slide.currentTime = Math.min(650, t); slide.pause();
+      if (t > 650) {
+        book.classList.add("open");
+        const c = cover.animate([{ transform: "rotateY(0deg)" }, { transform: "rotateY(-180deg)" }], { duration: 800, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
+        c.currentTime = Math.min(800, t - 650); c.pause();
+      }
+      if (t > 1450) {
+        book.classList.add("opened");
+        render();
+        book.getAnimations({ subtree: true }).forEach(x => { if (x instanceof CSSAnimation) { x.currentTime = t - 1450; x.pause(); } });
+      }
+    }
+  }
+  $("#bookNext").addEventListener("click", () => turn(1));
+  $("#bookPrev").addEventListener("click", () => turn(-1));
+  $("#bookClose").addEventListener("click", closeBook);
+  stage.querySelector(".book-dim").addEventListener("click", closeBook);
+  addEventListener("keydown", e => {
+    if (stage.hidden) return;
+    if (e.key == "Escape") closeBook();
+    if (e.key == "ArrowRight" && !$("#bookNext").disabled) turn(1);
+    if (e.key == "ArrowLeft" && !$("#bookPrev").disabled) turn(-1);
   });
 })();

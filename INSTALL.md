@@ -2,14 +2,16 @@
 
 Get a download from the [release page](https://github.com/thenameiscobmarley/factory-ascension/releases/latest):
 
+Versions: from **v19** the pack's version (v19, v20 ...) always comes with the Minecraft version it's for: every file says **MC1.20.1**. Older releases were numbered 1.0 to 1.18, which looked like Minecraft versions; they're all for Minecraft 1.20.1 too.
+
 | File | Use it when |
 |---|---|
-| `FactoryAscension-Full-<version>-CurseForge.zip` | You use the CurseForge app (easiest). Scripts + the mod blocks |
-| `FactoryAscension-Half-<version>-CurseForge.zip` | Same, without the mod blocks (KubeJS only) |
-| `FactoryAscension-Full-<version>.zip` | You already have an instance and want to copy the files in by hand |
-| `FactoryAscension-Half-<version>.zip` | Same, scripts only |
+| `FactoryAscension-Full-v<version>-MC1.20.1-CurseForge.zip` | You use the CurseForge app (easiest). Scripts + the mod blocks |
+| `FactoryAscension-Half-v<version>-MC1.20.1-CurseForge.zip` | Same, without the mod blocks (KubeJS only) |
+| `FactoryAscension-Full-v<version>-MC1.20.1.zip` | You already have an instance and want to copy the files in by hand |
+| `FactoryAscension-Half-v<version>-MC1.20.1.zip` | Same, scripts only |
 
-**Full** = the KubeJS scripts plus `factoryascension-<version>.jar` (Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, connected glass, Shiny Reflections, 34 mobs and 4 bosses).
+**Full** = the KubeJS scripts plus `factoryascension-mc1.20.1-<version>.jar` (Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, connected glass, Shiny Reflections, 34 mobs and 4 bosses).
 **Half** = the scripts only. Both work on their own; Half just doesn't have the mod's blocks.
 Servers and everyone joining them need the same one.
 
@@ -28,7 +30,7 @@ Servers and everyone joining them need the same one.
    from [MODLIST.md](MODLIST.md), pick the **Forge 1.20.1** file of each. Give it 6 GB of memory.
 2. Launch once to the main menu and quit. This creates the `kubejs` folder.
 3. Open the instance folder (the one with `mods` in it). Extract the plain zip into it and say **yes** to merging folders.
-   Full puts `factoryascension-<version>.jar` into `mods/`; both put the scripts into `kubejs/`. KubeJS's own example files can stay.
+   Full puts `factoryascension-mc1.20.1-<version>.jar` into `mods/`; both put the scripts into `kubejs/`. KubeJS's own example files can stay.
    On Linux, `./install.sh "/path/to/instance"` from a clone of this repo does the `kubejs` part and backs up anything it overwrites.
 
 You should end up with:
@@ -60,7 +62,7 @@ kubejs/
    /ascension essence add 1000
    ```
    Hold the tome in your main hand and the sword in your off hand (press **F** to swap), then right-click.
-   All 486 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
+   All 487 tomes are listed in [docs/ENCHANTS.md](docs/ENCHANTS.md); `/give @s kubejs:tome_<name>` works for any of them.
    Hold the sword and type `/ascension`. Click **[+100]**. The sword's tooltip should now say
    **Ascended Sharpness 101**.
 4. Run `/ascension selftest` (needs op / cheats). It builds a test spot far away (x = z = 100000), runs 64 checks (79 with the Full jar)

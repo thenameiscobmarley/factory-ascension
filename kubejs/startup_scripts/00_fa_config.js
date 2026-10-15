@@ -92,6 +92,7 @@ global.FA = {
     sustenance:   { name: 'Sustenance', type: 'passive', effect: 'SATURATION', label: 'never hungry', maxLevel: 1 },
     magnetism:    { name: 'Magnetism', type: 'magnet', perLevel: 1, base: 2, cap: 32 }, // pull radius in blocks
     restoration:  { name: 'Restoration', type: 'repair', perLevel: 1 },              // durability per second, all gear
+    soulbound:    { name: 'Soulbound', type: 'soulbound', maxLevel: 1 },             // kept on death, can't be dropped, lava-proof (an Unbinding Scroll takes it off)
 
     // ---- Movement & utility ----
     swiftness:    { name: 'Swiftness', type: 'attribute', attrs: ['movement_speed'], percent: true, perLevel: 0.01, cap: 0.5, label: 'speed' },
@@ -1392,7 +1393,7 @@ global.FA = {
       'chain_lightning', 'gravity_well', 'death_nova', 'souls', 'overkill', 'rampage', 'heads', 'projectile_teleport', 'ultimate'],
     armor: ['resist', 'vitality', 'retribution', 'dodge', 'undying', 'regen', 'passive', 'phoenix', 'time_stop', 'aura', 'slam', 'flight'],
     tool: ['mining', 'vein', 'magnet', 'xp', 'drop'],
-    any: ['repair', 'eternal', 'attribute']    // these make sense on anything
+    any: ['repair', 'eternal', 'attribute', 'soulbound']    // these make sense on anything
   },
 
   // ---- Conflicts: when another installed mod already does a feature's job, the pack turns its own version off ----
@@ -1724,6 +1725,7 @@ global.FA_describeDef = (e, level) => {
     case 'passive': return e.maxLevel == 1 ? e.label : e.label + amp(level - 1)
     case 'magnet': return 'pulls items within ' + Math.min(e.cap, e.base + e.perLevel * level) + ' blocks'
     case 'repair': return 'repairs ' + num(e.perLevel * level) + ' durability/s on all gear'
+    case 'soulbound': return 'stays with you: kept when you die, can\'t be dropped, never burns or despawns'
     case 'attribute': {
       let v = e.cap !== undefined ? Math.min(e.cap, e.perLevel * level) : e.perLevel * level
       return '+' + (e.percent ? pct(v) : v % 1 ? v.toFixed(1) : num(v)) + ' ' + e.label
@@ -2122,7 +2124,7 @@ global.FA_meteorPool = () => {
   put(P.mythicTomes, tomes(e => e.mythic))
   put(P.souls, [k('ascended_soul')])
   FA.pets.collars.forEach((c, i) => put(P.collars[Math.min(i, P.collars.length - 1)], [k(c.id)]))
-  put(P.whistle, [k('pet_whistle')])
+  put(P.whistle, [k('pet_whistle'), k('unbinding_scroll')])
   FA.charms.list.forEach(c => put(c.id == 'ascended_charm' ? P.ascendedCharm : P.charms, [k(c.id)]))
   put(P.ultimateTomes, tomes(e => e.ultimate))
   Object.keys(FA.gems.types).forEach(type => P.gems.forEach((t, i) => put(t, [global.FA_gemId(type, i + 1)])))
@@ -2291,13 +2293,13 @@ global.FA_TYPES = {
   hit_heal: ['perLevel'], plunder: ['perLevel'], kill_heal: ['perLevel'], xp: ['perLevel'], drop: ['perLevel'],
   vitality: ['perLevel'], retribution: ['perLevel'], dodge: ['cap'], undying: ['cooldown', 'perLevel', 'minCooldown'],
   regen: ['perLevel'], passive: [], magnet: ['perLevel', 'base', 'cap'], repair: ['perLevel'], attribute: ['perLevel'],
-  mining: ['perLevel'], eternal: [], flight: [], chain_lightning: ['perLevel', 'radius'], gravity_well: ['perLevel', 'base', 'cap'],
+  mining: ['perLevel'], eternal: [], soulbound: [], flight: [], chain_lightning: ['perLevel', 'radius'], gravity_well: ['perLevel', 'base', 'cap'],
   death_nova: ['perLevel'], time_stop: [], phoenix: ['cooldown', 'perLevel', 'minCooldown'], projectile_teleport: [],
   souls: ['perLevel'], overkill: ['perLevel', 'radius'], rampage: ['perLevel', 'maxStacks', 'seconds'], vein: ['perLevel', 'cap'],
   aura: ['perLevel'], heads: ['perLevel'], slam: ['perLevel'], fusion: [], ultimate: ['power', 'perLevel', 'cooldown']
 }
 // Fusions can't be made from these: they need cleanup when gear comes off, or they're one-offs
-let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, flight: true, fusion: true, ultimate: true }
+let FA_NO_FUSE = { attribute: true, passive: true, eternal: true, soulbound: true, flight: true, fusion: true, ultimate: true }
 let FA_ATTRS = ['movement_speed', 'attack_speed', 'attack_knockback', 'luck', 'block_reach', 'entity_reach', 'step_height']
 let FA_VS = ['all', 'fire', 'fall', 'explosion', 'projectile', 'magic', 'wither', 'melee']
 
@@ -2742,6 +2744,7 @@ global.FA_TOME_CATALYSTS = {
   lucky: ['minecraft:rabbit_foot'],
   excavation: ['create:mechanical_drill', 'minecraft:redstone_block'],
   eternal: ['minecraft:netherite_ingot', 'create:precision_mechanism'],
+  soulbound: ['minecraft:ender_eye', 'minecraft:echo_shard'],   // remembers its owner
   // Mythic (plus 4 Mythic Fragments each, superheated)
   wings: ['minecraft:elytra'],
   thunderlord: ['minecraft:lightning_rod'],

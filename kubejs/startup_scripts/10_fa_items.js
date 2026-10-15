@@ -100,6 +100,7 @@ StartupEvents.registry('item', event => {
   // Pets and charms (config: pets, charms)
   global.FA.pets.collars.forEach((c, i) => event.create(c.id).displayName(c.name).maxStackSize(16).rarity(['uncommon', 'rare', 'rare', 'epic', 'epic'][i] || 'epic').glow(i >= 3))
   event.create('pet_whistle').displayName('Pet Whistle').maxStackSize(1).rarity('uncommon')
+  event.create('unbinding_scroll').displayName('Unbinding Scroll').maxStackSize(16).rarity('rare')
   global.FA.charms.list.forEach(c => event.create(c.id).displayName(c.name).maxStackSize(1).rarity(c.id == 'ascended_charm' ? 'epic' : 'rare').glow(c.id == 'ascended_charm'))
 
   // Rock Hammers: smash rock into gravel, nuggets and ore (config: hammer)

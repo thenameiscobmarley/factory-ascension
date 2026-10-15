@@ -17,6 +17,7 @@ const $STArmorStand = Java.loadClass('net.minecraft.world.entity.decoration.Armo
 const $STHand = Java.loadClass('net.minecraft.world.InteractionHand')
 const $STEffects = Java.loadClass('net.minecraft.world.effect.MobEffects')
 const $STAttributes = Java.loadClass('net.minecraft.world.entity.ai.attributes.Attributes')
+const $STArrayList = Java.loadClass('java.util.ArrayList')
 const $STHit = Java.loadClass('net.minecraft.world.phys.BlockHitResult')
 const $STCompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
 const $STSlot = Java.loadClass('net.minecraft.world.entity.EquipmentSlot')
@@ -385,7 +386,34 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     player.getInventory().setItem(20, Item.of('minecraft:air'))
     player.getInventory().setItem(21, Item.of('minecraft:air'))
     player.removeAllEffects()
-    let recipesMissing = global.FA.pets.collars.map(c => 'collar_' + c.id).concat(['pet_whistle', 'charm_ascended'])
+    // Soulbound: thrown out, it comes straight back; lying on the ground it can't burn or despawn
+    let bound = Item.of('minecraft:iron_sword')
+    faSetLevel(bound, 'soulbound', 1)
+    player.getInventory().setItem(23, bound.copy())
+    let before = player.getInventory().getItem(23).getCount()
+    player.getInventory().setItem(23, Item.of('minecraft:air'))
+    player.drop(bound.copy(), false)
+    let back = 0
+    for (let i = 0; i < player.getInventory().getContainerSize(); i++) if (global.FA_isSoulbound(player.getInventory().getItem(i))) { back++; player.getInventory().setItem(i, Item.of('minecraft:air')) }
+    let ground = level.createEntity('minecraft:item')
+    ground.setItem(bound.copy())
+    ground.setPosition(X - 6, Y + 1, Z - 6)
+    ground.spawn()
+    let lavaProof = ground.isInvulnerable() && !ground.attack(level.damageSources().lava(), 100) && ground.isAlive()
+    ground.discard()
+    // Death round trip: the drops lose it, the respawn gives it back
+    let deathDrops = new $STArrayList()
+    let dying = level.createEntity('minecraft:item')
+    dying.setItem(bound.copy())
+    deathDrops.add(dying)
+    let keptN = global.FA_keepSoulboundGear(player, deathDrops)
+    let returnedN = global.FA_returnSoulboundGear(player)
+    let backAfterDeath = 0
+    for (let i = 0; i < player.getInventory().getContainerSize(); i++) if (global.FA_isSoulbound(player.getInventory().getItem(i))) { backAfterDeath++; player.getInventory().setItem(i, Item.of('minecraft:air')) }
+    check('Soulbound gear leaves the death drops (' + keptN + ', ' + deathDrops.size() + ' left) and comes back on respawn (' + returnedN + ')',
+      keptN == 1 && deathDrops.size() == 0 && returnedN == 1 && backAfterDeath == 1, [keptN, deathDrops.size(), returnedN, backAfterDeath].join(' / '))
+    check('Soulbound: thrown out it comes back to the inventory (' + back + '), on the ground it can\'t burn or despawn (' + lavaProof + ')', before == 1 && back == 1 && lavaProof, back + ' / ' + lavaProof)
+    let recipesMissing = global.FA.pets.collars.map(c => 'collar_' + c.id).concat(['pet_whistle', 'charm_ascended', 'unbinding_scroll', 'tome_soulbound'])
       .concat(global.FA.charms.list.filter(c => c.id != 'ascended_charm').map(c => 'charm_' + c.id))
       .filter(r => !server.getRecipeManager().byKey('kubejs:factory_ascension/' + r).isPresent())
     check('every collar, the whistle and every charm has a recipe', recipesMissing.length == 0, recipesMissing.join(', '))
@@ -746,17 +774,20 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     }
     let stSpawner = (lvl, x, y, z) => { let be = lvl.getBlockEntity(new $STBlockPos(x, y, z)); return be ? String(be.saveWithoutMetadata()) : '' }
     let stOut = {}
-    // Factory Ruin on the test floor (its chest is somewhere near the middle)
-    server.runCommandSilent('place feature factoryascension:factory_ruin ' + (X - 18) + ' ' + Y + ' ' + (Z - 18))
-    for (let dx = -5; dx <= 5; dx++) for (let dz = -5; dz <= 5; dz++) for (let dy = 0; dy <= 6; dy++) placed.push(new $STBlockPos(X - 18 + dx, Y + dy, Z - 18 + dz))
+    // Factory Ruin on a stone pad in the middle of a chunk (structures stay inside their chunk; its chest is near the middle)
+    let rx0 = X - 24, rz0 = Z + 24
+    for (let dx = -6; dx <= 6; dx++) for (let dz = -6; dz <= 6; dz++) place(rx0 + dx, Y - 1, rz0 + dz, 'minecraft:stone')
+    for (let dx = -5; dx <= 5; dx++) for (let dz = -5; dz <= 5; dz++) for (let dy = 0; dy <= 6; dy++) placed.push(new $STBlockPos(rx0 + dx, Y + dy, rz0 + dz))
+    server.runCommandSilent('place feature factoryascension:factory_ruin ' + rx0 + ' ' + Y + ' ' + rz0)
     stOut.ruin = -1
-    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++)
-      if (String(level.getBlock(X - 18 + dx, Y, Z - 18 + dz).id) == 'minecraft:chest') stOut.ruin = stChest(level, X - 18 + dx, Y, Z - 18 + dz)
-    // Ascension Crypt below the floor
-    server.runCommandSilent('place feature factoryascension:ascension_crypt ' + (X - 18) + ' ' + (Y - 12) + ' ' + (Z + 18))
-    stOut.crypt = stChest(level, X - 21, Y - 12, Z + 18) + stChest(level, X - 15, Y - 12, Z + 18)
-    stOut.cryptMob = /ascendite_(skeleton|husk)/.test(stSpawner(level, X - 18, Y - 12, Z + 18))
-    for (let dx = -4; dx <= 4; dx++) for (let dz = -4; dz <= 4; dz++) for (let dy = -1; dy <= 4; dy++) placed.push(new $STBlockPos(X - 18 + dx, Y - 12 + dy, Z + 18 + dz))
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++)
+      if (String(level.getBlock(rx0 + dx, Y, rz0 + dz).id) == 'minecraft:chest') stOut.ruin = stChest(level, rx0 + dx, Y, rz0 + dz)
+    // Ascension Crypt below the floor, also mid-chunk
+    let cx0 = X - 24, cz0 = Z - 24
+    server.runCommandSilent('place feature factoryascension:ascension_crypt ' + cx0 + ' ' + (Y - 12) + ' ' + cz0)
+    stOut.crypt = stChest(level, cx0 - 3, Y - 12, cz0) + stChest(level, cx0 + 3, Y - 12, cz0)
+    stOut.cryptMob = /ascendite_(skeleton|husk)/.test(stSpawner(level, cx0, Y - 12, cz0))
+    for (let dx = -4; dx <= 4; dx++) for (let dz = -4; dz <= 4; dz++) for (let dy = -1; dy <= 4; dy++) placed.push(new $STBlockPos(cx0 + dx, Y - 12 + dy, cz0 + dz))
     // Realm Vault (inside Realm Stone) and Sky Shrine (on Realm Moss), in the Realm's forceloaded chunk
     if (realmLevel) {
       let vx = X + 8, vz = Z + 8
@@ -1053,11 +1084,15 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     check('a skinwalker looks like a plain cow, and a hit makes it turn instead of hurting it', plain && cow.getHealth() == cow.getMaxHealth() && cow.isNoAi(),
       plain + ' ' + cow.getHealth())
     cow.discard()   // (its slow shapeshift stops when it's gone)
-    // A second one turns at test speed, checked at the end
-    let cow2 = spawn('minecraft:cow', X + 18, Y, Z - 18)
+    // A second one turns at test speed, checked at the end. In its own walled pen, well away from the quarry's hole, the
+    // Ultimate's whirlwind and the boss check (which clears every mob within 24 blocks of its boss)
+    let swx = X + 2, swz = Z + 26
+    for (let dx = -4; dx <= 4; dx++) for (let dz = -4; dz <= 4; dz++) for (let dy = -1; dy <= 4; dy++)
+      place(swx + dx, Y + dy, swz + dz, (Math.abs(dx) == 4 || Math.abs(dz) == 4 || dy == 4 || dy == -1) ? 'minecraft:stone' : 'minecraft:air')
+    let cow2 = spawn('minecraft:cow', swx + 0.5, Y, swz + 0.5)
     global.FA_makeSkinwalker(cow2)
     global.FA_shapeshift(cow2, player, true)
-    skinwalkerAt = { x: X + 18, z: Z - 18, cow: cow2 }
+    skinwalkerAt = { x: swx, z: swz, cow: cow2 }
     // Stalking uses the mob's pathfinder: a pig can be sent walking toward the player
     let pig = spawn('minecraft:pig', X + 14, Y, Z - 14)
     let path = pig.getNavigation().moveTo(player, 1.0)

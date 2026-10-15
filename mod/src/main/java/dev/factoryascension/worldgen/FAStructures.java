@@ -62,14 +62,45 @@ public final class FAStructures {
         @Override
         public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> ctx) {
             WorldGenLevel level = ctx.level();
-            BlockPos o = ctx.origin();
             RandomSource r = ctx.random();
+            // The whole structure stays inside the chunk being generated: one reaching into a neighbour that's already
+            // been explored would change ground the player has seen (and look like it appeared from nowhere)
             return switch (kind) {
-                case FACTORY_RUIN -> ruin(level, o, r);
-                case ASCENSION_CRYPT -> crypt(level, o, r);
-                case REALM_VAULT -> vault(level, o, r);
-                case SKY_SHRINE -> shrine(level, o, r);
+                case FACTORY_RUIN -> ruin(level, onSurface(level, inChunk(ctx.origin(), 5)), r);
+                case ASCENSION_CRYPT -> crypt(level, inChunk(ctx.origin(), 4), r);
+                case REALM_VAULT -> vault(level, inChunk(ctx.origin(), 4), r);
+                case SKY_SHRINE -> shrine(level, onSurface(level, inChunk(ctx.origin(), 3)), r);
             };
+        }
+
+        /** During world generation the worldgen heightmap; afterwards (/place feature) the live one. */
+        private static net.minecraft.world.level.levelgen.Heightmap.Types surface(WorldGenLevel level) {
+            return level instanceof net.minecraft.server.level.WorldGenRegion ? net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG
+                : net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE;
+        }
+
+        /** Move a position so a structure `r` blocks around it fits inside its chunk. */
+        private static BlockPos inChunk(BlockPos o, int r) {
+            int cx = o.getX() & ~15, cz = o.getZ() & ~15;
+            return new BlockPos(Math.max(cx + r, Math.min(cx + 15 - r, o.getX())), o.getY(), Math.max(cz + r, Math.min(cz + 15 - r, o.getZ())));
+        }
+
+        /** The surface at a (moved) position. */
+        private static BlockPos onSurface(WorldGenLevel level, BlockPos p) {
+            return new BlockPos(p.getX(), level.getHeight(surface(level), p.getX(), p.getZ()), p.getZ());
+        }
+
+        /** Fairly flat, solid, dry ground under the whole footprint (no water, leaves or a cliff). */
+        private static boolean flatGround(WorldGenLevel level, BlockPos o, int r, int maxStep) {
+            int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+            for (int dx = -r; dx <= r; dx += r) for (int dz = -r; dz <= r; dz += r) {
+                int y = level.getHeight(surface(level), o.getX() + dx, o.getZ() + dz);
+                BlockState ground = level.getBlockState(new BlockPos(o.getX() + dx, y - 1, o.getZ() + dz));
+                if (!ground.getFluidState().isEmpty() || ground.is(net.minecraft.tags.BlockTags.LEAVES) || !ground.canOcclude()) return false;
+                lo = Math.min(lo, y);
+                hi = Math.max(hi, y);
+            }
+            return hi - lo <= maxStep;
         }
 
         private static void set(WorldGenLevel level, BlockPos pos, BlockState state) {
@@ -99,7 +130,7 @@ public final class FAStructures {
 
         // ---- Factory Ruin: 11 x 11, walls broken to random heights, a chest and a few machine parts ----
         private boolean ruin(WorldGenLevel level, BlockPos o, RandomSource r) {
-            if (!level.getBlockState(o.below()).canOcclude() || level.getBlockState(o).liquid()) return false;
+            if (!flatGround(level, o, 5, 2) || level.getBlockState(o).liquid()) return false;
             BlockState andesite = block("create:andesite_casing", Blocks.STONE_BRICKS);
             BlockState brass = block("create:brass_casing", Blocks.POLISHED_GRANITE);
             BlockState glass = block("factoryascension:factory_glass", Blocks.GLASS);

@@ -30,7 +30,7 @@ cobble generators -> mineral clusters -> ores -> diamonds, rose quartz, steel
 
 ## Ascended enchants
 
-**486 enchants** (59 Ascended + 15 Mythic + 12 Ultimate + 200 Fusion + 200 Triad), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
+**487 enchants** (59 Ascended + 15 Mythic + 12 Ultimate + 200 Fusion + 200 Triad), separate from vanilla ones (vanilla caps levels at 255), so levels go as high as your
 factory can pay for. They count from **every equipped item**, both hands and all armor, so any enchant
 works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md](docs/ENCHANTS.md)**.
 
@@ -41,7 +41,7 @@ works on any gear. Full list with numbers and tome recipes: **[docs/ENCHANTS.md]
 | On kill | Plunder, Soul Eater, Wisdom, Midas, Gem Hunter |
 | Defense | Ascended Protection, Vitality (hidden health, no extra hearts), Fire / Blast / Arrow / Wither Ward, Featherweight, Spellward, Bulwark, Retribution, Evasion, Undying |
 | Passive | Renewal, Night Sight, Gills, Fireproof, Industrious, Leaping, Sustenance, Magnetism, Restoration |
-| Movement & utility | Swiftness, Reach, Stride, Frenzy, Lucky, Excavation, Eternal |
+| Movement & utility | Swiftness, Reach, Stride, Frenzy, Lucky, Excavation, Eternal, Soulbound |
 | **✦ Mythic** | Wings, Thunderlord, Black Hole, Meteor, Chronos, Phoenix, Voidwalker, Soul Harvest, Overkill, Rampage, Vein Miner, Timber, Radiance, Headhunter, Gravity Slam |
 
 ### ☄ Ultimates (12): cinematic combo moves
@@ -277,6 +277,14 @@ About once every 20 minutes something happens to the whole server:
 - **Golden Hour**: mob loot is doubled.
 
 `/ascension event` shows the current one. Ops can `/ascension event start <bloodMoon|meteorShower|goldenHour>` and `/ascension event stop`.
+
+## Soulbound
+
+**Soulbound** (tome: Blank Tome + Eye of Ender + Echo Shard, heated) goes on any gear and keeps it with you: it stays in your
+inventory when you die (it's back when you respawn), it can't be thrown out (it pops back into your inventory), and if it ever
+ends up on the ground anyway it can't burn in lava or fire, blow up or despawn. You can still put it in a chest yourself.
+To take it off, hold the gear in one hand and right-click an **Unbinding Scroll** (paper, Ender Pearls and an Ascension
+Shard) in the other.
 
 ## Mob loot switch
 
@@ -895,7 +903,7 @@ itself; it only counts once it's on gear.
 The enchants show in the item's tooltip right under its name, with what they do, e.g.
 `Ascended Sharpness 101  x11.10 damage`.
 
-Every one of the 486 enchant tomes has its own cover: each base enchant has an emblem that shows what it does
+Every one of the 487 enchant tomes has its own cover: each base enchant has an emblem that shows what it does
 (a sword for Sharpness, a spider for Bane, an hourglass for Chronos...), Mythic tomes get a gold frame and a glow,
 Ultimates a black-and-crimson double frame with a ribbon, and Fusion tomes split the cover between both parents'
 colors and emblems. The emblems are in `tools/tome_art.py`.

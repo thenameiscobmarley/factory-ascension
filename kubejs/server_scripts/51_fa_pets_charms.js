@@ -146,3 +146,28 @@ ServerEvents.commandRegistry(event => {
     return 1
   })))
 })
+
+// ---- Unbinding Scroll: takes Soulbound off the gear in your other hand ----
+ItemEvents.rightClicked('kubejs:unbinding_scroll', event => {
+  let player = event.player
+  let gear = event.hand == 'MAIN_HAND' || String(event.hand) == 'MAIN_HAND' ? player.getOffhandItem() : player.getMainHandItem()
+  if (!global.FA_isSoulbound(gear)) {
+    player.displayClientMessage(Text.gray('Hold the Soulbound gear in your other hand.'), true)
+    event.cancel()
+    return
+  }
+  let gtag = gear.nbt
+  let fa = gtag.getCompound('FactoryAscension')
+  fa.remove('soulbound')
+  gtag.put('FactoryAscension', fa)
+  gear.nbt = gtag
+  if (!player.isCreative()) event.item.shrink(1)
+  player.displayClientMessage(Text.lightPurple('Unbound: ').append(Text.white(gear.getHoverName().getString() + ' is no longer Soulbound.')), true)
+  player.level.playSound(null, player.blockPosition(), 'minecraft:item.book.page_turn', 'players', 1, 0.7)
+  event.cancel()
+})
+
+ServerEvents.recipes(event => {
+  event.shaped('kubejs:unbinding_scroll', [' P ', 'ESE', ' P '], { P: 'minecraft:paper', E: 'minecraft:ender_pearl', S: 'kubejs:ascension_shard' })
+    .id('kubejs:factory_ascension/unbinding_scroll')
+})

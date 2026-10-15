@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Builds the Factory Ascension downloads into dist/:
 
-  FactoryAscension-Full-<v>.zip             kubejs folder + mods/factoryascension jar (the blocks and machines)
-  FactoryAscension-Half-<v>.zip             kubejs folder only (everything except the mod blocks)
-  FactoryAscension-Full-<v>-CurseForge.zip  import into the CurseForge app: downloads the mods, adds kubejs + the jar
-  FactoryAscension-Half-<v>-CurseForge.zip  same, without the jar
+  FactoryAscension-Full-v<v>-MC1.20.1.zip             kubejs folder + mods/factoryascension jar (the blocks and machines)
+  FactoryAscension-Half-v<v>-MC1.20.1.zip             kubejs folder only (everything except the mod blocks)
+  FactoryAscension-Full-v<v>-MC1.20.1-CurseForge.zip  import into the CurseForge app: downloads the mods, adds kubejs + the jar
+  FactoryAscension-Half-v<v>-MC1.20.1-CurseForge.zip  same, without the jar
+The pack's own version (v19.0.0 ...) always comes with the Minecraft version it's for, so the two can't be mixed up.
 
 Mod ids for the CurseForge manifests come from tools/curseforge-mods.json (the versions the test server runs).
 Builds the jar first if mod/build/libs doesn't have it.
@@ -14,13 +15,14 @@ Builds the jar first if mod/build/libs doesn't have it.
 import json, os, subprocess, sys, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VERSION = sys.argv[1] if len(sys.argv) > 1 else '1.0.0'
+PROPS = dict(l.strip().split('=', 1) for l in open(os.path.join(ROOT, 'mod/gradle.properties')) if '=' in l and not l.startswith('#'))
+VERSION = (sys.argv[1] if len(sys.argv) > 1 else PROPS['mod_version']).lstrip('v')
+MC = PROPS['minecraft_version']
 DIST = os.path.join(ROOT, 'dist')
 
 
 def mod_jar():
-    props = dict(l.strip().split('=', 1) for l in open(os.path.join(ROOT, 'mod/gradle.properties')) if '=' in l and not l.startswith('#'))
-    jar = os.path.join(ROOT, 'mod/build/libs', 'factoryascension-%s.jar' % props['mod_version'])
+    jar = os.path.join(ROOT, 'mod/build/libs', 'factoryascension-mc%s-%s.jar' % (MC, PROPS['mod_version']))
     if not os.path.exists(jar):
         env = dict(os.environ, JAVA_HOME=os.environ.get('JAVA_HOME', os.path.expanduser('~/fa-mod-tools/jdk')))
         subprocess.run(['./gradlew', 'build', '--no-daemon'], cwd=os.path.join(ROOT, 'mod'), env=env, check=True)
@@ -40,14 +42,14 @@ def manifest(full):
     return {
         'minecraft': {'version': cf['minecraft'], 'modLoaders': [{'id': 'forge-' + cf['forge'], 'primary': True}]},
         'manifestType': 'minecraftModpack', 'manifestVersion': 1,
-        'name': 'Factory Ascension' + ('' if full else ' (Half)'), 'version': VERSION, 'author': 'thenameiscobmarley',
+        'name': 'Factory Ascension' + ('' if full else ' (Half)') + ' for Minecraft ' + MC, 'version': 'v' + VERSION, 'author': 'thenameiscobmarley',
         'files': [{'projectID': m['projectID'], 'fileID': m['fileID'], 'required': True} for m in cf['mods']],
         'overrides': 'overrides',
     }
 
 
 def build(full, curseforge, jar):
-    name = 'FactoryAscension-%s-%s%s.zip' % ('Full' if full else 'Half', VERSION, '-CurseForge' if curseforge else '')
+    name = 'FactoryAscension-%s-v%s-MC%s%s.zip' % ('Full' if full else 'Half', VERSION, MC, '-CurseForge' if curseforge else '')
     out = os.path.join(DIST, name)
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
         base = 'overrides/' if curseforge else ''

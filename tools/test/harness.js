@@ -397,13 +397,13 @@ var enchantCount = Object.keys(global.FA.enchants).length
 var mythics = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].mythic })
 var fusionIds = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].type == 'fusion' })
 var ultIds = Object.keys(global.FA.enchants).filter(function (id) { return global.FA.enchants[id].ultimate })
-check('486 enchants (59 + 15 Mythic + 200 Fusion + 200 Triad + 12 Ultimate)', enchantCount == 486 && mythics.length == 15 && fusionIds.length == 400 &&
+check('487 enchants (60 + 15 Mythic + 200 Fusion + 200 Triad + 12 Ultimate)', enchantCount == 487 && mythics.length == 15 && fusionIds.length == 400 &&
   fusionIds.filter(function (id) { return global.FA.enchants[id].triad }).length == 200 && ultIds.length == 12,
   enchantCount + ' / ' + mythics.length + ' / ' + fusionIds.length + ' / ' + ultIds.length)
 var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
-check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT + collars + whistle + charms)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.attachments.batteries.length + global.FA.machines.miniCrusher.motors.length + global.FA.foils.types.length +
-  global.FA.roomCharges.styles.length * global.FA.roomCharges.sizes.length + global.FA.pets.collars.length + 1 + global.FA.charms.list.length, created.length)
+check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT + collars + whistle + charms + unbinding scroll)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.attachments.batteries.length + global.FA.machines.miniCrusher.motors.length + global.FA.foils.types.length +
+  global.FA.roomCharges.styles.length * global.FA.roomCharges.sizes.length + global.FA.pets.collars.length + 1 + global.FA.charms.list.length + 1, created.length)
 var vanillaMobs = {}
 MF.foods.forEach(function (fd) { fd.mobs.forEach(function (m) { vanillaMobs[m] = true }) })
 check(MF.foods.length + ' mob parts for ' + Object.keys(vanillaMobs).length + ' mobs: raw ones make you sick, cooked ones feed you and give their buff, both edible on a full stomach',
