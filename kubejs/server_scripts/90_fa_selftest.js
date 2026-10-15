@@ -539,6 +539,12 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let G = global.FA.machines.engine
     check('Modular Engine: core + coil + burning coal = ' + engine.rpm() + ' RPM, ' + engine.su() + ' SU', engine.coils() == 1 && engine.litBurners() == 1 &&
       engine.rpm() == G.rpm[0] && Math.abs(engine.su() - G.suPerCoil) < 0.01, engine.status().getString())
+    // Engine screens: the menu behind a burner finds the core and reports the same numbers
+    let $EngineMenu = Java.loadClass('dev.factoryascension.menu.EngineMenu')
+    let em = new $EngineMenu(0, player.getInventory(), bpos2, $EngineMenu.BURNER)
+    let lone = new $EngineMenu(0, player.getInventory(), place(X + 16, Y, Z + 18, 'factoryascension:engine_gearbox'), $EngineMenu.GEARBOX)
+    check('engine screens: burner sees ' + em.rpm() + ' RPM, ' + em.su() + ' SU, lit ' + em.burnerLit() + '; a lone gearbox says not connected',
+      em.connected() && em.rpm() == engine.rpm() && Math.abs(em.su() - engine.su()) <= 1 && em.burnerLit() && em.coils() == 1 && !lone.connected())
     let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
       'engine_gearbox', 'engine_burner'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
     check('the mod blocks have recipes', recipes.length == 0, recipes.join(', '))

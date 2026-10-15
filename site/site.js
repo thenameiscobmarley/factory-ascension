@@ -480,10 +480,10 @@
     ["card_binder", "Card Binder", "Holds 54 tome cards, counts your collection, and floats your best card above the block.", { f: "side", s: "side", t: "top" }],
     ["essence_forge", "Essence Forge", "Gear in the slot, Liquid Essence piped into its 16-bucket tank: it levels the gear like the Ascension Altar, once a second."],
     ["pack_opener", "Pack Opener", "Hopper in Enchantment Packs: it opens one every " + (M.openerSeconds == 1 ? "second" : M.openerSeconds + " seconds") + " into 27 slots and flips the cards on screen."],
-    ["engine_core", "Engine Core", "The heart of a Modular Engine. Its front face is the shaft output. Right-click it for its speed and power.", { f: "front", s: "side", t: "top" }],
-    ["engine_coil", "Coil Module", "+" + EN.suPerCoil + " SU of stress capacity, while a Burner powers it.", { f: "side", s: "side", t: "top" }],
-    ["engine_gearbox", "Gearbox Module", "Each one takes the engine to its next speed: " + EN.rpm.join(", ") + " RPM. Same power, faster shaft.", { f: "side", s: "side", t: "top" }],
-    ["engine_burner", "Burner Module", "Holds any furnace fuel (hoppers and chutes can fill it). Burns only while the engine needs it.", { f: "side_lit", s: "side", t: "top" }]
+    ["engine_core", "Engine Core", "The heart of a Modular Engine. Its front face is the shaft output. Right-click it for the engine's screen: speed, power, modules and what to add next.", { f: "front", s: "side", t: "top" }],
+    ["engine_coil", "Coil Module", "+" + EN.suPerCoil + " SU of stress capacity, while a Burner powers it. Its screen shows how many coils are powered.", { f: "side", s: "side", t: "top" }],
+    ["engine_gearbox", "Gearbox Module", "Each one takes the engine to its next speed: " + EN.rpm.join(", ") + " RPM. Same power, faster shaft. Its screen shows the speed ladder.", { f: "side", s: "side", t: "top" }],
+    ["engine_burner", "Burner Module", "Holds any furnace fuel (hoppers and chutes can fill it). Burns only while the engine needs it. Its screen has a fuel slot, a flame gauge and the time left.", { f: "side_lit", s: "side", t: "top" }]
   ];
   const recipeHtml = r => {
     const cell = ch => {

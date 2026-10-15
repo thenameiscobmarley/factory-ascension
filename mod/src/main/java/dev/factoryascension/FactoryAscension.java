@@ -22,6 +22,7 @@ import dev.factoryascension.blockentity.SalvagerBlockEntity;
 import dev.factoryascension.blockentity.SmelterBlockEntity;
 import dev.factoryascension.blockentity.VaultBlockEntity;
 import dev.factoryascension.menu.BinderMenu;
+import dev.factoryascension.menu.EngineMenu;
 import dev.factoryascension.menu.ForgeMenu;
 import dev.factoryascension.menu.FusionMenu;
 import dev.factoryascension.menu.OpenerMenu;
@@ -128,6 +129,8 @@ public class FactoryAscension {
         () -> IForgeMenuType.create((id, inv, buf) -> new SalvagerMenu(id, inv, buf.readBlockPos())));
     public static final RegistryObject<MenuType<FusionMenu>> FUSION_MENU = MENUS.register("tome_fusion_table",
         () -> IForgeMenuType.create((id, inv, buf) -> new FusionMenu(id, inv, buf.readBlockPos())));
+    public static final RegistryObject<MenuType<EngineMenu>> ENGINE_MENU = MENUS.register("engine",
+        () -> IForgeMenuType.create((id, inv, buf) -> new EngineMenu(id, inv, buf.readBlockPos(), buf.readVarInt())));
     public static final RegistryObject<MenuType<SmelterMenu>> SMELTER_MENU = MENUS.register("super_smelter",
         () -> IForgeMenuType.create((id, inv, buf) -> new SmelterMenu(id, inv, buf.readBlockPos())));
 

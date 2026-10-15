@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Modular Engine Core: the shaft comes out of its front (the side facing you when placed). Right-click for its status. */
+/** Modular Engine Core: the shaft comes out of its front (the side facing you when placed). Right-click for the engine's screen. */
 public class EngineBlock extends HorizontalKineticBlock implements IBE<EngineBlockEntity> {
     public EngineBlock(Properties props) {
         super(props);
@@ -40,7 +40,8 @@ public class EngineBlock extends HorizontalKineticBlock implements IBE<EngineBlo
     @Override
     @SuppressWarnings("deprecation")
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof EngineBlockEntity be) player.displayClientMessage(be.status(), true);
+        if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer sp)
+            dev.factoryascension.menu.EngineMenu.open(sp, pos, dev.factoryascension.menu.EngineMenu.CORE, getName());
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 

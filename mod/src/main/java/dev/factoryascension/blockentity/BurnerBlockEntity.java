@@ -45,6 +45,8 @@ public class BurnerBlockEntity extends SyncedBlockEntity implements MachineBlock
 
     public ItemStackHandler fuel() { return fuel; }
     public boolean burning() { return burn > 0; }
+    public int burnTicks() { return burn; }
+    public int burnTotal() { return burnTotal; }
     /** Seconds of burning left, counting the fuel waiting in the slot. */
     public int secondsLeft() {
         ItemStack s = fuel.getStackInSlot(0);

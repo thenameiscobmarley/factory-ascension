@@ -46,6 +46,7 @@ public class EngineBlockEntity extends GeneratingKineticBlockEntity {
     public int burnerCount() { return burnerCount; }
     public int litBurners() { return lit; }
     public boolean jammed() { return jammed; }
+    public int modules() { return modules; }
     public float rpm() { return rpm; }
     /** Stress capacity right now, in SU. */
     public float su() { return rpm * capacityPerRpm; }

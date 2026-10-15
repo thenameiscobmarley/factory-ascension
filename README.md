@@ -519,8 +519,16 @@ shaft on the core's front face.
 | **Burner** | Holds any furnace fuel (hoppers and chutes fill it). Each lit Burner powers 4 Coils; spare Burners wait |
 
 Everything is made from iron, copper, a furnace and Create's andesite parts, so it's the first power you build.
-Right-click the core (or wear Engineer's Goggles) to see its speed, power and modules. One core per engine: two cores
-touching the same modules jam. Up to 32 modules.
+Every part has its own screen (right-click it):
+
+- **Core:** the whole engine: RPM and SU in big numbers, how many coils, gearboxes and burners (and how many are on),
+  a modules-used bar, the speed ladder with the current speed lit, and what to do next.
+- **Coil:** the SU each coil adds, how many coils are powered, and how many more Burners you need.
+- **Gearbox:** the speed ladder, the next gearbox's speed, and a reminder that SU stays the same.
+- **Burner:** a fuel slot, a flame gauge and the time left. Right-clicking with fuel in hand still puts it straight in.
+
+A part that isn't touching an engine says "Not connected". Engineer's Goggles show the same numbers. One core per
+engine: two cores touching the same modules jam. Up to 32 modules.
 
 ### The other machines
 
@@ -795,7 +803,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 64 checks (79 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 64 checks (80 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 

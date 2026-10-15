@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Burner Module: right-click with fuel to fill it, or with an empty hand to see how long it will burn. */
+/** Burner Module: right-click with fuel to fill it, or with anything else to open its screen. */
 public class BurnerBlock extends BaseEntityBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
@@ -50,10 +50,8 @@ public class BurnerBlock extends BaseEntityBlock {
         if (BurnerBlockEntity.burnTime(held) > 0) {
             ItemStack left = burner.fuel().insertItem(0, held.copy(), false);
             if (!player.getAbilities().instabuild) player.setItemInHand(hand, left);
-        } else {
-            ItemStack in = burner.fuel().getStackInSlot(0);
-            player.displayClientMessage(Component.translatable("gui.factoryascension.burner_status", in.getCount(), in.isEmpty() ? "-" : in.getHoverName().getString(),
-                burner.secondsLeft()), true);
+        } else if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            dev.factoryascension.menu.EngineMenu.open(sp, pos, dev.factoryascension.menu.EngineMenu.BURNER, getName());
         }
         return InteractionResult.CONSUME;
     }
