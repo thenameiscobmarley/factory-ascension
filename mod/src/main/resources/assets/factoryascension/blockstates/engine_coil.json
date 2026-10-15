@@ -1,7 +1,60 @@
 {
-  "variants": {
-    "": {
-      "model": "factoryascension:block/engine_coil"
+  "multipart": [
+    {
+      "when": {
+        "axis": "x"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_coil"
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "neg": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_cap"
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "pos": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_cap",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "axis": "z"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_coil",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "neg": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_cap",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "pos": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_cap",
+        "y": 270
+      }
     }
-  }
+  ]
 }

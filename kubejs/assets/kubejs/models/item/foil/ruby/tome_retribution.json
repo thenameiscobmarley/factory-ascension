@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_retribution","layer1":"kubejs:item/foil_overlay_ruby"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_retribution","overlay":"kubejs:item/foil_overlay_ruby"}}

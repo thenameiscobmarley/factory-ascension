@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_triad_searing_fury","layer1":"kubejs:item/foil_overlay_gold"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_triad_searing_fury","overlay":"kubejs:item/foil_overlay_gold"}}

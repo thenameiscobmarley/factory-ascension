@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_triad_granite_mantle","layer1":"kubejs:item/foil_overlay_celestial"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_triad_granite_mantle","overlay":"kubejs:item/foil_overlay_celestial"}}

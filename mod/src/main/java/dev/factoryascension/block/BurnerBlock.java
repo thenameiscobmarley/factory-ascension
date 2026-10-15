@@ -16,20 +16,35 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Burner Module: right-click with fuel to fill it, or with anything else to open its screen. */
+/** Burner Module: part of the engine rod. Right-click with fuel to fill it, or with anything else to open its screen. */
 public class BurnerBlock extends BaseEntityBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     public BurnerBlock(Properties props) {
         super(props);
-        registerDefaultState(stateDefinition.any().setValue(LIT, false));
+        registerDefaultState(stateDefinition.any().setValue(LIT, false).setValue(EngineRod.AXIS, Direction.Axis.X).setValue(EngineRod.NEG, false).setValue(EngineRod.POS, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LIT);
+        builder.add(LIT, EngineRod.AXIS, EngineRod.NEG, EngineRod.POS);
+    }
+
+    // Lies on its side as part of the engine rod (EngineRod)
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return EngineRod.connect(defaultBlockState().setValue(EngineRod.AXIS, EngineRod.axisFor(ctx)), ctx.getLevel(), ctx.getClickedPos());
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public BlockState updateShape(BlockState state, Direction dir, BlockState neighbor, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        return dir.getAxis() == state.getValue(EngineRod.AXIS) ? EngineRod.connect(state, level, pos) : state;
     }
 
     @Override

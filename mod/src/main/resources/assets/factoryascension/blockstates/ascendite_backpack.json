@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "factoryascension:block/ascendite_backpack"
+    },
+    "facing=east": {
+      "model": "factoryascension:block/ascendite_backpack",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "factoryascension:block/ascendite_backpack",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "factoryascension:block/ascendite_backpack",
+      "y": 270
+    }
+  }
+}

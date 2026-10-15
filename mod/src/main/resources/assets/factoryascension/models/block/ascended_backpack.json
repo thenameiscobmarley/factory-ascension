@@ -1,0 +1,6 @@
+{
+  "parent": "sophisticatedbackpacks:block/backpack",
+  "textures": {
+    "clips": "factoryascension:block/ascended_clips"
+  }
+}

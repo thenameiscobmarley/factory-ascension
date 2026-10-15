@@ -20,6 +20,15 @@ if (Platform.isLoaded(FA_MOD)) {
     let R = global.FA.machines.recipes
     Object.keys(R).forEach(b => event.shaped(FA_MOD + ':' + b, R[b][0], R[b][1]).id('kubejs:factory_ascension/machine_' + b))
     global.FA.machines.miniCrusher.motors.forEach(m => event.shaped('kubejs:' + m.id, m.recipe[0], m.recipe[1]).id('kubejs:factory_ascension/motor_' + m.id))
+    // Ascension backpacks: Sophisticated's upgrade recipe keeps everything inside when you move up a tier
+    if (Platform.isLoaded('sophisticatedbackpacks')) global.FA.backpacks.tiers.forEach((t, i) => {
+      let prev = i == 0 ? 'sophisticatedbackpacks:netherite_backpack' : 'factoryascension:' + global.FA.backpacks.tiers[i - 1].id + '_backpack'
+      let key = {}
+      Object.keys(t.recipe[1]).forEach(k => { key[k] = { item: t.recipe[1][k] } })
+      key.B = { item: prev }
+      event.custom({ type: 'sophisticatedbackpacks:backpack_upgrade', pattern: t.recipe[0], key: key, result: { item: 'factoryascension:' + t.id + '_backpack' } })
+        .id('kubejs:factory_ascension/backpack_' + t.id)
+    })
     let GL = global.FA.machines.glass
     Object.keys(GL).forEach(g => event.shaped(Item.of(FA_MOD + ':' + g, 8), ['GGG', 'GCG', 'GGG'], { G: 'minecraft:glass', C: GL[g] })
       .id('kubejs:factory_ascension/glass_' + g))

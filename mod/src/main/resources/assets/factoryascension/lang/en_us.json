@@ -146,5 +146,17 @@
   "entity.factoryascension.hollow_king": "Hollow King",
   "item.factoryascension.hollow_king_spawn_egg": "Hollow King Spawn Egg",
   "entity.factoryascension.wisp_tyrant": "Wisp Tyrant",
-  "item.factoryascension.wisp_tyrant_spawn_egg": "Wisp Tyrant Spawn Egg"
+  "item.factoryascension.wisp_tyrant_spawn_egg": "Wisp Tyrant Spawn Egg",
+  "item.factoryascension.ascendite_backpack": "Ascendite Backpack",
+  "block.factoryascension.ascendite_backpack": "Ascendite Backpack",
+  "item.factoryascension.voidsteel_backpack": "Voidsteel Backpack",
+  "block.factoryascension.voidsteel_backpack": "Voidsteel Backpack",
+  "item.factoryascension.celestium_backpack": "Celestium Backpack",
+  "block.factoryascension.celestium_backpack": "Celestium Backpack",
+  "item.factoryascension.ascendium_backpack": "Ascendium Backpack",
+  "block.factoryascension.ascendium_backpack": "Ascendium Backpack",
+  "item.factoryascension.singularity_backpack": "Singularity Backpack",
+  "block.factoryascension.singularity_backpack": "Singularity Backpack",
+  "item.factoryascension.ascended_backpack": "Ascended Backpack",
+  "block.factoryascension.ascended_backpack": "Ascended Backpack"
 }

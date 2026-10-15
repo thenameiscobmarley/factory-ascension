@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_triad_howling_ruin","layer1":"kubejs:item/foil_overlay_glacier"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_triad_howling_ruin","overlay":"kubejs:item/foil_overlay_glacier"}}

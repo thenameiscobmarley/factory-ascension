@@ -20,14 +20,46 @@
   "elements": [
     {
       "from": [
-        1,
         0,
-        1
+        5,
+        5
       ],
       "to": [
-        15,
-        13,
-        15
+        16,
+        11,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_steel_dk"
+        },
+        "south": {
+          "texture": "#mat_steel_dk"
+        },
+        "east": {
+          "texture": "#mat_steel_dk"
+        },
+        "west": {
+          "texture": "#mat_steel_dk"
+        },
+        "up": {
+          "texture": "#mat_steel_dk"
+        },
+        "down": {
+          "texture": "#mat_steel_dk"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        0,
+        1.5
+      ],
+      "to": [
+        14,
+        12,
+        14.5
       ],
       "faces": {
         "north": {
@@ -52,14 +84,14 @@
     },
     {
       "from": [
-        6,
-        13,
+        9,
+        12,
         6
       ],
       "to": [
-        10,
+        12,
         16,
-        10
+        9
       ],
       "faces": {
         "north": {
@@ -84,14 +116,14 @@
     },
     {
       "from": [
-        5.5,
+        8.5,
         15.5,
         5.5
       ],
       "to": [
-        10.5,
+        12.5,
         16.5,
-        10.5
+        9.5
       ],
       "faces": {
         "north": {

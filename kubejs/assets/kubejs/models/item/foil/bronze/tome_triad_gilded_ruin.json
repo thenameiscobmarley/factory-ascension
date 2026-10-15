@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_triad_gilded_ruin","layer1":"kubejs:item/foil_overlay_bronze"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_triad_gilded_ruin","overlay":"kubejs:item/foil_overlay_bronze"}}

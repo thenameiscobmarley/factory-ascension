@@ -597,6 +597,16 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let crushCharge = crusher.items().getStackInSlot(6).getDamageValue()
     check('Mini Crusher: a motor and a battery crush Raw Ascendite (' + crushedOut.join(', ') + '), using ' + crushCharge + ' charge',
       crushedOut.some(x => x.indexOf('kubejs:crushed_raw_ascendite') >= 0) && crushCharge >= global.FA.machines.miniCrusher.chargePerItem, crushedOut.join(', ') + ' / ' + crushCharge)
+    // Ascension backpacks (with Sophisticated Backpacks): every tier exists, has its recipe, and a placed one keeps a
+    // storage block entity (so placing a backpack never loses what's inside)
+    if (Platform.isLoaded('sophisticatedbackpacks')) {
+      let bpMissing = global.FA.backpacks.tiers.filter(t => Item.of('factoryascension:' + t.id + '_backpack').isEmpty() ||
+        !server.getRecipeManager().byKey('kubejs:factory_ascension/backpack_' + t.id).isPresent()).map(t => t.id)
+      let bpPos = place(X + 30, Y, Z + 16, 'factoryascension:ascended_backpack')
+      let bpBe = level.getBlockEntity(bpPos)
+      check('Ascension backpacks: all ' + global.FA.backpacks.tiers.length + ' tiers with recipes, and a placed one keeps its storage (' + (bpBe ? bpBe.getClass().getSimpleName() : 'none') + ')',
+        bpMissing.length == 0 && !!bpBe && String(bpBe.getClass().getSimpleName()) == 'BackpackBlockEntity', bpMissing.join(', '))
+    }
     // Ascension Workbench: two halves; Apply puts an attachment on a sword, Star Up adds a Legendary star
     let benchPos = place(X + 26, Y, Z + 16, 'minecraft:air')
     level.getBlock(benchPos).set('factoryascension:ascension_workbench', { facing: 'north', main: 'true' })

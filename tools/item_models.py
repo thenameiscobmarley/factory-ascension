@@ -309,6 +309,46 @@ def check_model(path, m):
             raise SystemExit("%s: a part goes outside -16..32" % path)
 
 
+def pages():
+    """Page edges: cream with fine lines and a gilt edge."""
+    px = blank()
+    for y in range(S):
+        for x in range(S):
+            c = (240, 232, 210) if y % 3 else (206, 196, 170)
+            if x in (0, S - 1) or y in (0, S - 1):
+                c = (220, 180, 90)
+            px[y][x] = c + (255,)
+    return px
+
+
+# The tome sprite's cover sits at x 5-24, y 2-27 of its 32 px (tome_art X0, X1, Y0, Y1); in model units (16) that's
+# u 2.5-12.5, v 1-14, so a 10 x 13 book shows the whole cover. The spine is u 2.5-4.
+TOME_DISPLAY = dict(DISPLAY, gui={"rotation": [8, -28, 0], "translation": [0, 0, 0], "scale": [1.05, 1.05, 1.05]})
+
+
+def tome_model(foil):
+    t = "kubejs:item/model/"
+    cover = {"south": {"texture": "#cover", "uv": [2.5, 1, 12.5, 14]}}
+    els = [
+        {"name": "front cover", "from": [3, 1.5, 9], "to": [13, 14.5, 9.6],
+         "faces": dict(cover, north={"texture": "#cover", "uv": [3, 1, 4, 14]}, east={"texture": "#cover", "uv": [3, 1, 4, 14]},
+                       up={"texture": "#cover", "uv": [3, 1, 12, 2]}, down={"texture": "#cover", "uv": [3, 13, 12, 14]})},
+        {"name": "back cover", "from": [3, 1.5, 5.6], "to": [13, 14.5, 6.2],
+         "faces": {"north": {"texture": "#cover", "uv": [12.5, 1, 2.5, 14]}, "east": {"texture": "#cover", "uv": [3, 1, 4, 14]},
+                   "up": {"texture": "#cover", "uv": [3, 1, 12, 2]}, "down": {"texture": "#cover", "uv": [3, 13, 12, 14]}}},
+        {"name": "pages", "from": [3.4, 2, 6.2], "to": [12.6, 14, 9],
+         "faces": {"east": {"texture": "#pages"}, "up": {"texture": "#pages"}, "down": {"texture": "#pages"}}},
+        {"name": "spine", "from": [2.4, 1.5, 5.6], "to": [3.4, 14.5, 9.6],
+         "faces": {"west": {"texture": "#cover", "uv": [2.5, 1, 4, 14]}, "up": {"texture": "#cover", "uv": [2.5, 1, 4, 2]},
+                   "down": {"texture": "#cover", "uv": [2.5, 13, 4, 14]}}},
+    ]
+    tex = {"pages": t + "pages", "particle": "#cover"}
+    if foil:
+        els.append({"name": "foil", "from": [3, 1.5, 9.61], "to": [13, 14.5, 9.62], "faces": {"south": {"texture": "#overlay", "uv": [2.5, 1, 12.5, 14]}}})
+    return {"textures": tex, "elements": els, "display": TOME_DISPLAY, "gui_light": "front",
+            "render_type": "minecraft:translucent" if foil else "minecraft:cutout"}
+
+
 def write(path, obj):
     check_model(path, obj)
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -323,6 +363,10 @@ def main():
     tints = {'bronze': (214, 140, 90), 'silver': (220, 230, 245), 'gold': (255, 214, 110), 'holo': (180, 230, 255),
              'prismatic': (240, 200, 255), 'galaxy': (150, 110, 230), 'void': (150, 90, 200), 'celestial': (255, 240, 190)}
     png("card_back", card_back())
+    png("pages", pages())
+    # The 3D tome: every tome model (tools/make_textures.py write_tome_models) points at one of these two parents
+    write(os.path.join(MODELS, "tome_3d.json"), tome_model(False))
+    write(os.path.join(MODELS, "tome_3d_foil.json"), tome_model(True))
     png("film", film((220, 236, 255)))
     png("card_holo", card_face("holo", None))
     for name, draw in (("pack_face", pack_face), ("pack_side", pack_side), ("pack_inside", pack_inside), ("pack_flap", pack_flap),

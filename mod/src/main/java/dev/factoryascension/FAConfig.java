@@ -37,6 +37,10 @@ public final class FAConfig {
     public static final java.util.Map<String, Float> motors = new java.util.LinkedHashMap<>();
     public static final java.util.Set<String> batteries = new java.util.LinkedHashSet<>();
 
+    // Ascension backpacks (with Sophisticated Backpacks): storage and upgrade slots per tier
+    public static final int[] backpackSlots = {162, 270, 432, 648, 1080, 1728};
+    public static final int[] backpackUpgrades = {7, 8, 9, 10, 12, 14};
+
     /** How often (ticks) the Salvager asks the scripts to salvage. */
     public static int salvagerTicks = 20;
 
@@ -100,6 +104,12 @@ public final class FAConfig {
 
     public static void addBattery(String item) {
         batteries.add(item);
+    }
+
+    public static void setBackpack(int tier, int slots, int upgrades) {
+        if (tier < 0 || tier >= backpackSlots.length) return;
+        backpackSlots[tier] = Math.max(9, slots);
+        backpackUpgrades[tier] = Math.max(1, Math.min(32, upgrades));
     }
 
     public static void setSalvager(int ticks) {

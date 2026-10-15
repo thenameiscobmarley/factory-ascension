@@ -681,6 +681,19 @@ ItemEvents.tooltip(event => {
       tip('Right-click with fuel to fill it, or open its screen. Hoppers and chutes fill it. Spare Burners wait.'),
       up('one more Burner for every ' + EN.coilsPerBurner + ' more Coils')])
 
+    // Ascension backpacks (with Sophisticated Backpacks)
+    let BPT = FA.backpacks.tiers
+    let bpLore = ['Teal-trimmed and roomy.', 'Bigger on the inside than the void.', 'Stars stitched into the lining.', 'Forged straps, endless pockets.',
+      'A whole factory fits in here.', 'You will never run out of room again.']
+    BPT.forEach((t, i) => details('factoryascension:' + t.id + '_backpack', bpLore[i] || 'Huge.', () => [
+      Text.gray('Holds: ').append(Text.white(global.FA_num(t.slots) + ' slots')).append(Text.gray(', ')).append(Text.white(t.upgrades + ' upgrade slots'))
+        .append(Text.darkGray('  (a Netherite Backpack: 120 and 7)')),
+      tip('A real Sophisticated backpack: every Sophisticated upgrade works in it. Wear it, place it, dye it.'),
+      made(shapedList([t.recipe[0], Object.assign({ B: i == 0 ? 'sophisticatedbackpacks:netherite_backpack' : 'factoryascension:' + BPT[i - 1].id + '_backpack' }, t.recipe[1])]) +
+        ' (keeps everything inside)'),
+      BPT[i + 1] ? up('the ' + global.FA_num(BPT[i + 1].slots) + '-slot tier: ' + shapedList([BPT[i + 1].recipe[0], Object.assign({ B: 'this backpack' }, BPT[i + 1].recipe[1])]))
+        : tip('The biggest backpack there is')]))
+
     // Mini Crusher
     let MCR = M.miniCrusher
     block('mini_crusher', 'All the crushing, none of the wheels.', () => [

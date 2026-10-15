@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "factoryascension:block/voidsteel_backpack"
+    },
+    "facing=east": {
+      "model": "factoryascension:block/voidsteel_backpack",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "factoryascension:block/voidsteel_backpack",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "factoryascension:block/voidsteel_backpack",
+      "y": 270
+    }
+  }
+}

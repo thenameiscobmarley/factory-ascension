@@ -1555,7 +1555,7 @@ check('loot follows the mob curve: x1.5 at 1,000 blocks, x4.5 at 2,000, bigger s
   global.FA_lootOdds(17)[5] > 30 * global.FA_lootOdds(1)[5], global.FA_dangerMult(5).loot.toFixed(2) + ', mythic ' + (global.FA_lootOdds(1)[5] * 100).toFixed(2) + '% -> ' + (global.FA_lootOdds(17)[5] * 100).toFixed(2) + '%')
 // Meteor Shower: anything from the pack can fall, better things rarer, better odds deeper
 var mIsLoaded = Platform.isLoaded
-Platform.isLoaded = function (m) { return m == 'factoryascension' || mIsLoaded(m) }
+Platform.isLoaded = function (m) { return m == 'factoryascension' || m == 'sophisticatedbackpacks' || mIsLoaded(m) }
 var mPool = global.FA_meteorPool()
 Platform.isLoaded = mIsLoaded
 var mAll = [].concat.apply([], mPool).filter(function (x) { return typeof x == 'string' })

@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_mending_frost","layer1":"kubejs:item/foil_overlay_prismatic"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_mending_frost","overlay":"kubejs:item/foil_overlay_prismatic"}}

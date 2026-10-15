@@ -831,19 +831,20 @@ MODEL_OUT = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "k
 
 
 def write_tome_models(tome_ids, foil_ids):
-    """Each tome's model picks a foil overlay by CustomModelData (1 = first foil ...). The overlay is layer1 over the tome."""
+    """Each tome is a 3D book (kubejs:item/tome_3d, from tools/item_models.py) whose cover is the tome's sprite. Its foil
+    looks are picked by CustomModelData (1 = first foil ...): the same book with the foil's overlay on the cover."""
     import json
     for f in foil_ids:
         os.makedirs(os.path.join(MODEL_OUT, "foil", f), exist_ok=True)
     for tid in tome_ids:
         name = "tome_" + tid
-        base = {"parent": "minecraft:item/generated", "textures": {"layer0": "kubejs:item/" + name},
+        base = {"parent": "kubejs:item/tome_3d", "textures": {"cover": "kubejs:item/" + name},
                 "overrides": [{"predicate": {"custom_model_data": i + 1}, "model": "kubejs:item/foil/%s/%s" % (f, name)} for i, f in enumerate(foil_ids)]}
         with open(os.path.join(MODEL_OUT, name + ".json"), "w") as out:
             json.dump(base, out, separators=(",", ":"))
         for f in foil_ids:
             with open(os.path.join(MODEL_OUT, "foil", f, name + ".json"), "w") as out:
-                json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "kubejs:item/" + name, "layer1": "kubejs:item/foil_overlay_" + f}},
+                json.dump({"parent": "kubejs:item/tome_3d_foil", "textures": {"cover": "kubejs:item/" + name, "overlay": "kubejs:item/foil_overlay_" + f}},
                           out, separators=(",", ":"))
     print("wrote %d tome models with %d foil looks each" % (len(tome_ids), len(foil_ids)))
 

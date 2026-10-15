@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_rallying_ward","layer1":"kubejs:item/foil_overlay_sapphire"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_rallying_ward","overlay":"kubejs:item/foil_overlay_sapphire"}}

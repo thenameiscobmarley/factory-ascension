@@ -723,6 +723,21 @@ global.FA = {
     maxStars: 0                // 0 = no cap
   },
 
+  // ---- Ascension backpacks (Full download + Sophisticated Backpacks): tiers past Netherite, as real Sophisticated ----
+  // backpacks, so every Sophisticated upgrade works in them. Each tier is crafted around the one before it (the first
+  // around a Netherite Backpack) and keeps everything inside. slots: storage slots, upgrades: upgrade slots.
+  // (Sophisticated's own Netherite Backpack has 120 and 7.)
+  backpacks: {
+    tiers: [
+      { id: 'ascendite', slots: 162, upgrades: 7, recipe: [['AAA', 'ABA', 'AAA'], { A: 'kubejs:ascendite_block' }] },
+      { id: 'voidsteel', slots: 270, upgrades: 8, recipe: [['VVV', 'VBV', 'VVV'], { V: 'kubejs:voidsteel_ingot' }] },
+      { id: 'celestium', slots: 432, upgrades: 9, recipe: [['CCC', 'CBC', 'CCC'], { C: 'kubejs:celestium_ingot' }] },
+      { id: 'ascendium', slots: 648, upgrades: 10, recipe: [['ADA', 'DBD', 'ADA'], { A: 'kubejs:ascendium_ingot', D: 'kubejs:dense_ascension_core' }] },
+      { id: 'singularity', slots: 1080, upgrades: 12, recipe: [['SSS', 'SBS', 'SSS'], { S: 'kubejs:ascension_singularity' }] },
+      { id: 'ascended', slots: 1728, upgrades: 14, recipe: [['SDS', 'DBD', 'SNS'], { S: 'kubejs:ascended_soul', D: 'kubejs:ascension_singularity', N: 'minecraft:nether_star' }] }
+    ]
+  },
+
   // ---- Legendary stars: Fallout 76-style grades for gear, from no stars to 10, made at the Ascension Workbench ----
   // Each star adds one legendary effect (a random enchant that suits the gear, at effectLevels[star - 1]) and makes
   // every level on the item count x(1 + bonusPerStar x stars), on top of Rebirth stars. costs[star - 1]: what that star
@@ -825,7 +840,8 @@ global.FA = {
         roomTnt: [0, 1, 2],    // 16, 32, 50
         foils: [0, 0, 1, 1, 2, 3, 4, 5, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5],   // the 10 cased foils are Legendary / Mythic
         condensedPerTier: 10,  // Condensed Essence: blocks 0-9 -> Uncommon, 10-19 -> Rare ... 40+ -> Mythic
-        relics: { rare: 2, epic: 3, legendary: 4, mythic: 5 }
+        relics: { rare: 2, epic: 3, legendary: 4, mythic: 5 },
+        backpacks: [3, 3, 4, 4, 5, 5]   // the Ascension backpacks, smallest first (with Sophisticated Backpacks)
       },
       extra: [['minecraft:diamond', 1], ['minecraft:ancient_debris', 2], ['minecraft:netherite_ingot', 4]] },
     goldenHour: { minutes: 5, lootMult: 2 }
@@ -2024,6 +2040,7 @@ global.FA_meteorPool = () => {
     put(P.engine, ['engine_core', 'engine_coil', 'engine_gearbox', 'engine_burner', 'storage_linker', 'mini_crusher'].concat(Object.keys(FA.machines.glass)).map(b => 'factoryascension:' + b))
     put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['ascension_vault', 'essence_forge', 'ascension_workbench'].map(b => 'factoryascension:' + b))
+    if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))
   }
   global.FA.events.meteorShower.extra.forEach(x => put(x[1], [x[0]]))
   return tiers

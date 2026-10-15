@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_blastproof_bloom","layer1":"kubejs:item/foil_overlay_bronze"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_blastproof_bloom","overlay":"kubejs:item/foil_overlay_bronze"}}

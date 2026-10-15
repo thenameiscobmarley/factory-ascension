@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_raging_harvest","layer1":"kubejs:item/foil_overlay_nebula"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_raging_harvest","overlay":"kubejs:item/foil_overlay_nebula"}}

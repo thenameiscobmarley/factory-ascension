@@ -560,7 +560,8 @@ The Full download adds a Forge mod with twelve machine blocks, four kinds of con
 
 ### Modular Engine: power from day one
 
-An **Engine Core** plus modules touching it, or touching each other, in any shape. It's a real Create generator: put a
+An **Engine Core** plus modules touching it, or touching each other. Coils, Gearboxes and Burners lie on their side
+and join into one long engine rod (place them against the core's back, or facing along the rod). It's a real Create generator: put a
 shaft on the core's front face.
 
 | Module | What it does |
@@ -594,6 +595,23 @@ Up to 128 chests within 128 blocks, same dimension (`machines.storage`). Sneak +
 |---|---|
 | Universal Storage Terminal | 4 Ascendite Ingots, 2 Chests, 1 Glass Pane, 1 Ascension Core, 1 Comparator |
 | Storage Linker | Ascendite Ingot, Ascendite Nugget, Amethyst Shard (diagonal) |
+
+### Ascension backpacks (Full download + Sophisticated Backpacks)
+
+Six backpack tiers past Sophisticated Backpacks' Netherite one. They're real Sophisticated backpacks, so **every
+Sophisticated upgrade works in them**, and you can wear, place and dye them. Each is crafted around the one before
+(the first around a Netherite Backpack) and keeps everything inside.
+
+| Tier | Storage slots | Upgrade slots | Crafted around the last one with |
+|---|---|---|---|
+| Ascendite | 162 | 7 | 8 Blocks of Ascendite |
+| Voidsteel | 270 | 8 | 8 Voidsteel Ingots |
+| Celestium | 432 | 9 | 8 Celestium Ingots |
+| Ascendium | 648 | 10 | 4 Ascendium Ingots, 4 Dense Cores |
+| Singularity | 1,080 | 12 | 8 Ascension Singularities |
+| Ascended | 1,728 | 14 | 4 Ascended Souls, 3 Singularities, a Nether Star |
+
+(Sophisticated's Netherite Backpack: 120 and 7.) Sizes are in the config (`backpacks`).
 
 ### Mini Crusher (Full download)
 
@@ -912,7 +930,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 66 checks (85 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 66 checks (86 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 

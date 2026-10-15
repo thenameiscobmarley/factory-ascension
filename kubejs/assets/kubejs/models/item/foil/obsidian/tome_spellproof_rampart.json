@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_spellproof_rampart","layer1":"kubejs:item/foil_overlay_obsidian"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_spellproof_rampart","overlay":"kubejs:item/foil_overlay_obsidian"}}

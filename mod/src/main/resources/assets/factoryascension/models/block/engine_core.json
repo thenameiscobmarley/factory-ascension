@@ -84,6 +84,70 @@
     },
     {
       "from": [
+        3,
+        3,
+        15
+      ],
+      "to": [
+        13,
+        13,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_copper"
+        },
+        "south": {
+          "texture": "#mat_copper"
+        },
+        "east": {
+          "texture": "#mat_copper"
+        },
+        "west": {
+          "texture": "#mat_copper"
+        },
+        "up": {
+          "texture": "#mat_copper"
+        },
+        "down": {
+          "texture": "#mat_copper"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        5,
+        15.5
+      ],
+      "to": [
+        11,
+        11,
+        16.01
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_steel_dk"
+        },
+        "south": {
+          "texture": "#mat_steel_dk"
+        },
+        "east": {
+          "texture": "#mat_steel_dk"
+        },
+        "west": {
+          "texture": "#mat_steel_dk"
+        },
+        "up": {
+          "texture": "#mat_steel_dk"
+        },
+        "down": {
+          "texture": "#mat_steel_dk"
+        }
+      }
+    },
+    {
+      "from": [
         0,
         0,
         0

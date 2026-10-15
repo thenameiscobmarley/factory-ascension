@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_soulbound_pyre","layer1":"kubejs:item/foil_overlay_emerald"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_soulbound_pyre","overlay":"kubejs:item/foil_overlay_emerald"}}

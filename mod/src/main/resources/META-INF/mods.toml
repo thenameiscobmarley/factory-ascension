@@ -79,3 +79,11 @@ description='''${mod_description}'''
     versionRange="[6.0.8,)"
     ordering="AFTER"
     side="BOTH"
+
+# Sophisticated Backpacks (optional): with it, the Ascension backpack tiers appear (they are real Sophisticated backpacks)
+[[dependencies.${mod_id}]]
+    modId="sophisticatedbackpacks"
+    mandatory=false
+    versionRange="[3.20,)"
+    ordering="AFTER"
+    side="BOTH"

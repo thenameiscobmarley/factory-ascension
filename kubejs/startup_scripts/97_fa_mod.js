@@ -11,6 +11,7 @@ if (Platform.isLoaded('factoryascension')) {
   $FAModConfig.setEngine(M.engine.suPerCoil, M.engine.coilsPerBurner, M.engine.maxModules, M.engine.fuelMultiplier)
   M.engine.rpm.forEach((r, i) => $FAModConfig.setEngineRpm(i, r))
   $FAModConfig.setStorage(M.storage.range, M.storage.maxLinks)
+  global.FA.backpacks.tiers.forEach((t, i) => $FAModConfig.setBackpack(i, t.slots, t.upgrades))
   let MC = M.miniCrusher
   $FAModConfig.setMiniCrusher(MC.ticksPerItem, MC.chargePerItem)
   MC.motors.forEach(m => $FAModConfig.addMotor('kubejs:' + m.id, m.speed))

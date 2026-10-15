@@ -562,6 +562,39 @@ def shaped_model(b, variant=""):
     return m
 
 
+def rod_models(b, m):
+    """An engine module: its segment along the rod plus a flange on each open end, as a multipart blockstate
+    (axis x as drawn, z turned 90; the cap is drawn for the -x end and turned 180 for +x). The item shows both caps."""
+    t = "factoryascension:block/"
+    cap = shaped_model("engine_cap") if False else None
+    tex = {"mat_" + k: t + "mat_" + k for k in MATERIALS}
+    tex["particle"] = t + "mat_copper"
+    m["engine_cap"] = {"parent": "minecraft:block/block", "textures": tex, "elements": shape("engine_cap")}
+    lit = b == "engine_burner"
+    parts = []
+    for axis, rot in (("x", 0), ("z", 90)):
+        for l in (("false", "true") if lit else (None,)):
+            when = {"axis": axis}
+            if l:
+                when["lit"] = l
+            parts.append({"when": when, "apply": {"model": t + b + ("_lit" if l == "true" else ""), **({"y": rot} if rot else {})}})
+        parts.append({"when": {"axis": axis, "neg": "false"}, "apply": {"model": t + "engine_cap", **({"y": rot} if rot else {})}})
+        parts.append({"when": {"axis": axis, "pos": "false"}, "apply": {"model": t + "engine_cap", "y": rot + 180}})
+    # The item: the segment with both caps
+    item = dict(m[b])
+    item["elements"] = m[b]["elements"] + shape("engine_cap") + [rot180(e) for e in shape("engine_cap")]
+    item["textures"] = dict(m[b]["textures"])
+    m[b + "_item"] = item
+    return m, {"multipart": parts}
+
+
+def rot180(e):
+    """A part turned 180 degrees about the block's vertical center line (x -> 16 - x, z -> 16 - z)."""
+    f, t = e["from"], e["to"]
+    swap = {"north": "south", "south": "north", "east": "west", "west": "east"}
+    return {"from": [16 - t[0], f[1], 16 - t[2]], "to": [16 - f[0], t[1], 16 - f[2]], "faces": {swap.get(k, k): v for k, v in e["faces"].items()}}
+
+
 def models(b):
     """{model name: model json} for a block, and its blockstate variants."""
     t = "factoryascension:block/"
@@ -573,10 +606,8 @@ def models(b):
         if b == "super_smelter":
             return m, {"facing=%s,lit=%s" % (d, l): {"model": t + b + ("_lit" if l == "true" else ""), **({"y": r} if r else {})}
                        for d, r in FACINGS for l in ("false", "true")}
-        if b == "engine_burner":
-            return m, {"lit=false": {"model": t + b}, "lit=true": {"model": t + b + "_lit"}}
-        if b in ("engine_coil", "engine_gearbox"):
-            return m, {"": {"model": t + b}}
+        if b in ("engine_coil", "engine_gearbox", "engine_burner"):
+            return rod_models(b, m)
         if b == "ascension_workbench":
             m[b + "_side"] = shaped_model(b, "_side")
             return m, {"facing=%s,main=%s" % (d, mn): {"model": t + b + ("" if mn == "true" else "_side"), **({"y": r} if r else {})}
@@ -681,16 +712,26 @@ def shape(b, variant=""):
                 E((2, 12, 0.2), (14, 13.5, 1), "mat_steel_dk"), E((10, 14, 10), (14, 16, 14), "mat_steel_dk"),
                 E((9.5, 15.5, 9.5), (14.5, 16.5, 14.5), "mat_gold"), E((0, 0, 0), (2, 3, 1), "mat_gold"), E((14, 0, 0), (16, 3, 1), "mat_gold")]
     if b == "engine_core":
+        # Shaft out of the front; the engine rod couples on at the back
         return [E((1, 1, 1), (15, 15, 15), {"*": "side", "n": "front", "u": "top", "d": "top"}),
-                E((3, 3, -0.5), (13, 13, 1), {"*": "mat_copper", "n": "front"})] + corners(0, 16, 0, 16, 2, "mat_copper")
+                E((3, 3, -0.5), (13, 13, 1), {"*": "mat_copper", "n": "front"}), E((3, 3, 15), (13, 13, 16), "mat_copper"),
+                E((5, 5, 15.5), (11, 11, 16.01), "mat_steel_dk")] + corners(0, 16, 0, 16, 2, "mat_copper")
+    # Engine modules: one segment of the rod, running along X (the blockstate turns it for Z). Caps are separate parts.
     if b == "engine_coil":
-        return [E((3, 1.5, 3), (13, 14.5, 13), "side"), E((1, 0, 1), (15, 1.5, 15), {"*": "mat_iron", "u": "mat_iron"}),
-                E((1, 14.5, 1), (15, 16, 15), {"*": "mat_iron", "u": "top"})] + corners(1, 15, 1.5, 14.5, 1, "mat_steel_dk")
+        return [E((0, 5, 5), (16, 11, 11), "mat_steel_dk")] + \
+            [E((x0, 3, 3), (x0 + 2.6, 13, 13), {"*": "mat_copper", "e": "side", "w": "side"}) for x0 in (1.2, 4.9, 8.6, 12.3)] + \
+            [E((0, 13, 7.4), (16, 13.6, 8.6), "mat_teal")]
     if b == "engine_gearbox":
-        return [E((1, 1, 1), (15, 15, 15), {"*": "side", "u": "top", "d": "top"})] + corners(0, 16, 0, 16, 2, "mat_copper")
+        return [E((0, 4, 4), (16, 12, 12), "mat_steel")] + \
+            [E((x0, 1.5, 1.5), (x0 + 2.5, 14.5, 14.5), {"*": "mat_gold", "e": "side", "w": "side"}) for x0 in (2.5, 11)] + \
+            [E((6, 3, 3), (10, 13, 13), {"*": "mat_steel_dk", "e": "side", "w": "side"})]
     if b == "engine_burner":
-        return [E((1, 0, 1), (15, 13, 15), {"*": "side" + variant, "u": "top", "d": "mat_steel_dk"}),
-                E((6, 13, 6), (10, 16, 10), "mat_steel_dk"), E((5.5, 15.5, 5.5), (10.5, 16.5, 10.5), "mat_copper")]
+        return [E((0, 5, 5), (16, 11, 11), "mat_steel_dk"), E((2, 0, 1.5), (14, 12, 14.5), {"*": "side" + variant, "u": "top", "d": "mat_steel_dk"}),
+                E((9, 12, 6), (12, 16, 9), "mat_steel_dk"), E((8.5, 15.5, 5.5), (12.5, 16.5, 9.5), "mat_copper")]
+    if b == "engine_cap":
+        # The flange on an open end of the rod: -x end (the blockstate mirrors it for +x with a 180 turn)
+        return [E((0, 2, 2), (1.5, 14, 14), "mat_copper"), E((-0.01, 6, 6), (0.5, 10, 10), "mat_steel_dk")] + \
+            [E((0.5, y, z), (1.6, y + 1, z + 1), "mat_gold") for y, z in ((3, 3), (12, 3), (3, 12), (12, 12))]
     if b == "ascension_workbench":
         top = [E((0, 12, 0), (16, 15, 16), {"*": "side", "n": "mat_wood", "u": "top", "d": "mat_wood"})]
         if variant == "_side":
@@ -713,6 +754,52 @@ def shape(b, variant=""):
                 E((1, 7, 1), (15, 16, 3), {"*": "mat_steel", "n": "front"}, ("x", 22.5, [8, 7, 3])),
                 E((2, 15.5, 2.5), (14, 16, 3), "mat_teal", ("x", 22.5, [8, 7, 3]))]
     return None
+
+
+# ---- Ascension backpacks (Sophisticated Backpacks tiers; the Java side registers them only when it's installed) ----
+BACKPACK_TIERS = [("ascendite", "Ascendite Backpack", "teal"), ("voidsteel", "Voidsteel Backpack", "gem"),
+                  ("celestium", "Celestium Backpack", "glass"), ("ascendium", "Ascendium Backpack", "gold"),
+                  ("singularity", "Singularity Backpack", "fire"), ("ascended", "Ascended Backpack", "cloth")]
+
+
+def backpack_assets(lang):
+    """Clips texture (our own colors drawn on Sophisticated's clip layout), block/item models that reuse its backpack
+    model, blockstates, loot tables that keep the contents, and back-slot tags."""
+    import zipfile
+    from pngread import read as read_png
+    jar = os.path.join(os.path.dirname(__file__), "..", "mod", "libs", "sophisticatedbackpacks-1.20.1-3.26.12.2206.jar")
+    layout = None
+    if os.path.exists(jar):
+        tmp = os.path.join(os.path.dirname(__file__), "..", "mod", "build", "sb_clips_layout.png")
+        os.makedirs(os.path.dirname(tmp), exist_ok=True)
+        with zipfile.ZipFile(jar) as z, open(tmp, "wb") as f:
+            f.write(z.read("assets/sophisticatedbackpacks/textures/block/netherite_clips.png"))
+        layout = read_png(tmp)
+    t = "factoryascension:block/"
+    for tier, name, mat in BACKPACK_TIERS:
+        bid = tier + "_backpack"
+        if layout:
+            px = [[(0, 0, 0, 0)] * len(layout[0]) for _ in layout]
+            for y, row in enumerate(layout):
+                for x, p in enumerate(row):
+                    if p[3]:
+                        edge = any(not (0 <= y + dy < len(layout) and 0 <= x + dx < len(row) and layout[y + dy][x + dx][3])
+                                   for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                        px[y][x] = _shade(mat, 0.75 if edge else 0.25 + 0.3 * (y % 4) / 3) + (p[3],)
+            make_textures.png(os.path.join(ASSETS, "textures", "block", tier + "_clips.png"), px)
+        write_json(os.path.join(ASSETS, "models", "block", bid + ".json"),
+                   {"parent": "sophisticatedbackpacks:block/backpack", "textures": {"clips": t + tier + "_clips"}})
+        write_json(os.path.join(ASSETS, "models", "item", bid + ".json"), {"parent": t + bid})
+        write_json(os.path.join(ASSETS, "blockstates", bid + ".json"),
+                   {"variants": {"facing=%s" % d: {"model": t + bid, **({"y": r} if r else {})} for d, r in FACINGS}})
+        write_json(os.path.join(DATA, "loot_tables", "blocks", bid + ".json"), {"type": "minecraft:block", "pools": [{
+            "rolls": 1.0, "bonus_rolls": 0.0, "entries": [{"type": "minecraft:item", "name": "factoryascension:" + bid}],
+            "functions": [{"function": "sophisticatedbackpacks:copy_backpack_data"}], "name": "main"}]})
+        lang["item.factoryascension." + bid] = name
+        lang["block.factoryascension." + bid] = name
+    ids = ["factoryascension:%s_backpack" % b[0] for b in BACKPACK_TIERS]
+    for ns in ("curios", "accessories"):
+        write_json(os.path.join(RES, "data", ns, "tags", "items", "back.json"), {"replace": False, "values": [{"id": i, "required": False} for i in ids]})
 
 
 def mod_id_list():
@@ -826,15 +913,14 @@ def main():
     for m in MATERIALS:
         make_textures.png(os.path.join(tex, "mat_%s.png" % m), material(m))
     kubejs_block_models()
-    mod_id_list()
     for b, faces in FACES.items():
         for face, draw in faces.items():
             make_textures.png(os.path.join(tex, "%s_%s.png" % (b, face)), draw())
         mods, variants = models(b)
         for name, model in mods.items():
             write_json(os.path.join(ASSETS, "models", "block", name + ".json"), model)
-        write_json(os.path.join(ASSETS, "models", "item", b + ".json"), {"parent": "factoryascension:block/" + b})
-        write_json(os.path.join(ASSETS, "blockstates", b + ".json"), {"variants": variants})
+        write_json(os.path.join(ASSETS, "models", "item", b + ".json"), {"parent": "factoryascension:block/" + b + ("_item" if b + "_item" in mods else "")})
+        write_json(os.path.join(ASSETS, "blockstates", b + ".json"), variants if "multipart" in variants else {"variants": variants})
         conds = [{"condition": "minecraft:survives_explosion"}]
         if b == "ascension_workbench":   # two halves, one drop
             conds.append({"condition": "minecraft:block_state_property", "block": "factoryascension:" + b, "properties": {"main": "true"}})
@@ -924,7 +1010,9 @@ def main():
         for k, v in json.load(open(old)).items():
             if k.startswith("entity.") or k.endswith("_spawn_egg"):
                 lang.setdefault(k, v)
+    backpack_assets(lang)
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), lang)
+    mod_id_list()
     print("wrote textures, models, block states, loot tables, tags and lang for %d blocks" % len(BLOCKS))
 
 

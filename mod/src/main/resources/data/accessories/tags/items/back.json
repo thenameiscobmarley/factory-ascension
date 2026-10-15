@@ -1,0 +1,29 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "factoryascension:ascendite_backpack",
+      "required": false
+    },
+    {
+      "id": "factoryascension:voidsteel_backpack",
+      "required": false
+    },
+    {
+      "id": "factoryascension:celestium_backpack",
+      "required": false
+    },
+    {
+      "id": "factoryascension:ascendium_backpack",
+      "required": false
+    },
+    {
+      "id": "factoryascension:singularity_backpack",
+      "required": false
+    },
+    {
+      "id": "factoryascension:ascended_backpack",
+      "required": false
+    }
+  ]
+}

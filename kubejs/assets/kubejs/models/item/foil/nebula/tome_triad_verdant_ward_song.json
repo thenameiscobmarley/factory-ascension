@@ -1,1 +1,1 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"kubejs:item/tome_triad_verdant_ward_song","layer1":"kubejs:item/foil_overlay_nebula"}}
+{"parent":"kubejs:item/tome_3d_foil","textures":{"cover":"kubejs:item/tome_triad_verdant_ward_song","overlay":"kubejs:item/foil_overlay_nebula"}}

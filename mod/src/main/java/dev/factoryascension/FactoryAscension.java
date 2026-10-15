@@ -184,9 +184,13 @@ public class FactoryAscension {
             out.accept(GEARBOX.get());
             out.accept(BURNER.get());
             GLASS_BLOCKS.forEach(g -> out.accept(g.get()));
+            FactoryAscension.BACKPACKS.forEach(b -> out.accept(b.get()));
             FAMobs.ALL.forEach(m -> out.accept(m.egg().get()));
         })
         .build());
+
+    /** The Ascension backpacks (only with Sophisticated Backpacks installed), for the creative tab. */
+    public static final java.util.List<RegistryObject<Item>> BACKPACKS = new java.util.ArrayList<>();
 
     private static RegistryObject<Block> block(String name, Supplier<Block> make) {
         RegistryObject<Block> b = BLOCKS.register(name, make);
@@ -199,6 +203,8 @@ public class FactoryAscension {
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, dev.factoryascension.client.FAClientConfig.SPEC);
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, FACommonConfig.SPEC);
         FAMobs.register(bus);   // first: its spawn eggs go into ITEMS before ITEMS is registered
+        if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks"))
+            dev.factoryascension.compat.SophisticatedBackpacks.register(BLOCKS, ITEMS, BACKPACKS);
         MinecraftForge.EVENT_BUS.addListener(FAMobs::onDetonate);
         BLOCKS.register(bus);
         ITEMS.register(bus);
@@ -212,6 +218,7 @@ public class FactoryAscension {
     /** Create's stress numbers for the item tooltips and goggles (the real values come from FAConfig at run time). */
     private void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
+            if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks")) dev.factoryascension.compat.SophisticatedBackpacks.allowPlacing();
             BlockStressValues.IMPACTS.register(SMELTER.get(), () -> FAConfig.smelterStress[0]);
             BlockStressValues.CAPACITIES.register(ENGINE_CORE.get(), () -> FAConfig.engineSuPerCoil / FAConfig.engineRpm[0]);
         });

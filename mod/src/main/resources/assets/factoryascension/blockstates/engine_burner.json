@@ -1,10 +1,81 @@
 {
-  "variants": {
-    "lit=false": {
-      "model": "factoryascension:block/engine_burner"
+  "multipart": [
+    {
+      "when": {
+        "axis": "x",
+        "lit": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_burner"
+      }
     },
-    "lit=true": {
-      "model": "factoryascension:block/engine_burner_lit"
+    {
+      "when": {
+        "axis": "x",
+        "lit": "true"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_burner_lit"
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "neg": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_cap"
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "pos": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_cap",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "lit": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_burner",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "lit": "true"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_burner_lit",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "neg": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_cap",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "pos": "false"
+      },
+      "apply": {
+        "model": "factoryascension:block/engine_cap",
+        "y": 270
+      }
     }
-  }
+  ]
 }

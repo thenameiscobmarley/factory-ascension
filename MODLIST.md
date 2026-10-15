@@ -20,6 +20,8 @@ The **Factory Ascension** mod jar (the Full download) isn't on CurseForge; it co
 | [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-forge) | The pack's quest book |
 | [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge) | FTB Quests dependency |
 | [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams-forge) | FTB Quests dependency |
+| [Sophisticated Backpacks](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) | Backpacks; the six Ascension tiers build on it |
+| [Sophisticated Core](https://www.curseforge.com/minecraft/mc-mods/sophisticated-core) | Sophisticated Backpacks dependency |
 
 ## Factory and gear
 
