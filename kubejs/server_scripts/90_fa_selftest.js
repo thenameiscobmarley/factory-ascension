@@ -20,6 +20,7 @@ const $STHit = Java.loadClass('net.minecraft.world.phys.BlockHitResult')
 const $STCompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
 const $STSlot = Java.loadClass('net.minecraft.world.entity.EquipmentSlot')
 const $STVec = Java.loadClass('net.minecraft.world.phys.Vec3')
+const $STBoom = Java.loadClass('net.minecraft.world.level.Level$ExplosionInteraction')
 
 let faSelftestBusy = false
 let faSelftestCenterOn = 'home'   // the real danger.centerOn, put back when the test ends
@@ -538,6 +539,45 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
     let recipes = ['ascension_vault', 'card_binder', 'essence_forge', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'engine_core', 'engine_coil',
       'engine_gearbox', 'engine_burner'].filter(b => !server.getRecipeManager().byKey('kubejs:factory_ascension/machine_' + b).isPresent())
     check('the mod blocks have recipes', recipes.length == 0, recipes.join(', '))
+  })
+
+  // ---- The mod's mobs, connected glass and creeper blasts (Full download only) ----
+  if (Platform.isLoaded('factoryascension')) attempt('mod mobs', () => {
+    let ids = Object.keys(global.FA.modMobs.minDanger), ok = [], bad = []
+    ids.forEach((id, i) => {
+      let e = spawn('factoryascension:' + id, X - 20 + (i % 5) * 2, Y, Z + 14 + Math.floor(i / 5) * 2)
+      if (e && String(e.type) == 'factoryascension:' + id && e.getMaxHealth() > 0) ok.push(id)
+      else bad.push(id)
+    })
+    check('all ' + ids.length + ' of the mod\'s mobs spawn with their stats (' + ok.length + ')', ok.length == 20, bad.join(', '))
+    // Gone again before their hordes arrive (a crowd here would stop the horde test later on)
+    spawned.forEach(e => { if (String(e.type).indexOf('factoryascension:') == 0 && !e.isRemoved()) e.discard() })
+    // A kill drops the mob's own part (forced chance)
+    let cowFood = global.FA.mobFood.foods.filter(f => f.raw == 'copper_tongue')[0]
+    let saved = cowFood.chance
+    cowFood.chance = 1
+    let cow = spawn('factoryascension:copper_cow', X - 22, Y, Z + 8)
+    cow.attack(player.damageSources().playerAttack(player), 1e6)
+    cowFood.chance = saved
+    let near = level.getEntitiesOfClass($STItemEntity, cow.getBoundingBox().inflate(3)), got = []
+    for (let i = 0; i < near.size(); i++) got.push(String(near.get(i).getItem().getId()))
+    check('a Copper Cow drops its own part (' + got.join(', ') + ')', got.indexOf('kubejs:copper_tongue') >= 0 || got.indexOf('kubejs:grilled_copper_tongue') >= 0, got.join(', '))
+    // A Frost Creeper's blast breaks nothing and leaves snow
+    let fpos = place(X - 14, Y, Z + 8, 'minecraft:stone')
+    let frost = spawn('factoryascension:frost_creeper', X - 14, Y + 1, Z + 10)
+    level.explode(frost, X - 14 + 0.5, Y + 1, Z + 10.5, 3, $STBoom.MOB)
+    let snow = 0
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) if (String(level.getBlock(new $STBlockPos(X - 14 + dx, Y, Z + 10 + dz)).id) == 'minecraft:snow') snow++
+    check('a Frost Creeper blast breaks no blocks and leaves snow (' + snow + ' patches)', String(level.getBlock(fpos).id) == 'minecraft:stone' && snow > 0, snow)
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
+      let b = level.getBlock(new $STBlockPos(X - 14 + dx, Y, Z + 10 + dz))
+      if (String(b.id) == 'minecraft:snow') b.set('minecraft:air')
+    }
+    // Connected glass joins up with its neighbours
+    let g1 = place(X - 20, Y + 3, Z + 4, 'factoryascension:ascendite_glass')
+    place(X - 19, Y + 3, Z + 4, 'factoryascension:ascendite_glass')
+    let props = level.getBlock(g1).getProperties()
+    check('connected glass joins the glass next to it (east ' + props.get('east') + ', west ' + props.get('west') + ')', String(props.get('east')) == 'true' && String(props.get('west')) == 'false')
   })
 
   // ---- Foils: a sheet applied with a real click, then the foiled tome applied with a real click ----

@@ -415,6 +415,59 @@ def models(b):
         {"facing=%s" % d: {"model": t + b, **({"y": r} if r else {})} for d, r in FACINGS}
 
 
+# ---- Connected glass: 16 frame textures per kind (a frame edge only where nothing matching is next to it) ----
+GLASS = {
+    "factory_glass": {"name": "Factory Glass", "frame": "steel", "tint": (200, 226, 240, 60)},
+    "ascendite_glass": {"name": "Ascendite Glass", "frame": "teal", "tint": (120, 230, 220, 70)},
+    "gilded_glass": {"name": "Gilded Glass", "frame": "gold", "tint": (255, 236, 190, 55)},
+    "smoked_glass": {"name": "Smoked Glass", "frame": "steel_dk", "tint": (40, 40, 52, 150)},
+}
+# For each face: which side of the block each texture edge (top, right, bottom, left) looks at
+FACE_EDGES = {"up": ("north", "east", "south", "west"), "down": ("south", "east", "north", "west"),
+              "north": ("up", "west", "down", "east"), "south": ("up", "east", "down", "west"),
+              "east": ("up", "north", "down", "south"), "west": ("up", "south", "down", "north")}
+
+
+def glass_tex(kind, code):
+    """code bits: 1 top, 2 right, 4 bottom, 8 left joined to more glass (no frame there)."""
+    g = GLASS[kind]
+    px = [[g["tint"]] * S for _ in range(S)]
+    for y in range(S):
+        for x in range(S):
+            if (x + y) % 11 == 0 and 4 < x < 28 and 4 < y < 28 and (x - y) % 3 == 0:
+                px[y][x] = (255, 255, 255, 110)        # a glint streak
+    edges = [code & 1, code & 2, code & 4, code & 8]
+    for y in range(S):
+        for x in range(S):
+            on = (not edges[0] and y < 2) or (not edges[1] and x >= S - 2) or (not edges[2] and y >= S - 2) or (not edges[3] and x < 2)
+            if on:
+                px[y][x] = _shade(g["frame"], 0.25 if (x < 2 or y < 2) else 0.6) + (255,)
+    return px
+
+
+def glass_assets():
+    t = "factoryascension:block/"
+    for kind, g in GLASS.items():
+        for code in range(16):
+            make_textures.png(os.path.join(ASSETS, "textures", "block", "%s_%d.png" % (kind, code)), glass_tex(kind, code))
+        parts = []
+        for face, edges in FACE_EDGES.items():
+            for code in range(16):
+                name = "%s_%s_%d" % (kind, face, code)
+                write_json(os.path.join(ASSETS, "models", "block", "glass", name + ".json"), {
+                    "parent": "minecraft:block/block", "render_type": "minecraft:translucent",
+                    "textures": {"particle": t + "%s_0" % kind, "glass": t + "%s_%d" % (kind, code)},
+                    "elements": [{"from": [0, 0, 0], "to": [16, 16, 16], "faces": {face: {"texture": "#glass", "cullface": face}}}]})
+                parts.append({"when": {edges[i]: "true" if code & (1 << i) else "false" for i in range(4)},
+                              "apply": {"model": "factoryascension:block/glass/" + name}})
+        write_json(os.path.join(ASSETS, "blockstates", kind + ".json"), {"multipart": parts})
+        write_json(os.path.join(ASSETS, "models", "item", kind + ".json"), {
+            "parent": "minecraft:block/cube_all", "render_type": "minecraft:translucent", "textures": {"all": t + kind + "_0"}})
+        write_json(os.path.join(DATA, "loot_tables", "blocks", kind + ".json"), {
+            "type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "factoryascension:" + kind}],
+                                                  "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
+
+
 def write_json(path, obj):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
@@ -470,6 +523,15 @@ def main():
         "gui.factoryascension.engine_too_big": "Too many modules: the extra ones do nothing",
         "gui.factoryascension.burner_status": "Fuel: %s %s, about %ss of burning",
     })
+    for kind, g in GLASS.items():
+        lang["block.factoryascension." + kind] = g["name"]
+    glass_assets()
+    # Keep the mobs' names (tools/mob_art.py adds them)
+    old = os.path.join(ASSETS, "lang", "en_us.json")
+    if os.path.exists(old):
+        for k, v in json.load(open(old)).items():
+            if k.startswith("entity.") or k.endswith("_spawn_egg"):
+                lang.setdefault(k, v)
     write_json(os.path.join(ASSETS, "lang", "en_us.json"), lang)
     print("wrote textures, models, block states, loot tables, tags and lang for %d blocks" % len(BLOCKS))
 

@@ -7,7 +7,7 @@
 <meta name="description" content="A Minecraft Create modpack where your factory is your power and every chest is a lottery: 486 uncapped enchants, foil card packs, one-of-one Artifacts, danger zones and a mod full of machines." />
 <meta name="theme-color" content="#140c07" />
 <link rel="icon" href="fa/items/ascension_core.png" />
-<link rel="stylesheet" href="site.css?v=4adee21bed" />
+<link rel="stylesheet" href="site.css?v=1d4949e5c2" />
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
@@ -72,6 +72,8 @@
         <a href="#machines"><img src="fa/blocks/super_smelter_front_lit.png" alt="" /><b>Super Smelter</b><span>Smelts up to 32 at once, faster the faster it spins.</span></a>
         <a href="#machines"><img src="fa/blocks/salvager_front.png" alt="" /><b>Salvager</b><span>Feed it loot, get Ascension Cores back.</span></a>
         <a href="#machines"><img src="fa/blocks/tome_fusion_table_top.png" alt="" /><b>Tome Fusion Table</b><span>Merge tomes and build Fusions in one screen.</span></a>
+        <a href="#world"><img src="fa/items/void_eye.png" alt="" /><b>20 new mobs</b><span>Rust Walkers, Void Stalkers, Ember Hens... and a body part from every mob.</span></a>
+        <a href="#machines"><img src="fa/blocks/ascendite_glass_0.png" alt="" /><b>Glass and glints</b><span>Connected glass, and lights that glint off shiny blocks.</span></a>
         <a href="#machines"><img src="fa/items/room_tnt_sandstone_50.png" alt="" /><b>Factory Room TNT</b><span>A lined, lit factory room in one click, up to 50 x 50.</span></a>
         <a href="#machines"><img src="fa/items/ascendite_ingot.png" alt="" /><b>Easy start</b><span>Casings by hand, belts from leather, cheap cogs and shafts.</span></a>
       </div>
@@ -263,7 +265,7 @@
 <section class="ch" id="machines">
   <header class="ch-head"><img src="fa/blocks/engine_core_front.png" alt="" />
     <div><p class="mono">Chapter 4</p><h2>Machines of your own</h2>
-    <p class="sub">The <b>Full</b> download adds a Forge mod with eleven blocks in the same gunmetal, teal and gold as the Ascendite gear. Every number is in the
+    <p class="sub">The <b>Full</b> download adds a Forge mod with eleven machines, connected glass and 20 mobs, in the same gunmetal, teal and gold as the Ascendite gear. Every number is in the
       <code>machines</code> section of the config. Point at a block to spin it.</p></div></header>
   <div class="cover steel">
     <div class="engine">
@@ -283,6 +285,24 @@
   </div>
   <div class="cover steel">
     <div class="machines" id="machinesGrid"></div>
+  </div>
+  <div class="cover teal">
+    <p class="part">Glass and glints <small>Full download</small></p>
+    <div class="glassy">
+      <div>
+        <p class="sub"><b>Connected glass</b> in four kinds: Factory, Ascendite, Gilded and Smoked. Put panes of the same kind together and the frames
+          between them disappear, so a wall of it reads as one big window.</p>
+        <div class="glass-row" id="glassRow"></div>
+      </div>
+      <div>
+        <p class="sub"><b>Shiny Reflections</b>: torches, lanterns, glowstone and the sun glint off gold, diamond, iron, copper, quartz, glass, ice and polished
+          stone, and the glints slide across the surface as you walk, the way a mirror would. No shaders, so it runs on anything (radius and brightness
+          in <code>config/factoryascension-client.toml</code>).</p>
+        <p class="sub small">If a mod that does the same job is installed, the pack turns its own version off and says so in chat, like
+          <i>"The Oculus mod conflicts with this mod's Shiny Reflections feature: Turned Shiny Reflections off."</i> The same goes for Danger Zones
+          (Scaling Health, Champions, Improved Mobs), rare mob variants (Champions, Infernal Mobs) and /home (FTB Essentials).</p>
+      </div>
+    </div>
   </div>
   <div class="cover red">
     <p class="part">Factory Room TNT <small>both downloads</small></p>
@@ -332,11 +352,17 @@
       <p class="loot-drop" id="lootDrop" aria-live="polite"></p>
     </div>
   </div>
+  <div class="cover purple">
+    <p class="part">Bestiary <small>20 new mobs · Full download</small></p>
+    <p class="sub">Each is built on a vanilla mob's body and brain with its own skin, stats and tricks. The strange ones only spawn out in the danger zones.
+      Every mob, old and new, drops its own body part: eat it raw if you dare, or cook it for a buff.</p>
+    <div class="bestiary" id="bestiary"></div>
+  </div>
   <div class="cover brown">
     <p class="part">Survival kit</p>
     <div class="kit" id="kitGrid"></div>
     <div class="food">
-      <p><b>Mob food.</b> Animals and monsters drop parts. Raw, you'll regret it; cooked, you get a buff tied to the animal. Thirteen tomes need one.</p>
+      <p><b>Mob food.</b> Every mob drops a body part. Eat it raw any time, even on a full stomach (you'll regret it), or cook it for a buff tied to the mob. Thirteen tomes need one. Point at one:</p>
       <div class="food-row" id="food"></div>
       <p class="food-out" id="foodOut">&nbsp;</p>
     </div>
@@ -416,9 +442,10 @@
     }
   };
 </script>
-<script src="fa/00_fa_config.js?v=4adee21bed"></script>
-<script src="fa/25_fa_tome_recipes.js?v=4adee21bed"></script>
-<script src="fa/pack.js?v=4adee21bed"></script>
-<script src="site.js?v=4adee21bed"></script>
+<script src="fa/00_fa_config.js?v=1d4949e5c2"></script>
+<script src="fa/25_fa_tome_recipes.js?v=1d4949e5c2"></script>
+<script src="fa/pack.js?v=1d4949e5c2"></script>
+<script src="fa/mobs.js?v=1d4949e5c2"></script>
+<script src="site.js?v=1d4949e5c2"></script>
 </body>
 </html>

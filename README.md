@@ -12,7 +12,7 @@ so going AFK is always safe.
 
 | Download | What's in it |
 |---|---|
-| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar: the Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge and Pack Opener |
+| **Full** | The KubeJS scripts **plus** the Factory Ascension mod jar: the Modular Engine, Super Smelter, Salvager, Tome Fusion Table, Ascension Vault, Card Binder, Essence Forge, Pack Opener, connected glass, Shiny Reflections and 20 new mobs |
 | **Half** | The KubeJS scripts only. Everything works except the mod's blocks |
 
 Each comes as a plain zip and as a **CurseForge** zip you import straight into the CurseForge app (it downloads the mods for you).
@@ -474,9 +474,12 @@ Every chance is in the `hammer` section of the config. JEI's info page on each h
 
 ## Mob food
 
-Animals and some monsters drop body parts when they die. Eat them **raw** and you get sick (Hunger II, often
-Nausea, sometimes Poison). **Cook** them in a furnace, smoker or campfire and they're good food with a buff tied to
-the animal. A mob that dies burning drops them already cooked. Looting adds +5% per level. Babies drop nothing.
+**Every mob drops a body part** (45 parts across 63 vanilla mobs, plus one for each of the mod's 20 mobs; only pets,
+villagers, golems and fish are spared). Raw or cooked, they can **always be eaten, even on a full hunger bar**. Eat one
+**raw** and you get sick (Hunger II, often Nausea, sometimes Poison). **Cook** it in a furnace, smoker or campfire and
+it's good food with a buff tied to the mob. A mob that dies burning drops it already cooked. Looting adds +5% per level.
+Babies drop nothing. The table below is the original thirteen; every part is listed in the `mobFood` section of the
+config (and on the website's Bestiary).
 
 | Mob | Raw (chance) | Cooked | Cooked buff |
 |---|---|---|---|
@@ -540,6 +543,61 @@ Without the jar (Half download) the pack still works; these blocks just don't ex
 
 Config `easyStart`: Andesite Casings by hand (any log + Andesite Alloy = 2), a Mechanical Belt from 3 leather,
 4 cogwheels from 8 planks around an Andesite Alloy, and 8 shafts from an Andesite Alloy and a stick.
+
+## Bestiary: 20 new mobs (Full download)
+
+Each is a vanilla mob's body and brain (so it moves and fights the way you'd expect) with its own skin, stats and
+tricks. Hostile ones scale with the danger zones like any mob, and the strange ones only spawn out in them: natural
+spawns closer to home than `modMobs.minDanger` in the config are cancelled. Every one drops its own body part.
+
+| Mob | Where | What it does |
+|---|---|---|
+| **Rust Walker** | Overworld, past the safe zone | A corroded factory hand. Its hits leave you weak; drops iron and copper nuggets. |
+| **Ascendite Husk** | Overworld, danger 3+ | Glows teal, doesn't burn in daylight, makes you glow. Drops Ascension Shards. |
+| **Ember Ghoul** | The Nether | Fireproof, sets you alight. Drops blaze powder and magma cream. |
+| **Frost Revenant** | Snowy biomes | Slows you to a crawl. Drops packed ice and snowballs. |
+| **Deep Miner** | Below Y 0 | Swings an iron pickaxe and gives you Mining Fatigue. Drops raw ore and coal. |
+| **Void Archer** | The End | Its arrows make you float. Drops ender pearls. |
+| **Ascendite Skeleton** | Overworld, danger 3+ | Arrows that make you glow. Drops Ascendite nuggets. |
+| **Crystal Spider** | Caves below Y 40 | Armored amethyst; slows you. Drops amethyst shards. |
+| **Spark Spider** | Overworld, danger 2+ | Crackles with lightning. Drops redstone and glowstone. |
+| **Cinder Spider** | The Nether | Fireproof, sets you alight. Drops blaze powder and fire charges. |
+| **Ascendite Creeper** | Overworld, danger 3+ | Its blast breaks no blocks and scatters Ascension Shards. |
+| **Frost Creeper** | Snowy biomes | Its blast breaks no blocks: it leaves snow and slows everything nearby. |
+| **Essence Slime** | Below Y 40, danger 5+ | A purple slime that splits like any other. Drops Ascension Shards. |
+| **Rust Slime** | Below Y 40 | A copper-green slime. Drops copper nuggets. |
+| **Ore Mite** | Below Y 20 | A silverfish full of metal. Drops iron, gold and Ascendite nuggets. |
+| **Teal Wisp** | The Nether | A teal blaze. Drops Ascension Shards and glowstone. |
+| **Void Stalker** | The End | A huge, dark enderman. Blinds you. Drops ender pearls. |
+| **Factory Raider** | Forests, danger 4+ | A raider in work clothes; weakens you. Drops brass and andesite alloy. |
+| **Ember Hen** | Savannas | Friendly and fireproof. Lays blaze powder now and then, as well as eggs. |
+| **Copper Cow** | Overworld | Friendly. Moos in patina. Drops leather and copper ingots. |
+
+## Connected glass and Shiny Reflections (Full download)
+
+- **Connected glass** in four kinds (Factory, Ascendite, Gilded, Smoked): put panes of the same kind together and the
+  frames between them disappear, so a wall of it reads as one big window. It's done with block models, not render code,
+  so nothing can conflict with it.
+- **Shiny Reflections**: torches, lanterns, glowstone and the sun glint off gold, diamond, iron, copper, quartz, glass,
+  ice, amethyst, polished stone and the mod's own glass and machines, and the glints slide across the surface as you
+  move, the way a mirror image would. No shaders: twice a second it lists the shiny faces and lights near you, and each
+  frame it draws a small glint where each light's mirror image lands. Shiny blocks are the `factoryascension:shiny`
+  block tag (add your own with a datapack); radius, brightness and the glint cap are in
+  `config/factoryascension-client.toml`.
+
+## Conflicts
+
+When another installed mod already does one of the pack's jobs, the pack turns its own version off and says so in chat
+(and the log), for example: *"The Oculus mod conflicts with this mod's Shiny Reflections feature: Turned Shiny Reflections off."*
+
+| Feature | Turned off when you have |
+|---|---|
+| Shiny Reflections | Oculus, Iris or OptiFine (shader mods) |
+| Danger Zones | Scaling Health, Champions or Improved Mobs |
+| Rare Mob Variants | Champions or Infernal Mobs |
+| `/home` and `/sethome` | FTB Essentials (use `/ascension home` and `/ascension home set` instead) |
+
+The list is the `conflicts` section of the config.
 
 ## Factory Room TNT: an underground room in one click
 
@@ -695,7 +753,7 @@ enchant does per level, and safety limits. Edit it, then restart the game.
 | `/ascension essence add/set <n>` | Ops | Testing and server admin |
 | `/ascension tome <levels>` | Everyone | What the tome menu buttons run (levels the tome in your main hand) |
 | `/ascension extract <enchant>` | Everyone | Pull an enchant off gear into a tome (Blank Ascension Tome in the other hand) |
-| `/ascension selftest` | Ops / console | Runs 59 checks (68 with the Full download's jar) of every system in the real game, far from players, then cleans up |
+| `/ascension selftest` | Ops / console | Runs 59 checks (72 with the Full download's jar) of every system in the real game, far from players, then cleans up |
 
 ## Testing
 

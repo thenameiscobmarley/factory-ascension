@@ -340,7 +340,7 @@ function faShowDanger(player) {
   player.tell(Text.gold(zone.name + '  ').append(Text.gray('Danger ' + danger)).bold(true))
   if (danger == 0) {
     if (d.centerOn == 'home' && !global.FA_STATE.homes[String(player.stringUuid)]) {
-      player.tell(Text.gray(' Mobs are normal everywhere until you set a home: explore, find a spot, then ').append(Text.white('/home set')).append(Text.gray('.')))
+      player.tell(Text.gray(' Mobs are normal everywhere until you set a home: explore, find a spot, then ').append(Text.white(global.FA.home.command ? '/home set' : '/ascension home set')).append(Text.gray('.')))
     } else {
       player.tell(Text.gray(' Mobs are normal here. Danger starts ' + global.FA_num(d.safeRadius) + ' blocks from ' + (d.centerOn == 'home' ? 'your home.' : 'world spawn.')))
     }

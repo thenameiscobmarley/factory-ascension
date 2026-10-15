@@ -26,8 +26,9 @@ version="${FA_VERSION:-$(git describe --tags --abbrev=0 2>/dev/null || true)}"; 
 # RHINO=path/to/rhino.jar counts the harness checks for real; otherwise the last known count
 checks=457
 if [ -n "${RHINO:-}" ]; then checks="$(java -jar "$RHINO" -version 200 tools/test/harness.js 2>&1 | grep -c '^  ok')"; fi
-echo "window.FA_PACK = { version: \"${version:-1.0.0}\", checks: $checks, selftest: ${FA_SELFTEST:-68} };" > site/fa/pack.js
+echo "window.FA_PACK = { version: \"${version:-1.0.0}\", checks: $checks, selftest: ${FA_SELFTEST:-72} };" > site/fa/pack.js
 python3 tools/site_art.py
+python3 tools/mob_art.py site site/fa/mobs.js
 # Cache-busting: every page asks for its scripts and styles with ?v=<hash of their contents>, so a browser never mixes old and new files
 stamp="$(cat site/*.css site/*.js site/fa/*.js | sha1sum | cut -c1-10)"
 sed -i -E 's/(\.(css|js))\?v=[0-9a-z]*"/\1?v='"$stamp"'"/g; s/(href|src)="((site|pages|builder|recipes|calc)\.(css|js))"/\1="\2?v='"$stamp"'"/g' site/*.html

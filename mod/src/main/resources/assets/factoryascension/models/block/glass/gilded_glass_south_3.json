@@ -1,0 +1,28 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "factoryascension:block/gilded_glass_0",
+    "glass": "factoryascension:block/gilded_glass_3"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": "#glass",
+          "cullface": "south"
+        }
+      }
+    }
+  ]
+}

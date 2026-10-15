@@ -16,6 +16,7 @@ public final class ClientSetup {
 
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent event) {
+        ClientConflicts.check();
         event.enqueueWork(() -> {
             MenuScreens.register(FactoryAscension.VAULT_MENU.get(), VaultScreen::new);
             MenuScreens.register(FactoryAscension.BINDER_MENU.get(), BinderScreen::new);
@@ -30,5 +31,6 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void renderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(FactoryAscension.BINDER_BE.get(), BinderRenderer::new);
+        MobRenderers.register(event);
     }
 }

@@ -3,6 +3,7 @@ package dev.factoryascension;
 import com.simibubi.create.api.stress.BlockStressValues;
 import dev.factoryascension.block.BinderBlock;
 import dev.factoryascension.block.BurnerBlock;
+import dev.factoryascension.block.ConnectedGlassBlock;
 import dev.factoryascension.block.EngineBlock;
 import dev.factoryascension.block.EngineModuleBlock;
 import dev.factoryascension.block.ForgeBlock;
@@ -27,6 +28,7 @@ import dev.factoryascension.menu.OpenerMenu;
 import dev.factoryascension.menu.SalvagerMenu;
 import dev.factoryascension.menu.SmelterMenu;
 import dev.factoryascension.menu.VaultMenu;
+import dev.factoryascension.mob.FAMobs;
 import dev.factoryascension.network.FANetwork;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -41,6 +43,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -73,6 +76,11 @@ public class FactoryAscension {
     private static BlockBehaviour.Properties engine() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3f, 6f).sound(SoundType.METAL).requiresCorrectToolForDrops();
     }
+
+    // Connected glass: frames only where there's no matching glass next to it
+    public static final String[] GLASS = {"factory_glass", "ascendite_glass", "gilded_glass", "smoked_glass"};
+    public static final java.util.List<RegistryObject<Block>> GLASS_BLOCKS = java.util.Arrays.stream(GLASS)
+        .map(id -> block(id, () -> new ConnectedGlassBlock(BlockBehaviour.Properties.copy(net.minecraft.world.level.block.Blocks.GLASS)))).toList();
 
     public static final RegistryObject<Block> VAULT = block("ascension_vault", () -> new VaultBlock(machine()));
     public static final RegistryObject<Block> BINDER = block("card_binder", () -> new BinderBlock(machine().noOcclusion()));
@@ -138,6 +146,8 @@ public class FactoryAscension {
             out.accept(COIL.get());
             out.accept(GEARBOX.get());
             out.accept(BURNER.get());
+            GLASS_BLOCKS.forEach(g -> out.accept(g.get()));
+            FAMobs.ALL.forEach(m -> out.accept(m.egg().get()));
         })
         .build());
 
@@ -149,6 +159,9 @@ public class FactoryAscension {
 
     public FactoryAscension() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, dev.factoryascension.client.FAClientConfig.SPEC);
+        FAMobs.register(bus);   // first: its spawn eggs go into ITEMS before ITEMS is registered
+        MinecraftForge.EVENT_BUS.addListener(FAMobs::onDetonate);
         BLOCKS.register(bus);
         ITEMS.register(bus);
         BLOCK_ENTITIES.register(bus);

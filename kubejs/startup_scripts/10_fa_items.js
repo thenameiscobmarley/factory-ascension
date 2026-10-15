@@ -64,11 +64,12 @@ StartupEvents.registry('item', event => {
   event.create('ascendite_ingot').displayName('Ascendite Ingot')
   event.create('ascendite_nugget').displayName('Ascendite Nugget')
   event.create('ascension_shard').displayName('Ascension Shard').rarity('uncommon').glow(true)
-  // Mob food: raw parts make you sick, cooked ones are good food with a small buff (config: mobFood)
+  // Mob food: raw parts make you sick, cooked ones are good food with a small buff (config: mobFood). Both always edible.
   let MF = global.FA.mobFood
   MF.foods.forEach(fd => {
     event.create(fd.raw).displayName(fd.rawName).food(food => {
-      food.hunger(MF.raw.hunger).saturation(MF.raw.saturation).meat()
+      // Always edible: you can eat it raw on a full stomach (and get what you deserve)
+      food.hunger(MF.raw.hunger).saturation(MF.raw.saturation).meat().alwaysEdible()
       MF.raw.sickness.forEach(e => food.effect(e[0], e[1] * 20, e[2], e[3]))
     })
     event.create(fd.cooked).displayName(fd.cookedName).food(food => {

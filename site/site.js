@@ -56,7 +56,7 @@
   addEventListener("hashchange", route);
 
   // ---------- hero stats (straight from the config: no counting animation, so the numbers never disagree) ----------
-  $("#heroStats").innerHTML = [[ids.length, "enchants"], [FA.foils.types.length, "foils"], [4, "new metals"], [11, "machines"], [12, "room TNTs"], ["∞", "level cap"], [PACK.checks, "safety checks"]]
+  $("#heroStats").innerHTML = [[ids.length, "enchants"], [FA.foils.types.length, "foils"], [4, "new metals"], [11, "machines"], [20, "new mobs"], [FA.mobFood.foods.length, "mob parts"], ["∞", "level cap"], [PACK.checks, "safety checks"]]
     .map(h => '<div class="slot-card"><b>' + (typeof h[0] == "number" ? global.FA_num(h[0]) : h[0]) + "</b><small>" + h[1] + "</small></div>").join("");
   $("#enchCount").textContent = global.FA_num(ids.length);
   $("#newVersion").textContent = PACK.version.replace(/\.0$/, "");
@@ -540,6 +540,27 @@
   };
   $("#roomPick").addEventListener("click", e => { const b = e.target.closest(".att"); if (b) { roomPick = [b.dataset.st, b.dataset.sz]; drawRoom(); } });
   drawRoom();
+
+  // ---------- MACHINES: connected glass (a 3x3 wall: each pane's frame only where it has no neighbor) ----------
+  const GLASS = [["factory_glass", "Factory"], ["ascendite_glass", "Ascendite"], ["gilded_glass", "Gilded"], ["smoked_glass", "Smoked"]];
+  $("#glassRow").innerHTML = GLASS.map(g => {
+    let tiles = "";
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+      const code = (y > 0 ? 1 : 0) | (x < 2 ? 2 : 0) | (y < 2 ? 4 : 0) | (x > 0 ? 8 : 0);   // top, right, bottom, left joined
+      tiles += '<img src="fa/blocks/' + g[0] + "_" + code + '.png" alt="" />';
+    }
+    return '<figure><div class="glass-wall">' + tiles + "</div>" + g[1] + " Glass</figure>";
+  }).join("");
+
+  // ---------- WORLD: Bestiary (fa/mobs.js from tools/mob_art.py; parts from the config) ----------
+  const MOBS = window.FA_MOBS || [];
+  const partOf = id => FA.mobFood.foods.find(f => f.mobs.indexOf("factoryascension:" + id) >= 0);
+  $("#bestiary").innerHTML = MOBS.map(m => {
+    const p = partOf(m.id);
+    return '<article class="beast slot-card"><span class="egg" style="--e1:' + m.egg[0] + ";--e2:" + m.egg[1] + '"></span><b>' + esc(m.name) + '</b><span class="where">' +
+      esc(m.where) + "</span><p>" + esc(m.what) + "</p>" + (p ? '<span class="part-line"><img src="' + tex(p.raw) + '" alt="" /><img src="' + tex(p.cooked) + '" alt="" />' +
+      esc(p.rawName) + " → " + esc(p.cookedName) + '<span class="dim">(' + esc(p.effect[0].replace("minecraft:", "").replace(/_/g, " ")) + ")</span></span>" : "") + "</article>";
+  }).join("");
 
   // ---------- WORLD: danger zones (drag to travel) ----------
   const D = FA.danger;

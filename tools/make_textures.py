@@ -878,13 +878,23 @@ def main():
     textures["mythic_fragment"] = outline(fragment(), (30, 8, 40, 255))
     textures["ascended_soul"] = outline(soul(), (10, 20, 40, 255))
     # Mob food: raw sprite + its roasted version, names from the config
-    foods = re.findall(r"\{ raw: '(\w+)', rawName: '[^']*', cooked: '(\w+)'", open(CONFIG).read())
+    # A food line may name its sprite: art: ['shape', [main rgb], [accent rgb]] (shapes in food_art.SHAPES)
+    foods = []
+    for line in open(CONFIG).read().splitlines():
+        m = re.search(r"\{ raw: '(\w+)', rawName: (?:\"[^\"]*\"|'[^']*'), cooked: '(\w+)'", line)
+        if not m:
+            continue
+        art = re.search(r"art: \['(\w+)', \[([\d, ]+)\], \[([\d, ]+)\]\]", line)
+        foods.append((m.group(1), m.group(2), art and (art.group(1), tuple(int(v) for v in art.group(2).split(',')), tuple(int(v) for v in art.group(3).split(',')))))
     if len(foods) < 13:
         raise SystemExit('could not read mobFood foods from ' + CONFIG)
-    for i, (raw, done) in enumerate(foods):
-        if raw not in food_art.RAW:
-            raise SystemExit('no sprite for mob food ' + raw + ' (add one to tools/food_art.py)')
-        px = food_art.RAW[raw]()
+    for i, (raw, done, art) in enumerate(foods):
+        if art:
+            px = food_art.shape(art[0], art[1], art[2], i)
+        elif raw in food_art.RAW:
+            px = food_art.RAW[raw]()
+        else:
+            raise SystemExit('no sprite for mob food ' + raw + ' (give it art: in the config, or a function in tools/food_art.py)')
         textures[raw] = outline(px, (40, 16, 20, 255))
         textures[done] = outline(food_art.cooked(px, i), (36, 20, 10, 255))
     textures["chaos_tome"] = Outlined(tome_art.chaos_tome(), tome_art.chaos_tome(), edge)

@@ -71,7 +71,7 @@ function faGoHome(player) {
   let server = player.getServer()
   let homes = faHomes(server)
   if (!homes.contains(player.stringUuid)) {
-    player.tell(Text.red('You have no home yet. Stand where you want it and type /home set.'))
+    player.tell(Text.red('You have no home yet. Stand where you want it and type ' + (global.FA.home.command ? '/home set' : '/ascension home set') + '.'))
     return 0
   }
   let combat = global.FA_combatLeft(player)
@@ -100,10 +100,22 @@ function faGoHome(player) {
 
 ServerEvents.commandRegistry(event => {
   let { commands: Commands } = event
-  event.register(Commands.literal('sethome').executes(ctx => faSetHome(ctx.source.getPlayerOrException())))
-  event.register(Commands.literal('home')
-    .executes(ctx => faGoHome(ctx.source.getPlayerOrException()))
-    .then(Commands.literal('set').executes(ctx => faSetHome(ctx.source.getPlayerOrException()))))
+  // /home and /sethome, unless another mod owns them (config conflicts); /ascension home and sethome always work
+  if (global.FA.home.command) {
+    event.register(Commands.literal('sethome').executes(ctx => faSetHome(ctx.source.getPlayerOrException())))
+    event.register(Commands.literal('home')
+      .executes(ctx => faGoHome(ctx.source.getPlayerOrException()))
+      .then(Commands.literal('set').executes(ctx => faSetHome(ctx.source.getPlayerOrException()))))
+  }
+  event.register(Commands.literal('ascension')
+    .then(Commands.literal('sethome').executes(ctx => faSetHome(ctx.source.getPlayerOrException())))
+    .then(Commands.literal('home').executes(ctx => faGoHome(ctx.source.getPlayerOrException()))
+      .then(Commands.literal('set').executes(ctx => faSetHome(ctx.source.getPlayerOrException())))))
+})
+
+// Features another mod turned off (startup_scripts/01_fa_conflicts.js), told to everyone as they join
+PlayerEvents.loggedIn(event => {
+  global.FA_CONFLICTS.forEach(msg => event.player.tell(Text.gold('[Factory Ascension] ').append(Text.yellow(msg))))
 })
 
 // Until you set a home, nothing out here scales: say so when you join
@@ -112,5 +124,5 @@ PlayerEvents.loggedIn(event => {
   let player = event.player
   if (!D.enabled || D.centerOn != 'home' || global.FA_STATE.homes[String(player.stringUuid)]) return
   player.tell(Text.gold('Explore freely: ').append(Text.gray('mobs stay normal everywhere until you pick a base and type '))
-    .append(Text.white('/home set')).append(Text.gray('. After that, the farther you go from home, the tougher they get (and the better the loot).')))
+    .append(Text.white(global.FA.home.command ? '/home set' : '/ascension home set')).append(Text.gray('. After that, the farther you go from home, the tougher they get (and the better the loot).')))
 })

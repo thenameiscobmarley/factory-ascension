@@ -1,0 +1,71 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:gold_block",
+    "minecraft:iron_block",
+    "minecraft:diamond_block",
+    "minecraft:emerald_block",
+    "minecraft:netherite_block",
+    "minecraft:lapis_block",
+    "minecraft:copper_block",
+    "minecraft:cut_copper",
+    "minecraft:waxed_copper_block",
+    "minecraft:waxed_cut_copper",
+    "minecraft:exposed_copper",
+    "minecraft:quartz_block",
+    "minecraft:smooth_quartz",
+    "minecraft:quartz_pillar",
+    "minecraft:chiseled_quartz_block",
+    "minecraft:quartz_bricks",
+    "minecraft:glass",
+    {
+      "id": "#forge:glass",
+      "required": false
+    },
+    "minecraft:ice",
+    "minecraft:packed_ice",
+    "minecraft:blue_ice",
+    "minecraft:amethyst_block",
+    "minecraft:budding_amethyst",
+    "minecraft:polished_andesite",
+    "minecraft:polished_diorite",
+    "minecraft:polished_granite",
+    "minecraft:polished_deepslate",
+    "minecraft:polished_blackstone",
+    "minecraft:polished_basalt",
+    "minecraft:calcite",
+    "minecraft:prismarine",
+    "minecraft:dark_prismarine",
+    "minecraft:sea_lantern",
+    "minecraft:obsidian",
+    "minecraft:crying_obsidian",
+    "minecraft:raw_gold_block",
+    "minecraft:smooth_stone",
+    {
+      "id": "kubejs:ascendite_block",
+      "required": false
+    },
+    {
+      "id": "create:brass_block",
+      "required": false
+    },
+    {
+      "id": "create:zinc_block",
+      "required": false
+    },
+    {
+      "id": "create:brass_casing",
+      "required": false
+    },
+    {
+      "id": "create:copper_casing",
+      "required": false
+    },
+    "factoryascension:factory_glass",
+    "factoryascension:ascendite_glass",
+    "factoryascension:gilded_glass",
+    "factoryascension:smoked_glass",
+    "factoryascension:ascension_vault",
+    "factoryascension:essence_forge"
+  ]
+}

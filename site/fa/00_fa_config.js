@@ -821,7 +821,9 @@ global.FA = {
       sickness: [['minecraft:hunger', 30, 1, 1.0], ['minecraft:nausea', 12, 0, 0.6], ['minecraft:poison', 5, 0, 0.3]]
     },
     cookSeconds: 10,           // furnace time (smoker and blast are half, campfire x3)
-    // mobs: who drops it; chance: per death; effect: [effect, seconds, amplifier] when eaten cooked
+    // mobs: who drops it; chance: per death; effect: [effect, seconds, amplifier] when eaten cooked. Both raw and cooked
+    // can always be eaten, even on a full hunger bar. art: the sprite's shape and colors (tools/food_art.py).
+    // mod: only with the Factory Ascension mod (its own mobs).
     foods: [
       { raw: 'pig_eyes', rawName: 'Pig Eyes', cooked: 'fried_pig_eyes', cookedName: 'Fried Pig Eyes', mobs: ['minecraft:pig'], chance: 0.3, hunger: 4, saturation: 0.5, effect: ['minecraft:night_vision', 45, 0] },
       { raw: 'pig_brain', rawName: 'Pig Brain', cooked: 'roasted_pig_brain', cookedName: 'Roasted Pig Brain', mobs: ['minecraft:pig'], chance: 0.2, hunger: 6, saturation: 0.6, effect: ['minecraft:haste', 30, 0] },
@@ -835,7 +837,60 @@ global.FA = {
       { raw: 'marrow_bone', rawName: 'Marrow Bone', cooked: 'bone_marrow_broth', cookedName: 'Bone Marrow Broth', mobs: ['minecraft:skeleton', 'minecraft:stray'], chance: 0.2, hunger: 6, saturation: 0.7, effect: ['minecraft:resistance', 20, 0] },
       { raw: 'creeper_heart', rawName: 'Creeper Heart', cooked: 'smoked_creeper_heart', cookedName: 'Smoked Creeper Heart', mobs: ['minecraft:creeper'], chance: 0.15, hunger: 6, saturation: 0.6, effect: ['minecraft:absorption', 30, 1] },
       { raw: 'squid_tentacle', rawName: 'Squid Tentacle', cooked: 'fried_calamari', cookedName: 'Fried Calamari', mobs: ['minecraft:squid', 'minecraft:glow_squid'], chance: 0.4, hunger: 5, saturation: 0.6, effect: ['minecraft:water_breathing', 60, 0] },
-      { raw: 'hoglin_ribs', rawName: 'Hoglin Ribs', cooked: 'bbq_hoglin_ribs', cookedName: 'BBQ Hoglin Ribs', mobs: ['minecraft:hoglin'], chance: 0.35, hunger: 10, saturation: 0.9, effect: ['minecraft:fire_resistance', 45, 0] }
+      { raw: 'hoglin_ribs', rawName: 'Hoglin Ribs', cooked: 'bbq_hoglin_ribs', cookedName: 'BBQ Hoglin Ribs', mobs: ['minecraft:hoglin', 'minecraft:zoglin'], chance: 0.35, hunger: 10, saturation: 0.9, effect: ['minecraft:fire_resistance', 45, 0] },
+      { raw: 'ender_gland', rawName: "Ender Gland", cooked: 'seared_ender_gland', cookedName: "Seared Ender Gland", mobs: ['minecraft:enderman'], chance: 0.3, hunger: 5, saturation: 0.5, effect: ['minecraft:speed', 30, 1], art: ['gland', [40, 20, 60], [180, 90, 230]] },
+      { raw: 'blaze_core', rawName: "Blaze Core", cooked: 'charred_blaze_core', cookedName: "Charred Blaze Core", mobs: ['minecraft:blaze'], chance: 0.3, hunger: 4, saturation: 0.4, effect: ['minecraft:fire_resistance', 60, 0], art: ['core', [255, 170, 40], [255, 240, 140]] },
+      { raw: 'ghast_membrane', rawName: "Ghast Membrane", cooked: 'crispy_ghast_membrane', cookedName: "Crispy Ghast Membrane", mobs: ['minecraft:ghast'], chance: 0.5, hunger: 4, saturation: 0.3, effect: ['minecraft:slow_falling', 40, 0], art: ['wing', [236, 236, 236], [190, 190, 200]] },
+      { raw: 'slime_core', rawName: "Slime Core", cooked: 'fried_slime_core', cookedName: "Fried Slime Core", mobs: ['minecraft:slime'], chance: 0.2, hunger: 3, saturation: 0.3, effect: ['minecraft:jump_boost', 30, 1], art: ['core', [110, 190, 90], [190, 250, 160]] },
+      { raw: 'magma_core', rawName: "Magma Core", cooked: 'seared_magma_core', cookedName: "Seared Magma Core", mobs: ['minecraft:magma_cube'], chance: 0.25, hunger: 4, saturation: 0.4, effect: ['minecraft:fire_resistance', 45, 0], art: ['core', [200, 60, 20], [255, 190, 60]] },
+      { raw: 'witch_wart', rawName: "Witch Wart", cooked: 'roasted_witch_wart', cookedName: "Roasted Witch Wart", mobs: ['minecraft:witch'], chance: 0.4, hunger: 4, saturation: 0.4, effect: ['minecraft:luck', 90, 0], art: ['organ', [110, 150, 70], [70, 40, 90]] },
+      { raw: 'guardian_spine', rawName: "Guardian Spine", cooked: 'grilled_guardian_spine', cookedName: "Grilled Guardian Spine", mobs: ['minecraft:guardian', 'minecraft:elder_guardian'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:conduit_power', 30, 0], art: ['spine', [120, 170, 160], [230, 140, 80]] },
+      { raw: 'phantom_wing', rawName: "Phantom Wing", cooked: 'crispy_phantom_wing', cookedName: "Crispy Phantom Wing", mobs: ['minecraft:phantom'], chance: 0.4, hunger: 4, saturation: 0.4, effect: ['minecraft:slow_falling', 30, 0], art: ['wing', [70, 80, 130], [150, 200, 230]] },
+      { raw: 'withered_marrow', rawName: "Withered Marrow", cooked: 'blackened_marrow', cookedName: "Blackened Marrow", mobs: ['minecraft:wither_skeleton'], chance: 0.3, hunger: 6, saturation: 0.6, effect: ['minecraft:resistance', 15, 1], art: ['bone', [60, 60, 64], [150, 40, 50]] },
+      { raw: 'piglin_snout', rawName: "Piglin Snout", cooked: 'roasted_piglin_snout', cookedName: "Roasted Piglin Snout", mobs: ['minecraft:piglin', 'minecraft:piglin_brute', 'minecraft:zombified_piglin'], chance: 0.3, hunger: 5, saturation: 0.5, effect: ['minecraft:absorption', 30, 0], art: ['snout', [230, 150, 140], [120, 60, 60]] },
+      { raw: 'mite_carapace', rawName: "Mite Carapace", cooked: 'toasted_carapace', cookedName: "Toasted Carapace", mobs: ['minecraft:silverfish', 'minecraft:endermite'], chance: 0.25, hunger: 2, saturation: 0.2, effect: ['minecraft:haste', 30, 0], art: ['carapace', [140, 140, 150], [90, 60, 120]] },
+      { raw: 'shulker_tongue', rawName: "Shulker Tongue", cooked: 'seared_shulker_tongue', cookedName: "Seared Shulker Tongue", mobs: ['minecraft:shulker'], chance: 0.35, hunger: 5, saturation: 0.5, effect: ['minecraft:resistance', 20, 0], art: ['tongue', [170, 110, 170], [240, 200, 120]] },
+      { raw: 'illager_heart', rawName: "Illager Heart", cooked: 'charred_illager_heart', cookedName: "Charred Illager Heart", mobs: ['minecraft:pillager', 'minecraft:vindicator', 'minecraft:evoker', 'minecraft:illusioner'], chance: 0.25, hunger: 6, saturation: 0.6, effect: ['minecraft:strength', 20, 0], art: ['heart', [140, 40, 60], [90, 90, 100]] },
+      { raw: 'vex_wisp', rawName: "Vex Wisp", cooked: 'sizzled_vex_wisp', cookedName: "Sizzled Vex Wisp", mobs: ['minecraft:vex'], chance: 0.3, hunger: 2, saturation: 0.2, effect: ['minecraft:speed', 20, 0], art: ['wisp', [200, 220, 255], [140, 160, 230]] },
+      { raw: 'ravager_flank', rawName: "Ravager Flank", cooked: 'seared_ravager_flank', cookedName: "Seared Ravager Flank", mobs: ['minecraft:ravager'], chance: 0.8, hunger: 12, saturation: 1.0, effect: ['minecraft:strength', 30, 1], art: ['flank', [150, 80, 70], [90, 90, 90]] },
+      { raw: 'warden_heart', rawName: "Warden Heart", cooked: 'seared_warden_heart', cookedName: "Seared Warden Heart", mobs: ['minecraft:warden'], chance: 1.0, hunger: 14, saturation: 1.2, effect: ['minecraft:health_boost', 120, 2], art: ['heart', [20, 60, 70], [60, 230, 230]] },
+      { raw: 'strider_leg', rawName: "Strider Leg", cooked: 'grilled_strider_leg', cookedName: "Grilled Strider Leg", mobs: ['minecraft:strider'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:fire_resistance', 60, 0], art: ['leg', [180, 60, 60], [120, 90, 90]] },
+      { raw: 'dragon_heart', rawName: "Dragon Heart", cooked: 'seared_dragon_heart', cookedName: "Seared Dragon Heart", mobs: ['minecraft:ender_dragon'], chance: 1.0, hunger: 20, saturation: 1.2, effect: ['minecraft:regeneration', 60, 2], art: ['heart', [60, 20, 80], [230, 120, 255]] },
+      { raw: 'wither_spine', rawName: "Wither Spine", cooked: 'charred_wither_spine', cookedName: "Charred Wither Spine", mobs: ['minecraft:wither'], chance: 1.0, hunger: 16, saturation: 1.2, effect: ['minecraft:resistance', 120, 2], art: ['spine', [40, 40, 44], [120, 120, 130]] },
+      { raw: 'bat_wing', rawName: "Bat Wing", cooked: 'fried_bat_wing', cookedName: "Fried Bat Wing", mobs: ['minecraft:bat'], chance: 0.5, hunger: 2, saturation: 0.2, effect: ['minecraft:night_vision', 60, 0], art: ['wing', [80, 60, 50], [130, 100, 80]] },
+      { raw: 'horse_haunch', rawName: "Horse Haunch", cooked: 'roasted_haunch', cookedName: "Roasted Haunch", mobs: ['minecraft:horse', 'minecraft:donkey', 'minecraft:mule', 'minecraft:zombie_horse', 'minecraft:skeleton_horse'], chance: 0.4, hunger: 8, saturation: 0.8, effect: ['minecraft:speed', 45, 0], art: ['haunch', [190, 90, 80], [236, 226, 196]] },
+      { raw: 'llama_shank', rawName: "Llama Shank", cooked: 'spiced_llama_shank', cookedName: "Spiced Llama Shank", mobs: ['minecraft:llama', 'minecraft:trader_llama'], chance: 0.4, hunger: 8, saturation: 0.8, effect: ['minecraft:saturation', 1, 0], art: ['haunch', [200, 110, 100], [236, 226, 196]] },
+      { raw: 'goat_shank', rawName: "Goat Shank", cooked: 'roasted_goat_shank', cookedName: "Roasted Goat Shank", mobs: ['minecraft:goat'], chance: 0.4, hunger: 7, saturation: 0.7, effect: ['minecraft:jump_boost', 40, 1], art: ['haunch', [210, 120, 110], [236, 226, 196]] },
+      { raw: 'fox_haunch', rawName: "Fox Haunch", cooked: 'roasted_fox_haunch', cookedName: "Roasted Fox Haunch", mobs: ['minecraft:fox'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:speed', 40, 0], art: ['haunch', [220, 120, 70], [236, 226, 196]] },
+      { raw: 'wolf_haunch', rawName: "Wolf Haunch", cooked: 'grilled_wolf_haunch', cookedName: "Grilled Wolf Haunch", mobs: ['minecraft:wolf'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:strength', 20, 0], art: ['haunch', [180, 100, 90], [236, 226, 196]] },
+      { raw: 'bear_paw', rawName: "Bear Paw", cooked: 'roasted_bear_paw', cookedName: "Roasted Bear Paw", mobs: ['minecraft:polar_bear'], chance: 0.4, hunger: 9, saturation: 0.8, effect: ['minecraft:resistance', 30, 0], art: ['paw', [236, 236, 230], [60, 50, 50]] },
+      { raw: 'panda_paw', rawName: "Panda Paw", cooked: 'braised_panda_paw', cookedName: "Bamboo-Braised Panda Paw", mobs: ['minecraft:panda'], chance: 0.4, hunger: 9, saturation: 0.8, effect: ['minecraft:regeneration', 10, 0], art: ['paw', [40, 40, 44], [230, 230, 226]] },
+      { raw: 'turtle_fin', rawName: "Turtle Fin", cooked: 'turtle_fin_soup', cookedName: "Turtle Fin Soup", mobs: ['minecraft:turtle'], chance: 0.4, hunger: 6, saturation: 0.6, effect: ['minecraft:water_breathing', 90, 0], art: ['fin', [90, 150, 80], [200, 220, 150]] },
+      { raw: 'frog_legs', rawName: "Frog Legs", cooked: 'fried_frog_legs', cookedName: "Fried Frog Legs", mobs: ['minecraft:frog'], chance: 0.5, hunger: 4, saturation: 0.4, effect: ['minecraft:jump_boost', 30, 1], art: ['leg', [120, 170, 90], [230, 210, 180]] },
+      { raw: 'camel_hump', rawName: "Camel Hump", cooked: 'roasted_camel_hump', cookedName: "Roasted Camel Hump", mobs: ['minecraft:camel'], chance: 0.5, hunger: 10, saturation: 1.0, effect: ['minecraft:saturation', 2, 0], art: ['organ', [210, 170, 110], [250, 230, 200]] },
+      { raw: 'sniffer_snout', rawName: "Sniffer Snout", cooked: 'roasted_sniffer_snout', cookedName: "Roasted Sniffer Snout", mobs: ['minecraft:sniffer'], chance: 0.5, hunger: 8, saturation: 0.7, effect: ['minecraft:luck', 120, 0], art: ['snout', [180, 70, 60], [80, 130, 80]] },
+      { raw: 'bee_stinger', rawName: "Bee Stinger", cooked: 'candied_stinger', cookedName: "Candied Stinger", mobs: ['minecraft:bee'], chance: 0.3, hunger: 2, saturation: 0.3, effect: ['minecraft:regeneration', 4, 0], art: ['wisp', [240, 200, 60], [40, 30, 20]] },
+      // The Factory Ascension mod's own mobs (Full download)
+      { raw: 'rusty_gizzard', rawName: "Rusty Gizzard", cooked: 'grilled_rusty_gizzard', cookedName: "Grilled Rusty Gizzard", mobs: ['factoryascension:rust_walker'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:haste', 30, 0], art: ['organ', [150, 90, 50], [90, 60, 40]], mod: true },
+      { raw: 'glowing_brain', rawName: "Glowing Brain", cooked: 'seared_glowing_brain', cookedName: "Seared Glowing Brain", mobs: ['factoryascension:ascendite_husk'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:night_vision', 90, 0], art: ['organ', [64, 200, 190], [30, 90, 100]], mod: true },
+      { raw: 'ember_heart', rawName: "Ember Heart", cooked: 'smoldering_heart', cookedName: "Smoldering Heart", mobs: ['factoryascension:ember_ghoul'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:fire_resistance', 90, 0], art: ['heart', [200, 70, 30], [255, 200, 80]], mod: true },
+      { raw: 'frozen_heart', rawName: "Frozen Heart", cooked: 'thawed_heart', cookedName: "Thawed Heart", mobs: ['factoryascension:frost_revenant'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:resistance', 30, 0], art: ['heart', [150, 200, 230], [240, 250, 255]], mod: true },
+      { raw: 'miners_lung', rawName: "Miner's Lung", cooked: 'smoked_miners_lung', cookedName: "Smoked Miner's Lung", mobs: ['factoryascension:deep_miner'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:haste', 45, 1], art: ['organ', [140, 130, 120], [60, 60, 60]], mod: true },
+      { raw: 'void_marrow', rawName: "Void Marrow", cooked: 'blackened_void_marrow', cookedName: "Blackened Void Marrow", mobs: ['factoryascension:void_archer'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:slow_falling', 60, 0], art: ['bone', [60, 40, 90], [190, 100, 255]], mod: true },
+      { raw: 'glowing_marrow', rawName: "Glowing Marrow", cooked: 'roasted_glowing_marrow', cookedName: "Roasted Glowing Marrow", mobs: ['factoryascension:ascendite_skeleton'], chance: 0.35, hunger: 6, saturation: 0.6, effect: ['minecraft:resistance', 30, 0], art: ['bone', [200, 214, 210], [64, 232, 212]], mod: true },
+      { raw: 'crystal_fang', rawName: "Crystal Fang", cooked: 'toasted_crystal_fang', cookedName: "Toasted Crystal Fang", mobs: ['factoryascension:crystal_spider'], chance: 0.35, hunger: 4, saturation: 0.4, effect: ['minecraft:haste', 30, 0], art: ['carapace', [130, 86, 190], [255, 200, 255]], mod: true },
+      { raw: 'charged_gland', rawName: "Charged Gland", cooked: 'sizzled_charged_gland', cookedName: "Sizzled Charged Gland", mobs: ['factoryascension:spark_spider'], chance: 0.35, hunger: 4, saturation: 0.4, effect: ['minecraft:speed', 30, 1], art: ['gland', [70, 70, 80], [255, 230, 80]], mod: true },
+      { raw: 'cinder_gland', rawName: "Cinder Gland", cooked: 'charred_cinder_gland', cookedName: "Charred Cinder Gland", mobs: ['factoryascension:cinder_spider'], chance: 0.35, hunger: 4, saturation: 0.4, effect: ['minecraft:fire_resistance', 60, 0], art: ['gland', [90, 40, 30], [255, 130, 40]], mod: true },
+      { raw: 'glowing_creeper_heart', rawName: "Glowing Creeper Heart", cooked: 'smoked_glowing_heart', cookedName: "Smoked Glowing Heart", mobs: ['factoryascension:ascendite_creeper'], chance: 0.4, hunger: 6, saturation: 0.6, effect: ['minecraft:absorption', 30, 1], art: ['heart', [46, 140, 140], [64, 232, 212]], mod: true },
+      { raw: 'frost_core', rawName: "Frost Core", cooked: 'thawed_frost_core', cookedName: "Thawed Frost Core", mobs: ['factoryascension:frost_creeper'], chance: 0.4, hunger: 5, saturation: 0.5, effect: ['minecraft:resistance', 20, 1], art: ['core', [170, 210, 230], [255, 255, 255]], mod: true },
+      { raw: 'essence_gel', rawName: "Essence Gel", cooked: 'candied_essence_gel', cookedName: "Candied Essence Gel", mobs: ['factoryascension:essence_slime'], chance: 0.15, hunger: 4, saturation: 0.6, effect: ['minecraft:regeneration', 8, 1], art: ['core', [170, 96, 255], [240, 210, 255]], mod: true },
+      { raw: 'copper_gel', rawName: "Copper Gel", cooked: 'fried_copper_gel', cookedName: "Fried Copper Gel", mobs: ['factoryascension:rust_slime'], chance: 0.15, hunger: 4, saturation: 0.4, effect: ['minecraft:haste', 30, 0], art: ['core', [90, 170, 130], [200, 120, 60]], mod: true },
+      { raw: 'ore_mite_shell', rawName: "Ore Mite Shell", cooked: 'toasted_ore_shell', cookedName: "Toasted Ore Shell", mobs: ['factoryascension:ore_mite'], chance: 0.2, hunger: 2, saturation: 0.3, effect: ['minecraft:luck', 120, 0], art: ['carapace', [120, 120, 126], [230, 190, 60]], mod: true },
+      { raw: 'wisp_core', rawName: "Wisp Core", cooked: 'seared_wisp_core', cookedName: "Seared Wisp Core", mobs: ['factoryascension:teal_wisp'], chance: 0.35, hunger: 5, saturation: 0.5, effect: ['minecraft:speed', 45, 0], art: ['wisp', [60, 200, 200], [220, 255, 250]], mod: true },
+      { raw: 'void_eye', rawName: "Void Eye", cooked: 'seared_void_eye', cookedName: "Seared Void Eye", mobs: ['factoryascension:void_stalker'], chance: 0.35, hunger: 5, saturation: 0.5, effect: ['minecraft:night_vision', 120, 0], art: ['gland', [30, 20, 40], [200, 110, 255]], mod: true },
+      { raw: 'raider_heart', rawName: "Raider Heart", cooked: 'charred_raider_heart', cookedName: "Charred Raider Heart", mobs: ['factoryascension:factory_raider'], chance: 0.35, hunger: 7, saturation: 0.7, effect: ['minecraft:strength', 30, 0], art: ['heart', [150, 60, 60], [150, 110, 50]], mod: true },
+      { raw: 'ember_wings', rawName: "Ember Wings", cooked: 'hot_ember_wings', cookedName: "Hot Ember Wings", mobs: ['factoryascension:ember_hen'], chance: 0.4, hunger: 4, saturation: 0.4, effect: ['minecraft:fire_resistance', 60, 0], art: ['wing', [230, 120, 40], [255, 220, 90]], mod: true },
+      { raw: 'copper_tongue', rawName: "Copper Tongue", cooked: 'grilled_copper_tongue', cookedName: "Grilled Copper Tongue", mobs: ['factoryascension:copper_cow'], chance: 0.35, hunger: 7, saturation: 0.7, effect: ['minecraft:haste', 45, 0], art: ['tongue', [190, 110, 70], [80, 170, 130]], mod: true }
     ]
   },
 
@@ -1047,6 +1102,26 @@ global.FA = {
     ]
   },
 
+  // ---- The Factory Ascension mod's own 20 mobs (Full download): how deep out each starts spawning ----
+  // Natural spawns below this danger level are cancelled, so the strange ones live out in the danger zones.
+  // (The Nether and End count their own danger bonus; no home set yet means danger 0 everywhere.)
+  modMobs: {
+    minDanger: {
+      rust_walker: 1, ascendite_husk: 3, ember_ghoul: 0, frost_revenant: 1, deep_miner: 1, void_archer: 0, ascendite_skeleton: 3,
+      crystal_spider: 1, spark_spider: 2, cinder_spider: 0, ascendite_creeper: 3, frost_creeper: 1, essence_slime: 5, rust_slime: 1,
+      ore_mite: 1, teal_wisp: 0, void_stalker: 0, factory_raider: 4, ember_hen: 0, copper_cow: 0
+    }
+  },
+
+  // ---- Conflicts: when another installed mod already does a feature's job, the pack turns its own version off ----
+  // and says so in chat: "The Scaling Health mod conflicts with this mod's Danger Zones feature: Turned Danger Zones off."
+  // mods: { mod id: name }. off: what gets switched off. (Shiny Reflections, in the mod, checks for shader mods itself.)
+  conflicts: [
+    { feature: 'Danger Zones', off: 'danger', mods: { scalinghealth: 'Scaling Health', champions: 'Champions', improvedmobs: 'Improved Mobs' } },
+    { feature: 'Rare Mob Variants', off: 'variants', mods: { champions: 'Champions', infernalmobs: 'Infernal Mobs' } },
+    { feature: '/home', off: 'homeCommand', mods: { ftbessentials: 'FTB Essentials' } }
+  ],
+
   // ---- Easy start: cheaper ways into Create's first machines (both downloads) ----
   easyStart: {
     enabled: true,
@@ -1059,6 +1134,7 @@ global.FA = {
   // ---- Home: /sethome saves where you stand, /home takes you back (any dimension) ----
   home: {
     enabled: true,
+    command: true,             // /home and /sethome (always also /ascension home and /ascension sethome)
     combatSeconds: 10,         // no /home for this long after you hit, or get hit by, a mob or player
     cooldownSeconds: 30        // time between uses
   },
@@ -1232,6 +1308,9 @@ global.FA = {
 // Runtime state shared between scripts lives in this object. Nothing reachable from `global` may ever hold null:
 // in KubeJS `global` is a Java map, and reading a key that holds null crashes the game (it did, in the server tick).
 // Objects stored on it may be read the same way, so "no value" is written as false instead.
+// Mob parts from the Factory Ascension mod's own mobs only exist when the mod does (the website keeps them all)
+if (typeof Platform != 'undefined' && !Platform.isLoaded('factoryascension')) global.FA.mobFood.foods = global.FA.mobFood.foods.filter(f => !f.mod)
+
 global.FA_STATE = { event: false, center: false, homes: {} }   // homes: uuid -> {x, z, end} (Overworld coordinates)
 
 // Fusion enchants become ordinary enchant entries (type 'fusion'), so tomes, upgrades, the altar, tooltips,

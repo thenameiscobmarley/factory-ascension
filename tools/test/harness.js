@@ -319,8 +319,8 @@ RaiderClass.prototype = Object.create(EnemyClass.prototype)
 PlayerClass.prototype = Object.create(LivingClass.prototype)
 
 // ---------------- Load scripts in KubeJS order ----------------
-;['startup_scripts/00_fa_config.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
-  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js', 'startup_scripts/97_fa_mod.js',
+;['startup_scripts/00_fa_config.js', 'startup_scripts/01_fa_conflicts.js', 'startup_scripts/10_fa_items.js', 'startup_scripts/20_fa_enchant_effects.js',
+  'startup_scripts/30_fa_world.js', 'startup_scripts/40_fa_ultimates.js', 'startup_scripts/50_fa_loot.js', 'startup_scripts/60_fa_mob_food.js', 'startup_scripts/70_fa_variants.js', 'startup_scripts/72_fa_mod_mobs.js', 'startup_scripts/80_fa_combat.js', 'startup_scripts/90_fa_artifacts.js', 'startup_scripts/95_fa_attachments.js', 'startup_scripts/97_fa_mod.js',
   'server_scripts/10_fa_ascension.js', 'server_scripts/15_fa_home.js', 'server_scripts/16_fa_packs.js', 'server_scripts/17_fa_sell.js', 'server_scripts/18_fa_attachments.js', 'server_scripts/19_fa_foils.js', 'server_scripts/20_fa_core_recipes.js', 'server_scripts/25_fa_tome_recipes.js',
   'server_scripts/30_fa_material_recipes.js', 'server_scripts/32_fa_ascendite_data.js', 'server_scripts/35_fa_starter_recipes.js', 'server_scripts/37_fa_food_recipes.js', 'server_scripts/38_fa_hammer.js', 'server_scripts/39_fa_condition.js',
   'server_scripts/40_fa_progress.js', 'server_scripts/45_fa_altar.js', 'server_scripts/46_fa_machines.js', 'server_scripts/48_fa_rooms.js',
@@ -386,11 +386,18 @@ var gemCount = Object.keys(global.FA.gems.types).length * 3
 var MF = global.FA.mobFood
 check('items registered (4 core + blank + tomes + chaos + fragment + soul + gems + 3 clusters + 5 Ascendite + 9 gear + 26 foods + 2 hammers + polishing cloth + pack + box + cache + 3 tiers x (ingot + 9 gear) + attachments + foil sheets + room TNT)', created.length == 11 + enchantCount + gemCount + 14 + 2 * MF.foods.length + 6 + 30 + global.FA.attachments.list.length + global.FA.foils.types.length +
   global.FA.roomCharges.styles.length * global.FA.roomCharges.sizes.length, created.length)
-check('13 mob foods: raw ones make you sick, cooked ones feed you and give their buff', MF.foods.length == 13 && MF.foods.every(function (fd) {
+var vanillaMobs = {}
+MF.foods.forEach(function (fd) { fd.mobs.forEach(function (m) { vanillaMobs[m] = true }) })
+check(MF.foods.length + ' mob parts for ' + Object.keys(vanillaMobs).length + ' mobs: raw ones make you sick, cooked ones feed you and give their buff, both edible on a full stomach',
+  MF.foods.length >= 45 && Object.keys(vanillaMobs).length >= 60 && MF.foods.every(function (fd) {
   var r = foodDefs[fd.raw], c = foodDefs[fd.cooked]
-  return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length &&
+  return r && c && r.effects.some(function (e) { return e[0] == 'minecraft:hunger' }) && r.effects.length == MF.raw.sickness.length && r.always &&
     c.hunger == fd.hunger && c.effects.length == 1 && c.effects[0][0] == fd.effect[0] && c.effects[0][3] == 1 && c.always
-}))
+}), MF.foods.length + ' / ' + Object.keys(vanillaMobs).length)
+check('parts for the mod\'s own mobs only exist with the mod (Half download)', MF.foods.every(function (fd) { return !fd.mod }))
+check('every mob part has a sprite', MF.foods.every(function (fd) {
+  return new java.io.File('kubejs/assets/kubejs/textures/item/' + fd.raw + '.png').exists() && new java.io.File('kubejs/assets/kubejs/textures/item/' + fd.cooked + '.png').exists() }))
+check('no conflicting mods here, so nothing was turned off', global.FA_CONFLICTS.length == 0 && global.FA.home.command && global.FA.danger.enabled)
 // Off for the other tests (it adds random drops); its own tests switch it back on
 MF.enabled = false
 var File = java.io.File
@@ -2251,6 +2258,20 @@ check('after every test, nothing reachable from global holds null', nullPaths.le
 // ---------------- KubeJS-real method names ----------------
 // KubeJS hides or renames many vanilla methods (found on a real server). A script using one of these only fails
 // in game, never here, so they're banned outright. Comments are skipped.
+// ---------------- Conflicts: a mod that does the same job turns the pack's version off ----------------
+print('\nconflicts')
+var realIsLoaded = Platform.isLoaded
+Platform.isLoaded = function (id) { return id == 'scalinghealth' || id == 'ftbessentials' }
+load('kubejs/startup_scripts/01_fa_conflicts.js')
+check('Scaling Health turns Danger Zones off, FTB Essentials turns /home off, and each says so',
+  !global.FA.danger.enabled && !global.FA.home.command && global.FA.variants.enabled && global.FA_CONFLICTS.length == 2 &&
+  global.FA_CONFLICTS[0] == "The Scaling Health mod conflicts with this mod's Danger Zones feature: Turned Danger Zones off.", global.FA_CONFLICTS.join(' | '))
+print('  sample: ' + global.FA_CONFLICTS.join(' | '))
+Platform.isLoaded = realIsLoaded
+global.FA.danger.enabled = true
+global.FA.home.command = true
+global.FA_CONFLICTS = []
+
 print('\nkubejs names')
 var banned = [
   [/getStringUUID\(/, 'stringUuid'], [/getScoreboardName\(/, 'username'], [/\.(getTag|setTag)\(|\.hasTag\(\)/, 'stack.nbt'],

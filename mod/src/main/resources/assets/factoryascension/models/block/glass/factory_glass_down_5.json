@@ -1,0 +1,28 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "factoryascension:block/factory_glass_0",
+    "glass": "factoryascension:block/factory_glass_5"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#glass",
+          "cullface": "down"
+        }
+      }
+    }
+  ]
+}
