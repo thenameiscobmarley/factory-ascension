@@ -4,9 +4,9 @@
   "textures": {
     "particle": "kubejs:block/essence_condenser",
     "c": "kubejs:block/essence_condenser",
-    "glass": "factoryascension:block/mat_glass",
+    "glass": "kubejs:block/fa_mat_glass",
     "core": "kubejs:block/condensed_essence_0",
-    "gold": "factoryascension:block/mat_gold"
+    "gold": "kubejs:block/fa_mat_gold"
   },
   "elements": [
     {

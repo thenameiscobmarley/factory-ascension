@@ -281,9 +281,9 @@ def pack_model():
                   "inside": t + "pack_inside", "flap": t + "pack_flap", "back": t + "card_back", "card": t + "card_holo"}, [
         box((3, 0, 6), (13, 12.5, 10), {"n": "face", "s": "face", "e": "side", "w": "side", "u": "inside", "d": "side"}, name="body"),
         box((4, 10, 7), (12, 14.5, 7.4), {"n": "back", "s": "card", "e": "back", "w": "back", "u": "back", "d": "back"},
-            rotation={"angle": -11.25, "axis": "x", "origin": [8, 10, 7]}, name="card_1"),
+            rotation={"angle": -22.5, "axis": "x", "origin": [8, 10, 7]}, name="card_1"),
         box((4.5, 10, 8.2), (12.5, 13.5, 8.6), {"n": "back", "s": "back", "e": "back", "w": "back", "u": "back", "d": "back"},
-            rotation={"angle": 11.25, "axis": "z", "origin": [8, 10, 8]}, name="card_2"),
+            rotation={"angle": 22.5, "axis": "z", "origin": [8, 10, 8]}, name="card_2"),
         # The torn strip, still hanging on at the back and folded open
         box((3, 12.5, 9.6), (13, 15.5, 10), {"n": "flap", "s": "flap", "e": "flap", "w": "flap", "u": "flap", "d": "flap"},
             rotation={"angle": 45, "axis": "x", "origin": [8, 12.5, 10]}, name="torn_strip"),
@@ -298,7 +298,19 @@ def box_model():
     ], translucent=False)
 
 
+def check_model(path, m):
+    """Minecraft rejects the whole model (purple and black in game) for a tilt that isn't 0, 22.5 or 45 degrees,
+    or a part outside -16..32."""
+    for e in m.get("elements", []):
+        r = e.get("rotation")
+        if r and r["angle"] not in (0, 22.5, -22.5, 45, -45):
+            raise SystemExit("%s: rotation %s isn't allowed (only 0, +-22.5, +-45)" % (path, r["angle"]))
+        if any(c < -16 or c > 32 for c in e["from"] + e["to"]):
+            raise SystemExit("%s: a part goes outside -16..32" % path)
+
+
 def write(path, obj):
+    check_model(path, obj)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(obj, f, indent=1)

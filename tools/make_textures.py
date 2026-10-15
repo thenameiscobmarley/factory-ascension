@@ -367,21 +367,23 @@ def gem_item(color, tier):
 
 
 def altar_block():
-    """Obsidian block with a glowing amethyst rune ring."""
+    """Pale polished stone with a gold rim, a glowing teal rune ring and a gold heart (kept bright: a dark
+    purple-and-black block reads as Minecraft's missing texture)."""
     rnd = random.Random(7)
     px = [[None] * N for _ in range(N)]
     for y in range(N):
         for x in range(N):
             v = rnd.random()
-            px[y][x] = lerp((22, 14, 34), (48, 30, 70), v) + (255,)
+            px[y][x] = lerp((214, 208, 196), (182, 174, 162), v * 0.7 + (x + y) / 60.0) + (255,)
     for i in range(N):
-        px[0][i] = px[N - 1][i] = px[i][0] = px[i][N - 1] = (90, 60, 120, 255)
+        px[0][i] = px[i][0] = (255, 222, 120, 255)
+        px[N - 1][i] = px[i][N - 1] = (176, 120, 40, 255)
     for a in range(0, 360, 10):
         x = int(round(7.5 + 4.5 * math.cos(math.radians(a))))
         y = int(round(7.5 + 4.5 * math.sin(math.radians(a))))
-        px[y][x] = (200, 140, 255, 255)
+        px[y][x] = (64, 232, 212, 255)
     for x, y in ((7, 7), (8, 7), (7, 8), (8, 8), (7, 5), (8, 10), (5, 8), (10, 7)):
-        px[y][x] = (255, 220, 120, 255)
+        px[y][x] = (232, 176, 58, 255)
     return px
 
 
@@ -423,20 +425,21 @@ def condensed_tiers():
 
 
 def condenser_block():
-    """Brass frame around a glass window of swirling essence."""
+    """Steel frame with gold corners around a window of teal-and-violet swirling essence (bright, never
+    purple-and-black, which reads as a missing texture)."""
     px = [[None] * N for _ in range(N)]
     for y in range(N):
         for x in range(N):
             edge = x in (0, 1, 14, 15) or y in (0, 1, 14, 15)
             if edge:
-                px[y][x] = lerp((200, 150, 60), (120, 80, 30), (x + y) / 30) + (255,)
+                px[y][x] = lerp((170, 180, 200), (96, 104, 124), (x + y) / 30) + (255,)
             else:
                 swirl = (math.sin(x * 0.9 + y * 0.5) + math.cos(y * 0.8 - x * 0.3)) / 4 + 0.5
-                px[y][x] = lerp((60, 20, 110), (190, 110, 255), swirl) + (255,)
+                px[y][x] = lerp((120, 220, 230), (200, 160, 255), swirl) + (255,)
     for i in range(2, 14):
-        px[i][i] = (235, 210, 255, 255)
-    for x, y in ((0, 0), (15, 0), (0, 15), (15, 15), (7, 1), (8, 14)):
-        px[y][x] = (255, 220, 120, 255)
+        px[i][i] = (245, 255, 255, 255)
+    for x, y in ((0, 0), (1, 0), (0, 1), (15, 0), (14, 0), (15, 1), (0, 15), (1, 15), (0, 14), (15, 15), (14, 15), (15, 14)):
+        px[y][x] = (232, 176, 58, 255)
     return px
 
 

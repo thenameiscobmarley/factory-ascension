@@ -716,9 +716,13 @@ def shape(b, variant=""):
 
 
 def kubejs_block_models():
-    """3D models for the pack's own KubeJS blocks (10_fa_items.js points them here with .model())."""
+    """3D models for the pack's own KubeJS blocks, replacing the cubes KubeJS would generate for them."""
     out = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "models", "block")
-    t = "factoryascension:block/mat_"
+    # Their own copies of the shared materials: these blocks exist in the Half download too, which has no mod jar
+    kt = os.path.join(os.path.dirname(__file__), "..", "kubejs", "assets", "kubejs", "textures", "block")
+    for m in ("gold", "glass"):
+        make_textures.png(os.path.join(kt, "fa_mat_%s.png" % m), material(m))
+    t = "kubejs:block/fa_mat_"
     altar = {"parent": "minecraft:block/block", "render_type": "minecraft:cutout",
              "textures": {"particle": "kubejs:block/ascension_altar", "a": "kubejs:block/ascension_altar", "gold": t + "gold",
                           "gem": "minecraft:block/amethyst_block", "crystal": "minecraft:block/amethyst_cluster"},
@@ -731,8 +735,15 @@ def kubejs_block_models():
             "elements": [E((0, 0, 0), (16, 2, 16), "c"), E((0, 14, 0), (16, 16, 16), "c"), E((4, 2, 4), (12, 14, 12), "core"),
                          E((1, 2, 1), (15, 14, 15), "glass")] + corners(0, 16, 2, 14, 2, "c") +
                         [E((3, 13.5, 3), (13, 14.2, 13), "gold")]}
-    for name, m in (("ascension_altar_3d", altar), ("essence_condenser_3d", cond)):
+    # Written under the blocks' own names, which is how KubeJS lets you replace a block's generated model
+    for old in ("ascension_altar_3d", "essence_condenser_3d"):
+        for d in (out, os.path.join(RES, "assets", "kubejs", "models", "block")):
+            if os.path.exists(os.path.join(d, old + ".json")):
+                os.remove(os.path.join(d, old + ".json"))
+    for name, m in (("ascension_altar", altar), ("essence_condenser", cond)):
         write_json(os.path.join(out, name + ".json"), m)
+        # The jar carries a copy too, so the Full download never depends on the kubejs folder for these
+        write_json(os.path.join(RES, "assets", "kubejs", "models", "block", name + ".json"), m)
 
 
 # ---- Connected glass: 16 frame textures per kind (a frame edge only where nothing matching is next to it) ----

@@ -164,12 +164,12 @@ StartupEvents.registry('fluid', event => {
 StartupEvents.registry('block', event => {
   event.create('ascension_altar').displayName('Ascension Altar').soundType('amethyst')
     .hardness(4).resistance(1200).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').lightLevel(0.6)
-    .textureAll('kubejs:block/ascension_altar').model('kubejs:block/ascension_altar_3d').notSolid().renderType('cutout')
+    .textureAll('kubejs:block/ascension_altar').notSolid().renderType('cutout')   // 3D model: kubejs/assets/kubejs/models/block/ascension_altar.json
 
   // Essence Condenser: Liquid Essence tank below -> Condensed Essence Blocks into the chest above
   event.create('essence_condenser').displayName('Essence Condenser').soundType('metal')
     .hardness(4).resistance(1200).requiresTool(true).tagBlock('minecraft:mineable/pickaxe').lightLevel(0.4)
-    .textureAll('kubejs:block/essence_condenser').model('kubejs:block/essence_condenser_3d').notSolid().renderType('translucent')
+    .textureAll('kubejs:block/essence_condenser').notSolid().renderType('translucent')   // 3D model: kubejs/assets/kubejs/models/block/essence_condenser.json
 
   // Condensed Essence Blocks: tier 0 plus (x1) .. (x50), each glowing a little brighter
   let tiers = global.FA_condensedTiers()

@@ -2105,6 +2105,11 @@ check('mob loot tables only use drops that always exist (no forge:mod_loaded, wh
 check('Mini Crusher: motors (with recipes and speeds) and a battery charge per item', global.FA.machines.miniCrusher.motors.every(function (m) { return m.speed > 0 && m.recipe[0].length == 3 }) &&
   global.FA.machines.miniCrusher.chargePerItem > 0)
 
+check('the scripts\' block models never use the mod jar\'s textures (the Half download has no jar)',
+  ['ascension_altar', 'essence_condenser'].every(function (b) { return readFile('kubejs/assets/kubejs/models/block/' + b + '.json').indexOf('factoryascension:') < 0 }))
+check('the Enchantment Pack model only tilts by angles Minecraft accepts (0, 22.5, 45)',
+  JSON.parse(readFile('kubejs/assets/kubejs/models/item/enchantment_pack.json')).elements.every(function (e) { return !e.rotation || [0, 22.5, -22.5, 45, -45].indexOf(e.rotation.angle) >= 0 }))
+
 // ---------------- Legendary stars ----------------
 print('\nlegendary')
 var LG = global.FA.legendary
