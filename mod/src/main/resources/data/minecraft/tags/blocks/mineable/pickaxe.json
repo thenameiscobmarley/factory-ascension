@@ -14,6 +14,13 @@
     "factoryascension:engine_burner",
     "factoryascension:storage_terminal",
     "factoryascension:ascension_workbench",
-    "factoryascension:mini_crusher"
+    "factoryascension:mini_crusher",
+    "factoryascension:realm_stone",
+    "factoryascension:realm_moss",
+    "factoryascension:realm_crystal",
+    "factoryascension:essence_crystal_ore",
+    "factoryascension:voidsteel_ore",
+    "factoryascension:astral_ore",
+    "factoryascension:realm_gate"
   ]
 }

@@ -74,6 +74,7 @@ function faSelftest(server, report, done) {
   }
 
   server.runCommandSilent('forceload add ' + (X - 32) + ' ' + (Z - 32) + ' ' + (X + 32) + ' ' + (Z + 32))
+  if (server.getLevel('factoryascension:ascended_realm')) server.runCommandSilent('execute in factoryascension:ascended_realm run forceload add ' + X + ' ' + Z)
   // A floor to stand things on
   for (let dx = -24; dx <= 24; dx++) for (let dz = -24; dz <= 24; dz++) place(X + dx, Y - 1, Z + dz, 'minecraft:stone')
 
@@ -607,6 +608,44 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       check('Ascension backpacks: all ' + global.FA.backpacks.tiers.length + ' tiers with recipes, and a placed one keeps its storage (' + (bpBe ? bpBe.getClass().getSimpleName() : 'none') + ')',
         bpMissing.length == 0 && !!bpBe && String(bpBe.getClass().getSimpleName()) == 'BackpackBlockEntity', bpMissing.join(', '))
     }
+    // The Ascended Realm: the dimension loads, its islands are Realm Stone with Realm ores in them, the gate builds a
+    // platform with a gate back, danger starts at realmBonus, and a round trip through the gates lands where it started
+    let realmLevel = server.getLevel('factoryascension:ascended_realm')
+    let realmCounts = {}
+    if (realmLevel) {
+      for (let rx = 0; rx < 48; rx += 2) for (let rz = 0; rz < 48; rz += 2) for (let ry = 0; ry < 256; ry += 2) {
+        let rid = String(realmLevel.getBlock(4096 + rx, ry, 4096 + rz).id)
+        if (rid.indexOf('factoryascension:') == 0) realmCounts[rid.split(':')[1]] = (realmCounts[rid.split(':')[1]] || 0) + 1
+      }
+    }
+    let realmAt = realmLevel ? global.FA_realmPlatform(server, 4000, 4000) : null
+    let realmGate = realmLevel && String(realmLevel.getBlock(4000, global.FA.realm.platformY, 4000 - global.FA.realm.platformRadius).id) == 'factoryascension:realm_gate'
+    let realmUuid0 = String(player.stringUuid), realmSavedHome = global.FA_STATE.homes[realmUuid0] || false
+    faPutHomeCenter(realmUuid0, faHomeCenter('minecraft:overworld', X, Z))
+    let realmDanger = realmLevel ? global.FA_dangerLevel(realmLevel, 0, 0, player) : -1
+    faPutHomeCenter(realmUuid0, realmSavedHome)
+    // (the Realm end of the trip was forceloaded with the test area, so the stand can be found there)
+    let realmStand = level.createEntity('minecraft:armor_stand')
+    realmStand.setPosition(X + 0.5, Y + 3, Z + 0.5)
+    realmStand.spawn()
+    let realmUuid = realmStand.getUuid()
+    let realmFind = () => { let a = server.overworld().getEntity(realmUuid); return a ? a : (realmLevel ? realmLevel.getEntity(realmUuid) : null) }
+    let realmStart = ['minecraft:overworld', X, Z]
+    let realmBefore = !!realmFind()
+    global.FA_realmUse(realmStand, realmStand.blockPosition())
+    let realmTraveller = realmFind()
+    let realmIn = realmTraveller ? String(realmTraveller.level.dimension) : 'lost'
+    if (realmTraveller) { realmTraveller.persistentData.putLong('fa_realm_last', -100000); global.FA_realmUse(realmTraveller, realmTraveller.blockPosition()) }
+    realmTraveller = realmFind()
+    let realmBack = realmTraveller ? [String(realmTraveller.level.dimension), Math.floor(realmTraveller.getX()), Math.floor(realmTraveller.getZ())] : ['lost']
+    if (realmTraveller) realmTraveller.discard()
+    server.runCommandSilent('execute in factoryascension:ascended_realm run forceload remove ' + X + ' ' + Z)
+    let realmOres = ['essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].filter(o => realmCounts[o] > 0)
+    check('Ascended Realm: islands (' + Object.keys(realmCounts).map(k => realmCounts[k] + ' ' + k).join(', ') + '), a platform with a gate back, danger ' + realmDanger +
+      ' at its center, and a round trip ' + realmStart.join(' ') + ' -> ' + realmIn + ' -> ' + realmBack.join(' '),
+      !!realmLevel && (realmCounts.realm_stone || 0) > 50 && realmOres.length >= 2 && realmGate && realmDanger >= global.FA.danger.realmBonus &&
+      realmIn == 'factoryascension:ascended_realm' && realmBack.join(' ') == realmStart.join(' '),
+      [!!realmLevel, realmBefore, JSON.stringify(realmCounts), realmGate, realmDanger, realmIn, realmBack.join(' ')].join(' / '))
     // Ascension Workbench: two halves; Apply puts an attachment on a sword, Star Up adds a Legendary star
     let benchPos = place(X + 26, Y, Z + 16, 'minecraft:air')
     level.getBlock(benchPos).set('factoryascension:ascension_workbench', { facing: 'north', main: 'true' })

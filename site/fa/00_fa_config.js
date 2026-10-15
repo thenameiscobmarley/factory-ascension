@@ -643,6 +643,7 @@ global.FA = {
     netherScale: 8,            // Nether distance counts x8, like Nether travel
     netherBonus: 4,            // the Nether is always at least this dangerous
     endBonus: 7,               // the End too (the main island is inside safeRadius of 0,0)
+    realmBonus: 12,            // the Ascended Realm (Full download) starts this dangerous, and climbs from its 0,0 like the End
     // Mobs get tougher on a curve by how far out their zone starts: x(1 + scale * (blocks / 1000) ^ exponent).
     // 0.5 and 2.807 give x1.5 at 1,000 blocks and x4.5 at 2,000, then x11.9 at 3,000, x26 at 4,000, x47 at 5,000.
     exponent: 2.807,
@@ -1214,9 +1215,17 @@ global.FA = {
       ascension_workbench: [['GTG', 'WCW', 'I I'], { G: 'kubejs:ascendite_ingot', T: 'minecraft:smithing_table', W: 'minecraft:crafting_table', C: 'kubejs:ascension_core', I: 'minecraft:iron_block' }],
       // The Mini Crusher: no crushing wheels, just iron, flint, a hopper and a casing
       mini_crusher: [['IHI', 'FCF', 'IBI'], { I: 'minecraft:iron_ingot', H: 'minecraft:hopper', F: 'minecraft:flint', C: 'create:andesite_casing', B: 'minecraft:iron_block' }],
+      // The Realm Gate (Full download): the way into the Ascended Realm. Build it once; going through is free
+      realm_gate: [['OMO', 'ESE', 'OMO'], { O: 'minecraft:crying_obsidian', M: 'kubejs:mythic_fragment', E: 'minecraft:ender_eye', S: 'kubejs:ascension_singularity' }],
       storage_linker: [['  A', ' N ', 'I  '], { A: 'minecraft:amethyst_shard', N: 'kubejs:ascendite_nugget', I: 'kubejs:ascendite_ingot' }]
     }
   },
+
+  // ---- The Ascended Realm (Full download): floating islands of Realm Stone, reached through a Realm Gate ----
+  // Right-click a Realm Gate: you arrive at the same x, z in the Realm, on a platform at platformY with a gate back.
+  // That gate returns you to where you left. Ores there: Essence Crystal (Ascension Cores), Voidsteel (ingots) and
+  // Astral (Mythic Fragments). Danger there starts at danger.realmBonus.
+  realm: { platformY: 128, platformRadius: 3, cooldownTicks: 40 },
 
   // ---- Factory Room TNT: blasts out a ready-made underground room ----
   // Right-click a block with one. After the fuse it hollows out a room in front of you (width x length x height inside),
@@ -1725,8 +1734,9 @@ global.FA_dangerLevel = (level, x, z, who) => {
     return global.FA_dangerAtDistance(dist, d.netherBonus)
   }
   if (dim == 'minecraft:overworld' && !c.end) return global.FA_dangerAtDistance(Math.sqrt(Math.pow(x - c.x, 2) + Math.pow(z - c.z, 2)), 0)
-  // The End and other dimensions: from their 0, 0
-  return global.FA_dangerAtDistance(Math.sqrt(x * x + z * z), dim == 'minecraft:the_end' ? d.endBonus : 0)
+  // The End, the Ascended Realm and other dimensions: from their 0, 0
+  let bonus = dim == 'minecraft:the_end' ? d.endBonus : dim == 'factoryascension:ascended_realm' ? d.realmBonus : 0
+  return global.FA_dangerAtDistance(Math.sqrt(x * x + z * z), bonus)
 }
 
 global.FA_zone = danger => {
@@ -2040,6 +2050,7 @@ global.FA_meteorPool = () => {
     put(P.engine, ['engine_core', 'engine_coil', 'engine_gearbox', 'engine_burner', 'storage_linker', 'mini_crusher'].concat(Object.keys(FA.machines.glass)).map(b => 'factoryascension:' + b))
     put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['ascension_vault', 'essence_forge', 'ascension_workbench'].map(b => 'factoryascension:' + b))
+    put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
     if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))
   }
   global.FA.events.meteorShower.extra.forEach(x => put(x[1], [x[0]]))
@@ -2422,7 +2433,7 @@ global.FA_validate = cfg => {
   })
 
   let d = cfg.danger
-  let dangerOk = ['safeRadius', 'netherScale', 'netherBonus', 'endBonus', 'healthScale', 'damageScale', 'exponent', 'lootScale',
+  let dangerOk = ['safeRadius', 'netherScale', 'netherBonus', 'endBonus', 'realmBonus', 'healthScale', 'damageScale', 'exponent', 'lootScale',
     'xpScale', 'eliteChancePerLevel', 'eliteChanceCap', 'maxLevel'].every(f => need(d[f], 'danger.' + f, 0)) &&
     need(d.blocksPerLevel, 'danger.blocksPerLevel', 1) && need(d.eliteHealth, 'danger.eliteHealth', 1) &&
     need(d.eliteDamage, 'danger.eliteDamage', 0) && need(d.eliteLoot, 'danger.eliteLoot', 0) &&

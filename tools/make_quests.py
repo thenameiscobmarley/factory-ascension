@@ -122,6 +122,11 @@ CHAPTERS = [
          ["The endgame metal: Celestium, a Singularity, Mythic Fragments and Liquid Essence, superheated."], 6, 1),
         ("eclipse", "Eclipse", "kubejs:foil_sheet_eclipse", [("item", "kubejs:foil_sheet_eclipse", 1)], [("item", "minecraft:nether_star", 2)], ["ascendium"],
          ["The best foil there is: x100."], 8, 1),
+        ("realm_gate", "A Door in the Sky", M + "realm_gate", [("item", M + "realm_gate", 1)], [("item", "kubejs:mythic_fragment", 4)], ["singularity"],
+         ["Crying Obsidian, Mythic Fragments, Eyes of Ender and a Singularity. Build it once: going through is free."], 6, 3),
+        ("realm", "The Ascended Realm", M + "realm_moss", [("dimension", "factoryascension:ascended_realm")], [("item", "kubejs:ascended_soul", 1)], ["realm_gate"],
+         ["Right-click the gate. Floating islands, danger from the first step, and ores you won't find anywhere else:",
+          "Essence Crystal (cores), Voidsteel and Astral (Mythic Fragments). The gate on your platform brings you home."], 8, 3),
     ]),
 ]
 
@@ -159,6 +164,8 @@ def task(chapter, key, i, t):
         return {"id": tid, "type": "item", "item": t[1], "count": Long(t[2])}
     if t[0] == "kill":
         return {"id": tid, "type": "kill", "entity": t[1], "value": Long(t[2])}
+    if t[0] == "dimension":
+        return {"id": tid, "type": "dimension", "dimension": t[1]}
     return {"id": tid, "type": "checkmark"}
 
 

@@ -101,6 +101,20 @@ public class FactoryAscension {
     public static final RegistryObject<Block> SALVAGER = block("salvager", () -> new SalvagerBlock(machine()));
     public static final RegistryObject<Block> FUSION = block("tome_fusion_table", () -> new FusionBlock(machine()));
     public static final RegistryObject<Block> SMELTER = block("super_smelter", () -> new SmelterBlock(machine().lightLevel(s -> s.getValue(SmelterBlock.LIT) ? 13 : 3)));
+    // The Ascended Realm (a dimension, data/factoryascension/dimension): its terrain, ores, crystals and the gate there
+    private static BlockBehaviour.Properties realmStone() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(2.5f, 9f).sound(SoundType.DEEPSLATE).requiresCorrectToolForDrops();
+    }
+
+    public static final RegistryObject<Block> REALM_STONE = block("realm_stone", () -> new Block(realmStone()));
+    public static final RegistryObject<Block> REALM_MOSS = block("realm_moss", () -> new Block(realmStone().sound(SoundType.MOSS).lightLevel(s -> 3)));
+    public static final RegistryObject<Block> REALM_CRYSTAL = block("realm_crystal", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_CYAN)
+        .strength(1.5f).sound(SoundType.AMETHYST).lightLevel(s -> 12).noOcclusion().noCollission()));
+    public static final RegistryObject<Block> ESSENCE_CRYSTAL_ORE = block("essence_crystal_ore", () -> new Block(realmStone().strength(4f, 9f).lightLevel(s -> 7)));
+    public static final RegistryObject<Block> VOIDSTEEL_ORE = block("voidsteel_ore", () -> new Block(realmStone().strength(5f, 12f).lightLevel(s -> 4)));
+    public static final RegistryObject<Block> ASTRAL_ORE = block("astral_ore", () -> new Block(realmStone().strength(6f, 12f).lightLevel(s -> 10)));
+    public static final RegistryObject<Block> REALM_GATE = block("realm_gate", () -> new Block(machine().lightLevel(s -> 15)));
+
     // Ascension Workbench: two blocks wide
     public static final RegistryObject<Block> WORKBENCH = block("ascension_workbench", () -> new WorkbenchBlock(machine()));
     // Mini Crusher: crushing without the big wheels (a motor and a battery)
@@ -177,6 +191,8 @@ public class FactoryAscension {
             out.accept(SMELTER.get());
             out.accept(WORKBENCH.get());
             out.accept(MINI_CRUSHER.get());
+            for (RegistryObject<Block> r : java.util.List.of(REALM_GATE, REALM_STONE, REALM_MOSS, REALM_CRYSTAL, ESSENCE_CRYSTAL_ORE, VOIDSTEEL_ORE, ASTRAL_ORE))
+                out.accept(r.get());
             out.accept(TERMINAL.get());
             out.accept(LINKER.get());
             out.accept(ENGINE_CORE.get());

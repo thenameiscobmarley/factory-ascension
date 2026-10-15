@@ -209,6 +209,18 @@ the gear in your hand. Everything is in the `legendary` section of the config.
   *Plunderer* (Plunder), *Windwalker* (Swiftness), *Lifebinder* (Vitality). 2 pieces: x1.25 that enchant.
   4 pieces: x1.5 plus extra enchants (e.g. Juggernaut adds Vitality 100 and Bulwark 50).
 
+## The Ascended Realm (Full download)
+
+A dimension of floating islands made of Realm Stone and glowing Realm Moss, with three regions (the Ascended Shelf, the
+Void Garden and the Astral Peaks) and the pack's toughest mobs. Build a **Realm Gate** (Crying Obsidian, Mythic Fragments,
+Eyes of Ender and an Ascension Singularity) and right-click it: you arrive at the same x, z on a Realm Stone platform,
+next to a gate that takes you back to where you left. Going through is free.
+
+- Danger there starts at **12** (`danger.realmBonus`) and climbs from the Realm's 0, 0 like the End.
+- Ores you won't find anywhere else: **Essence Crystal** (1-3 Ascension Cores), **Voidsteel** (Voidsteel Ingots) and
+  **Astral** (1-2 Mythic Fragments). Fortune works on all of them; Silk Touch keeps the ore.
+- Platform height and size are in `realm`. Two quests in the Endgame chapter lead there.
+
 ## World events
 
 About once every 20 minutes something happens to the whole server:

@@ -158,5 +158,15 @@
   "item.factoryascension.singularity_backpack": "Singularity Backpack",
   "block.factoryascension.singularity_backpack": "Singularity Backpack",
   "item.factoryascension.ascended_backpack": "Ascended Backpack",
-  "block.factoryascension.ascended_backpack": "Ascended Backpack"
+  "block.factoryascension.ascended_backpack": "Ascended Backpack",
+  "block.factoryascension.realm_stone": "Realm Stone",
+  "block.factoryascension.realm_moss": "Realm Moss",
+  "block.factoryascension.realm_crystal": "Realm Crystal",
+  "block.factoryascension.essence_crystal_ore": "Essence Crystal Ore",
+  "block.factoryascension.voidsteel_ore": "Voidsteel Ore",
+  "block.factoryascension.astral_ore": "Astral Ore",
+  "block.factoryascension.realm_gate": "Realm Gate",
+  "biome.factoryascension.ascended_shelf": "Ascended Shelf",
+  "biome.factoryascension.void_garden": "Void Garden",
+  "biome.factoryascension.astral_peaks": "Astral Peaks"
 }

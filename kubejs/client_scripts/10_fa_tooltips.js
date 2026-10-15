@@ -694,6 +694,19 @@ ItemEvents.tooltip(event => {
       BPT[i + 1] ? up('the ' + global.FA_num(BPT[i + 1].slots) + '-slot tier: ' + shapedList([BPT[i + 1].recipe[0], Object.assign({ B: 'this backpack' }, BPT[i + 1].recipe[1])]))
         : tip('The biggest backpack there is')]))
 
+    // The Ascended Realm
+    block('realm_gate', 'A door with a sky on the other side.', () => [
+      use('right-click: go to the Ascended Realm, floating islands where danger starts at ' + FA.danger.realmBonus),
+      tip('You arrive at the same x, z on a Realm Stone platform, with a gate there that brings you back here'),
+      tip('Its ores: Essence Crystal (Ascension Cores), Voidsteel (ingots) and Astral (Mythic Fragments)')])
+    let realmOre = (id, lore, drop) => details('factoryascension:' + id, lore, () => [
+      tip('Found in the Ascended Realm (through a Realm Gate)'), tip('Drops ' + drop + ' (more with Fortune; Silk Touch keeps the ore)')])
+    realmOre('essence_crystal_ore', 'The Realm grows cores like crystals.', '1-3 Ascension Cores')
+    realmOre('voidsteel_ore', 'Darker than the void it came from.', 'a Voidsteel Ingot')
+    realmOre('astral_ore', 'Starlight, set in stone.', '1-2 Mythic Fragments')
+    ;['realm_stone', 'realm_moss', 'realm_crystal'].forEach(id => details('factoryascension:' + id, 'From the Ascended Realm.', () => [
+      tip('The floating islands of the Ascended Realm are made of it (reached through a Realm Gate)')]))
+
     // Mini Crusher
     let MCR = M.miniCrusher
     block('mini_crusher', 'All the crushing, none of the wheels.', () => [

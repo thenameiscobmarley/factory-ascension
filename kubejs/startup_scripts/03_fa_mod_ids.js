@@ -9,24 +9,31 @@ global.FA_MOD_CONTENT = {
   "ascendium_backpack",
   "ascension_vault",
   "ascension_workbench",
+  "astral_ore",
   "card_binder",
   "celestium_backpack",
   "engine_burner",
   "engine_coil",
   "engine_core",
   "engine_gearbox",
+  "essence_crystal_ore",
   "essence_forge",
   "factory_glass",
   "gilded_glass",
   "mini_crusher",
   "pack_opener",
+  "realm_crystal",
+  "realm_gate",
+  "realm_moss",
+  "realm_stone",
   "salvager",
   "singularity_backpack",
   "smoked_glass",
   "storage_terminal",
   "super_smelter",
   "tome_fusion_table",
-  "voidsteel_backpack"
+  "voidsteel_backpack",
+  "voidsteel_ore"
  ],
  "items": [
   "ascended_backpack",
@@ -130,6 +137,13 @@ global.FA_MOD_CONTENT = {
   "celestium_backpack": "Celestium Backpack",
   "ascendium_backpack": "Ascendium Backpack",
   "singularity_backpack": "Singularity Backpack",
-  "ascended_backpack": "Ascended Backpack"
+  "ascended_backpack": "Ascended Backpack",
+  "realm_stone": "Realm Stone",
+  "realm_moss": "Realm Moss",
+  "realm_crystal": "Realm Crystal",
+  "essence_crystal_ore": "Essence Crystal Ore",
+  "voidsteel_ore": "Voidsteel Ore",
+  "astral_ore": "Astral Ore",
+  "realm_gate": "Realm Gate"
  }
 }

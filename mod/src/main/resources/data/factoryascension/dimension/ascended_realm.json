@@ -1,0 +1,16 @@
+{
+  "type": "factoryascension:ascended_realm",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "factoryascension:ascended_realm",
+    "biome_source": {
+      "type": "minecraft:checkerboard",
+      "scale": 4,
+      "biomes": [
+        "factoryascension:ascended_shelf",
+        "factoryascension:void_garden",
+        "factoryascension:astral_peaks"
+      ]
+    }
+  }
+}

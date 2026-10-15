@@ -208,6 +208,64 @@
 			x: 8.0d
 			y: 1.0d
 		}
+		{
+			dependencies: [
+				"A9D898200D3590C9"
+			]
+			description: [
+				"Crying Obsidian, Mythic Fragments, Eyes of Ender and a Singularity. Build it once: going through is free."
+			]
+			icon: "factoryascension:realm_gate"
+			id: "7400DE84541DDC78"
+			rewards: [
+				{
+					count: 4
+					id: "A2D610D6EF3253FA"
+					item: "kubejs:mythic_fragment"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					count: 1L
+					id: "7E78202AEF5F79D9"
+					item: "factoryascension:realm_gate"
+					type: "item"
+				}
+			]
+			title: "A Door in the Sky"
+			x: 6.0d
+			y: 3.0d
+		}
+		{
+			dependencies: [
+				"7400DE84541DDC78"
+			]
+			description: [
+				"Right-click the gate. Floating islands, danger from the first step, and ores you won't find anywhere else:"
+				"Essence Crystal (cores), Voidsteel and Astral (Mythic Fragments). The gate on your platform brings you home."
+			]
+			icon: "factoryascension:realm_moss"
+			id: "2EBFFA79758FC2DE"
+			rewards: [
+				{
+					count: 1
+					id: "4BD5CDF2B258A195"
+					item: "kubejs:ascended_soul"
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					dimension: "factoryascension:ascended_realm"
+					id: "5F1CE354A0135A11"
+					type: "dimension"
+				}
+			]
+			title: "The Ascended Realm"
+			x: 8.0d
+			y: 3.0d
+		}
 	]
 	title: "Endgame"
 }

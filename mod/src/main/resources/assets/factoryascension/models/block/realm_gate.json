@@ -1,0 +1,244 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "mat_steel": "factoryascension:block/mat_steel",
+    "mat_steel_dk": "factoryascension:block/mat_steel_dk",
+    "mat_gold": "factoryascension:block/mat_gold",
+    "mat_teal": "factoryascension:block/mat_teal",
+    "mat_wood": "factoryascension:block/mat_wood",
+    "mat_copper": "factoryascension:block/mat_copper",
+    "mat_iron": "factoryascension:block/mat_iron",
+    "mat_gem": "factoryascension:block/mat_gem",
+    "mat_cloth": "factoryascension:block/mat_cloth",
+    "mat_fire": "factoryascension:block/mat_fire",
+    "mat_glass": "factoryascension:block/mat_glass",
+    "swirl": "factoryascension:block/realm_gate_side",
+    "particle": "factoryascension:block/realm_gate_side"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_steel_dk"
+        },
+        "south": {
+          "texture": "#mat_steel_dk"
+        },
+        "east": {
+          "texture": "#mat_steel_dk"
+        },
+        "west": {
+          "texture": "#mat_steel_dk"
+        },
+        "up": {
+          "texture": "#mat_steel_dk"
+        },
+        "down": {
+          "texture": "#mat_steel_dk"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        14,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_steel_dk"
+        },
+        "south": {
+          "texture": "#mat_steel_dk"
+        },
+        "east": {
+          "texture": "#mat_steel_dk"
+        },
+        "west": {
+          "texture": "#mat_steel_dk"
+        },
+        "up": {
+          "texture": "#mat_steel_dk"
+        },
+        "down": {
+          "texture": "#mat_steel_dk"
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        2,
+        7
+      ],
+      "to": [
+        15,
+        14,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#swirl"
+        },
+        "south": {
+          "texture": "#swirl"
+        },
+        "east": {
+          "texture": "#swirl"
+        },
+        "west": {
+          "texture": "#swirl"
+        },
+        "up": {
+          "texture": "#swirl"
+        },
+        "down": {
+          "texture": "#swirl"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        2,
+        0
+      ],
+      "to": [
+        2,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        2,
+        14
+      ],
+      "to": [
+        2,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    },
+    {
+      "from": [
+        14,
+        2,
+        0
+      ],
+      "to": [
+        16,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    },
+    {
+      "from": [
+        14,
+        2,
+        14
+      ],
+      "to": [
+        16,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mat_gold"
+        },
+        "south": {
+          "texture": "#mat_gold"
+        },
+        "east": {
+          "texture": "#mat_gold"
+        },
+        "west": {
+          "texture": "#mat_gold"
+        },
+        "up": {
+          "texture": "#mat_gold"
+        },
+        "down": {
+          "texture": "#mat_gold"
+        }
+      }
+    }
+  ]
+}
