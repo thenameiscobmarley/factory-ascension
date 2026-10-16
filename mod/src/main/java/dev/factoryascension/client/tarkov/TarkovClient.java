@@ -92,6 +92,11 @@ public final class TarkovClient {
         openedAt = Util.getMillis();
     }
 
+    /** Re-opened after the window changed size: straight to fully open, no animation. */
+    static void openedAlready() {
+        openedAt = Util.getMillis() - 10_000;
+    }
+
     static void closed() {
         closedAt = Util.getMillis();
     }

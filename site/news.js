@@ -2,6 +2,9 @@
 // each chapter are built from this (site.js), so new things never get mixed in with old ones.
 // area: home, luck, gear, enchants, machines, world. icon: a path under fa/. Newest release first.
 window.FA_NEWS = [
+  // ---- v22.0.0 ----
+  { v: "22.0.0", area: "home", icon: "items/flare_green.png", title: "Tarkov-style gear screen", text: "The inventory now looks like Tarkov's: gear frames around your silhouette, a backpack panel with filters, quick use slots and your stats along the bottom." },
+
   // ---- v21.0.0 ----
   { v: "21.0.0", area: "home", icon: "items/flare_green.png", title: "Tarkov inventory", text: "Your inventory is a grid where items take their real size. Turn them with R, watch your weight, and open it out of a duffel bag." },
   { v: "21.0.0", area: "gear", icon: "items/flare_red.png", title: "Flare Gun and airdrops", text: "Red flares signal. Green flares call a supply crate that falls from the sky full of loot." },

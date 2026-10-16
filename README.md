@@ -236,7 +236,11 @@ cores, diamonds, golden apples, sometimes a gun). Numbers and the loot table are
 
 ## Tarkov inventory (Full download)
 
-Press **E** and you look down at a duffel bag in your hands, unzip it, and your inventory opens out of it. The main
+Press **E** and you look down at a duffel bag in your hands, unzip it, and your inventory opens out of it, laid out like
+Tarkov's gear screen: your gear in labelled frames around your silhouette (headwear, body armor, leg armor, footwear,
+holster = off hand, on sling = what's in your hand), crafting and overflow in the middle, the backpack on the right
+with filter buttons down its side (weapons, armor, tools, blocks, food, other), your weight, health, food and armor along
+the bottom, and the hotbar as the numbered **Quick use** row. The main
 inventory is a **grid** where items take their real size: a block 1x1, a pickaxe 1x2, a sword or a bow 1x3, a helmet
 2x2, a chestplate 3x3, the shotgun 5x2, a backpack 3x3.
 

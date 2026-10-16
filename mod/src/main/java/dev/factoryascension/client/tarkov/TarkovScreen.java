@@ -1,5 +1,6 @@
 package dev.factoryascension.client.tarkov;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import dev.factoryascension.FAConfig;
 import dev.factoryascension.network.FANetwork;
@@ -7,76 +8,174 @@ import dev.factoryascension.tarkov.TarkovLayout;
 import dev.factoryascension.tarkov.TarkovServer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
+import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TieredItem;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * The Tarkov inventory screen: your gear (armor, off hand, the player), the 2x2 crafting grid, the backpack grid where
- * items take their real size, the hotbar, and a strip for anything that didn't fit. Pick an item up with a click, R turns
- * it while you hold it, click a free spot to drop it there (or onto the same item to stack). Shift-click, number keys,
- * Q and double-click work like the normal inventory: every click goes through the game's own inventory code.
+ * The Tarkov inventory screen, laid out like Escape from Tarkov's gear screen and filling the whole window:
+ *  - a tab bar along the top, a menu bar along the bottom, a stats row (weight, health, food, armor, level) and the
+ *    numbered QUICK USE row (the hotbar) above it;
+ *  - left: your gear in labelled frames around a dim silhouette of you (headwear, body armor, leg armor, footwear,
+ *    holster = off hand, on sling = what's in your hand);
+ *  - middle: the 2x2 crafting grid and the overflow (items that have no spot in the backpack yet);
+ *  - right: the backpack, a big grid where items take their real size, with a filter column down its side.
+ * Pick an item up with a click, R turns it while you hold it, click a free spot to drop it there (or onto the same item
+ * to stack). Shift-click, number keys, Q and double-click work like the normal inventory: every click goes through the
+ * game's own inventory code.
  */
-public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
-    static final int C = 18;                    // a grid cell
-    static final int GX = 112, GY = 30;         // the grid's corner in the panel
-    // Midnight blue, the pack's gold and teal
-    static final int BG = 0xF0101828, BG_EDGE = 0xFF2C3A58, CELL = 0xFF162034, CELL_LINE = 0xFF22304A, HEAD = 0xFF0B111E;
-    static final int GOLD = 0xFFE8B03A, TEAL = 0xFF40E8D4, TEXT = 0xFFE8ECF4, DIM = 0xFF8E9AB5, BAD = 0xFFE0503A, OK = 0xFF50E07A;
+public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
+    // Tarkov's palette: near-black panels, thin grey edges, warm light-grey text
+    static final int BG = 0xEC0C0C0C, PANEL = 0xC0141414, EDGE = 0xFF3A3A38, EDGE_LIGHT = 0xFF5A5A56, CELL = 0xFF121212, CELL_LINE = 0xFF262626;
+    static final int TEXT = 0xFFD6D4CC, DIM = 0xFF8C8A84, FAINT = 0xFF56544F, BAD = 0xFFC8452E, OK = 0xFF6FB04A, BAR = 0xFF0A0A0A;
+    static final String[] TABS = {"OVERALL", "GEAR", "HEALTH", "SKILLS", "MAP", "TASKS"};
+    static final String[] FILTERS = {"All", "Weapons", "Armor", "Tools", "Blocks", "Food", "Other"};
+    static final ItemStack[] FILTER_ICONS = {new ItemStack(Items.CHEST), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.IRON_CHESTPLATE),
+        new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.STONE_BRICKS), new ItemStack(Items.BREAD), new ItemStack(Items.PAPER)};
+
+    /** Where everything goes, worked out once from the window's size when the screen opens. */
+    static final class Geo {
+        final int W, H, C;
+        final int top = 16, menuY, quickY, contentTop, contentBottom;
+        final int sx, sy, sw, sh, gx, gy;               // backpack panel and its grid
+        final int m0, mw, craftY, overflowY, overflowCols, overflowRows;
+        final int e0, ew, F, colL, colR;                 // gear area and its frames
+        final int quickX, statsY;
+        final int[] sling;                               // x, y, w, h
+        final Map<Integer, int[]> frames = new HashMap<>();   // slot index -> x, y, w, h, label index
+        final Map<Long, int[]> hitBoxes = new HashMap<>();    // slot position -> its frame
+
+        Geo(int W, int H) {
+            this.W = W;
+            this.H = H;
+            menuY = H - 14;
+            quickY = menuY - 26;
+            contentTop = top + 8;
+            contentBottom = quickY - 14;
+            // Backpack: the right half (leaving the middle column room for the crafting grid)
+            sx = Math.max(W / 2 + 4, (int) (W * 0.335) + 8 + 78);
+            sw = W - 6 - sx;
+            sy = contentTop;
+            sh = contentBottom - sy;
+            int availW = sw - 26, availH = sh - 18;
+            C = Math.max(10, Math.min(22, Math.min(availW / TarkovLayout.width(), availH / TarkovLayout.height())));
+            gx = sx + 22;
+            gy = sy + 15;
+            // Middle column: crafting, then the overflow
+            m0 = (int) (W * 0.335) + 8;
+            mw = sx - 8 - m0;
+            craftY = contentTop + 11;
+            overflowY = craftY + 36 + 22;
+            overflowCols = Math.max(1, (mw - 8) / 18);
+            overflowRows = Math.max(1, (contentBottom - overflowY - 4) / 18);
+            // Gear: two columns of frames around the silhouette
+            e0 = 6;
+            ew = m0 - 12;
+            int fitH = (contentBottom - contentTop) / 4 - 12;
+            F = Math.max(22, Math.min(40, Math.min(fitH, (ew - 16) / 4)));
+            colL = e0 + 2;
+            colR = e0 + ew - F - 2;
+            int row = F + 12;
+            frame(5, colL, contentTop + 9, F, F, 0);                 // headwear
+            frame(6, colL, contentTop + 9 + row, F, F, 1);           // body armor
+            frame(7, colR, contentTop + 9, F, F, 2);                 // leg armor
+            frame(8, colR, contentTop + 9 + row, F, F, 3);           // footwear
+            frame(45, colR, contentTop + 9 + row * 2, F, F, 4);      // holster
+            sling = new int[] {colL, contentTop + 9 + row * 2, Math.min(ew - F - 10, F * 2 + 6), F};
+            // Quick use: nine numbered cells along the bottom middle
+            // Stats at the bottom left, the quick use row beside them (or the stats above it, on a narrow window)
+            var font = Minecraft.getInstance().font;
+            int statsW = font.width("\u2696 100.0/100  \u2764 20/20  \u2615 20/20  \u26E8 20") + 40;
+            int qx = Math.max(W / 2 - 9 * 22 / 2, statsW + 8);
+            if (qx + 9 * 22 > W - 4) { quickX = W / 2 - 9 * 22 / 2; statsY = quickY - 10; }
+            else { quickX = qx; statsY = quickY + 6; }
+            for (int i = 0; i < 9; i++) frame(36 + i, quickX + i * 22, quickY, 20, 20, -1);
+        }
+
+        private void frame(int index, int x, int y, int w, int h, int label) {
+            int[] f = {x, y, w, h, label};
+            frames.put(index, f);
+            hitBoxes.put(key(x + w / 2 - 8, y + h / 2 - 8), f);
+        }
+
+        static long key(int x, int y) {
+            return ((long) x << 32) | (y & 0xFFFFFFFFL);
+        }
+
+        int[] place(int index) {
+            int[] f = frames.get(index);
+            if (f != null) return new int[] {f[0] + f[2] / 2 - 8, f[1] + f[3] / 2 - 8, f[4] >= 0 ? 1 : 0};
+            if (index == 0) return new int[] {m0 + 4 + 36 + 12, craftY + 10};                       // crafting result
+            if (index >= 1 && index <= 4) return new int[] {m0 + 5 + (index - 1) % 2 * 18, craftY + 1 + (index - 1) / 2 * 18};
+            return null;                                                                            // the 27 main slots: the grid
+        }
+    }
+
+    static final String[] FRAME_LABELS = {"HEADWEAR", "BODY ARMOR", "LEG ARMOR", "FOOTWEAR", "HOLSTER"};
 
     private final LocalPlayer player;
+    private final Geo geo;
+    private final boolean skipOpening;
     private boolean carriedTurned = false;
     private int carriedFrom = TarkovLayout.NONE;   // the slot the held item came from (it goes back to that slot number)
     private boolean opened = false;
+    private int filter = 0;
     private final List<Integer> unsorted = new ArrayList<>();
+    private boolean hideCarried = false;
 
     public TarkovScreen(LocalPlayer player) {
-        super(new TarkovView(player, TarkovScreen::place), player.getInventory(), Component.literal("Inventory"));
+        this(player, new Geo(Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight()), false);
+    }
+
+    private TarkovScreen(LocalPlayer player, Geo geo, boolean skipOpening) {
+        super(new TarkovView(player, geo::place), player.getInventory(), Component.literal("Inventory"));
         this.player = player;
+        this.geo = geo;
+        this.skipOpening = skipOpening;
         menu.hide = () -> hideCarried;
-        imageWidth = GX + TarkovLayout.width() * C + 8;
-        imageHeight = Math.max(GY + TarkovLayout.height() * C + 4 + 26 + 18 + 8, 172);
-        titleLabelX = 8;
-        titleLabelY = 6;
+        imageWidth = geo.W;
+        imageHeight = geo.H;
     }
 
-    static int gridW() { return TarkovLayout.width() * C; }
-    static int gridH() { return TarkovLayout.height() * C; }
-    static int stripY() { return GY + gridH() + 14; }
-    static int hotbarY() { return stripY() + 26; }
-
-    /** Where each of the real inventory menu's slots is drawn (null = hidden: the 27 main slots live in the grid). */
-    static int[] place(int index) {
-        if (index == 0) return new int[] {84, 129};                               // crafting result
-        if (index >= 1 && index <= 4) return new int[] {8 + (index - 1) % 2 * 18, 120 + (index - 1) / 2 * 18};
-        if (index >= 5 && index <= 8) return new int[] {8, 24 + (index - 5) * 18};   // helmet .. boots
-        if (index >= 9 && index <= 35) return null;
-        if (index >= 36 && index <= 44) return new int[] {GX + 1 + (index - 36) * 18, hotbarY() + 1};
-        if (index == 45) return new int[] {84, 78};                               // off hand
-        return null;
-    }
+    int C() { return geo.C; }
+    int gridW() { return TarkovLayout.width() * geo.C; }
+    int gridH() { return TarkovLayout.height() * geo.C; }
 
     @Override
     protected void init() {
         super.init();
+        if (width != geo.W || height != geo.H) {
+            // The window changed size: lay it out again (the held item stays held; no opening this time)
+            Minecraft mc = Minecraft.getInstance();
+            mc.tell(() -> { if (mc.screen == this) mc.setScreen(new TarkovScreen(player, new Geo(mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight()), true)); });
+            return;
+        }
         if (!opened) {
             opened = true;
-            TarkovClient.opened();
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.ARMOR_EQUIP_LEATHER, 0.8f, 0.7f));
+            if (skipOpening) TarkovClient.openedAlready();
+            else {
+                TarkovClient.opened();
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.ARMOR_EQUIP_LEATHER, 0.8f, 0.7f));
+            }
         }
     }
 
@@ -93,15 +192,15 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
     // ---- Drawing ----
     @Override
     public void renderBackground(GuiGraphics g) {
-        int a = (int) (0x90 * TarkovClient.grown());
-        g.fillGradient(0, 0, width, height, a << 24 | 0x060A14, a << 24 | 0x0A1020);
+        int a = (int) (((BG >>> 24) & 0xFF) * TarkovClient.grown());
+        g.fill(0, 0, width, height, a << 24 | (BG & 0xFFFFFF));
     }
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float partial) {
-        renderBackground(g);
         float grow = TarkovClient.grown();
         if (grow <= 0) return;   // still coming out of the bag
+        renderBackground(g);
         boolean overGrid = inGrid(mx, my) && ready();
         g.pose().pushPose();
         if (grow < 1) {
@@ -112,31 +211,32 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
             g.pose().translate(-ox, -oy, 0);
             mx = my = -10000;
         }
-        TarkovView view = menu;
         hideCarried = overGrid;
+        TarkovView.hideFramed = true;
         try {
             super.render(g, mx, my, partial);
         } finally {
             hideCarried = false;
+            TarkovView.hideFramed = false;
         }
         if (ready()) {
             int slot = slotUnder(mx, my);
-            if (slot != TarkovLayout.NONE) hoveredSlot = view.getSlot(TarkovLayout.FIRST + slot);
+            if (slot != TarkovLayout.NONE) hoveredSlot = menu.getSlot(TarkovLayout.FIRST + slot);
+            if (inSling(mx, my)) hoveredSlot = menu.getSlot(36 + player.getInventory().selected);
             if (overGrid && !menu.getCarried().isEmpty()) drawPlacing(g, mx, my);
             else if (slot != TarkovLayout.NONE) {
                 int p = TarkovClient.LAYOUT.pos[slot];
                 ItemStack st = items().get(TarkovLayout.FIRST + slot);
                 if (p != TarkovLayout.NONE && !unsorted.contains(slot)) {
-                    int x = leftPos + GX + TarkovLayout.x(p) * C, y = topPos + GY + TarkovLayout.y(p) * C;
-                    g.fill(x, y, x + TarkovLayout.w(st, TarkovLayout.turned(p)) * C, y + TarkovLayout.h(st, TarkovLayout.turned(p)) * C, 0x40FFFFFF);
+                    int x = geo.gx + TarkovLayout.x(p) * C(), y = geo.gy + TarkovLayout.y(p) * C();
+                    g.fill(x, y, x + TarkovLayout.w(st, TarkovLayout.turned(p)) * C(), y + TarkovLayout.h(st, TarkovLayout.turned(p)) * C(), 0x30FFFFFF);
                 }
             }
+            drawFrameHover(g, mx, my);
             renderTooltip(g, mx, my);
         }
         g.pose().popPose();
     }
-
-    private boolean hideCarried = false;
 
     List<ItemStack> items() {
         return player.getInventory().items;
@@ -144,62 +244,282 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
 
     @Override
     protected void renderBg(GuiGraphics g, float partial, int mx, int my) {
-        int x0 = leftPos, y0 = topPos;
-        // Panel: midnight blue with a thin steel edge and a dark header
-        g.fill(x0 - 1, y0 - 1, x0 + imageWidth + 1, y0 + imageHeight + 1, BG_EDGE);
-        g.fill(x0, y0, x0 + imageWidth, y0 + imageHeight, BG);
-        g.fill(x0, y0, x0 + imageWidth, y0 + 17, HEAD);
-        g.fill(x0, y0 + 17, x0 + imageWidth, y0 + 18, GOLD);
-        // Gear: armor column, the player, off hand
-        for (int i = 0; i < 4; i++) cellSlot(g, x0 + 8, y0 + 24 + i * 18);
-        g.fill(x0 + 27, y0 + 22, x0 + 80, y0 + 96, 0xFF0A101C);
-        g.fill(x0 + 27, y0 + 95, x0 + 80, y0 + 96, BG_EDGE);
-        InventoryScreen.renderEntityInInventoryFollowsMouse(g, x0 + 53, y0 + 90, 30, x0 + 53 - mx, y0 + 40 - my, player);
-        cellSlot(g, x0 + 84, y0 + 78);
-        // Crafting
-        g.drawString(font, "CRAFT", x0 + 8, y0 + 109, DIM, false);
-        for (int i = 0; i < 4; i++) cellSlot(g, x0 + 8 + i % 2 * 18, y0 + 120 + i / 2 * 18);
-        g.drawString(font, "→", x0 + 50, y0 + 133, DIM, false);
-        cellSlot(g, x0 + 84, y0 + 129);
-        // The grid
-        int gx = x0 + GX, gy = y0 + GY;
-        g.drawString(font, "BACKPACK", gx, gy - 10, DIM, false);
-        g.fill(gx - 1, gy - 1, gx + gridW() + 1, gy + gridH() + 1, BG_EDGE);
-        for (int cx = 0; cx < TarkovLayout.width(); cx++) for (int cy = 0; cy < TarkovLayout.height(); cy++) {
-            int x = gx + cx * C, y = gy + cy * C;
-            g.fill(x, y, x + C, y + C, CELL_LINE);
-            g.fill(x + 1, y + 1, x + C, y + C, CELL);
+        drawBars(g, mx, my);
+        drawGear(g, mx, my);
+        drawMiddle(g);
+        drawBackpack(g, mx, my);
+        drawStats(g);
+        drawQuickUse(g);
+    }
+
+    // Tab bar along the top, menu bar along the bottom
+    private void drawBars(GuiGraphics g, int mx, int my) {
+        g.fill(0, 0, width, geo.top, 0xF0080808);
+        g.fill(0, geo.top, width, geo.top + 1, EDGE);
+        int x = 4;
+        for (String t : TABS) {
+            boolean on = t.equals("GEAR");
+            int w = font.width(t) + 12;
+            if (on) {
+                g.fill(x, 1, x + w, geo.top, 0xFF2A2A28);
+                g.fill(x, geo.top - 1, x + w, geo.top, TEXT);
+            }
+            g.drawString(font, t, x + 6, 4, on ? TEXT : FAINT, false);
+            x += w + 2;
         }
-        // Items, at their size
+        String back = "◀ BACK";
+        boolean hb = mx >= width - font.width(back) - 12 && my < geo.top;
+        g.drawString(font, back, width - font.width(back) - 6, 4, hb ? TEXT : DIM, false);
+        // Menu bar
+        g.fill(0, geo.menuY, width, height, 0xF0080808);
+        g.fill(0, geo.menuY, width, geo.menuY + 1, EDGE);
+        menuButton(g, "MAIN MENU", 6, mx, my, false);
+        int cw = font.width("CHARACTER") + font.width("SETTINGS") + 30;
+        menuButton(g, "CHARACTER", width / 2 - cw / 2, mx, my, true);
+        menuButton(g, "SETTINGS", width / 2 - cw / 2 + font.width("CHARACTER") + 30, mx, my, false);
+        String ver = "Factory Ascension";
+        g.drawString(font, ver, width - font.width(ver) - 6, geo.menuY + 4, FAINT, false);
+    }
+
+    private void menuButton(GuiGraphics g, String text, int x, int mx, int my, boolean active) {
+        int w = font.width(text) + 8;
+        boolean hover = mx >= x - 4 && mx < x + w - 4 && my >= geo.menuY;
+        if (active) g.fill(x - 4, geo.menuY + 1, x + w - 4, height, 0xFF2A2A28);
+        g.drawString(font, text, x, geo.menuY + 4, active || hover ? TEXT : DIM, false);
+    }
+
+    /** Which menu-bar or tab-bar button is under the mouse: 1 main menu, 2 settings, 3 back, else 0. */
+    private int barButton(double mx, double my) {
+        if (my < geo.top && mx >= width - font.width("◀ BACK") - 12) return 3;
+        if (my < geo.menuY) return 0;
+        if (mx >= 2 && mx < 10 + font.width("MAIN MENU")) return 1;
+        int cw = font.width("CHARACTER") + font.width("SETTINGS") + 30;
+        int sx = width / 2 - cw / 2 + font.width("CHARACTER") + 30;
+        if (mx >= sx - 4 && mx < sx + font.width("SETTINGS") + 4) return 2;
+        return 0;
+    }
+
+    private void panel(GuiGraphics g, int x, int y, int w, int h) {
+        g.fill(x, y, x + w, y + h, PANEL);
+        g.renderOutline(x, y, w, h, EDGE);
+    }
+
+    /** Tarkov's small labels: the game font at two thirds size. */
+    private void label(GuiGraphics g, String text, int x, int y) {
+        small(g, text, x, y + 2, DIM);
+    }
+
+    private void small(GuiGraphics g, String text, int x, int y, int colour) {
+        g.pose().pushPose();
+        g.pose().translate(x, y, 0);
+        g.pose().scale(2 / 3f, 2 / 3f, 1);
+        g.drawString(font, text, 0, 0, colour, false);
+        g.pose().popPose();
+    }
+
+    private void cell(GuiGraphics g, int x, int y, int size) {
+        g.fill(x, y, x + size, y + size, CELL_LINE);
+        g.fill(x + 1, y + 1, x + size - 1, y + size - 1, CELL);
+    }
+
+    // Left: the silhouette and the gear frames
+    private void drawGear(GuiGraphics g, int mx, int my) {
+        int top = geo.contentTop, bottom = geo.sling[1] - 2;
+        int cx = geo.e0 + geo.ew / 2;
+        int size = Math.max(20, (bottom - top) * 9 / 20);
+        // A dim, grey figure of you behind the frames, like Tarkov's
+        InventoryScreen.renderEntityInInventoryFollowsMouse(g, cx, bottom - 4, size, cx - mx, top + 30 - my, player);
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 150);
+        g.fill(geo.e0, top - 2, geo.e0 + geo.ew, bottom + 1, 0xB8101010);   // a dim grey figure, like Tarkov's
+        g.pose().popPose();
+        for (Map.Entry<Integer, int[]> e : geo.frames.entrySet()) {
+            int[] f = e.getValue();
+            if (f[4] < 0) continue;
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 160);
+            label(g, FRAME_LABELS[f[4]], f[0], f[1] - 9);
+            panel(g, f[0], f[1], f[2], f[3]);
+            g.pose().popPose();
+            ItemStack st = menu.real.getSlot(e.getKey()).getItem();
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 160);
+            if (!st.isEmpty()) bigIcon(g, st, f[0], f[1], f[2], f[3]);
+            else g.drawCenteredString(font, "-", f[0] + f[2] / 2, f[1] + f[3] / 2 - 4, FAINT);
+            g.pose().popPose();
+        }
+        int[] s = geo.sling;
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 160);
+        label(g, "ON SLING", s[0], s[1] - 9);
+        panel(g, s[0], s[1], s[2], s[3]);
+        ItemStack held = player.getInventory().getSelected();
+        if (!held.isEmpty()) bigIcon(g, held, s[0], s[1], s[2], s[3]);
+        g.drawString(font, String.valueOf(player.getInventory().selected + 1), s[0] + 3, s[1] + 3, FAINT, false);
+        g.pose().popPose();
+    }
+
+    /** An item drawn large in a frame, with its count and durability bar in the corner. */
+    private void bigIcon(GuiGraphics g, ItemStack st, int x, int y, int w, int h) {
+        float scale = Math.min(w, h) / 16f * 0.8f;
+        g.pose().pushPose();
+        g.pose().translate(x + w / 2f, y + h / 2f, 0);
+        g.pose().scale(scale, scale, 1);
+        g.renderItem(st, -8, -8);
+        g.pose().popPose();
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 200);
+        g.renderItemDecorations(font, st, x + w - 17, y + h - 17);
+        g.pose().popPose();
+    }
+
+    private void drawFrameHover(GuiGraphics g, int mx, int my) {
+        for (int[] f : geo.frames.values()) if (mx >= f[0] && mx < f[0] + f[2] && my >= f[1] && my < f[1] + f[3]) g.renderOutline(f[0], f[1], f[2], f[3], TEXT);
+        int[] s = geo.sling;
+        if (inSling(mx, my)) g.renderOutline(s[0], s[1], s[2], s[3], TEXT);
+    }
+
+    private boolean inSling(double mx, double my) {
+        int[] s = geo.sling;
+        return mx >= s[0] && mx < s[0] + s[2] && my >= s[1] && my < s[1] + s[3];
+    }
+
+    // Middle: crafting and the overflow
+    private void drawMiddle(GuiGraphics g) {
+        int x = geo.m0;
+        label(g, "CRAFTING", x, geo.craftY - 10);
+        panel(g, x, geo.craftY - 1, Math.min(geo.mw, 4 + 36 + 12 + 18 + 4), 40);
+        for (int i = 0; i < 4; i++) cell(g, x + 4 + i % 2 * 18, geo.craftY + i / 2 * 18, 18);
+        g.drawString(font, "→", x + 4 + 36 + 2, geo.craftY + 13, DIM, false);
+        cell(g, x + 4 + 36 + 11, geo.craftY + 9, 18);
+        // Overflow: what has no spot in the backpack
         unsorted.clear();
         List<ItemStack> main = items();
         int[][] occ = TarkovClient.LAYOUT.occupancy(main);
         for (int s = 0; s < TarkovLayout.SLOTS; s++) {
             ItemStack st = main.get(TarkovLayout.FIRST + s);
-            if (st.isEmpty()) continue;
             int p = TarkovClient.LAYOUT.pos[s];
-            if (p == TarkovLayout.NONE || !owns(occ, s, st, p)) { unsorted.add(s); continue; }
+            if (!st.isEmpty() && (p == TarkovLayout.NONE || !owns(occ, s, st, p))) unsorted.add(s);
+        }
+        if (unsorted.isEmpty()) label(g, "OVERFLOW", x, geo.overflowY - 10);
+        if (!unsorted.isEmpty()) small(g, "OVERFLOW - NO ROOM", x, geo.overflowY - 8, BAD);
+        int cols = geo.overflowCols, rows = geo.overflowRows;
+        panel(g, x, geo.overflowY - 1, cols * 18 + 2, Math.min(rows, 3) * 18 + 2);
+        for (int i = 0; i < cols * Math.min(rows, 3); i++) {
+            int cx = x + 1 + i % cols * 18, cy = geo.overflowY + i / cols * 18;
+            cell(g, cx, cy, 18);
+            if (i < unsorted.size()) {
+                ItemStack st = main.get(TarkovLayout.FIRST + unsorted.get(i));
+                g.renderItem(st, cx + 1, cy + 1);
+                g.renderItemDecorations(font, st, cx + 1, cy + 1);
+            }
+        }
+    }
+
+    // Right: the backpack and its filter column
+    private void drawBackpack(GuiGraphics g, int mx, int my) {
+        panel(g, geo.sx, geo.sy, geo.sw, geo.sh);
+        g.fill(geo.sx + 1, geo.sy + 1, geo.sx + geo.sw - 1, geo.sy + 12, 0xFF1C1C1A);
+        g.drawString(font, "■ BACKPACK", geo.sx + 4, geo.sy + 3, TEXT, false);
+        String lvl = "LVL " + player.experienceLevel;
+        g.drawString(font, lvl, geo.sx + geo.sw - font.width(lvl) - 4, geo.sy + 3, DIM, false);
+        // Filter column
+        for (int i = 0; i < FILTERS.length; i++) {
+            int fx = geo.sx + 3, fy = geo.gy + i * 18;
+            if (fy + 16 > geo.sy + geo.sh) break;
+            boolean on = filter == i, hover = mx >= fx && mx < fx + 16 && my >= fy && my < fy + 16;
+            g.fill(fx, fy, fx + 16, fy + 16, on ? 0xFF3A3A36 : hover ? 0xFF262624 : 0xFF161616);
+            g.pose().pushPose();
+            g.pose().translate(fx + 8, fy + 8, 0);
+            g.pose().scale(0.75f, 0.75f, 1);
+            g.renderItem(FILTER_ICONS[i], -8, -8);
+            g.pose().popPose();
+        }
+        g.fill(geo.sx + 21, geo.gy, geo.sx + 22, geo.sy + geo.sh - 2, EDGE);
+        // The grid
+        int gx = geo.gx, gy = geo.gy, C = C();
+        g.fill(gx - 1, gy - 1, gx + gridW() + 1, gy + gridH() + 1, EDGE);
+        for (int cx = 0; cx < TarkovLayout.width(); cx++) for (int cy = 0; cy < TarkovLayout.height(); cy++) {
+            int x = gx + cx * C, y = gy + cy * C;
+            g.fill(x, y, x + C, y + C, CELL_LINE);
+            g.fill(x + 1, y + 1, x + C, y + C, CELL);
+        }
+        List<ItemStack> main = items();
+        for (int s = 0; s < TarkovLayout.SLOTS; s++) {
+            ItemStack st = main.get(TarkovLayout.FIRST + s);
+            if (st.isEmpty() || unsorted.contains(s)) continue;
+            int p = TarkovClient.LAYOUT.pos[s];
+            if (p == TarkovLayout.NONE) continue;
             boolean t = TarkovLayout.turned(p);
             drawItem(g, st, gx + TarkovLayout.x(p) * C, gy + TarkovLayout.y(p) * C, TarkovLayout.w(st, t), TarkovLayout.h(st, t), t, 1);
-        }
-        // Unsorted strip (or the weight, when there's nothing in it)
-        int sy = y0 + stripY();
-        if (!unsorted.isEmpty()) {
-            g.drawString(font, "NO ROOM", gx, sy - 9, BAD, false);
-            for (int i = 0; i < unsorted.size() && i < 10; i++) {
-                int x = gx + i * C;
-                cellSlot(g, x, sy);
-                g.renderItem(main.get(TarkovLayout.FIRST + unsorted.get(i)), x + 1, sy + 1);
-                g.renderItemDecorations(font, main.get(TarkovLayout.FIRST + unsorted.get(i)), x + 1, sy + 1);
+            if (filter != 0 && category(st) != filter) {
+                g.pose().pushPose();
+                g.pose().translate(0, 0, 250);
+                g.fill(gx + TarkovLayout.x(p) * C, gy + TarkovLayout.y(p) * C, gx + (TarkovLayout.x(p) + TarkovLayout.w(st, t)) * C, gy + (TarkovLayout.y(p) + TarkovLayout.h(st, t)) * C, 0xC0080808);
+                g.pose().popPose();
             }
-        } else {
-            drawWeight(g, gx, sy);
         }
-        // Hotbar
-        g.drawString(font, "HOTBAR", gx, y0 + hotbarY() - 9, DIM, false);
-        for (int i = 0; i < 9; i++) cellSlot(g, gx + i * 18, y0 + hotbarY());
+    }
+
+    /** Filter category: 1 weapons, 2 armor, 3 tools, 4 blocks, 5 food, 6 other. */
+    static int category(ItemStack st) {
+        var it = st.getItem();
+        if (it instanceof SwordItem || it instanceof dev.factoryascension.item.ShotgunItem || it instanceof net.minecraft.world.item.ProjectileWeaponItem
+            || it instanceof net.minecraft.world.item.TridentItem) return 1;
+        if (it instanceof ArmorItem || it instanceof net.minecraft.world.item.ShieldItem || it instanceof net.minecraft.world.item.ElytraItem) return 2;
+        if (it instanceof TieredItem || it instanceof net.minecraft.world.item.FishingRodItem || it instanceof net.minecraft.world.item.BucketItem) return 3;
+        if (it instanceof BlockItem) return 4;
+        if (st.isEdible()) return 5;
+        return 6;
+    }
+
+    // Stats row: weight, health, food, armor, effects
+    private void drawStats(GuiGraphics g) {
+        int x = 8, y = geo.statsY;
+        float kg = TarkovServer.weight(player);
+        float slow = TarkovServer.slowdown(kg);
+        x = stat(g, x, y, "⚖", String.format("%.1f", kg), FAConfig.weightEnabled ? String.format("/%.0f", FAConfig.weightCarry) : "", slow > 0 ? BAD : TEXT);
+        x = stat(g, x, y, "❤", String.valueOf(Math.round(player.getHealth())), "/" + Math.round(player.getMaxHealth()), 0xFFE06050);
+        x = stat(g, x, y, "☕", String.valueOf(player.getFoodData().getFoodLevel()), "/20", 0xFFE0B050);
+        x = stat(g, x, y, "⛨", String.valueOf(player.getArmorValue()), "", 0xFF9AB0D0);
+        if (slow > 0) {
+            g.drawString(font, String.format("-%d%% speed", Math.round(slow * 100)), x, y, BAD, false);
+            x += font.width("-00% speed") + 8;
+        }
+        var textures = Minecraft.getInstance().getMobEffectTextures();
+        for (MobEffectInstance e : player.getActiveEffects()) {
+            if (x + 10 > (geo.statsY == geo.quickY + 6 ? geo.quickX - 4 : geo.m0)) break;
+            g.blit(x, y - 1, 0, 9, 9, textures.get(e.getEffect()));
+            x += 11;
+        }
+    }
+
+    private int stat(GuiGraphics g, int x, int y, String icon, String value, String max, int colour) {
+        g.drawString(font, icon, x, y, colour, false);
+        x += font.width(icon) + 2;
+        g.drawString(font, value, x, y, TEXT, false);
+        x += font.width(value);
+        if (!max.isEmpty()) {
+            g.drawString(font, max, x, y, FAINT, false);
+            x += font.width(max);
+        }
+        return x + 8;
+    }
+
+    // Quick use: the hotbar, numbered
+    private void drawQuickUse(GuiGraphics g) {
+        if (geo.statsY != geo.quickY - 10) label(g, "QUICK USE", geo.quickX, geo.quickY - 10);
         int sel = player.getInventory().selected;
-        g.fill(gx + sel * 18, y0 + hotbarY() + 17, gx + sel * 18 + 18, y0 + hotbarY() + 18, GOLD);
+        for (int i = 0; i < 9; i++) {
+            int x = geo.quickX + i * 22, y = geo.quickY;
+            g.fill(x, y, x + 20, y + 20, i == sel ? EDGE_LIGHT : EDGE);
+            g.fill(x + 1, y + 1, x + 19, y + 19, CELL);
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 200);
+            g.pose().scale(0.5f, 0.5f, 1);
+            g.drawString(font, String.valueOf(i + 1), (x + 2) * 2, (y + 2) * 2, i == sel ? TEXT : FAINT, false);
+            g.pose().popPose();
+        }
     }
 
     /** Is the slot's item really where its position says (and not overlapped by an earlier slot)? */
@@ -212,40 +532,24 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
         return true;
     }
 
-    private void drawWeight(GuiGraphics g, int x, int y) {
-        float kg = TarkovServer.weight(player);
-        float slow = TarkovServer.slowdown(kg);
-        String text = FAConfig.weightEnabled ? String.format("WEIGHT %.1f / %.0f kg", kg, FAConfig.weightCarry) : String.format("WEIGHT %.1f kg", kg);
-        g.drawString(font, text, x, y + 1, slow > 0 ? BAD : DIM, false);
-        if (FAConfig.weightEnabled) {
-            int w = gridW(), bx = x, by = y + 11;
-            g.fill(bx, by, bx + w, by + 3, 0xFF0A101C);
-            g.fill(bx, by, bx + Math.round(w * Math.min(1, kg / Math.max(1, FAConfig.weightCarry))), by + 3, slow > 0 ? BAD : TEAL);
-            if (slow > 0) g.drawString(font, String.format("-%d%% speed", Math.round(slow * 100)), x + w - font.width(String.format("-%d%% speed", Math.round(slow * 100))), y + 1, BAD, false);
-        }
-    }
-
-    private void cellSlot(GuiGraphics g, int x, int y) {
-        g.fill(x, y, x + 18, y + 18, CELL_LINE);
-        g.fill(x + 1, y + 1, x + 18, y + 18, CELL);
-    }
-
-    /** Tarkov-style tints: weapons red, armor blue, tools amber, blocks grey, everything else teal. */
+    /** Tarkov's muted backings: weapons rust, armor slate, tools bronze, blocks grey, food olive, the rest dark teal. */
     private static int tint(ItemStack st) {
-        if (st.getItem() instanceof dev.factoryascension.item.ShotgunItem || st.getItem() instanceof SwordItem) return 0x5A2A20;
-        if (st.getItem() instanceof ArmorItem) return 0x24406A;
-        if (st.getItem() instanceof TieredItem) return 0x5A4420;
-        if (st.getItem() instanceof BlockItem) return 0x2E3646;
-        return 0x1E4A4A;
+        return switch (category(st)) {
+            case 1 -> 0x3C2622;
+            case 2 -> 0x232C38;
+            case 3 -> 0x342E24;
+            case 4 -> 0x2A2A28;
+            case 5 -> 0x2C3222;
+            default -> 0x20302E;
+        };
     }
 
-    /** An item filling its cells: tinted backing, the icon scaled up (long items laid along their length), count and bar. */
+    /** An item filling its cells: muted backing, the icon scaled up (long items laid along their length), count and bar. */
     void drawItem(GuiGraphics g, ItemStack st, int x, int y, int w, int h, boolean turned, float alpha) {
-        int pw = w * C, ph = h * C;
-        int a = (int) (0xB0 * alpha);
+        int C = C(), pw = w * C, ph = h * C;
+        int a = (int) (0xE0 * alpha);
         g.fill(x + 1, y + 1, x + pw, y + ph, a << 24 | tint(st));
-        g.fill(x + 1, y + 1, x + pw, y + 2, (int) (0x50 * alpha) << 24 | 0xFFFFFF);
-        g.renderOutline(x + 1, y + 1, pw - 1, ph - 1, (int) (0xA0 * alpha) << 24 | 0x6A7AA0);
+        g.renderOutline(x + 1, y + 1, pw - 1, ph - 1, (int) (0xC0 * alpha) << 24 | 0x5A5A56);
         int[] up = TarkovLayout.size(st);
         float angle = turned ? 90 : 0;
         float scale;
@@ -256,7 +560,6 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
         if (up[0] == up[1] || !diagonal) {
             scale = Math.min(pw, ph) / 16f * 0.86f;
         } else {
-            // Long items are drawn on the diagonal: lay that along the long side
             angle += up[0] > up[1] ? 45 : -45;
             float lng = Math.max(up[0], up[1]) * C, shrt = Math.min(up[0], up[1]) * C;
             scale = Math.min(lng * 0.95f / 22.6f, shrt * 1.45f / 16f);
@@ -268,9 +571,23 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
         g.renderItem(st, -8, -8);
         g.pose().popPose();
         g.pose().pushPose();
-        g.pose().translate(0, 0, 10);
+        g.pose().translate(0, 0, 200);
         g.renderItemDecorations(font, st, x + pw - 17, y + ph - 17);
+        // Tarkov's short name in the top right corner, on items two or more cells wide
+        if (pw >= C * 2 && C >= 14) {
+            String name = shortName(st, pw - 4);
+            g.pose().pushPose();
+            g.pose().scale(0.5f, 0.5f, 1);
+            g.drawString(font, name, (x + pw - 2) * 2 - font.width(name), (y + 2) * 2, (int) (0xFF * alpha) << 24 | 0xD6D4CC, false);
+            g.pose().popPose();
+        }
         g.pose().popPose();
+    }
+
+    private String shortName(ItemStack st, int maxPx) {
+        String n = st.getHoverName().getString();
+        while (font.width(n) / 2 > maxPx && n.length() > 3) n = n.substring(0, n.length() - 1);
+        return n;
     }
 
     /** Where the held item would go: its outline green (fits / stacks) or red, with the item drawn at its size. */
@@ -278,7 +595,7 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
         ItemStack held = menu.getCarried();
         int[] spot = spotFor(held, mx, my);
         int w = TarkovLayout.w(held, carriedTurned), h = TarkovLayout.h(held, carriedTurned);
-        int x = leftPos + GX + spot[0] * C, y = topPos + GY + spot[1] * C;
+        int C = C(), x = geo.gx + spot[0] * C, y = geo.gy + spot[1] * C;
         boolean ok = spot[2] != 0;
         g.pose().pushPose();
         g.pose().translate(0, 0, 300);
@@ -288,23 +605,36 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
         g.pose().popPose();
     }
 
-    // ---- The grid under the mouse ----
+    // ---- What's under the mouse ----
+    @Override
+    protected boolean isHovering(int x, int y, int w, int h, double mx, double my) {
+        int[] f = geo.hitBoxes.get(Geo.key(x, y));
+        if (f != null) return mx >= f[0] && mx < f[0] + f[2] && my >= f[1] && my < f[1] + f[3];
+        return super.isHovering(x, y, w, h, mx, my);
+    }
+
+    @Override
+    public int getSlotColor(int index) {
+        int[] f = geo.frames.get(index);
+        return f != null && f[4] >= 0 ? 0 : super.getSlotColor(index);   // gear frames draw their own outline
+    }
+
     private boolean inGrid(double mx, double my) {
-        double x = mx - leftPos - GX, y = my - topPos - GY;
+        double x = mx - geo.gx, y = my - geo.gy;
         return x >= 0 && y >= 0 && x < gridW() && y < gridH();
     }
 
-    /** The main slot under the mouse: in the grid, or in the no-room strip. */
+    /** The main slot under the mouse: in the grid, or in the overflow. */
     private int slotUnder(double mx, double my) {
         if (inGrid(mx, my)) {
-            int cx = (int) ((mx - leftPos - GX) / C), cy = (int) ((my - topPos - GY) / C);
+            int cx = (int) ((mx - geo.gx) / C()), cy = (int) ((my - geo.gy) / C());
             int s = TarkovClient.LAYOUT.slotAt(items(), cx, cy);
             return s != TarkovLayout.NONE && !unsorted.contains(s) ? s : TarkovLayout.NONE;
         }
-        double sx = mx - leftPos - GX, sy = my - topPos - stripY();
-        if (sy >= 0 && sy < 18 && sx >= 0) {
-            int i = (int) (sx / C);
-            if (i < unsorted.size() && i < 10) return unsorted.get(i);
+        double ox = mx - geo.m0 - 1, oy = my - geo.overflowY;
+        if (ox >= 0 && oy >= 0 && ox < geo.overflowCols * 18 && oy < Math.min(geo.overflowRows, 3) * 18) {
+            int i = (int) (oy / 18) * geo.overflowCols + (int) (ox / 18);
+            if (i < unsorted.size()) return unsorted.get(i);
         }
         return TarkovLayout.NONE;
     }
@@ -312,7 +642,7 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
     /** {x, y, fits (1/0), merge slot or NONE} for the held item centred on the mouse. */
     private int[] spotFor(ItemStack held, double mx, double my) {
         int w = TarkovLayout.w(held, carriedTurned), h = TarkovLayout.h(held, carriedTurned);
-        int x = Math.round((float) ((mx - leftPos - GX) / C - w / 2.0)), y = Math.round((float) ((my - topPos - GY) / C - h / 2.0));
+        int x = Math.round((float) ((mx - geo.gx) / C() - w / 2.0)), y = Math.round((float) ((my - geo.gy) / C() - h / 2.0));
         x = Math.max(0, Math.min(TarkovLayout.width() - w, x));
         y = Math.max(0, Math.min(TarkovLayout.height() - h, y));
         int under = slotUnder(mx, my);
@@ -330,7 +660,7 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
 
     // For the dev screenshots: screen positions of a grid cell, and of a main slot's item
     public double[] devCell(int cx, int cy) {
-        return new double[] {leftPos + GX + cx * C + C / 2.0, topPos + GY + cy * C + C / 2.0};
+        return new double[] {geo.gx + cx * C() + C() / 2.0, geo.gy + cy * C() + C() / 2.0};
     }
 
     public double[] devCellCenter(int slot) {
@@ -342,6 +672,26 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (!ready()) return true;
+        Minecraft mc = Minecraft.getInstance();
+        switch (barButton(mx, my)) {
+            case 1 -> { onClose(); mc.setScreen(new PauseScreen(true)); return true; }
+            case 2 -> { onClose(); mc.setScreen(new dev.factoryascension.client.FASettingsScreen(null)); return true; }
+            case 3 -> { onClose(); return true; }
+            default -> { }
+        }
+        for (int i = 0; i < FILTERS.length; i++) {
+            int fx = geo.sx + 3, fy = geo.gy + i * 18;
+            if (mx >= fx && mx < fx + 16 && my >= fy && my < fy + 16 && fy + 16 <= geo.sy + geo.sh) {
+                filter = i;
+                mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 1.4f, 0.3f));
+                return true;
+            }
+        }
+        if (inSling(mx, my)) {
+            Slot slot = menu.getSlot(36 + player.getInventory().selected);
+            slotClicked(slot, slot.index, button, hasShiftDown() ? ClickType.QUICK_MOVE : ClickType.PICKUP);
+            return true;
+        }
         int under = slotUnder(mx, my);
         boolean grid = inGrid(mx, my);
         if (!grid && under == TarkovLayout.NONE) return super.mouseClicked(mx, my, button);
@@ -368,7 +718,7 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
             return true;
         }
         if (spot[2] == 0) {
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.VILLAGER_NO, 0.6f, 1.4f));
+            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.VILLAGER_NO, 0.6f, 1.4f));
             return true;
         }
         int s = emptySlot();
@@ -382,7 +732,7 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
 
     @Override
     public boolean mouseReleased(double mx, double my, int button) {
-        if (inGrid(mx, my) || slotUnder(mx, my) != TarkovLayout.NONE) return true;
+        if (inGrid(mx, my) || slotUnder(mx, my) != TarkovLayout.NONE || inSling(mx, my)) return true;
         return super.mouseReleased(mx, my, button);
     }
 
@@ -404,13 +754,17 @@ public class TarkovScreen extends EffectRenderingInventoryScreen<TarkovView> {
 
     @Override
     protected boolean hasClickedOutside(double mx, double my, int left, int top, int button) {
-        return mx < left || my < top || mx >= left + imageWidth || my >= top + imageHeight;
+        // Outside every panel (empty background): the held item is thrown, like clicking outside the normal inventory
+        return my > geo.top && my < geo.menuY && !(mx >= geo.sx && mx < geo.sx + geo.sw && my >= geo.sy && my < geo.sy + geo.sh)
+            && !(mx >= geo.m0 && mx < geo.sx && my >= geo.contentTop) && !(mx < geo.m0 && my >= geo.contentTop && my < geo.quickY - 12)
+            && !(my >= geo.quickY - 12 && my < geo.menuY);
     }
 
     @Override
     protected void renderLabels(GuiGraphics g, int mx, int my) {
-        g.drawString(font, "INVENTORY", 8, 5, TEXT, false);
-        String hint = menu.getCarried().isEmpty() ? "" : "R: turn";
-        g.drawString(font, hint, imageWidth - 8 - font.width(hint), 5, GOLD, false);
+        if (!menu.getCarried().isEmpty()) {
+            String hint = "R: turn";
+            g.drawString(font, hint, geo.sx + geo.sw - font.width(hint) - 4, geo.sy + geo.sh + 3, TEXT, false);
+        }
     }
 }

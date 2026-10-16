@@ -180,7 +180,9 @@ public final class DevShots {
                 case 207 -> { int s = -1;
                     for (int i = 0; i < 27; i++) if (mc.player.getInventory().items.get(9 + i).is(net.minecraft.world.item.Items.IRON_CHESTPLATE)) s = i;
                     log("placed: carried " + mc.player.containerMenu.getCarried() + ", chestplate slot " + s + " at " + (s < 0 ? "-" : Integer.toHexString(dev.factoryascension.client.tarkov.TarkovClient.LAYOUT.pos[s])));
-                    shot(mc, "inv_placed"); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
+                    shot(mc, "inv_placed"); mc.options.guiScale().set(2); mc.resizeDisplay(); step = 208; wait = 40; }
+                case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
+                    shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }
                 case 14 -> {
                     FAClientConfig.LIGHTING.set(0);

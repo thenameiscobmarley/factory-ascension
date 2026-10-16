@@ -19,9 +19,11 @@ public final class TarkovView extends AbstractContainerMenu {
     public final InventoryMenu real;
     /** The screen hides the held item from the game's own drawing while the grid draws it at its size. */
     public java.util.function.BooleanSupplier hide = () -> false;
+    /** While the screen draws, slots in big frames show nothing (the screen draws their items large). */
+    static boolean hideFramed = false;
 
     public interface Placer {
-        int[] at(int index);   // {x, y} for a slot of InventoryMenu, or null to hide it
+        int[] at(int index);   // {x, y} for a slot of InventoryMenu (a third value 1 = in a big frame), or null to hide it
     }
 
     public TarkovView(Player player, Placer placer) {
@@ -30,7 +32,9 @@ public final class TarkovView extends AbstractContainerMenu {
         for (Slot orig : real.slots) {
             int[] p = placer.at(orig.index);
             boolean shown = p != null;
-            addSlot(new Mirror(orig, shown ? p[0] : -10000, shown ? p[1] : -10000, shown));
+            Mirror m = new Mirror(orig, shown ? p[0] : -10000, shown ? p[1] : -10000, shown);
+            m.framed = shown && p.length > 2 && p[2] == 1;
+            addSlot(m);
         }
     }
 
@@ -68,6 +72,7 @@ public final class TarkovView extends AbstractContainerMenu {
     static final class Mirror extends Slot {
         final Slot orig;
         final boolean shown;
+        boolean framed;
 
         Mirror(Slot orig, int x, int y, boolean shown) {
             super(orig.container, orig.getContainerSlot(), x, y);
@@ -81,6 +86,7 @@ public final class TarkovView extends AbstractContainerMenu {
         @Override public int getMaxStackSize() { return orig.getMaxStackSize(); }
         @Override public int getMaxStackSize(ItemStack stack) { return orig.getMaxStackSize(stack); }
         @Override public boolean allowModification(Player player) { return orig.allowModification(player); }
-        @Nullable @Override public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() { return orig.getNoItemIcon(); }
+        @Nullable @Override public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() { return framed && hideFramed ? null : orig.getNoItemIcon(); }
+        @Override public ItemStack getItem() { return framed && hideFramed ? ItemStack.EMPTY : super.getItem(); }
     }
 }
