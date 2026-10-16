@@ -183,5 +183,9 @@
   "item.factoryascension.shotgun": "Ascension Shotgun",
   "item.factoryascension.shotgun_shell": "Shotgun Shell",
   "key.factoryascension.reload": "Reload gun",
-  "key.categories.factoryascension": "Factory Ascension"
+  "key.categories.factoryascension": "Factory Ascension",
+  "item.factoryascension.flare_gun": "Flare Gun",
+  "item.factoryascension.flare_red": "Red Flare",
+  "item.factoryascension.flare_green": "Green Flare (Airdrop)",
+  "item.factoryascension.duffel_bag": "Duffel Bag"
 }

@@ -1,6 +1,7 @@
 // priority: 10
 // Factory Ascension - the bridge to the Factory Ascension mod (the "Full" download's jar). Without the mod this does nothing.
-//   - pushes the config's machine numbers (machines.smelter, machines.engine, machines.salvager, machines.storage) into the mod
+//   - pushes the config's machine numbers (machines.smelter, machines.engine, machines.salvager, machines.storage), guns and
+//     the Tarkov inventory (inventory) into the mod
 //   - passes the mod's machine events (Salvager timer, Fusion Table slots and button) to server_scripts/46_fa_machines.js
 
 if (Platform.isLoaded('factoryascension')) {
@@ -14,6 +15,12 @@ if (Platform.isLoaded('factoryascension')) {
   let SG = global.FA.guns.shotgun
   $FAModConfig.setShotgun(SG.pellets, SG.pelletDamage, SG.spreadHip, SG.spreadAim, SG.range, SG.fullDamageRange, SG.falloff,
     SG.cooldownTicks, SG.capacity, SG.reloadTicks, SG.kickback, SG.breaksGlass)
+  let FG = global.FA.guns.flareGun
+  $FAModConfig.setFlareGun(FG.cooldownTicks, FG.speed, Math.round(FG.airdropSeconds * 20), FG.airdropHeight, FG.airdropLoot)
+  let INV = global.FA.inventory
+  $FAModConfig.setTarkov(INV.enabled, INV.width, INV.height, INV.blockPickup)
+  INV.sizes.forEach(s => $FAModConfig.setTarkovSize(s[0], s[1], s[2]))
+  $FAModConfig.setWeight(INV.weight.enabled, INV.weight.kgPerCell, INV.weight.carryKg, INV.weight.slowPerKg, INV.weight.maxSlow)
   $FAModConfig.setQuarry(M.quarry.radius, M.quarry.work, M.quarry.maxPerTick, M.quarry.minRpm, M.quarry.stress)
   $FAModConfig.setGrinder(M.grinder.reach, M.grinder.damagePerRpm, M.grinder.interval, M.grinder.minRpm, M.grinder.stress)
   global.FA.backpacks.tiers.forEach((t, i) => $FAModConfig.setBackpack(i, t.slots, t.upgrades))

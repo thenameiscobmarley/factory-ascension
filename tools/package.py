@@ -60,8 +60,6 @@ def build(full, curseforge, jar):
         add_tree(z, os.path.join(ROOT, 'ftbquests', 'full' if full else 'half', 'quests'), base + 'config/ftbquests/quests')
         if full:
             z.write(jar, base + 'mods/' + os.path.basename(jar))
-            # Oculus loads Complementary in LabPBR mode (parallax from the depth pack); the Full download has the graphics mods
-            add_tree(z, os.path.join(ROOT, 'graphics-defaults'), base.rstrip('/') + ('/' if base else ''))
         if not curseforge:
             for f in ('INSTALL.md', 'MODLIST.md', 'LICENSE'):
                 z.write(os.path.join(ROOT, f), f)

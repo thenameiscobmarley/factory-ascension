@@ -1021,6 +1021,8 @@ def main():
     machine_gen.main()        # Quarry, Mob Grinder, Warp Hopper
     import gun_gen
     gun_gen.main()            # the shotgun and its shells
+    import tarkov_gen
+    tarkov_gen.main()         # the flare gun, flares and the duffel bag
     import fx_art
     fx_art.main()             # smoke puffs for the effects
     mod_id_list()

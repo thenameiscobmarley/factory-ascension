@@ -734,6 +734,21 @@ ItemEvents.tooltip(event => {
       use('loading the Shotgun (R reloads one shell at a time from your inventory)'),
       made(FA.guns.shellsPerCraft + ' from ' + shapedList(FA.guns.shells) + ' (crafting grid)')])
 
+    // Flare gun, flares, and the duffel bag of the Tarkov inventory
+    let FG = FA.guns.flareGun
+    details('factoryascension:flare_gun', 'Somebody, somewhere, is watching the sky.', () => [
+      use('left-click fires the loaded flare, R loads one (R again swaps red for green)'),
+      tip('Red: a signal high in the sky. Green: calls an airdrop, a supply crate that falls ' + FG.airdropSeconds + 's later, 8 blocks ahead, under green smoke'),
+      made(shapedList(FG.recipe) + ' (crafting grid)')])
+    details('factoryascension:flare_red', 'Look up.', () => [
+      use('the Flare Gun: a bright red signal'),
+      made(FA.guns.flares.perCraft + ' from ' + shapedList(FA.guns.flares.red) + ' (crafting grid)')])
+    details('factoryascension:flare_green', 'Supplies inbound.', () => [
+      use('the Flare Gun: calls an airdrop crate full of loot'),
+      made(FA.guns.flares.perCraft + ' from ' + shapedList(FA.guns.flares.green) + ' (crafting grid)')])
+    details('factoryascension:duffel_bag', 'Everything you own, zipped up.', () => [
+      tip('The bag your inventory comes out of when you open it (not an item you can get)')])
+
     // The Ascended Realm
     block('realm_gate', 'A door with a sky on the other side.', () => [
       use('right-click: go to the Ascended Realm, floating islands where danger starts at ' + FA.danger.realmBonus),

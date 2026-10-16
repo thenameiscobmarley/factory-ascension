@@ -2,11 +2,15 @@
 // each chapter are built from this (site.js), so new things never get mixed in with old ones.
 // area: home, luck, gear, enchants, machines, world. icon: a path under fa/. Newest release first.
 window.FA_NEWS = [
+  // ---- v21.0.0 ----
+  { v: "21.0.0", area: "home", icon: "items/flare_green.png", title: "Tarkov inventory", text: "Your inventory is a grid where items take their real size. Turn them with R, watch your weight, and open it out of a duffel bag." },
+  { v: "21.0.0", area: "gear", icon: "items/flare_red.png", title: "Flare Gun and airdrops", text: "Red flares signal. Green flares call a supply crate that falls from the sky full of loot." },
+  { v: "21.0.0", area: "home", icon: "items/ascension_core.png", title: "Depth without a shader pack", text: "A built-in texture pack gives every block and mob real parallax depth. No shader pack, Oculus or Embeddium needed." },
+
   // ---- v20.0.0 ----
   { v: "20.0.0", area: "home", icon: "items/mythic_fragment.png", title: "Ascension Lighting", text: "Screen-space traced lighting: soft contact shadows, bounced colour and sun rays. Works on AMD and NVIDIA." },
   { v: "20.0.0", area: "home", icon: "items/ascension_core.png", title: "Factory Ascension settings", text: "A button in the pause menu for every graphics option, with a safe mode that turns effects off if anything goes wrong." },
   { v: "20.0.0", area: "world", icon: "blocks/realm_moss_side.png", title: "Smoke, debris and living water", text: "Soft smoke from explosions and gunfire, blocks that shatter into bouncing voxels, and foaming, splashing water." },
-  { v: "20.0.0", area: "home", icon: "blocks/ascendite_glass_0.png", title: "Real depth with Oculus", text: "Make a depth pack from your own textures: with Oculus and Complementary, every block, item and mob gets parallax depth." },
   { v: "20.0.0", area: "home", icon: "blocks/engine_coil_side.png", title: "Health checks", text: "The mod watches memory, open files and threads, and warns before a leak can slow your game." },
 
   // ---- v19.0.0 ----

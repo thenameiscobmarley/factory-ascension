@@ -32,6 +32,9 @@ if (Platform.isLoaded(FA_MOD)) {
     let G = global.FA.guns
     event.shaped(FA_MOD + ':shotgun', G.shotgun.recipe[0], G.shotgun.recipe[1]).id('kubejs:factory_ascension/shotgun')
     event.shaped(Item.of(FA_MOD + ':shotgun_shell', G.shellsPerCraft), G.shells[0], G.shells[1]).id('kubejs:factory_ascension/shotgun_shell')
+    event.shaped(FA_MOD + ':flare_gun', G.flareGun.recipe[0], G.flareGun.recipe[1]).id('kubejs:factory_ascension/flare_gun')
+    event.shaped(Item.of(FA_MOD + ':flare_red', G.flares.perCraft), G.flares.red[0], G.flares.red[1]).id('kubejs:factory_ascension/flare_red')
+    event.shaped(Item.of(FA_MOD + ':flare_green', G.flares.perCraft), G.flares.green[0], G.flares.green[1]).id('kubejs:factory_ascension/flare_green')
     let GL = global.FA.machines.glass
     Object.keys(GL).forEach(g => event.shaped(Item.of(FA_MOD + ':' + g, 8), ['GGG', 'GCG', 'GGG'], { G: 'minecraft:glass', C: GL[g] })
       .id('kubejs:factory_ascension/glass_' + g))

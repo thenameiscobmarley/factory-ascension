@@ -170,4 +170,45 @@ public final class FAConfig {
     public static void setSalvager(int ticks) {
         salvagerTicks = Math.max(1, ticks);
     }
+
+    // Tarkov inventory (tarkov/): the main inventory is a grid where items take their real size. The pack's config
+    // section `inventory`. Sizes are width x height in cells; weight is per cell (a full stack of a 1x1 item = one cell).
+    public static boolean tarkovEnabled = true;
+    public static int tarkovWidth = 10, tarkovHeight = 6;
+    public static boolean tarkovBlockPickup = true;
+    public static final java.util.Map<String, int[]> tarkovSizes = new java.util.HashMap<>();
+    public static boolean weightEnabled = true;
+    public static float weightPerCell = 1, weightCarry = 100, weightSlowPerKg = 0.01f, weightMaxSlow = 0.5f;
+
+    public static void setTarkov(boolean enabled, int width, int height, boolean blockPickup) {
+        tarkovEnabled = enabled;
+        tarkovWidth = Math.max(3, Math.min(16, width));
+        tarkovHeight = Math.max(3, Math.min(12, height));
+        tarkovBlockPickup = blockPickup;
+    }
+
+    public static void setTarkovSize(String item, int w, int h) {
+        tarkovSizes.put(item, new int[] {Math.max(1, Math.min(6, w)), Math.max(1, Math.min(6, h))});
+    }
+
+    public static void setWeight(boolean enabled, double perCell, double carry, double slowPerKg, double maxSlow) {
+        weightEnabled = enabled;
+        weightPerCell = (float) Math.max(0, perCell);
+        weightCarry = (float) Math.max(0, carry);
+        weightSlowPerKg = (float) Math.max(0, Math.min(1, slowPerKg));
+        weightMaxSlow = (float) Math.max(0, Math.min(0.9, maxSlow));
+    }
+
+    // Flare gun: shots held, ticks between shots, the airdrop's wait (ticks), how high it falls from, its loot table
+    public static int flareCooldown = 30, airdropDelay = 400, airdropHeight = 60;
+    public static float flareSpeed = 1.6f;
+    public static String airdropLoot = "factoryascension:chests/airdrop";
+
+    public static void setFlareGun(int cooldown, double speed, int delayTicks, int height, String lootTable) {
+        flareCooldown = Math.max(1, cooldown);
+        flareSpeed = (float) Math.max(0.2, Math.min(4, speed));
+        airdropDelay = Math.max(0, delayTicks);
+        airdropHeight = Math.max(8, Math.min(200, height));
+        airdropLoot = lootTable;
+    }
 }

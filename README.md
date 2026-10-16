@@ -229,6 +229,31 @@ x 5 damage, 6 shells, up to 40 blocks, less damage past 10. The pellets are your
 any weapon and your gear counts. It shatters glass. Shotgun Shells: 8 from paper, gunpowder, iron nuggets and a gold
 nugget. Every number is in `guns`.
 
+**Flare Gun**: the same controls, one flare at a time. **R** loads a flare (R again swaps red for green). A **Red Flare**
+is a signal: a bright red star high in the sky. A **Green Flare** calls an **airdrop**: green smoke rises 8 blocks ahead
+of you, and 20 seconds later a supply crate falls from the sky and lands as a chest of loot (shells, flares, Ascendite,
+cores, diamonds, golden apples, sometimes a gun). Numbers and the loot table are in `guns.flareGun`.
+
+## Tarkov inventory (Full download)
+
+Press **E** and you look down at a duffel bag in your hands, unzip it, and your inventory opens out of it. The main
+inventory is a **grid** where items take their real size: a block 1x1, a pickaxe 1x2, a sword or a bow 1x3, a helmet
+2x2, a chestplate 3x3, the shotgun 5x2, a backpack 3x3.
+
+- **Click** an item to pick it up, **R** turns it on its side while you hold it, **click** a free spot to put it down (a
+  green outline fits, red doesn't). Drop it on the same item to stack.
+- **Shift-click**, the **number keys**, **Q** and the hotbar work like the normal inventory. Armor, off hand and the 2x2
+  crafting grid are on the left.
+- When the grid has no room for something, you can't pick it up (it says so). Anything that ends up without a spot
+  (from a quest reward, say) waits in a **No room** strip until you make space; nothing is ever deleted or dropped.
+- **Weight**: everything you carry weighs something (a cell of space is 1 kg; a lone block is 1/64 of a full stack).
+  Past 100 kg you slow down, 1% per kg, at most half speed. The bar under the grid shows it.
+- Items stay in the game's own inventory slots underneath, so quests, charms, soulbound, death drops and other mods all
+  work as before. Creative mode keeps the normal inventory.
+
+Grid size, item sizes, the pickup rule and the weight are all in `inventory`. The opening animation can be turned off
+in **Pause > Factory Ascension... > Inventory animation**.
+
 ## Pets and charms
 
 - **Ascension Collars** (5 tiers): right-click your own tamed pet (wolf, cat, parrot, horse...) with one. It gets the
@@ -290,13 +315,12 @@ so the game keeps running:
 - **Smoke**: soft, drifting smoke from explosions and gunfire.
 - **Voxel debris**: broken and blown-up blocks shatter into small 3D pieces of their texture that tumble, bounce and settle.
 - **Water**: foam where waterfalls land and where water flows, bubbles underwater, and a splash ring when something drops in.
-- **Depth pack**: the **Make depth pack...** button builds a LabPBR resource pack on your PC from the textures your game has
-  loaded (every block, item, mob and armor, from every mod), with a height and normal map for each, and turns it on.
-  With **Oculus** and **Complementary Shaders** (both in the pack; Complementary starts in LabPBR mode) every surface gets
-  real parallax depth. Nothing made from Mojang's textures is ever shipped: it's built locally.
-
-Oculus also uses **R** to reload shaders, which is the shotgun's reload key; the mod unbinds Oculus's (once) so a reload
-never freezes the game. Rebind it in Controls if you want it.
+- **Factory Ascension Depth** (a texture pack, built into the mod and on by default): real parallax depth on every block
+  and mob, no shader pack needed. It replaces the game's terrain and entity shaders with versions that march your view
+  through each texture's light and dark detail, so mortar sinks between bricks, cobblestone is lumpy and bark has grooves.
+  Turn it off with **Parallax depth** in the settings or in Resource Packs. It works with Minecraft's own renderer:
+  **Embeddium** draws terrain with its own shaders and would skip it, so the pack doesn't include Embeddium (remove it from
+  your instance too).
 
 ## Health checks
 

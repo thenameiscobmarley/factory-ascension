@@ -66,10 +66,12 @@ public class FASettingsScreen extends Screen {
         addRenderableWidget(slider(right, y, w, "Foam amount", FAClientConfig.WATER_AMOUNT, 0.1, 3.0, v -> String.format("x%.1f", v)));
         y += 32;
         addRenderableWidget(toggle(left, y, w, "Safe mode (all off)", FAClientConfig.SAFE_MODE));
-        addRenderableWidget(Button.builder(Component.literal("Make depth pack..."), b -> {
-            status = Component.literal("Making the depth pack in the background...");
-            DepthPack.generate(msg -> Minecraft.getInstance().execute(() -> status = Component.literal(msg)));
-        }).bounds(right, y, w, 20).build());
+        addRenderableWidget(cycle(right, y, w, "Parallax depth", () -> DepthShaders.enabled() ? "On" : "Off", () -> {
+            status = Component.literal("Reloading the game's resources...");
+            DepthShaders.set(!DepthShaders.enabled());
+        }));
+        y += 24;
+        addRenderableWidget(toggle(left, y, w, "Inventory animation", FAClientConfig.TARKOV_ANIMATION));
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(width / 2 - 100, height - 30, 200, 20).build());
     }
 
@@ -134,7 +136,7 @@ public class FASettingsScreen extends Screen {
         g.drawCenteredString(font, Component.literal("Every effect is optional and switches itself off if anything goes wrong."), width / 2, 27, 0xA0A0A0);
         g.drawCenteredString(font, status, width / 2, height - 48, 0x8BE38F);
         if (dev.factoryascension.client.render.AscensionLighting.shaderPackActive())
-            g.drawCenteredString(font, Component.literal("An Oculus shader pack is on, so Ascension Lighting steps aside for it."), width / 2, height - 60, 0xE8B03A);
+            g.drawCenteredString(font, Component.literal("A shader pack is on, so Ascension Lighting and parallax step aside for it."), width / 2, height - 60, 0xE8B03A);
         super.render(g, mouseX, mouseY, partial);
     }
 

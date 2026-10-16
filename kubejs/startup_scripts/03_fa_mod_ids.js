@@ -52,10 +52,14 @@ global.FA_MOD_CONTENT = {
   "copper_cow_spawn_egg",
   "crystal_spider_spawn_egg",
   "deep_miner_spawn_egg",
+  "duffel_bag",
   "ember_ghoul_spawn_egg",
   "ember_hen_spawn_egg",
   "essence_slime_spawn_egg",
   "factory_raider_spawn_egg",
+  "flare_green",
+  "flare_gun",
+  "flare_red",
   "frost_creeper_spawn_egg",
   "frost_revenant_spawn_egg",
   "glow_mite_spawn_egg",
@@ -156,6 +160,10 @@ global.FA_MOD_CONTENT = {
   "mob_grinder": "Mob Grinder",
   "warp_hopper": "Warp Hopper",
   "shotgun": "Ascension Shotgun",
-  "shotgun_shell": "Shotgun Shell"
+  "shotgun_shell": "Shotgun Shell",
+  "flare_gun": "Flare Gun",
+  "flare_red": "Red Flare",
+  "flare_green": "Green Flare (Airdrop)",
+  "duffel_bag": "Duffel Bag"
  }
 }

@@ -1266,7 +1266,33 @@ global.FA = {
     },
     // 8 shells: paper, gunpowder, iron nuggets and a gold nugget for the head
     shells: [[' P ', 'GNG', ' U '], { P: 'minecraft:paper', G: 'minecraft:gunpowder', N: 'minecraft:iron_nugget', U: 'minecraft:gold_nugget' }],
-    shellsPerCraft: 8
+    shellsPerCraft: 8,
+    // Flare gun: the shotgun's controls, one flare at a time (R loads; R again swaps colour). A red flare is a signal;
+    // a green one calls an airdrop: after airdropSeconds a supply crate falls from airdropHeight blocks up, 8 blocks
+    // ahead of where you fired, under green smoke, and lands as a chest filled from airdropLoot.
+    flareGun: {
+      cooldownTicks: 30, speed: 1.6, airdropSeconds: 20, airdropHeight: 60, airdropLoot: 'factoryascension:chests/airdrop',
+      recipe: [['IIB', ' GR', '  P'], { I: 'minecraft:iron_ingot', B: 'minecraft:copper_ingot', G: 'kubejs:ascendite_ingot', R: 'minecraft:redstone', P: 'minecraft:orange_dye' }]
+    },
+    flares: {
+      red: [[' P ', 'GRG', ' U '], { P: 'minecraft:paper', G: 'minecraft:gunpowder', R: 'minecraft:red_dye', U: 'minecraft:gold_nugget' }],
+      green: [[' P ', 'GDG', ' C '], { P: 'minecraft:paper', G: 'minecraft:gunpowder', D: 'minecraft:green_dye', C: 'kubejs:ascension_core' }],
+      perCraft: 2
+    }
+  },
+
+  // ---- Tarkov inventory (Full download) ----
+  // Your main inventory is a grid where items take their real size: a block 1x1, a sword 1x3, a chestplate 3x3, the
+  // shotgun 5x2, a backpack 3x3. Pick an item up, press R to turn it, click a free spot to put it down. Items stay in
+  // the game's own inventory slots (quests, charms, soulbound and other mods see them as usual); anything that can't
+  // fit waits in a "No room" strip. With blockPickup, items you have no room for stay on the ground.
+  // sizes: [item id, width, height] to change any item's size. Creative mode keeps the normal inventory.
+  // weight: each cell weighs kgPerCell (a full stack of a 1x1 item = 1 cell; a lone block weighs 1/64 of that).
+  // Past carryKg you slow down by slowPerKg (0.01 = 1% per kg), never more than maxSlow (0.5 = half speed).
+  inventory: {
+    enabled: true, width: 10, height: 6, blockPickup: true,
+    sizes: [['minecraft:totem_of_undying', 1, 2], ['minecraft:spyglass', 1, 2], ['minecraft:anvil', 2, 2]],
+    weight: { enabled: true, kgPerCell: 1, carryKg: 100, slowPerKg: 0.01, maxSlow: 0.5 }
   },
 
   // ---- Pets: Ascension Collars and the Pet Whistle ----
@@ -2137,8 +2163,8 @@ global.FA_meteorPool = () => {
     put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['ascension_vault', 'essence_forge', 'ascension_workbench'].map(b => 'factoryascension:' + b))
     put(P.machines, ['ascension_quarry', 'mob_grinder', 'warp_hopper'].map(b => 'factoryascension:' + b))
-    put(P.machines, ['factoryascension:shotgun'])
-    put(P.basics, ['factoryascension:shotgun_shell'])
+    put(P.machines, ['factoryascension:shotgun', 'factoryascension:flare_gun'])
+    put(P.basics, ['factoryascension:shotgun_shell', 'factoryascension:flare_red', 'factoryascension:flare_green'])
     put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
     if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))
   }

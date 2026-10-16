@@ -89,6 +89,7 @@ minecraft {
             // ./gradlew runClient -PfaRun -PfaShots: the automatic graphics test (client/DevShots) in run/saves/devworld
             if (project.hasProperty('faShots') || project.hasProperty('faShotsPack')) {
                 property 'fa.devshots', project.hasProperty('faShotsPack') ? 'pack' : 'true'
+                if (project.hasProperty('faQuick')) property 'fa.quick', 'true'
                 jvmArgs '-Xmx1500m'
                 args '--quickPlaySingleplayer', 'devworld', '--width', '1280', '--height', '720'
             }
@@ -146,11 +147,9 @@ dependencies {
     compileOnly fg.deobf("blank:flywheel-forge-1.20.1:1.0.5")
     compileOnly fg.deobf("blank:Ponder-Forge-1.20.1:1.0.91")
     compileOnly fg.deobf("blank:Registrate-MC1.20:1.3.3")
-    // ./gradlew runClient -PfaRun -PfaGfx: also Embeddium, Oculus and its Flywheel compat (testing with shader packs)
+    // ./gradlew runClient -PfaRun -PfaGfx: also Embeddium (its terrain shader is the one the depth pack replaces)
     if (project.hasProperty('faGfx')) {
         runtimeOnly fg.deobf("blank:embeddium:0.3.31+mc1.20.1")
-        runtimeOnly fg.deobf("blank:oculus-mc1.20.1:1.8.0")
-        runtimeOnly fg.deobf("blank:oculus-flywheel-compat-Forge:2.0.3")
     }
     // ./gradlew runClient -PfaRun: the dev client/server load Create too (for testing the mod's graphics and machines)
     if (project.hasProperty('faRun')) {

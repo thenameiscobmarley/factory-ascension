@@ -92,6 +92,8 @@ public final class DevShots {
         return frames == 0 ? "no frames" : String.format("%.1f ms/frame over %d frames (lighting CPU side %.2f ms)", frameNanos / 1e6 / frames, frames, lightNanos / 1e6 / Math.max(1, frames));
     }
 
+    private static int freeX = 0, freeY = 0;
+
     private static final String[] SCENE = {
         "time set 6000", "gamerule doDaylightCycle false", "gamerule doWeatherCycle false", "weather clear", "gamerule doMobSpawning false",
         "fill 4 -60 4 9 -55 9 stone_bricks hollow", "fill 4 -60 6 4 -58 7 air", "fill 2 -55 2 11 -55 11 quartz_block",
@@ -110,6 +112,7 @@ public final class DevShots {
         try {
             switch (step++) {
                 case 0 -> { for (String c : SCENE) cmd(mc, c); FAClientConfig.SAFE_MODE.set(false); wait = 100;
+                    if (Boolean.getBoolean("fa.quick")) step = 200;   // only the inventory shots
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -132,9 +135,53 @@ public final class DevShots {
                 case 90 -> { shot(mc, "explosion_after"); cmd(mc, "tp @a -4 -58 0 30 25"); step = 10; wait = 60; }
                 case 10 -> { log("water: foam " + FxParticles.liveFoam()); shot(mc, "water"); mc.setScreen(new PauseScreen(true)); wait = 20; }
                 case 11 -> { shot(mc, "pause_menu"); mc.setScreen(new FASettingsScreen(mc.screen)); wait = 20; }
-                case 12 -> { shot(mc, "settings"); mc.setScreen(null);
-                    DepthPack.generate(msg -> log("depth: " + msg)); wait = 40; }
-                case 13 -> { if (DepthPack.running()) { step--; wait = 20; return; } wait = 100; }
+                case 12 -> { shot(mc, "settings"); mc.setScreen(null); log("depth pack on " + DepthShaders.enabled()); wait = 40; }
+                case 13 -> { cmd(mc, "tp @a 6.5 -58.4 1.6 0 10"); cmd(mc, "summon minecraft:zombie 8 -60 3.5 {NoAI:1b,PersistenceRequired:1b,Rotation:[150f,0f]}"); step = 130; wait = 40; }
+                case 130 -> { shot(mc, "depth_wall_on"); cmd(mc, "tp @a 3.2 -58.6 2.2 -62 8"); step = 134; wait = 30; }
+                case 134 -> { shot(mc, "depth_graze_on"); cmd(mc, "tp @a 9.5 -58.4 0.6 -30 15"); step = 131; wait = 30; }
+                case 131 -> { shot(mc, "depth_mob_on"); DepthShaders.set(false); step = 132; wait = 40; }
+                case 132 -> { if (mc.getOverlay() != null) { step = 132; wait = 20; return; }   // still reloading
+                    log("depth pack on after turning it off: " + DepthShaders.enabled()); wait = 40; step = 135; }
+                case 135 -> { shot(mc, "depth_mob_off"); cmd(mc, "tp @a 6.5 -58.4 1.6 0 10"); step = 133; wait = 30; }
+                case 133 -> { shot(mc, "depth_wall_off"); cmd(mc, "tp @a 3.2 -58.6 2.2 -62 8"); step = 136; wait = 30; }
+                case 136 -> { shot(mc, "depth_graze_off"); DepthShaders.set(true); step = 137; wait = 40; }
+                case 137 -> { if (mc.getOverlay() != null) { step = 137; wait = 20; return; } step = 200; wait = 20; }
+                // Tarkov inventory: the opening (bag up, zip, the grid growing out), the full grid, holding an item over it, turning and placing it
+                case 200 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "tp @a -2 -60 -6 0 20"); cmd(mc, "clear @a");
+                    for (String g : new String[] {"torch 64", "bread 32", "iron_pickaxe", "iron_axe", "oak_log 64", "stone 64", "arrow 64", "apple 16", "water_bucket",
+                        "iron_chestplate", "diamond_sword", "cobblestone 40", "factoryascension:shotgun", "factoryascension:flare_gun", "bow", "iron_helmet",
+                        "iron_leggings", "factoryascension:shotgun_shell 24", "factoryascension:flare_green 2", "diamond 12", "golden_apple 3", "shield"})
+                        cmd(mc, "give @a " + g);
+                    wait = 60; }
+                case 201 -> { log("tarkov inventory on: " + dev.factoryascension.client.tarkov.TarkovClient.enabled);
+                    dev.factoryascension.client.tarkov.TarkovClient.debugTime = 0.37f; mc.gui.getChat().clearMessages(false); mc.getToasts().clear(); mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+                    log("screen: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName())); wait = 40; }
+                case 202 -> { shot(mc, "inv_bag"); dev.factoryascension.client.tarkov.TarkovClient.debugTime = 0.52f; wait = 40; }
+                case 203 -> { shot(mc, "inv_growing"); dev.factoryascension.client.tarkov.TarkovClient.debugTime = 3f; wait = 40; }
+                case 204 -> { shot(mc, "inv_open");
+                    if (mc.screen instanceof dev.factoryascension.client.tarkov.TarkovScreen ts) {
+                        int s = -1;
+                        for (int i = 0; i < 27; i++) if (mc.player.getInventory().items.get(9 + i).is(net.minecraft.world.item.Items.IRON_CHESTPLATE)) s = i;
+                        log("chestplate in main slot " + s + " at " + (s < 0 ? "-" : Integer.toHexString(dev.factoryascension.client.tarkov.TarkovClient.LAYOUT.pos[s])));
+                        if (s >= 0) { double[] c = ts.devCellCenter(s); ts.mouseClicked(c[0], c[1], 0); }
+                        int spot = dev.factoryascension.tarkov.TarkovLayout.findSpot(dev.factoryascension.client.tarkov.TarkovClient.LAYOUT.occupancy(mc.player.getInventory().items), new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_CHESTPLATE));
+                        freeX = dev.factoryascension.tarkov.TarkovLayout.x(spot) + 1; freeY = dev.factoryascension.tarkov.TarkovLayout.y(spot) + 1;
+                        log("free 3x3 spot at " + (freeX - 1) + "," + (freeY - 1));
+                        double[] to = ts.devCell(freeX, freeY);
+                        double k = mc.getWindow().getGuiScale();
+                        org.lwjgl.glfw.GLFW.glfwSetCursorPos(mc.getWindow().getWindow(), to[0] * k, to[1] * k);
+                        log("holding " + mc.player.containerMenu.getCarried());
+                    }
+                    wait = 40; }
+                case 205 -> { shot(mc, "inv_holding"); if (mc.screen != null) mc.screen.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_R, 0, 0); wait = 40; }
+                case 206 -> { shot(mc, "inv_turned");
+                    if (mc.screen instanceof dev.factoryascension.client.tarkov.TarkovScreen ts) { double[] to = ts.devCell(freeX, freeY); ts.mouseClicked(to[0], to[1], 0); }
+                    wait = 20; }
+                case 207 -> { int s = -1;
+                    for (int i = 0; i < 27; i++) if (mc.player.getInventory().items.get(9 + i).is(net.minecraft.world.item.Items.IRON_CHESTPLATE)) s = i;
+                    log("placed: carried " + mc.player.containerMenu.getCarried() + ", chestplate slot " + s + " at " + (s < 0 ? "-" : Integer.toHexString(dev.factoryascension.client.tarkov.TarkovClient.LAYOUT.pos[s])));
+                    shot(mc, "inv_placed"); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
+                    cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }
                 case 14 -> {
                     FAClientConfig.LIGHTING.set(0);
                     wait = 10;

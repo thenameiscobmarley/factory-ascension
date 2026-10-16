@@ -85,31 +85,6 @@
    "projectID": 618298,
    "fileID": 9166087,
    "file": "sophisticatedcore-1.20.1-1.5.10.2402.jar"
-  },
-  {
-   "slug": "embeddium",
-   "projectID": 908741,
-   "fileID": 5681725,
-   "file": "embeddium-0.3.31+mc1.20.1.jar"
-  },
-  {
-   "slug": "oculus",
-   "projectID": 581495,
-   "fileID": 6020952,
-   "file": "oculus-mc1.20.1-1.8.0.jar"
-  },
-  {
-   "slug": "iris-flywheel-compat",
-   "projectID": 659897,
-   "fileID": 6694861,
-   "file": "oculus-flywheel-compat-Forge-2.0.3.jar"
-  },
-  {
-   "slug": "complementary-reimagined",
-   "projectID": 627557,
-   "fileID": 8884654,
-   "file": "ComplementaryReimagined_r5.9.3.zip",
-   "kind": "shaderpack"
   }
  ]
 }

@@ -141,6 +141,12 @@ public class FactoryAscension {
     public static final RegistryObject<Item> LINKER = ITEMS.register("storage_linker", () -> new StorageLinkerItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> SHOTGUN = ITEMS.register("shotgun", () -> new dev.factoryascension.item.ShotgunItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> SHOTGUN_SHELL = ITEMS.register("shotgun_shell", () -> new Item(new Item.Properties().stacksTo(64)));
+    // Flare gun: red flares signal, green flares call an airdrop
+    public static final RegistryObject<Item> FLARE_GUN = ITEMS.register("flare_gun", () -> new dev.factoryascension.item.FlareGunItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> FLARE_RED = ITEMS.register("flare_red", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> FLARE_GREEN = ITEMS.register("flare_green", () -> new Item(new Item.Properties().stacksTo(16)));
+    // The duffel bag you see in your hands when the Tarkov inventory opens (only drawn, never given)
+    public static final RegistryObject<Item> DUFFEL_BAG = ITEMS.register("duffel_bag", () -> new Item(new Item.Properties().stacksTo(1)));
     // Modular Engine: early-game parts (iron-tier, mine with any pickaxe)
     public static final RegistryObject<Block> ENGINE_CORE = block("engine_core", () -> new EngineBlock(engine()));
     public static final RegistryObject<Block> COIL = block("engine_coil", () -> new EngineModuleBlock(engine()));
@@ -218,6 +224,9 @@ public class FactoryAscension {
             out.accept(LINKER.get());
             out.accept(SHOTGUN.get());
             out.accept(SHOTGUN_SHELL.get());
+            out.accept(FLARE_GUN.get());
+            out.accept(FLARE_RED.get());
+            out.accept(FLARE_GREEN.get());
             out.accept(ENGINE_CORE.get());
             out.accept(COIL.get());
             out.accept(GEARBOX.get());

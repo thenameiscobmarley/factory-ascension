@@ -1281,6 +1281,84 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
         ;[motor1, motor2].forEach(m => level.getBlock(m).set('minecraft:air'))
       }))
     })
+    // Tarkov inventory: items take their size in the grid, a full grid refuses what can't fit, weight slows you;
+    // the flare gun loads and fires a green flare (an airdrop on its way), and a dropped crate lands as a loot chest
+    if (Platform.isLoaded('factoryascension')) attempt('tarkov inventory', () => {
+      let $Tarkov = Java.loadClass('dev.factoryascension.tarkov.TarkovServer')
+      let $Layout = Java.loadClass('dev.factoryascension.tarkov.TarkovLayout')
+      let $Cfg = Java.loadClass('dev.factoryascension.FAConfig')
+      let inv = player.getInventory()
+      let clear = () => { for (let i = 0; i < 36; i++) inv.setItem(i, Item.of('minecraft:air')) }
+      let gridW = $Cfg.tarkovWidth, gridH = $Cfg.tarkovHeight
+      $Cfg.setTarkov(true, 10, 6, true)
+      clear()
+      let layout = $Tarkov.layout(player)
+      for (let s = 0; s < 27; s++) layout.pos[s] = -1
+      inv.setItem(9, Item.of('minecraft:iron_chestplate'))
+      inv.setItem(10, Item.of('minecraft:diamond_sword'))
+      inv.setItem(11, Item.of('minecraft:cobblestone', 20))
+      inv.setItem(12, Item.of('factoryascension:shotgun'))
+      $Tarkov.update(player)
+      let occ = layout.occupancy(inv.items), cells = 0
+      for (let x = 0; x < 10; x++) for (let y = 0; y < 6; y++) if (occ[x][y] >= 0) cells++
+      let placed = [0, 1, 2, 3].map(s => layout.pos[s] >= 0)
+      check('Tarkov inventory: a chestplate (3x3), a sword (1x3), cobblestone (1x1) and the shotgun (5x2) all get their own spot in the grid (' + cells + ' cells taken)',
+        placed.every(p => p) && cells == 9 + 3 + 1 + 10, placed.join(',') + ' / ' + cells)
+      // Six chestplates fill 9 of the 10 columns: a sword still fits down the last one, another chestplate doesn't
+      clear()
+      for (let s = 0; s < 27; s++) layout.pos[s] = -1
+      for (let i = 0; i < 9; i++) inv.setItem(i, Item.of('minecraft:stone', 64))
+      for (let i = 0; i < 6; i++) inv.setItem(9 + i, Item.of('minecraft:iron_chestplate'))
+      $Tarkov.update(player)
+      let swordOk = $Tarkov.canTake(player, Item.of('minecraft:diamond_sword'))
+      let chestOk = $Tarkov.canTake(player, Item.of('minecraft:diamond_chestplate'))
+      check('Tarkov inventory: with 6 chestplates in, a sword still fits but a 7th chestplate is refused (21 empty slots, no 3x3 space)',
+        swordOk && !chestOk, swordOk + ' / ' + chestOk)
+      let WT = global.FA.inventory.weight
+      $Cfg.setWeight(true, 1, 60, 0.01, 0.5)   // a 60 kg limit for the test, whatever the config says
+      let speedAttr = player.getAttribute($STAttributes.MOVEMENT_SPEED)
+      let kg = $Tarkov.weight(player)
+      $Tarkov.applyWeight(player)
+      let heavy = speedAttr.getValue(), base = speedAttr.getBaseValue()
+      clear()
+      $Tarkov.applyWeight(player)
+      let light = speedAttr.getValue()
+      check('Weight: 6 chestplates and 9 stacks of stone (' + kg.toFixed(1) + ' kg) slow you down (' + (100 * (1 - heavy / base)).toFixed(0) + '% slower), and back to normal when you drop them',
+        kg > 60 && heavy < base && Math.abs(light - base) < 1e-6, [kg, heavy, base, light].join(' / '))
+      $Cfg.setWeight(WT.enabled, WT.kgPerCell, WT.carryKg, WT.slowPerKg, WT.maxSlow)
+      $Cfg.setTarkov(true, gridW, gridH, true)
+      // Flare gun: R loads a green flare from the inventory; firing it calls an airdrop
+      let $Flare = Java.loadClass('dev.factoryascension.item.FlareGunItem')
+      let fgun = Item.of('factoryascension:flare_gun')
+      player.setItemInHand('main_hand', fgun)
+      inv.setItem(22, Item.of('factoryascension:flare_green', 1))
+      let fheld = player.getMainHandItem()
+      $Flare.reload(player, fheld)
+      let loadedGreen = $Flare.loaded(fheld) == 2 && inv.getItem(22).isEmpty()
+      let before = $Flare.pending()
+      player.getCooldowns().removeCooldown(fheld.getItem())
+      $Flare.fire(player)
+      let called = $Flare.pending() == before + 1 && $Flare.loaded(player.getMainHandItem()) == 0
+      $Flare.cancelAirdrops()
+      player.setItemInHand('main_hand', Item.of('minecraft:air'))
+      check('Flare gun: R loads the green flare from the inventory, firing it uses it and calls an airdrop', loadedGreen && called, loadedGreen + ' / ' + called)
+      // The crate: dropped over a clear spot, it falls and lands as a chest with the airdrop loot
+      let cx = X - 26, cz = Z + 26
+      let crate = $Flare.dropCrate(level, cx, cz)
+      after(120, () => attempt('airdrop check', () => {
+        let gy = level.getHeight(Java.loadClass('net.minecraft.world.level.levelgen.Heightmap$Types').MOTION_BLOCKING_NO_LEAVES, cx, cz) - 1
+        let pos = new $STBlockPos(cx, gy, cz)
+        let be = level.getBlockEntity(pos)
+        let table = be ? String(be.saveWithoutMetadata().getString('LootTable')) : ''
+        let n = 0
+        if (be && table) { be.unpackLootTable(null); for (let i = 0; i < 27; i++) if (!be.getItem(i).isEmpty()) n++ }
+        check('Airdrop: the crate falls and lands as a chest filled from the airdrop loot (' + n + ' stacks)',
+          !!crate && String(level.getBlock(pos).id) == 'minecraft:chest' && table == global.FA.guns.flareGun.airdropLoot && n > 0,
+          (crate ? 'dropped' : 'no crate') + ' / ' + level.getBlock(pos).id + ' at y=' + gy + ' / ' + table + ' / ' + n)
+        if (be) be.clearContent()
+        level.getBlock(pos).set('minecraft:air')
+      }))
+    })
     // Safety net: an item flung at 200 blocks a tick is slowed before it can stall the server
     attempt('speed cap', () => {
       let fast = level.createEntity('minecraft:item')

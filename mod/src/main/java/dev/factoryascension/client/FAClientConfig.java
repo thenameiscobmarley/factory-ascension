@@ -10,7 +10,7 @@ public final class FAClientConfig {
     public static final ForgeConfigSpec.IntValue MAX_GLINTS;
     public static final ForgeConfigSpec.DoubleValue STRENGTH;
     public static final ForgeConfigSpec.BooleanValue CONFLICT_MESSAGES;
-    public static final ForgeConfigSpec.BooleanValue SAFE_MODE, SUN_RAYS, SMOKE, DEBRIS, WATER, OCULUS_KEY_MOVED;
+    public static final ForgeConfigSpec.BooleanValue SAFE_MODE, SUN_RAYS, SMOKE, DEBRIS, WATER, OCULUS_KEY_MOVED, DEPTH_ADDED, TARKOV_ANIMATION;
     public static final ForgeConfigSpec.IntValue LIGHTING, MAX_DEBRIS;
     public static final ForgeConfigSpec.DoubleValue LIGHT_STRENGTH, SMOKE_AMOUNT, WATER_AMOUNT;
 
@@ -57,6 +57,9 @@ public final class FAClientConfig {
         WATER = b.comment("Water foams where it flows and falls, bubbles, and splashes").define("water", true);
         WATER_AMOUNT = b.comment("How much foam and bubbles").defineInRange("waterAmount", 1.0, 0.1, 3.0);
         b.pop();
+        TARKOV_ANIMATION = b.comment("Tarkov inventory: look down, a duffel bag comes up in your hands and the inventory opens out of it (off: it just opens)")
+            .define("inventoryAnimation", true);
+        DEPTH_ADDED = b.comment("Set after the Factory Ascension Depth pack was switched on the first time (your choice stands after that)").define("depthPackAdded", false);
         OCULUS_KEY_MOVED = b.comment("Set after the shotgun's R stopped also reloading Oculus shaders (done once)").define("oculusReloadKeyMoved", false);
         SPEC = b.build();
     }
