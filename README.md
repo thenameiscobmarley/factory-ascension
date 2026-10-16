@@ -484,8 +484,7 @@ so the game keeps running:
   pixels, so it's slopes and lumps, not stacked layers), flush at every block's edge (no seams or outlines), and lit by a
   light from above with a highlight that moves as you do, so mortar sinks between bricks, cobblestone is lumpy and bark
   has grooves even face-on. The texture's average sits at the surface and only darker detail sinks, so faces stay flat
-  edge to edge (no bowl in the middle of each block), and it carries on across blocks, so connected textures
-  (**Continuity** via Sinytra Connector, or **CTM** on Forge) join up smoothly. Mobs get the lit relief without any
+  edge to edge (no bowl in the middle of each block). Mobs get the lit relief without any
   shifting (so no outlines round their parts).
   **Depth smoothing** (sharp per-pixel to soft and rounded) and **Depth strength** sliders in the settings. Works with
   Minecraft's own renderer **and with Embeddium** (the mod hands Embeddium the pack's block shaders while the pack is on;

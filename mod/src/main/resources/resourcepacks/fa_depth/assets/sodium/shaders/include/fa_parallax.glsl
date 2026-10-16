@@ -51,7 +51,7 @@ float faDepth(sampler2D tex, vec2 uv, vec2 org, vec2 spr, float avg) {
     float lf = L - float(l0);
     if (lf > 0.02 && l0 < FA_MIPS) h = mix(h, faDepthLod(tex, uv, org, spr, l0 + 1, avg), lf);
     // No pulling the edges up to the surface: that bowed every block. The texture's own detail runs right to the edge,
-    // so tiling and connected textures (Continuity, CTM) carry on smoothly into the next block.
+    // so tiling textures carry on smoothly into the next block.
     return h;
 }
 
