@@ -82,7 +82,7 @@
       },
       "rotation": {
         "axis": "z",
-        "angle": -22.5,
+        "angle": 22.5,
         "origin": [
           6.0,
           9.4,
@@ -159,7 +159,7 @@
       },
       "rotation": {
         "axis": "z",
-        "angle": -22.5,
+        "angle": 22.5,
         "origin": [
           6.0,
           9.4,
@@ -236,7 +236,7 @@
       },
       "rotation": {
         "axis": "z",
-        "angle": -22.5,
+        "angle": 22.5,
         "origin": [
           6.0,
           9.4,
@@ -313,7 +313,7 @@
       },
       "rotation": {
         "axis": "z",
-        "angle": -22.5,
+        "angle": 22.5,
         "origin": [
           6.0,
           9.4,
@@ -390,7 +390,7 @@
       },
       "rotation": {
         "axis": "z",
-        "angle": -22.5,
+        "angle": 22.5,
         "origin": [
           6.0,
           9.4,
@@ -449,7 +449,7 @@
       },
       "rotation": {
         "axis": "z",
-        "angle": -22.5,
+        "angle": 22.5,
         "origin": [
           6.0,
           9.4,
@@ -526,7 +526,7 @@
       },
       "rotation": {
         "axis": "z",
-        "angle": -22.5,
+        "angle": 22.5,
         "origin": [
           6.0,
           9.4,
@@ -2341,7 +2341,7 @@
       },
       "rotation": {
         "axis": "z",
-        "angle": -22.5,
+        "angle": 22.5,
         "origin": [
           6.0,
           9.4,
@@ -2439,14 +2439,14 @@
     },
     "thirdperson_righthand": {
       "rotation": [
-        -90,
         0,
-        -15
+        90,
+        0
       ],
       "translation": [
         0,
-        0.5,
-        -1.5
+        2.5,
+        1.0
       ],
       "scale": [
         0.6,
@@ -2456,14 +2456,14 @@
     },
     "thirdperson_lefthand": {
       "rotation": [
-        -90,
         0,
-        -15
+        90,
+        0
       ],
       "translation": [
         0,
-        0.5,
-        -1.5
+        2.5,
+        1.0
       ],
       "scale": [
         0.6,

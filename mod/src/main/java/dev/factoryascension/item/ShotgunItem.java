@@ -206,6 +206,22 @@ public class ShotgunItem extends Item {
         if (reload <= 0) return;
         if (!selected) { tag.putInt("Reload", 0); return; }
         if (--reload > 0) { tag.putInt("Reload", reload); return; }
+        // Stressed hands fumble a shell now and then (gun/Stress): it costs a moment, and a dropped shell lands at your feet
+        if (!tag.getBoolean("Fumbled") && player.getRandom().nextFloat() < dev.factoryascension.gun.Stress.fumbleChance(player) * 0.5f) {
+            dev.factoryascension.gun.Fumble[] kinds = {dev.factoryascension.gun.Fumble.DROPPED_ROUND, dev.factoryascension.gun.Fumble.ROUND_BACKWARDS,
+                dev.factoryascension.gun.Fumble.SHELL_JAMMED};
+            dev.factoryascension.gun.Fumble f = kinds[player.getRandom().nextInt(kinds.length)];
+            player.displayClientMessage(Component.literal(f.message).withStyle(ChatFormatting.YELLOW), true);
+            if (f == dev.factoryascension.gun.Fumble.DROPPED_ROUND && !player.isCreative()) {
+                for (ItemStack s : player.getInventory().items) {
+                    if (isShell(s)) { player.drop(s.split(1), false); break; }
+                }
+            }
+            tag.putBoolean("Fumbled", true);
+            tag.putInt("Reload", f.ticks);
+            return;
+        }
+        tag.putBoolean("Fumbled", false);
         loadOne(player, stack);
     }
 

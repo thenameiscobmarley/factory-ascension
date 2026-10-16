@@ -1,0 +1,106 @@
+{
+ "textures": {
+  "red_dot": "factoryascension:item/gun2/red_dot",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    6.8,
+    7.45,
+    8.0
+   ],
+   "to": [
+    9.2,
+    8.55,
+    9.0
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      5.6,
+      11.27,
+      8.0,
+      12.37
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      0.66,
+      8.49,
+      3.06,
+      9.59
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      1.92,
+      13.44,
+      2.92,
+      14.54
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      6.84,
+      14.14,
+      7.84,
+      15.24
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      12.69,
+      11.24,
+      15.09,
+      12.24
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      1.33,
+      11.32,
+      3.73,
+      12.32
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    9.2,
+    7.8,
+    8.3
+   ],
+   "to": [
+    9.22,
+    8.2,
+    8.7
+   ],
+   "faces": {
+    "east": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#red_dot"
+    }
+   }
+  }
+ ]
+}

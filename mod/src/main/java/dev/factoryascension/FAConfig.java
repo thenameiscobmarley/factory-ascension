@@ -211,4 +211,45 @@ public final class FAConfig {
         airdropHeight = Math.max(8, Math.min(200, height));
         airdropLoot = lootTable;
     }
+
+    // Guns (gun/): reload fumbles under stress. Chance per reload step = base + stress^1.5 x stress factor.
+    public static boolean fumblesEnabled = true;
+    public static float fumbleBase = 0.02f, fumbleStress = 0.55f;
+    public static boolean explosiveBreaksBlocks = false;
+
+    public static void setFumbles(boolean enabled, double base, double stress) {
+        fumblesEnabled = enabled;
+        fumbleBase = (float) Math.max(0, Math.min(1, base));
+        fumbleStress = (float) Math.max(0, Math.min(1, stress));
+    }
+
+    /** The pack's `guns.list` entry for one gun: scales its base numbers (gun/Guns.java). */
+    public static void setGun(String id, double damage, double rpmScale, int magBonus, double spreadScale, double rangeScale, double recoilScale) {
+        dev.factoryascension.gun.GunSpec g = dev.factoryascension.gun.Guns.BY_ID.get(id);
+        if (g == null) return;
+        if (!g.hasBase()) g.saveBase();
+        g.resetToBase();
+        g.damage *= (float) Math.max(0, damage);
+        g.rpm = Math.max(10, (int) Math.round(g.rpm * Math.max(0.05, rpmScale)));
+        g.mag = Math.max(1, g.mag + magBonus);
+        g.spreadHip *= (float) Math.max(0, spreadScale);
+        g.spreadAim *= (float) Math.max(0, spreadScale);
+        g.range = (float) Math.max(4, Math.min(512, g.range * rangeScale));
+        g.recoilUp *= (float) Math.max(0, recoilScale);
+        g.recoilSide *= (float) Math.max(0, recoilScale);
+    }
+
+    // Weapons Workbench: rounds per press by caliber; what an attachment costs (cost x partItem, and tier x tierItem
+    // for grade 2 and up); what the Jury-Rigged book takes
+    public static final java.util.Map<String, Integer> ammoPerCraft = new java.util.HashMap<>();
+    public static String benchPartItem = "minecraft:iron_ingot", benchTierItem = "kubejs:ascendite_ingot";
+
+    public static void setAmmoPerCraft(String caliber, int n) {
+        ammoPerCraft.put(caliber, Math.max(1, Math.min(64, n)));
+    }
+
+    public static void setBench(String partItem, String tierItem) {
+        benchPartItem = partItem;
+        benchTierItem = tierItem;
+    }
 }

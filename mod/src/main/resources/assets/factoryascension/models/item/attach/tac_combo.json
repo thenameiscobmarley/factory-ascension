@@ -1,0 +1,130 @@
+{
+ "textures": {
+  "paint_white": "factoryascension:item/gun2/paint_white",
+  "red_dot": "factoryascension:item/gun2/red_dot",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    6.6,
+    7.3,
+    8.0
+   ],
+   "to": [
+    9.4,
+    8.7,
+    9.4
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      10.91,
+      2.41,
+      13.71,
+      3.81
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      11.73,
+      6.86,
+      14.53,
+      8.26
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      10.29,
+      13.38,
+      11.69,
+      14.78
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      0.03,
+      12.02,
+      1.43,
+      13.42
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      1.81,
+      6.65,
+      4.61,
+      8.05
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      3.25,
+      10.11,
+      6.05,
+      11.51
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    9.4,
+    7.5,
+    8.2
+   ],
+   "to": [
+    9.42,
+    8.0,
+    8.7
+   ],
+   "faces": {
+    "east": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#red_dot"
+    }
+   }
+  },
+  {
+   "from": [
+    9.4,
+    8.05,
+    8.3
+   ],
+   "to": [
+    9.42,
+    8.55,
+    9.2
+   ],
+   "faces": {
+    "east": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#paint_white"
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,228 @@
+{
+ "textures": {
+  "steel_light": "factoryascension:item/gun2/steel_light",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    7.0,
+    6.7,
+    7.75
+   ],
+   "to": [
+    8.6,
+    7.5,
+    8.25
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      10.67,
+      10.38,
+      12.27,
+      11.18
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      11.73,
+      3.63,
+      13.33,
+      4.43
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      14.89,
+      10.56,
+      15.39,
+      11.36
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      10.3,
+      1.97,
+      10.8,
+      2.77
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      2.46,
+      8.81,
+      4.06,
+      9.31
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      9.82,
+      13.55,
+      11.42,
+      14.05
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    8.6,
+    6.8,
+    7.92
+   ],
+   "to": [
+    14.0,
+    7.4,
+    8.08
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      0.66,
+      2.12,
+      6.06,
+      2.72
+     ],
+     "texture": "#steel_light"
+    },
+    "south": {
+     "uv": [
+      9.78,
+      14.46,
+      15.18,
+      15.06
+     ],
+     "texture": "#steel_light"
+    },
+    "east": {
+     "uv": [
+      3.14,
+      14.64,
+      3.39,
+      15.24
+     ],
+     "texture": "#steel_light"
+    },
+    "west": {
+     "uv": [
+      14.33,
+      14.21,
+      14.58,
+      14.81
+     ],
+     "texture": "#steel_light"
+    },
+    "up": {
+     "uv": [
+      0.53,
+      14.88,
+      5.93,
+      15.13
+     ],
+     "texture": "#steel_light"
+    },
+    "down": {
+     "uv": [
+      4.31,
+      12.45,
+      9.71,
+      12.7
+     ],
+     "texture": "#steel_light"
+    }
+   }
+  },
+  {
+   "from": [
+    14.0,
+    6.9,
+    7.94
+   ],
+   "to": [
+    14.8,
+    7.3,
+    8.06
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      8.38,
+      11.68,
+      9.18,
+      12.08
+     ],
+     "texture": "#steel_light"
+    },
+    "south": {
+     "uv": [
+      13.76,
+      6.96,
+      14.56,
+      7.36
+     ],
+     "texture": "#steel_light"
+    },
+    "east": {
+     "uv": [
+      10.06,
+      7.95,
+      10.31,
+      8.35
+     ],
+     "texture": "#steel_light"
+    },
+    "west": {
+     "uv": [
+      1.32,
+      12.25,
+      1.57,
+      12.65
+     ],
+     "texture": "#steel_light"
+    },
+    "up": {
+     "uv": [
+      9.31,
+      6.17,
+      10.11,
+      6.42
+     ],
+     "texture": "#steel_light"
+    },
+    "down": {
+     "uv": [
+      7.27,
+      6.57,
+      8.07,
+      6.82
+     ],
+     "texture": "#steel_light"
+    }
+   },
+   "rotation": {
+    "axis": "z",
+    "angle": -22.5,
+    "origin": [
+     14.0,
+     7.1,
+     8.0
+    ]
+   }
+  }
+ ]
+}

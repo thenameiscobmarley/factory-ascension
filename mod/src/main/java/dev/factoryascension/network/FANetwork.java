@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 /** The mod's custom messages: the Ascension Vault's search box, the guns' fire and reload, effects, and the Tarkov inventory grid. */
 public final class FANetwork {
-    private static final String VERSION = "4";
+    private static final String VERSION = "6";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(FactoryAscension.MODID, "main"),
         () -> VERSION, VERSION::equals, VERSION::equals);
 
@@ -26,6 +26,64 @@ public final class FANetwork {
         CHANNEL.registerMessage(2, Fx.class, Fx::encode, Fx::decode, Fx::handle);
         CHANNEL.registerMessage(3, TarkovSync.class, TarkovSync::encode, TarkovSync::decode, TarkovSync::handle);
         CHANNEL.registerMessage(4, TarkovPlan.class, TarkovPlan::encode, TarkovPlan::decode, TarkovPlan::handle);
+        CHANNEL.registerMessage(5, StressSync.class, StressSync::encode, StressSync::decode, StressSync::handle);
+        CHANNEL.registerMessage(6, BenchAction.class, BenchAction::encode, BenchAction::decode, BenchAction::handle);
+    }
+
+    /** Client -> server, at the Weapons Workbench: 0 install an attachment, 1 take one off (by index), 2 press rounds. */
+    public record BenchAction(int kind, String att, int index, int caliber, int type, int colour) {
+        public static final int INSTALL = 0, REMOVE = 1, PRESS = 2;
+
+        static void encode(BenchAction m, FriendlyByteBuf b) {
+            b.writeByte(m.kind);
+            b.writeUtf(m.att, 128);
+            b.writeVarInt(m.index);
+            b.writeVarInt(m.caliber);
+            b.writeVarInt(m.type);
+            b.writeInt(m.colour);
+        }
+
+        static BenchAction decode(FriendlyByteBuf b) {
+            return new BenchAction(b.readByte(), b.readUtf(128), b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readInt());
+        }
+
+        static void handle(BenchAction m, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> {
+                ServerPlayer p = ctx.get().getSender();
+                if (p == null || !(p.containerMenu instanceof dev.factoryascension.gun.WeaponsBenchMenu bench) || !bench.stillValid(p)) return;
+                switch (m.kind) {
+                    case INSTALL -> dev.factoryascension.gun.Bench.install(p, bench.gun(), m.att);
+                    case REMOVE -> dev.factoryascension.gun.Bench.remove(p, bench.gun(), m.index);
+                    case PRESS -> {
+                        var cals = dev.factoryascension.gun.Caliber.values();
+                        var types = dev.factoryascension.gun.AmmoType.values();
+                        if (m.caliber < 0 || m.caliber >= cals.length || m.type < 0 || m.type >= types.length) return;
+                        dev.factoryascension.gun.Bench.press(p, bench.bench.getItem(dev.factoryascension.gun.WeaponsBenchMenu.CASE),
+                            bench.bench.getItem(dev.factoryascension.gun.WeaponsBenchMenu.POWDER), cals[m.caliber], types[m.type], m.colour);
+                    }
+                    default -> { }
+                }
+                bench.broadcastChanges();
+            });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Server -> client: how stressed you are (0..1), for shaking hands and the stats row. */
+    public record StressSync(float stress) {
+        static void encode(StressSync msg, FriendlyByteBuf buf) {
+            buf.writeFloat(msg.stress);
+        }
+
+        static StressSync decode(FriendlyByteBuf buf) {
+            return new StressSync(buf.readFloat());
+        }
+
+        static void handle(StressSync msg, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> dev.factoryascension.client.gun.GunAnim.stress = msg.stress));
+            ctx.get().setPacketHandled(true);
+        }
     }
 
     /** Server -> client: where each main-inventory slot's item sits in the Tarkov grid, and the grid's size. */
@@ -110,6 +168,11 @@ public final class FANetwork {
             ctx.get().enqueueWork(() -> {
                 ServerPlayer player = ctx.get().getSender();
                 if (player == null || player.isSpectator() || !player.isAlive()) return;
+                if (player.getMainHandItem().getItem() instanceof dev.factoryascension.gun.GunItem) {
+                    if (msg.action == FIRE) dev.factoryascension.gun.GunItem.fire(player, msg.aiming);
+                    else if (msg.action == RELOAD) dev.factoryascension.gun.GunItem.startReload(player, player.getMainHandItem());
+                    return;
+                }
                 boolean flare = player.getMainHandItem().getItem() instanceof dev.factoryascension.item.FlareGunItem;
                 if (msg.action == FIRE) {
                     if (flare) dev.factoryascension.item.FlareGunItem.fire(player);

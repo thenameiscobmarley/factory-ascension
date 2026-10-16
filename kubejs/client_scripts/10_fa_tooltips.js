@@ -734,6 +734,22 @@ ItemEvents.tooltip(event => {
       use('loading the Shotgun (R reloads one shell at a time from your inventory)'),
       made(FA.guns.shellsPerCraft + ' from ' + shapedList(FA.guns.shells) + ' (crafting grid)')])
 
+    // The other guns and their rounds
+    FA.guns.list.forEach(g => details('factoryascension:' + g.id, g.lore, () => [
+      use('hold right-click to aim, left-click to fire, R to reload (stressed hands fumble reloads)'),
+      made(shapedList(g.recipe) + ' (crafting grid)')]))
+    details('factoryascension:weapons_workbench', 'Tape, tools and a very steady hand.', () => [
+      use('putting attachments on guns: over a thousand, in twelve slots (muzzle, barrel, handguard, foregrip, optic, stock, magazine, underbarrel, tactical, grip, trigger, charm)'),
+      tip('Ammo Press: any item as the case and any item as the powder, any caliber, type and colour'),
+      tip('A Jury-Rigged gun (enchanted book, at an anvil) takes any attachment anywhere, up to four a slot'),
+      made(shapedList(FA.guns.workbench.recipe) + ' (crafting grid)')])
+    details('factoryascension:attachment', 'Bolts on. Probably.', () => [
+      use('a gun, at the Weapons Workbench (take it off again with a right-click on its slot)')])
+    details('factoryascension:cartridge', 'One round. Any caliber, any type, any making.', () => [
+      use('loading a gun of its caliber (R with the gun in hand)'),
+      tip('Plain rounds: a nugget, gunpowder and a copper ingot, plus the caliber\'s marker item (crafting grid)'),
+      tip('Custom rounds (any item as propellant and case, any type and colour): the Weapons Workbench')])
+
     // Flare gun, flares, and the duffel bag of the Tarkov inventory
     let FG = FA.guns.flareGun
     details('factoryascension:flare_gun', 'Somebody, somewhere, is watching the sky.', () => [

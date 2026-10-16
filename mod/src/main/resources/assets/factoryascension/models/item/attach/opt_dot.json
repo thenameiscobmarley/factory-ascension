@@ -1,0 +1,199 @@
+{
+ "textures": {
+  "lens": "factoryascension:item/gun2/lens",
+  "red_dot": "factoryascension:item/gun2/red_dot",
+  "steel_dark": "factoryascension:item/gun2/steel_dark",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    6.8,
+    8.0,
+    7.3
+   ],
+   "to": [
+    9.2,
+    8.5,
+    8.7
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      1.34,
+      13.6,
+      3.74,
+      14.1
+     ],
+     "texture": "#steel_dark"
+    },
+    "south": {
+     "uv": [
+      8.18,
+      12.7,
+      10.58,
+      13.2
+     ],
+     "texture": "#steel_dark"
+    },
+    "east": {
+     "uv": [
+      4.51,
+      4.11,
+      5.91,
+      4.61
+     ],
+     "texture": "#steel_dark"
+    },
+    "west": {
+     "uv": [
+      11.4,
+      14.57,
+      12.8,
+      15.07
+     ],
+     "texture": "#steel_dark"
+    },
+    "up": {
+     "uv": [
+      10.45,
+      5.74,
+      12.85,
+      7.14
+     ],
+     "texture": "#steel_dark"
+    },
+    "down": {
+     "uv": [
+      6.4,
+      4.91,
+      8.8,
+      6.31
+     ],
+     "texture": "#steel_dark"
+    }
+   }
+  },
+  {
+   "from": [
+    7.4,
+    8.5,
+    7.25
+   ],
+   "to": [
+    8.6,
+    10.0,
+    8.75
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      9.91,
+      6.82,
+      11.11,
+      8.32
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      9.0,
+      5.75,
+      10.2,
+      7.25
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      14.3,
+      12.54,
+      15.8,
+      14.04
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      8.84,
+      0.56,
+      10.34,
+      2.06
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      7.32,
+      1.65,
+      8.52,
+      3.15
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      1.52,
+      8.62,
+      2.72,
+      10.12
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    7.38,
+    8.75,
+    7.5
+   ],
+   "to": [
+    7.4,
+    9.75,
+    8.5
+   ],
+   "faces": {
+    "west": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#red_dot"
+    }
+   }
+  },
+  {
+   "from": [
+    8.6,
+    8.75,
+    7.5
+   ],
+   "to": [
+    8.62,
+    9.75,
+    8.5
+   ],
+   "faces": {
+    "east": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#lens"
+    }
+   }
+  }
+ ]
+}

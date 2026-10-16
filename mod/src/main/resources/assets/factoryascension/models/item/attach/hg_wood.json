@@ -1,0 +1,144 @@
+{
+ "textures": {
+  "walnut": "factoryascension:item/gun2/walnut",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    4.0,
+    6.8,
+    6.7
+   ],
+   "to": [
+    12.0,
+    9.0,
+    9.3
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      1.33,
+      9.63,
+      9.33,
+      11.83
+     ],
+     "texture": "#walnut"
+    },
+    "south": {
+     "uv": [
+      5.03,
+      11.93,
+      13.03,
+      14.13
+     ],
+     "texture": "#walnut"
+    },
+    "east": {
+     "uv": [
+      10.85,
+      11.2,
+      13.45,
+      13.4
+     ],
+     "texture": "#walnut"
+    },
+    "west": {
+     "uv": [
+      3.52,
+      6.09,
+      6.12,
+      8.29
+     ],
+     "texture": "#walnut"
+    },
+    "up": {
+     "uv": [
+      1.14,
+      9.22,
+      9.14,
+      11.82
+     ],
+     "texture": "#walnut"
+    },
+    "down": {
+     "uv": [
+      3.08,
+      10.45,
+      11.08,
+      13.05
+     ],
+     "texture": "#walnut"
+    }
+   }
+  },
+  {
+   "from": [
+    4.0,
+    9.0,
+    7.0
+   ],
+   "to": [
+    12.0,
+    9.3,
+    9.0
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      0.01,
+      12.78,
+      8.01,
+      13.08
+     ],
+     "texture": "#walnut"
+    },
+    "south": {
+     "uv": [
+      6.02,
+      7.26,
+      14.02,
+      7.56
+     ],
+     "texture": "#walnut"
+    },
+    "east": {
+     "uv": [
+      6.8,
+      14.97,
+      8.8,
+      15.27
+     ],
+     "texture": "#walnut"
+    },
+    "west": {
+     "uv": [
+      9.75,
+      7.28,
+      11.75,
+      7.58
+     ],
+     "texture": "#walnut"
+    },
+    "up": {
+     "uv": [
+      6.44,
+      9.01,
+      14.44,
+      11.01
+     ],
+     "texture": "#walnut"
+    },
+    "down": {
+     "uv": [
+      2.59,
+      9.89,
+      10.59,
+      11.89
+     ],
+     "texture": "#walnut"
+    }
+   }
+  }
+ ]
+}

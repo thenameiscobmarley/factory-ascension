@@ -1,0 +1,174 @@
+{
+ "textures": {
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    7.5,
+    8.0,
+    8.6
+   ],
+   "to": [
+    8.5,
+    8.6,
+    9.6
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      10.99,
+      13.48,
+      11.99,
+      14.08
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      2.31,
+      13.94,
+      3.31,
+      14.54
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      14.94,
+      7.8,
+      15.94,
+      8.4
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      1.12,
+      14.78,
+      2.12,
+      15.38
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      3.07,
+      2.72,
+      4.07,
+      3.72
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      7.82,
+      7.27,
+      8.82,
+      8.27
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   },
+   "rotation": {
+    "axis": "x",
+    "angle": -45,
+    "origin": [
+     8.0,
+     8.0,
+     8.6
+    ]
+   }
+  },
+  {
+   "from": [
+    11.5,
+    8.0,
+    8.6
+   ],
+   "to": [
+    12.3,
+    8.6,
+    9.4
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      5.71,
+      15.14,
+      6.51,
+      15.74
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      9.47,
+      9.59,
+      10.27,
+      10.19
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      0.95,
+      9.95,
+      1.75,
+      10.55
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      8.79,
+      1.13,
+      9.59,
+      1.73
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      8.24,
+      5.59,
+      9.04,
+      6.39
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      9.27,
+      2.95,
+      10.07,
+      3.75
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   },
+   "rotation": {
+    "axis": "x",
+    "angle": -45,
+    "origin": [
+     11.9,
+     8.0,
+     8.6
+    ]
+   }
+  }
+ ]
+}

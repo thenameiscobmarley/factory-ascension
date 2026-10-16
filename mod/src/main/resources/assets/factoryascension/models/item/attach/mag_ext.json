@@ -1,0 +1,151 @@
+{
+ "textures": {
+  "steel_dark": "factoryascension:item/gun2/steel_dark",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    6.8,
+    5.0,
+    7.35
+   ],
+   "to": [
+    9.2,
+    8.0,
+    8.65
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      3.4,
+      4.82,
+      5.8,
+      7.82
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      7.56,
+      5.38,
+      9.96,
+      8.38
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      0.42,
+      1.13,
+      1.72,
+      4.13
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      13.17,
+      7.76,
+      14.47,
+      10.76
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      2.1,
+      5.03,
+      4.5,
+      6.33
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      9.37,
+      3.2,
+      11.77,
+      4.5
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    6.65,
+    4.6,
+    7.25
+   ],
+   "to": [
+    9.35,
+    5.0,
+    8.75
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      1.04,
+      7.32,
+      3.74,
+      7.72
+     ],
+     "texture": "#steel_dark"
+    },
+    "south": {
+     "uv": [
+      11.64,
+      2.85,
+      14.34,
+      3.25
+     ],
+     "texture": "#steel_dark"
+    },
+    "east": {
+     "uv": [
+      11.04,
+      13.81,
+      12.54,
+      14.21
+     ],
+     "texture": "#steel_dark"
+    },
+    "west": {
+     "uv": [
+      7.89,
+      0.14,
+      9.39,
+      0.54
+     ],
+     "texture": "#steel_dark"
+    },
+    "up": {
+     "uv": [
+      3.11,
+      4.76,
+      5.81,
+      6.26
+     ],
+     "texture": "#steel_dark"
+    },
+    "down": {
+     "uv": [
+      9.61,
+      1.98,
+      12.31,
+      3.48
+     ],
+     "texture": "#steel_dark"
+    }
+   }
+  }
+ ]
+}

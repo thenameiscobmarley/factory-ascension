@@ -57,6 +57,8 @@ public final class TarkovLayout {
         if (custom != null) return custom;
         String path = BuiltInRegistries.ITEM.getKey(item).getPath();
         if (path.endsWith("backpack")) return new int[] {3, 3};
+        if (item instanceof dev.factoryascension.gun.GunItem g) return new int[] {g.spec.gridW, g.spec.gridH};
+        if (item instanceof dev.factoryascension.gun.CartridgeItem) return new int[] {1, 1};
         if (item instanceof dev.factoryascension.item.FlareGunItem) return new int[] {2, 2};
         if (item instanceof dev.factoryascension.item.ShotgunItem) return new int[] {5, 2};
         if (item instanceof ArmorItem armor) return switch (armor.getType()) {

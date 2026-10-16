@@ -29,8 +29,17 @@ public final class ClientSetup {
             MenuScreens.register(FactoryAscension.ENGINE_MENU.get(), EngineScreen::new);
             MenuScreens.register(FactoryAscension.WORKBENCH_MENU.get(), WorkbenchScreen::new);
             MenuScreens.register(FactoryAscension.MINI_CRUSHER_MENU.get(), MiniCrusherScreen::new);
+            MenuScreens.register(FactoryAscension.WEAPONS_BENCH_MENU.get(), dev.factoryascension.client.gun.WeaponsBenchScreen::new);
             MenuScreens.<dev.factoryascension.menu.VaultMenu, VaultScreen>register(FactoryAscension.TERMINAL_MENU.get(), VaultScreen::new);
         });
+    }
+
+    /** Rounds: the case takes the round's colour, the tip its type's colour. */
+    @SubscribeEvent
+    public static void colours(net.minecraftforge.client.event.RegisterColorHandlersEvent.Item event) {
+        event.register((stack, layer) -> layer == 0 ? 0xFF000000 | dev.factoryascension.gun.CartridgeItem.colour(stack)
+            : layer == 1 ? 0xFF000000 | dev.factoryascension.gun.CartridgeItem.type(stack).tip : -1, FactoryAscension.CARTRIDGE.get());
+        event.register((stack, layer) -> layer == 0 ? 0xFF000000 | dev.factoryascension.gun.AttachmentItem.colour(stack) : -1, FactoryAscension.ATTACHMENT.get());
     }
 
     @SubscribeEvent

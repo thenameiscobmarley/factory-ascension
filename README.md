@@ -223,11 +223,51 @@ next to a gate that takes you back to where you left. Going through is free.
 
 ## The Ascension Shotgun (Full download)
 
-A pump shotgun with a full 3D model. **Hold right-click** to aim down the sights (zoom, tighter spread), **left-click** to
+A pump shotgun with a full 3D model. **Hold right-click** to aim down the sights (the sights sit on the crosshair; the
+stock stays clear of your eye) (zoom, tighter spread), **left-click** to
 fire (hold it to keep firing as fast as the pump racks), **R** to reload one shell at a time from your inventory. 8 pellets
 x 5 damage, 6 shells, up to 40 blocks, less damage past 10. The pellets are your attack: Ascended tomes go on it like on
 any weapon and your gear counts. It shatters glass. Shotgun Shells: 8 from paper, gunpowder, iron nuggets and a gold
 nugget. Every number is in `guns`.
+
+**22 more guns**, each a detailed 3D model (100 to 190 parts): pistols (P17, M1911, Hawk .50), the R357 revolver, SMGs
+(MP5, MP7, UZ-9, KV .45), rifles (AK-74M, AKM, M4A1, MK17, AUG with its built-in optic), marksman rifles (SVD, SR-25),
+bolt-action rifles (M700, Mosin-Nagant, AX .338), shotguns (Saiga-12, Double Barrel) and machine guns (PKM, M249). Same
+controls as the shotgun; automatics fire while you hold the button. Aiming puts the sights right on the crosshair; scoped
+rifles show the scope's view.
+
+- **Reloading** is real: magazines come out (their rounds go back to you) and go in, belts are fed, revolvers are loaded
+  chamber by chamber, bolt rifles round by round, and from empty you rack the first round in.
+- **Stress**: getting hurt, low health, monsters close and heavy shooting make you stressed (it calms down when it's
+  quiet). The more stressed you are, the likelier a reload goes wrong, in over 20 ways: the mag sticks and needs a second
+  tug, it slips out of your hand, you miss the mag well, grab an empty one or put it in backwards, the charging handle
+  slips, a double feed or a stovepipe needs clearing, a round drops at your feet, the bolt sticks, the cylinder won't
+  open, the belt tangles, your hands shake, or you forget to chamber a round (the first pull just clicks). Each costs time
+  and has its own motion.
+- **Animations** are made on the fly: walking (every step a little different), strafing (you lean into it), sprinting
+  (a different carry each time), landing, breathing, idle fidgets (checking the gun, re-gripping, looking it over), aim,
+  recoil, every reload step and every fumble. Nothing plays the same way twice.
+- **Rounds** (one item for every caliber): plain ones are crafted from a nugget, gunpowder and copper plus the caliber's
+  marker. Types: Regular, Hollow Point, Armor Piercing, RIP (bleeding), Snakeshot (a cloud of pellets from any gun), Slug,
+  Buckshot, Incendiary, Tracer, Explosive, Subsonic, Rubber, Flechette, Dragon's Breath, Frangible and Ender.
+
+**Weapons Workbench**: in the same style as the Tarkov inventory. Put a gun in it and:
+
+- **Modding**: twelve slots (muzzle, barrel, handguard, foregrip, optic, stock, magazine, underbarrel, tactical, grip,
+  trigger, charm) and a catalog of over 3,000 attachments: suppressors, compensators, brakes, chokes, bayonets, barrels,
+  handguards, grips, red dots, holo sights, prisms, ACOGs, variable and sniper scopes, stocks, extended and drum
+  magazines, bipods, underbarrel launchers and shotguns, lasers, lights, match triggers and auto sears, from a dozen
+  makers in several finishes and grades. Each changes the gun's numbers (shown with its cost) and shows on the gun.
+  Search the list, click INSTALL; right-click a slot to take its attachment off (you get it back as an item). A laser
+  puts a red dot where you aim, a light lets you see in the dark, a 4x or stronger optic gives a scope view.
+- **Ammo Press**: any item as the case and any item as the powder (gunpowder is the standard; TNT is a lot, sugar is
+  barely anything, a nether star is absurd; weak cases misfire), any caliber, any of the 16 types, any colour.
+
+**Jury-Rigged** (an enchanted book, crafted or found; put it on a gun at an anvil): the gun takes any attachment at the
+workbench, whatever it was made for, up to four in every slot. A sniper scope on a revolver, three suppressors, a drum
+on a double barrel, an auto sear in a bolt rifle.
+
+Every gun's numbers and recipe are in `guns.list`; fumble odds in `guns.fumbles`; the workbench in `guns.workbench`.
 
 **Flare Gun**: the same controls, one flare at a time. **R** loads a flare (R again swaps red for green). A **Red Flare**
 is a signal: a bright red star high in the sky. A **Green Flare** calls an **airdrop**: green smoke rises 8 blocks ahead

@@ -1,0 +1,198 @@
+{
+ "textures": {
+  "grip_check": "factoryascension:item/gun2/grip_check",
+  "steel_dark": "factoryascension:item/gun2/steel_dark",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    7.4,
+    4.4,
+    7.45
+   ],
+   "to": [
+    8.6,
+    8.0,
+    8.55
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      1.48,
+      10.97,
+      2.68,
+      14.57
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      14.28,
+      7.57,
+      15.48,
+      11.17
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      13.39,
+      8.88,
+      14.49,
+      12.48
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      5.16,
+      2.52,
+      6.26,
+      6.12
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      8.91,
+      8.51,
+      10.11,
+      9.61
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      1.26,
+      5.74,
+      2.46,
+      6.84
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    7.2,
+    7.6,
+    7.3
+   ],
+   "to": [
+    8.8,
+    8.0,
+    8.7
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      10.35,
+      13.09,
+      11.95,
+      13.49
+     ],
+     "texture": "#steel_dark"
+    },
+    "south": {
+     "uv": [
+      5.66,
+      3.63,
+      7.26,
+      4.03
+     ],
+     "texture": "#steel_dark"
+    },
+    "east": {
+     "uv": [
+      6.44,
+      11.11,
+      7.84,
+      11.51
+     ],
+     "texture": "#steel_dark"
+    },
+    "west": {
+     "uv": [
+      4.15,
+      8.6,
+      5.55,
+      9.0
+     ],
+     "texture": "#steel_dark"
+    },
+    "up": {
+     "uv": [
+      14.31,
+      0.26,
+      15.91,
+      1.66
+     ],
+     "texture": "#steel_dark"
+    },
+    "down": {
+     "uv": [
+      0.56,
+      4.81,
+      2.16,
+      6.21
+     ],
+     "texture": "#steel_dark"
+    }
+   }
+  },
+  {
+   "from": [
+    7.5,
+    4.8,
+    8.55
+   ],
+   "to": [
+    8.5,
+    7.4,
+    8.63
+   ],
+   "faces": {
+    "south": {
+     "uv": [
+      4.74,
+      6.1,
+      5.74,
+      8.7
+     ],
+     "texture": "#grip_check"
+    }
+   }
+  },
+  {
+   "from": [
+    7.5,
+    4.8,
+    7.37
+   ],
+   "to": [
+    8.5,
+    7.4,
+    7.45
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      0.43,
+      6.6,
+      1.43,
+      9.2
+     ],
+     "texture": "#grip_check"
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,165 @@
+{
+ "textures": {
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    6.0,
+    6.5,
+    7.45
+   ],
+   "to": [
+    9.2,
+    8.0,
+    8.55
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      4.7,
+      10.0,
+      7.9,
+      11.5
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      9.72,
+      11.44,
+      12.92,
+      12.94
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      7.42,
+      11.45,
+      8.52,
+      12.95
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      9.87,
+      2.03,
+      10.97,
+      3.53
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      4.13,
+      8.24,
+      7.33,
+      9.34
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      0.73,
+      10.08,
+      3.93,
+      11.18
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    8.2,
+    5.4,
+    7.5
+   ],
+   "to": [
+    9.2,
+    7.0,
+    8.5
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      4.78,
+      2.49,
+      5.78,
+      4.09
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      14.6,
+      0.37,
+      15.6,
+      1.97
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      3.89,
+      7.04,
+      4.89,
+      8.64
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      11.83,
+      2.0,
+      12.83,
+      3.6
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      13.31,
+      6.74,
+      14.31,
+      7.74
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      3.52,
+      4.45,
+      4.52,
+      5.45
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   },
+   "rotation": {
+    "axis": "z",
+    "angle": 45,
+    "origin": [
+     8.7,
+     6.5,
+     8.0
+    ]
+   }
+  }
+ ]
+}

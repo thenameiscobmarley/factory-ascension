@@ -90,6 +90,8 @@ minecraft {
             if (project.hasProperty('faShots') || project.hasProperty('faShotsPack')) {
                 property 'fa.devshots', project.hasProperty('faShotsPack') ? 'pack' : 'true'
                 if (project.hasProperty('faQuick')) property 'fa.quick', 'true'
+                if (project.hasProperty('faGuns')) property 'fa.guns', 'true'
+                if (project.hasProperty('faBench')) property 'fa.bench', 'true'
                 jvmArgs '-Xmx1500m'
                 args '--quickPlaySingleplayer', 'devworld', '--width', '1280', '--height', '720'
             }

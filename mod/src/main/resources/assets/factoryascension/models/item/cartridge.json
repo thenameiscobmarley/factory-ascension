@@ -1,0 +1,7 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "factoryascension:item/cartridge_case",
+  "layer1": "factoryascension:item/cartridge_tip"
+ }
+}

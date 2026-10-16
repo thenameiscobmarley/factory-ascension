@@ -464,7 +464,8 @@ public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
     /** Filter category: 1 weapons, 2 armor, 3 tools, 4 blocks, 5 food, 6 other. */
     static int category(ItemStack st) {
         var it = st.getItem();
-        if (it instanceof SwordItem || it instanceof dev.factoryascension.item.ShotgunItem || it instanceof net.minecraft.world.item.ProjectileWeaponItem
+        if (it instanceof SwordItem || it instanceof dev.factoryascension.item.ShotgunItem || it instanceof dev.factoryascension.gun.GunItem
+            || it instanceof dev.factoryascension.gun.CartridgeItem || it instanceof net.minecraft.world.item.ProjectileWeaponItem
             || it instanceof net.minecraft.world.item.TridentItem) return 1;
         if (it instanceof ArmorItem || it instanceof net.minecraft.world.item.ShieldItem || it instanceof net.minecraft.world.item.ElytraItem) return 2;
         if (it instanceof TieredItem || it instanceof net.minecraft.world.item.FishingRodItem || it instanceof net.minecraft.world.item.BucketItem) return 3;
@@ -557,7 +558,9 @@ public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
         net.minecraft.world.item.Item it = st.getItem();
         boolean diagonal = it instanceof TieredItem || it instanceof net.minecraft.world.item.ProjectileWeaponItem || it instanceof net.minecraft.world.item.FishingRodItem
             || it instanceof net.minecraft.world.item.TridentItem || it instanceof dev.factoryascension.item.ShotgunItem && !(it instanceof dev.factoryascension.item.FlareGunItem);
-        if (up[0] == up[1] || !diagonal) {
+        if (it instanceof dev.factoryascension.gun.GunItem) {
+            scale = Math.min(Math.max(pw, ph) / 16f * 0.95f, Math.min(pw, ph) / 16f * 2.2f);   // drawn level, filling its length
+        } else if (up[0] == up[1] || !diagonal) {
             scale = Math.min(pw, ph) / 16f * 0.86f;
         } else {
             angle += up[0] > up[1] ? 45 : -45;

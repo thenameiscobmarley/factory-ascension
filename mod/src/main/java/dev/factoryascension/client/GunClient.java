@@ -36,18 +36,36 @@ public final class GunClient {
     public static final KeyMapping RELOAD = new KeyMapping("key.factoryascension.reload", KeyConflictContext.IN_GAME,
         InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.categories.factoryascension");
 
+    /** The original shotgun's numbers for the shared animation (aimed: sights on the crosshair, the stock clear of your eye). */
+    public static final dev.factoryascension.gun.GunSpec SHOTGUN_ANIM = new dev.factoryascension.gun.GunSpec("shotgun", "Ascension Shotgun",
+        dev.factoryascension.gun.GunSpec.Kind.SHOTGUN, dev.factoryascension.gun.Caliber.G12).hip(0.56f, -0.52f, -0.72f).ads(-0.29f, -0.80f);
+
     private static boolean holding(Player p) {
-        return p != null && p.getMainHandItem().getItem() instanceof ShotgunItem;
+        return p != null && (p.getMainHandItem().getItem() instanceof ShotgunItem || p.getMainHandItem().getItem() instanceof dev.factoryascension.gun.GunItem);
+    }
+
+    static dev.factoryascension.gun.GunSpec animSpec(ItemStack s) {
+        dev.factoryascension.gun.GunSpec g = dev.factoryascension.gun.GunItem.spec(s);
+        return g != null ? g : SHOTGUN_ANIM;
+    }
+
+    private static boolean aimingAny(LivingEntity e) {
+        return ShotgunItem.aiming(e) || dev.factoryascension.gun.GunItem.aiming(e);
     }
 
     /** 0 (hip) .. 1 (fully aimed), eased over a few ticks. */
     private static float aimAmount(LivingEntity e, float partial) {
-        if (!ShotgunItem.aiming(e)) return 0;
+        if (!aimingAny(e)) return 0;
         float t = Math.min(1, (e.getTicksUsingItem() + partial) / 4f);
         return t * t * (3 - 2 * t);
     }
 
     public static final IClientItemExtensions EXTENSIONS = new IClientItemExtensions() {
+        @Override
+        public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            return dev.factoryascension.client.gun.GunRenderer.INSTANCE;   // only used by the guns whose item model is builtin/entity
+        }
+
         @Override
         public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack) {
             return HumanoidModel.ArmPose.CROSSBOW_HOLD;   // both hands up, shouldered
@@ -55,13 +73,13 @@ public final class GunClient {
 
         @Override
         public boolean applyForgeHandTransform(PoseStack pose, LocalPlayer player, HumanoidArm arm, ItemStack stack, float partial, float equip, float swing) {
-            int side = arm == HumanoidArm.RIGHT ? 1 : -1;
-            float aim = aimAmount(player, partial);
-            // Hip: low on the right. Aimed: centered under the eye so the sights line up with the crosshair
-            float x = side * (0.56f * (1 - aim) + 0.0f * aim);
-            float y = -0.52f * (1 - aim) + -0.36f * aim + equip * -0.6f;
-            float z = -0.72f * (1 - aim) + -0.62f * aim;
-            pose.translate(x, y, z);
+            try {
+                dev.factoryascension.client.gun.GunAnim.apply(pose, player, animSpec(stack), stack, partial, equip, arm == HumanoidArm.RIGHT ? 1 : -1);
+            } catch (Throwable err) {
+                // Never let an animation bug take the gun away: fall back to a plain hold
+                int side = arm == HumanoidArm.RIGHT ? 1 : -1;
+                pose.translate(side * 0.5f, -0.5f, -0.72f);
+            }
             return true;
         }
     };
@@ -114,20 +132,33 @@ public final class GunClient {
                 return;
             }
             if (p == null || mc.screen != null || !holding(p)) return;
+            ItemStack held = p.getMainHandItem();
             while (RELOAD.consumeClick()) FANetwork.CHANNEL.sendToServer(new FANetwork.GunAction(FANetwork.GunAction.RELOAD, false));
             boolean clicked = false;
             while (mc.options.keyAttack.consumeClick()) clicked = true;
-            if ((clicked || mc.options.keyAttack.isDown()) && !p.getCooldowns().isOnCooldown(p.getMainHandItem().getItem())) {
-                boolean aim = ShotgunItem.aiming(p);
-                FANetwork.CHANNEL.sendToServer(new FANetwork.GunAction(FANetwork.GunAction.FIRE, aim));
-                if (ShotgunItem.shells(p.getMainHandItem()) > 0) {
-                    float up = aim ? 5f : 9f;
-                    p.setXRot(p.getXRot() - up);
-                    p.setYRot(p.getYRot() + (p.getRandom().nextFloat() - 0.5f) * (aim ? 1.5f : 3f));
-                    kick += up * 0.6f;
+            dev.factoryascension.gun.GunSpec spec = dev.factoryascension.gun.GunItem.spec(held);
+            dev.factoryascension.gun.GunStats stats = dev.factoryascension.gun.GunStats.of(held);
+            boolean auto = spec == null || stats.auto;   // the original shotgun pumps as fast as you hold it
+            boolean want = clicked || (auto && mc.options.keyAttack.isDown());
+            if (want && !p.getCooldowns().isOnCooldown(held.getItem())) {
+                boolean aim = aimingAny(p);
+                boolean blocked = spec != null && (held.hasTag() && held.getTag().getInt("Bolt") > 0
+                    || dev.factoryascension.gun.GunItem.phase(held) == dev.factoryascension.gun.GunItem.OUT
+                    || (dev.factoryascension.gun.GunItem.reloading(held) && (spec.reload == dev.factoryascension.gun.GunSpec.Reload.MAG || spec.reload == dev.factoryascension.gun.GunSpec.Reload.BELT)));
+                if (!blocked) {
+                    FANetwork.CHANNEL.sendToServer(new FANetwork.GunAction(FANetwork.GunAction.FIRE, aim));
+                    boolean loaded = spec != null ? dev.factoryascension.gun.GunItem.ammo(held) > 0 || p.isCreative() : ShotgunItem.shells(held) > 0;
+                    if (loaded) {
+                        float rUp = stats != null ? stats.recoilUp : animSpec(held).recoilUp, rSide = stats != null ? stats.recoilSide : animSpec(held).recoilSide;
+                        float up = rUp * (aim ? 0.6f : 1) * (spec == null ? 1.8f : 1);
+                        p.setXRot(p.getXRot() - up);
+                        p.setYRot(p.getYRot() + (p.getRandom().nextFloat() - 0.5f) * rSide * (aim ? 1 : 2));
+                        kick += up * 0.6f;
+                        dev.factoryascension.client.gun.GunAnim.kick(rUp, rSide, aim);
+                    }
+                    // Until the server's cooldown arrives, don't send again
+                    p.getCooldowns().addCooldown(held.getItem(), spec == null ? 4 : stats.cooldown());
                 }
-                // Until the server's cooldown arrives, don't send again
-                p.getCooldowns().addCooldown(p.getMainHandItem().getItem(), 4);
             }
         }
 
@@ -141,11 +172,16 @@ public final class GunClient {
             }
         }
 
+        static float zoomOf(Player p) {
+            dev.factoryascension.gun.GunStats g = dev.factoryascension.gun.GunStats.of(p.getMainHandItem());
+            return g != null ? g.zoom : 0.25f;
+        }
+
         /** Zoom while aiming. */
         @SubscribeEvent
         public static void fov(ComputeFovModifierEvent event) {
             float aim = aimAmount(event.getPlayer(), Minecraft.getInstance().getFrameTime());
-            if (aim > 0) event.setNewFovModifier(event.getFovModifier() * (1 - 0.25f * aim));
+            if (aim > 0) event.setNewFovModifier(event.getFovModifier() * (1 - (aim > 0 ? zoomOf(event.getPlayer()) : 0.25f) * aim));
         }
     }
 }

@@ -1,0 +1,32 @@
+{
+ "textures": {
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    7.99,
+    7.99,
+    7.99
+   ],
+   "to": [
+    8.01,
+    8.01,
+    8.01
+   ],
+   "faces": {
+    "up": {
+     "uv": [
+      9.79,
+      5.63,
+      10.04,
+      5.88
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  }
+ ]
+}

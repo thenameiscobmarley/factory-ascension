@@ -15,6 +15,12 @@ if (Platform.isLoaded('factoryascension')) {
   let SG = global.FA.guns.shotgun
   $FAModConfig.setShotgun(SG.pellets, SG.pelletDamage, SG.spreadHip, SG.spreadAim, SG.range, SG.fullDamageRange, SG.falloff,
     SG.cooldownTicks, SG.capacity, SG.reloadTicks, SG.kickback, SG.breaksGlass)
+  global.FA.guns.list.forEach(g => $FAModConfig.setGun(g.id, g.damage, g.rpmScale, g.magBonus, g.spreadScale, g.rangeScale, g.recoilScale))
+  Object.keys(global.FA.guns.ammo.perCraft).forEach(c => $FAModConfig.setAmmoPerCraft(c, global.FA.guns.ammo.perCraft[c]))
+  $FAModConfig.setBench(global.FA.guns.workbench.partItem, global.FA.guns.workbench.tierItem)
+  let FU = global.FA.guns.fumbles
+  $FAModConfig.setFumbles(FU.enabled, FU.base, FU.stress)
+  $FAModConfig.explosiveBreaksBlocks = global.FA.guns.explosiveRoundsBreakBlocks
   let FG = global.FA.guns.flareGun
   $FAModConfig.setFlareGun(FG.cooldownTicks, FG.speed, Math.round(FG.airdropSeconds * 20), FG.airdropHeight, FG.airdropLoot)
   let INV = global.FA.inventory

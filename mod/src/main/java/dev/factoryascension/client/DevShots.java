@@ -113,6 +113,8 @@ public final class DevShots {
             switch (step++) {
                 case 0 -> { for (String c : SCENE) cmd(mc, c); FAClientConfig.SAFE_MODE.set(false); wait = 100;
                     if (Boolean.getBoolean("fa.quick")) step = 200;   // only the inventory shots
+                    if (Boolean.getBoolean("fa.guns")) step = 300;    // only the gun shots
+                    if (Boolean.getBoolean("fa.bench")) step = 400;   // only the workbench and attachment shots
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -181,6 +183,63 @@ public final class DevShots {
                     for (int i = 0; i < 27; i++) if (mc.player.getInventory().items.get(9 + i).is(net.minecraft.world.item.Items.IRON_CHESTPLATE)) s = i;
                     log("placed: carried " + mc.player.containerMenu.getCarried() + ", chestplate slot " + s + " at " + (s < 0 ? "-" : Integer.toHexString(dev.factoryascension.client.tarkov.TarkovClient.LAYOUT.pos[s])));
                     shot(mc, "inv_placed"); mc.options.guiScale().set(2); mc.resizeDisplay(); step = 208; wait = 40; }
+                // Guns in first person: hip, aimed (sights on the crosshair, stock clear of the eye), reloading, walking
+                case 300 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "tp @a -2 -60 -6 0 0"); cmd(mc, "clear @a");
+                    cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:m4a1");
+                    cmd(mc, "give @a factoryascension:cartridge{Cal:\"r556\",Type:\"REGULAR\"} 64");
+                    mc.gui.getChat().clearMessages(false); mc.getToasts().clear(); wait = 60; }
+                case 301 -> { shot(mc, "gun_m4_hip"); mc.options.keyUse.setDown(true); wait = 40; }
+                case 302 -> { shot(mc, "gun_m4_ads"); mc.options.keyUse.setDown(false);
+                    dev.factoryascension.network.FANetwork.CHANNEL.sendToServer(new dev.factoryascension.network.FANetwork.GunAction(1, false)); wait = 14; }
+                case 303 -> { log("reload phase " + dev.factoryascension.gun.GunItem.phase(mc.player.getMainHandItem()) + " at " + dev.factoryascension.gun.GunItem.phaseProgress(mc.player.getMainHandItem()));
+                    shot(mc, "gun_m4_reload"); wait = 60; }
+                case 304 -> { log("m4 after reload: " + dev.factoryascension.gun.GunItem.ammo(mc.player.getMainHandItem()));
+                    cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:ak74"); mc.options.keyUse.setDown(true); wait = 50; }
+                case 305 -> { shot(mc, "gun_ak_ads"); cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:p17"); wait = 50; }
+                case 306 -> { shot(mc, "gun_p17_ads"); cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:ax338"); wait = 50; }
+                case 307 -> { shot(mc, "gun_ax338_ads"); cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:shotgun"); wait = 50; }
+                case 308 -> { shot(mc, "gun_shotgun_ads"); mc.options.keyUse.setDown(false);
+                    cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:mk17"); mc.options.keyUp.setDown(true); wait = 30; }
+                case 309 -> { shot(mc, "gun_walk"); mc.options.keyUp.setDown(false); mc.options.keyLeft.setDown(true); wait = 20; }
+                case 310 -> { shot(mc, "gun_strafe"); mc.options.keyLeft.setDown(false); mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT); wait = 30; }
+                case 311 -> { shot(mc, "gun_third"); cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:p17"); wait = 30; }
+                case 312 -> { shot(mc, "gun_third_pistol"); mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                // Attachments on a gun, and the Weapons Workbench
+                case 400 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "tp @a -2 -60 -6 0 0"); cmd(mc, "clear @a");
+                    var server = mc.getSingleplayerServer();
+                    server.execute(() -> {
+                        var sp = server.getPlayerList().getPlayers().get(0);
+                        net.minecraft.world.item.ItemStack gun = new net.minecraft.world.item.ItemStack(dev.factoryascension.FactoryAscension.GUNS.get("m4a1").get());
+                        java.util.List<String> ids = new java.util.ArrayList<>();
+                        for (String fam : new String[] {"suppressor_long", "acog", "grip_vertical", "mag_drum", "combo_unit", "stock_precision"})
+                            for (var a : dev.factoryascension.gun.Attachments.ALL) if (a.family.equals(fam) && a.tier >= 2) { ids.add(a.id); break; }
+                        dev.factoryascension.gun.GunStats.setIds(gun, ids);
+                        sp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, gun);
+                    });
+                    mc.gui.getChat().clearMessages(false); mc.getToasts().clear(); wait = 60; }
+                case 401 -> { log("attached: " + dev.factoryascension.gun.GunStats.ids(mc.player.getMainHandItem()));
+                    shot(mc, "att_hip"); mc.options.keyUse.setDown(true); wait = 40; }
+                case 402 -> { shot(mc, "att_ads"); mc.options.keyUse.setDown(false);
+                    var server = mc.getSingleplayerServer();
+                    server.execute(() -> {
+                        var sp = server.getPlayerList().getPlayers().get(0);
+                        var pos = sp.blockPosition().north(2);
+                        sp.level().setBlockAndUpdate(pos, dev.factoryascension.FactoryAscension.WEAPONS_BENCH.get().defaultBlockState());
+                        net.minecraft.world.item.ItemStack gun = sp.getMainHandItem().copy();
+                        sp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, net.minecraft.world.item.ItemStack.EMPTY);
+                        sp.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_INGOT, 64));
+                        net.minecraftforge.network.NetworkHooks.openScreen(sp, new net.minecraft.world.SimpleMenuProvider(
+                            (id, inv, pl) -> { var m = new dev.factoryascension.gun.WeaponsBenchMenu(id, inv, pos); m.bench.setItem(0, gun);
+                                m.bench.setItem(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SLIME_BALL, 8)); m.bench.setItem(2, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SUGAR, 8)); return m; },
+                            net.minecraft.network.chat.Component.literal("Weapons Workbench")), pos);
+                    });
+                    wait = 40; }
+                case 403 -> { log("screen: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()));
+                    if (mc.screen instanceof dev.factoryascension.client.gun.WeaponsBenchScreen b) b.devTab(0, dev.factoryascension.gun.Attachments.Slot.OPTIC);
+                    wait = 30; }
+                case 404 -> { shot(mc, "bench_modding");
+                    if (mc.screen instanceof dev.factoryascension.client.gun.WeaponsBenchScreen b) b.devTab(1, null); wait = 30; }
+                case 405 -> { shot(mc, "bench_press"); mc.setScreen(null); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }

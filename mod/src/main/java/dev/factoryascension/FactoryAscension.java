@@ -77,6 +77,8 @@ public class FactoryAscension {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+    public static final DeferredRegister<net.minecraft.world.item.enchantment.Enchantment> ENCHANTMENTS = DeferredRegister.create(ForgeRegistries.ENCHANTMENTS, MODID);
+    public static final RegistryObject<net.minecraft.world.item.enchantment.Enchantment> JURY_RIGGED = ENCHANTMENTS.register("jury_rigged", dev.factoryascension.gun.JuryRiggedEnchantment::new);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     public static final DeferredRegister<net.minecraft.core.particles.ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MODID);
     /** Only so its textures (particles/soft_smoke.json) go into the particle atlas; FxParticles draws the smoke itself. */
@@ -145,6 +147,16 @@ public class FactoryAscension {
     public static final RegistryObject<Item> FLARE_GUN = ITEMS.register("flare_gun", () -> new dev.factoryascension.item.FlareGunItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> FLARE_RED = ITEMS.register("flare_red", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final RegistryObject<Item> FLARE_GREEN = ITEMS.register("flare_green", () -> new Item(new Item.Properties().stacksTo(16)));
+    // Guns (gun/): one item per GunSpec, and one cartridge item for every caliber, type and making
+    public static final RegistryObject<Item> CARTRIDGE = ITEMS.register("cartridge", () -> new dev.factoryascension.gun.CartridgeItem(new Item.Properties().stacksTo(64)));
+    public static final java.util.Map<String, RegistryObject<Item>> GUNS = new java.util.LinkedHashMap<>();
+    static {
+        for (dev.factoryascension.gun.GunSpec g : dev.factoryascension.gun.Guns.ALL)
+            GUNS.put(g.id, ITEMS.register(g.id, () -> new dev.factoryascension.gun.GunItem(g, new Item.Properties().stacksTo(1))));
+    }
+    public static final RegistryObject<Item> ATTACHMENT = ITEMS.register("attachment", () -> new dev.factoryascension.gun.AttachmentItem(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Block> WEAPONS_BENCH = block("weapons_workbench", () -> new dev.factoryascension.gun.WeaponsBenchBlock(
+        BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.5f, 6f).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion()));
     // The duffel bag you see in your hands when the Tarkov inventory opens (only drawn, never given)
     public static final RegistryObject<Item> DUFFEL_BAG = ITEMS.register("duffel_bag", () -> new Item(new Item.Properties().stacksTo(1)));
     // Modular Engine: early-game parts (iron-tier, mine with any pickaxe)
@@ -179,6 +191,8 @@ public class FactoryAscension {
     public static final RegistryObject<BlockEntityType<BurnerBlockEntity>> BURNER_BE = BLOCK_ENTITIES.register("engine_burner",
         () -> BlockEntityType.Builder.of(BurnerBlockEntity::new, BURNER.get()).build(null));
 
+    public static final RegistryObject<MenuType<dev.factoryascension.gun.WeaponsBenchMenu>> WEAPONS_BENCH_MENU = MENUS.register("weapons_workbench",
+        () -> IForgeMenuType.create((id, inv, buf) -> new dev.factoryascension.gun.WeaponsBenchMenu(id, inv, buf.readBlockPos())));
     public static final RegistryObject<MenuType<VaultMenu>> VAULT_MENU = MENUS.register("ascension_vault",
         () -> IForgeMenuType.create((id, inv, buf) -> new VaultMenu(id, inv, buf.readBlockPos())));
     public static final RegistryObject<MenuType<BinderMenu>> BINDER_MENU = MENUS.register("card_binder",
@@ -227,6 +241,10 @@ public class FactoryAscension {
             out.accept(FLARE_GUN.get());
             out.accept(FLARE_RED.get());
             out.accept(FLARE_GREEN.get());
+            out.accept(WEAPONS_BENCH.get());
+            GUNS.values().forEach(g -> out.accept(g.get()));
+            for (dev.factoryascension.gun.Caliber c : dev.factoryascension.gun.Caliber.values())
+                out.accept(dev.factoryascension.gun.CartridgeItem.standard(c, dev.factoryascension.gun.AmmoType.REGULAR, 1));
             out.accept(ENGINE_CORE.get());
             out.accept(COIL.get());
             out.accept(GEARBOX.get());
@@ -250,6 +268,7 @@ public class FactoryAscension {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, dev.factoryascension.client.FAClientConfig.SPEC);
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, FACommonConfig.SPEC);
+        dev.factoryascension.gun.GunGeometry.apply();   // where each gun is held when aimed (from its model)
         FAMobs.register(bus);   // first: its spawn eggs go into ITEMS before ITEMS is registered
         if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks"))
             dev.factoryascension.compat.SophisticatedBackpacks.register(BLOCKS, ITEMS, BACKPACKS);
@@ -257,6 +276,7 @@ public class FactoryAscension {
         dev.factoryascension.worldgen.FAStructures.register(bus);
         BLOCKS.register(bus);
         ITEMS.register(bus);
+        ENCHANTMENTS.register(bus);
         BLOCK_ENTITIES.register(bus);
         MENUS.register(bus);
         TABS.register(bus);

@@ -1359,6 +1359,125 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
         level.getBlock(pos).set('minecraft:air')
       }))
     })
+    // Guns: every kind of reload fills the gun from rounds in the inventory; fumbles cost time but the reload still
+    // finishes; a shot hits and uses a round; round types do their thing (RIP bleeds, incendiary burns, snakeshot spreads)
+    if (Platform.isLoaded('factoryascension')) attempt('guns', () => {
+      let $Gun = Java.loadClass('dev.factoryascension.gun.GunItem')
+      let $Cart = Java.loadClass('dev.factoryascension.gun.CartridgeItem')
+      let $Cal = Java.loadClass('dev.factoryascension.gun.Caliber')
+      let $Type = Java.loadClass('dev.factoryascension.gun.AmmoType')
+      let inv = player.getInventory()
+      let clearInv = () => { for (let i = 0; i < 36; i++) inv.setItem(i, Item.of('minecraft:air')) }
+      let reloadFully = (gun) => {
+        $Gun.startReload(player, gun)
+        let n = 0
+        while ($Gun.reloading(gun) && n < 2000) { $Gun.tickReload(player, gun); n++ }
+        return n
+      }
+      let results = []
+      $Gun.forceFumbleChance = 0
+      ;[['m4a1', 'R556'], ['mosin', 'R762R'], ['r357', 'R357'], ['double_barrel', 'G12'], ['pkm', 'R762R'], ['saiga12', 'G12']].forEach(pair => {
+        clearInv()
+        let gun = Item.of('factoryascension:' + pair[0])
+        player.setItemInHand('main_hand', gun)
+        let held = player.getMainHandItem()
+        inv.setItem(20, $Cart.standard($Cal[pair[1]], $Type.REGULAR, 64))
+        inv.setItem(21, $Cart.standard($Cal[pair[1]], $Type.REGULAR, 64))
+        let ticks = reloadFully(held)
+        let mag = held.getItem().spec.mag
+        let left = inv.getItem(20).getCount() + inv.getItem(21).getCount()
+        results.push(pair[0] + ' ' + $Gun.ammo(held) + '/' + mag + ' in ' + ticks + 't, ' + (128 - left) + ' used')
+        if ($Gun.ammo(held) != mag || 128 - left != mag) results.push('BAD')
+      })
+      check('Guns reload: magazine, bolt with clips, cylinder, break-action, belt and shotgun box mag all fill from the rounds you carry (' + results.join('; ') + ')',
+        results.indexOf('BAD') < 0, results.join('; '))
+      // Fumbles forced on: the reload still finishes (or leaves the round unchambered), and says what went wrong
+      clearInv()
+      player.setItemInHand('main_hand', Item.of('factoryascension:m4a1'))
+      let fheld = player.getMainHandItem()
+      inv.setItem(20, $Cart.standard($Cal.R556, $Type.REGULAR, 64))
+      $Gun.forceFumbleChance = 1
+      let fticks = reloadFully(fheld)
+      $Gun.forceFumbleChance = 0
+      let fumbles = []
+      $Gun.lastFumbles.forEach(f => fumbles.push(String(f.name())))
+      let noCh = fheld.nbt.getBoolean('NoCh')
+      check('Reload fumbles: with every step going wrong, the M4 still reloads (' + fticks + ' ticks; ' + fumbles.join(', ') + (noCh ? '; not chambered' : '') + ')',
+        fumbles.length >= 1 && $Gun.ammo(fheld) == 30 && !$Gun.reloading(fheld) && fticks < 600, fumbles.join(',') + ' ' + $Gun.ammo(fheld) + ' ' + fticks)
+      // Firing at a zombie with special rounds
+      let shootAt = (id, cal, type) => {
+        clearInv()
+        player.setPositionAndRotation(X + 0.5, Y, Z - 30 + 0.5, -90, 0)
+        player.setRotation(-90, 0)
+        let dir = player.getViewVector(1)
+        let zx = X + 0.5 + dir.x() * 3, zz = Z - 30 + 0.5 + dir.z() * 3
+        let z = spawn('minecraft:zombie', zx, Y, zz)
+        ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => z.getPersistentData().remove(k))
+        z.setCustomName(null)
+        z.setNoAi(true)
+        z.getAttribute($STAttributes.MAX_HEALTH).setBaseValue(400)
+        z.setHealth(400)
+        player.setItemInHand('main_hand', Item.of('factoryascension:' + id))
+        let g = player.getMainHandItem()
+        inv.setItem(20, $Cart.standard($Cal[cal], $Type[type], 64))
+        reloadFully(g)
+        let before = $Gun.ammo(g)
+        let hits = 0
+        for (let i = 0; i < 4 && hits == 0; i++) {
+          player.getCooldowns().removeCooldown(g.getItem())
+          g.nbt.putInt('Bolt', 0)
+          $Gun.fire(player, true)
+          hits += $Gun.lastHits
+        }
+        let out = { hits: hits, used: before - $Gun.ammo(g), pellets: $Gun.lastPellets, wither: z.hasEffect($STEffects.WITHER), fire: z.getRemainingFireTicks() > 0,
+          hp: z.getHealth(), result: String($Gun.lastResult) }
+        z.discard()
+        return out
+      }
+      let wall = place(X + 4, Y, Z - 30, 'minecraft:stone')
+      for (let w = -1; w <= 1; w++) for (let h = 0; h <= 2; h++) place(X + 6, Y + h, Z - 30 + w, 'minecraft:stone')
+      let fmj = shootAt('m4a1', 'R556', 'REGULAR')
+      let rip = shootAt('ak74', 'R545', 'RIP')
+      let inc = shootAt('akm', 'R762S', 'INCENDIARY')
+      let snake = shootAt('p17', 'P9', 'SNAKESHOT')
+      level.getBlock(wall).set('minecraft:air')
+      check('Shooting: an M4 hits the zombie and uses a round (' + fmj.hits + ' hit, ' + fmj.used + ' used, ' + fmj.hp.toFixed(0) + ' health left)',
+        fmj.hits >= 1 && fmj.used >= 1 && fmj.hp < 400, JSON.stringify(fmj))
+      check('Round types: RIP makes it bleed, incendiary sets it on fire, snakeshot fires a cloud of ' + snake.pellets + ' pellets from a pistol',
+        rip.wither && inc.fire && snake.pellets == 9, JSON.stringify([rip, inc, snake]))
+      // Weapons Workbench: an attachment that fits goes on (and costs its parts), one that doesn't is refused,
+      // a Jury-Rigged gun takes anything (three suppressors, a drum on a revolver), and the numbers change
+      let $Bench = Java.loadClass('dev.factoryascension.gun.Bench')
+      let $Atts = Java.loadClass('dev.factoryascension.gun.Attachments')
+      let $Stats = Java.loadClass('dev.factoryascension.gun.GunStats')
+      let pick = (family, slot) => { let found = null; $Atts.ALL.forEach(a => { if (!found && String(a.family) == family) found = a }); return found }
+      clearInv()
+      inv.setItem(20, Item.of('minecraft:iron_ingot', 64))
+      inv.setItem(21, Item.of('kubejs:ascendite_ingot', 64))
+      let m4 = Item.of('factoryascension:m4a1')
+      let drum = pick('mag_drum'), choke = pick('choke'), supp = pick('suppressor_long')
+      $Bench.install(player, m4, drum.id)
+      let magAfter = $Stats.of(m4).mag
+      let ironLeft = inv.getItem(20).getCount()
+      $Bench.install(player, m4, choke.id)
+      let afterChoke = $Stats.ids(m4).size()
+      check('Weapons Workbench: a drum magazine goes on an M4 (' + magAfter + ' rounds, cost ' + (64 - ironLeft) + ' iron) and a shotgun choke is refused (' + afterChoke + ' on it)',
+        magAfter == 75 && ironLeft < 64 && afterChoke == 1, magAfter + ' / ' + ironLeft + ' / ' + afterChoke)
+      let rev = Item.of('factoryascension:r357').enchant('factoryascension:jury_rigged', 1)
+      ;[supp, supp, supp, drum, pick('sniper_scope'), pick('auto_sear')].forEach(a => $Bench.install(player, rev, a.id))
+      let rs = $Stats.of(rev)
+      check('Jury-Rigged: a revolver takes three suppressors, a drum, a sniper scope and an auto sear (' + $Stats.ids(rev).size() + ' on, ' + rs.mag + ' rounds, full auto ' + rs.auto + ', loudness ' + rs.sound.toFixed(3) + ')',
+        $Stats.ids(rev).size() == 6 && rs.auto && rs.mag == 15 && rs.sound < 0.05, $Stats.ids(rev).size() + ' ' + rs.mag + ' ' + rs.auto + ' ' + rs.sound)
+      // Ammo Press: rounds from a slime ball case and sugar for powder, RIP type, pink
+      let $Press = Java.loadClass('dev.factoryascension.gun.AmmoPress')
+      let made = $Press.press($Cal.R556, $Type.RIP, Item.of('minecraft:sugar'), Item.of('minecraft:slime_ball'), 0xE060A0)
+      let mnbt = made.nbt
+      check('Ammo Press: sugar in a slime ball case makes ' + made.getCount() + ' pink RIP 5.56 rounds (power ' + mnbt.getFloat('Power').toFixed(2) + ', reliability ' + mnbt.getFloat('Rel').toFixed(2) + ')',
+        made.getCount() == global.FA.guns.ammo.perCraft.r556 && String(mnbt.getString('Type')) == 'RIP' && mnbt.getInt('Color') == 0xE060A0 && mnbt.getFloat('Power') < 0.5 && mnbt.getFloat('Rel') < 0.7,
+        String(mnbt))
+      clearInv()
+      player.setItemInHand('main_hand', Item.of('minecraft:air'))
+    })
     // Safety net: an item flung at 200 blocks a tick is slowed before it can stall the server
     attempt('speed cap', () => {
       let fast = level.createEntity('minecraft:item')

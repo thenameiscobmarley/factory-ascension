@@ -1,0 +1,337 @@
+{
+ "textures": {
+  "lens": "factoryascension:item/gun2/lens",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    6.0,
+    8.0,
+    7.15
+   ],
+   "to": [
+    10.0,
+    8.9,
+    8.85
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      3.75,
+      13.34,
+      7.75,
+      14.24
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      7.67,
+      9.37,
+      11.67,
+      10.27
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      3.77,
+      14.75,
+      5.47,
+      15.65
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      14.3,
+      11.07,
+      16.0,
+      11.97
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      9.4,
+      1.71,
+      13.4,
+      3.41
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      8.43,
+      11.28,
+      12.43,
+      12.98
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    8.4,
+    8.9,
+    7.15
+   ],
+   "to": [
+    10.0,
+    10.4,
+    7.35
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      8.28,
+      5.01,
+      9.88,
+      6.51
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      2.98,
+      9.75,
+      4.58,
+      11.25
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      12.44,
+      0.59,
+      12.69,
+      2.09
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      5.87,
+      5.82,
+      6.12,
+      7.32
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      13.72,
+      10.52,
+      15.32,
+      10.77
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      3.11,
+      1.96,
+      4.71,
+      2.21
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    8.4,
+    8.9,
+    8.65
+   ],
+   "to": [
+    10.0,
+    10.4,
+    8.85
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      12.52,
+      1.13,
+      14.12,
+      2.63
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      11.98,
+      13.72,
+      13.58,
+      15.22
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      2.18,
+      3.37,
+      2.43,
+      4.87
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      12.94,
+      7.04,
+      13.19,
+      8.54
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      2.55,
+      1.8,
+      4.15,
+      2.05
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      9.21,
+      7.88,
+      10.81,
+      8.13
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    8.4,
+    10.2,
+    7.15
+   ],
+   "to": [
+    10.0,
+    10.45,
+    8.85
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      10.74,
+      6.88,
+      12.34,
+      7.13
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      3.73,
+      2.87,
+      5.33,
+      3.12
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      4.27,
+      10.54,
+      5.97,
+      10.79
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      11.31,
+      6.12,
+      13.01,
+      6.37
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      10.62,
+      5.25,
+      12.22,
+      6.95
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      1.44,
+      11.69,
+      3.04,
+      13.39
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    9.0,
+    8.95,
+    7.35
+   ],
+   "to": [
+    9.02,
+    10.2,
+    8.65
+   ],
+   "faces": {
+    "east": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#lens"
+    },
+    "west": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#lens"
+    }
+   }
+  }
+ ]
+}

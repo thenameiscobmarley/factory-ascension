@@ -157,7 +157,7 @@ def octa(x0, x1, cy, cz, r, tex):
 def model():
     Z0, Z1 = 7.0, 9.0          # body width
     els = []
-    stock_rot = ("z", -22.5, [6.0, 9.4, 8])
+    stock_rot = ("z", 22.5, [6.0, 9.4, 8])   # the stock drops toward the shoulder (a negative turn raised it into your eye when aiming)
     # Butt: a stock that tapers from the wrist to the butt and drops toward the shoulder (all turned together),
     # its comb on top, a rubber recoil pad at the end
     for i, (x0, x1) in enumerate(((3.2, 6.2), (1.2, 3.2), (-0.8, 1.2), (-2.8, -0.8), (-4.6, -2.8))):
@@ -212,8 +212,8 @@ def model():
             "firstperson_lefthand": {"rotation": [0, 90, 0], "translation": [0, 2.0, 0], "scale": [0.7, 0.7, 0.7]},
             # Third person, in the two-handed crossbow pose: worked out from vanilla's crossbow transform
             # ([-90, 0, -60] on a sprite drawn at 45 degrees), so the muzzle points down the arms and the top faces up
-            "thirdperson_righthand": {"rotation": [-90, 0, -15], "translation": [0, 0.5, -1.5], "scale": [0.6, 0.6, 0.6]},
-            "thirdperson_lefthand": {"rotation": [-90, 0, -15], "translation": [0, 0.5, -1.5], "scale": [0.6, 0.6, 0.6]},
+            "thirdperson_righthand": {"rotation": [0, 90, 0], "translation": [0, 2.5, 1.0], "scale": [0.6, 0.6, 0.6]},
+            "thirdperson_lefthand": {"rotation": [0, 90, 0], "translation": [0, 2.5, 1.0], "scale": [0.6, 0.6, 0.6]},
             "head": {"rotation": [0, 90, 0], "translation": [0, 8, 0], "scale": [0.6, 0.6, 0.6]},
         },
     }

@@ -1,0 +1,341 @@
+{
+ "textures": {
+  "bore": "factoryascension:item/gun2/bore",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    5.0,
+    7.35,
+    7.35
+   ],
+   "to": [
+    9.5,
+    8.65,
+    8.65
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      8.94,
+      8.44,
+      13.44,
+      9.74
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      10.26,
+      12.85,
+      14.76,
+      14.15
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      7.94,
+      13.92,
+      9.24,
+      15.22
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      8.5,
+      13.12,
+      9.8,
+      14.42
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      2.01,
+      9.58,
+      6.51,
+      10.88
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      7.88,
+      9.77,
+      12.38,
+      11.07
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    5.0,
+    7.35,
+    7.35
+   ],
+   "to": [
+    9.5,
+    8.65,
+    8.65
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      4.33,
+      11.51,
+      8.83,
+      12.81
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      1.6,
+      10.28,
+      6.1,
+      11.58
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      8.37,
+      2.13,
+      12.87,
+      3.43
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      10.99,
+      1.35,
+      15.49,
+      2.65
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   },
+   "rotation": {
+    "axis": "x",
+    "angle": 22.5,
+    "origin": [
+     5.0,
+     8.0,
+     8.0
+    ]
+   }
+  },
+  {
+   "from": [
+    5.0,
+    7.35,
+    7.35
+   ],
+   "to": [
+    9.5,
+    8.65,
+    8.65
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      6.19,
+      10.79,
+      10.69,
+      12.09
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      1.32,
+      8.67,
+      5.82,
+      9.97
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      6.07,
+      8.12,
+      10.57,
+      9.42
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      5.75,
+      7.18,
+      10.25,
+      8.48
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   },
+   "rotation": {
+    "axis": "x",
+    "angle": 45,
+    "origin": [
+     5.0,
+     8.0,
+     8.0
+    ]
+   }
+  },
+  {
+   "from": [
+    5.0,
+    7.35,
+    7.35
+   ],
+   "to": [
+    9.5,
+    8.65,
+    8.65
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      4.78,
+      3.62,
+      9.28,
+      4.92
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      3.29,
+      5.33,
+      7.79,
+      6.63
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      7.7,
+      10.9,
+      12.2,
+      12.2
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      3.18,
+      9.61,
+      7.68,
+      10.91
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   },
+   "rotation": {
+    "axis": "x",
+    "angle": -22.5,
+    "origin": [
+     5.0,
+     8.0,
+     8.0
+    ]
+   }
+  },
+  {
+   "from": [
+    5.4,
+    8.62,
+    7.5
+   ],
+   "to": [
+    9.2,
+    8.68,
+    7.7
+   ],
+   "faces": {
+    "up": {
+     "uv": [
+      11.97,
+      10.57,
+      15.77,
+      10.82
+     ],
+     "texture": "#bore"
+    }
+   }
+  },
+  {
+   "from": [
+    5.4,
+    8.62,
+    7.9
+   ],
+   "to": [
+    9.2,
+    8.68,
+    8.1
+   ],
+   "faces": {
+    "up": {
+     "uv": [
+      8.09,
+      2.61,
+      11.89,
+      2.86
+     ],
+     "texture": "#bore"
+    }
+   }
+  },
+  {
+   "from": [
+    5.4,
+    8.62,
+    8.3
+   ],
+   "to": [
+    9.2,
+    8.68,
+    8.5
+   ],
+   "faces": {
+    "up": {
+     "uv": [
+      0.66,
+      14.85,
+      4.46,
+      15.1
+     ],
+     "texture": "#bore"
+    }
+   }
+  }
+ ]
+}

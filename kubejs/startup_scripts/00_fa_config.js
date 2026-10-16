@@ -1267,6 +1267,74 @@ global.FA = {
     // 8 shells: paper, gunpowder, iron nuggets and a gold nugget for the head
     shells: [[' P ', 'GNG', ' U '], { P: 'minecraft:paper', G: 'minecraft:gunpowder', N: 'minecraft:iron_nugget', U: 'minecraft:gold_nugget' }],
     shellsPerCraft: 8,
+    // More guns (Full download): the controls are the shotgun's. Each one's base numbers are in the mod (gun/Guns.java);
+    // these scale them: damage (x), rpmScale (fire rate x), magBonus (+ rounds), spreadScale, rangeScale, recoilScale.
+    // Rounds: crafted plain (ammo below) or made at the Weapons Workbench from any items (type, propellant, case, colour).
+    list: [
+      { id: 'm1911', name: "M1911", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A hundred years old and still hits like a door.",
+        recipe: [["II ", "CG ", "  B"], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'G': 'minecraft:iron_nugget', 'B': 'create:fluid_pipe'}] },
+      { id: 'p17', name: "P17 Pistol", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Polymer, boring, never jams. Mostly.",
+        recipe: [["II ", "CG ", "  B"], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'G': 'minecraft:iron_nugget', 'B': 'create:fluid_pipe'}] },
+      { id: 'hawk50', name: "Hawk .50", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A hand cannon. Mind your wrists.",
+        recipe: [["II ", "CG ", "  B"], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'G': 'minecraft:iron_nugget', 'B': 'create:fluid_pipe'}] },
+      { id: 'r357', name: "R357 Revolver", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Six chances. Reloads one chamber at a time.",
+        recipe: [["IIB", "CG ", "W  "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'G': 'minecraft:iron_nugget', 'B': 'create:fluid_pipe', 'W': 'minecraft:spruce_planks'}] },
+      { id: 'mp5', name: "MP5 SMG", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Smooth, accurate, and pleasant to hold. The classic.",
+        recipe: [["IIB", "CG ", "P  "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'G': 'minecraft:iron_nugget', 'B': 'create:fluid_pipe', 'P': 'minecraft:piston'}] },
+      { id: 'mp7', name: "MP7 PDW", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Tiny rounds, very fast, goes straight through armor.",
+        recipe: [["IIB", "CG ", "P  "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'G': 'minecraft:iron_nugget', 'B': 'create:fluid_pipe', 'P': 'minecraft:piston'}] },
+      { id: 'uz9', name: "UZ-9 SMG", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A box that sprays. Aim is a suggestion.",
+        recipe: [["IIB", "CG ", "P  "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'G': 'minecraft:iron_nugget', 'B': 'create:fluid_pipe', 'P': 'minecraft:piston'}] },
+      { id: 'kv45', name: "KV .45 SMG", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The recoil goes down instead of up. Empties itself in a second.",
+        recipe: [["IIB", "CG ", "P  "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'G': 'minecraft:iron_nugget', 'B': 'create:fluid_pipe', 'P': 'minecraft:piston'}] },
+      { id: 'ak74', name: "AK-74M", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Light recoil, cheap rounds, works in mud.",
+        recipe: [["  B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston'}] },
+      { id: 'akm', name: "AKM", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The AK everyone knows. Hits hard, kicks harder.",
+        recipe: [["  B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston'}] },
+      { id: 'm4a1', name: "M4A1", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Modular, flat-shooting, everywhere.",
+        recipe: [["  B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston'}] },
+      { id: 'mk17', name: "MK17 Battle Rifle", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A full-power rifle round on full auto. Brace yourself.",
+        recipe: [["  B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston'}] },
+      { id: 'aug', name: "AUG A3", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A bullpup: the magazine sits behind the grip. Built-in optic.",
+        recipe: [["  B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston'}] },
+      { id: 'svd', name: "SVD Dragunov", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A long, thin, semi-automatic marksman rifle with a classic scope.",
+        recipe: [["G B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston', 'G': 'minecraft:spyglass'}] },
+      { id: 'sr25', name: "SR-25 DMR", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "An AR built for precision at range.",
+        recipe: [["G B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston', 'G': 'minecraft:spyglass'}] },
+      { id: 'm700', name: "M700 Bolt Rifle", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Bolt action. Work the bolt after every shot. Loads round by round.",
+        recipe: [["G B", "ICB", "SV "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'V': 'kubejs:ascension_core', 'G': 'minecraft:spyglass'}] },
+      { id: 'mosin', name: "Mosin-Nagant", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A century-old bolt rifle. Long, heavy, and it still works.",
+        recipe: [["G B", "ICB", "SV "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'V': 'kubejs:ascension_core', 'G': 'minecraft:spyglass'}] },
+      { id: 'ax338', name: "AX .338", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The long-range sniper. One shot, one problem solved.",
+        recipe: [["G B", "ICB", "SV "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'V': 'kubejs:ascension_core', 'G': 'minecraft:spyglass'}] },
+      { id: 'saiga12', name: "Saiga-12", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A semi-automatic shotgun with a box magazine.",
+        recipe: [["  B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston'}] },
+      { id: 'double_barrel', name: "Double Barrel", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Two barrels, both at once if you're quick.",
+        recipe: [["  B", "ICB", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston'}] },
+      { id: 'pkm', name: "PKM", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A hundred-round belt of full-power rifle rounds.",
+        recipe: [["BBB", "ICV", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston', 'V': 'kubejs:ascension_core'}] },
+      { id: 'm249', name: "M249 SAW", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A belt-fed 5.56 that never stops.",
+        recipe: [["BBB", "ICV", "SP "], {'I': 'minecraft:iron_ingot', 'C': 'kubejs:ascendite_ingot', 'B': 'create:fluid_pipe', 'S': 'minecraft:spruce_log', 'P': 'minecraft:piston', 'V': 'kubejs:ascension_core'}] }
+    ],
+    // Plain rounds: a nugget (the bullet) over gunpowder over the case's copper, with the caliber's marker item to the
+    // right of the bullet (9x19mm has none). Makes `perCraft[caliber]`.
+    ammo: {
+      recipe: { N: 'minecraft:iron_nugget', G: 'minecraft:gunpowder', C: 'minecraft:copper_ingot' },
+      markers: { p9: false, p45: 'minecraft:gold_nugget', p50: 'minecraft:gold_ingot', r357: 'minecraft:redstone', p46: 'minecraft:quartz',
+        r545: 'minecraft:flint', r556: 'minecraft:iron_ingot', r762s: 'minecraft:coal', r762n: 'minecraft:charcoal', r762r: 'minecraft:clay_ball',
+        r338: 'minecraft:diamond', g12: 'minecraft:paper' },
+      perCraft: { p9: 16, p45: 12, p50: 6, r357: 8, p46: 16, r545: 12, r556: 12, r762s: 10, r762n: 8, r762r: 8, r338: 4, g12: 8 }
+    },
+    // Weapons Workbench: puts attachments on guns (1000+ of them, each `cost` x partItem, plus (grade - 1) x tierItem
+    // from grade 2 up) and presses rounds from any items. The Jury-Rigged book lets a gun take any attachment, anywhere.
+    workbench: {
+      partItem: 'minecraft:iron_ingot', tierItem: 'kubejs:ascendite_ingot',
+      recipe: [['SAS', 'IWI', 'I I'], { S: 'minecraft:smooth_stone_slab', A: 'kubejs:ascendite_ingot', I: 'minecraft:iron_ingot', W: 'minecraft:smithing_table' }],
+      juryRiggedBook: [['TCT', 'SBS', 'TCT'], { T: 'minecraft:string', C: 'minecraft:copper_ingot', S: 'minecraft:slime_ball', B: 'minecraft:book' }]
+    },
+    // Reloading under stress: chance a reload step goes wrong = base + stress^1.5 x stress (stress 0..1)
+    fumbles: { enabled: true, base: 0.02, stress: 0.55 },
+    explosiveRoundsBreakBlocks: false,
     // Flare gun: the shotgun's controls, one flare at a time (R loads; R again swaps colour). A red flare is a signal;
     // a green one calls an airdrop: after airdropSeconds a supply crate falls from airdropHeight blocks up, 8 blocks
     // ahead of where you fired, under green smoke, and lands as a chest filled from airdropLoot.
@@ -2163,8 +2231,9 @@ global.FA_meteorPool = () => {
     put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['ascension_vault', 'essence_forge', 'ascension_workbench'].map(b => 'factoryascension:' + b))
     put(P.machines, ['ascension_quarry', 'mob_grinder', 'warp_hopper'].map(b => 'factoryascension:' + b))
-    put(P.machines, ['factoryascension:shotgun', 'factoryascension:flare_gun'])
-    put(P.basics, ['factoryascension:shotgun_shell', 'factoryascension:flare_red', 'factoryascension:flare_green'])
+    put(P.machines, ['factoryascension:shotgun', 'factoryascension:flare_gun'].concat(FA.guns.list.map(g => 'factoryascension:' + g.id)))
+    put(P.basics, ['factoryascension:shotgun_shell', 'factoryascension:flare_red', 'factoryascension:flare_green', 'factoryascension:cartridge', 'factoryascension:attachment'])
+    put(P.machines, ['factoryascension:weapons_workbench'])
     put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
     if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))
   }

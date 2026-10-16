@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "factoryascension:block/weapons_workbench",
+   "y": 180
+  },
+  "facing=south": {
+   "model": "factoryascension:block/weapons_workbench"
+  },
+  "facing=west": {
+   "model": "factoryascension:block/weapons_workbench",
+   "y": 90
+  },
+  "facing=east": {
+   "model": "factoryascension:block/weapons_workbench",
+   "y": 270
+  }
+ }
+}

@@ -1,0 +1,151 @@
+{
+ "textures": {
+  "rubber": "factoryascension:item/gun2/rubber",
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    7.2,
+    5.4,
+    6.9
+   ],
+   "to": [
+    8.0,
+    9.6,
+    9.1
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      15.15,
+      1.32,
+      15.95,
+      5.52
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      11.53,
+      3.41,
+      12.33,
+      7.61
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      5.98,
+      7.38,
+      8.18,
+      11.58
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      8.36,
+      9.62,
+      10.56,
+      13.82
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      3.82,
+      2.29,
+      4.62,
+      4.49
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      15.02,
+      2.75,
+      15.82,
+      4.95
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    6.9,
+    5.2,
+    6.85
+   ],
+   "to": [
+    7.2,
+    9.8,
+    9.15
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      4.78,
+      2.7,
+      5.08,
+      7.3
+     ],
+     "texture": "#rubber"
+    },
+    "south": {
+     "uv": [
+      12.97,
+      2.07,
+      13.27,
+      6.67
+     ],
+     "texture": "#rubber"
+    },
+    "east": {
+     "uv": [
+      3.72,
+      1.81,
+      6.02,
+      6.41
+     ],
+     "texture": "#rubber"
+    },
+    "west": {
+     "uv": [
+      5.66,
+      5.77,
+      7.96,
+      10.37
+     ],
+     "texture": "#rubber"
+    },
+    "up": {
+     "uv": [
+      10.0,
+      6.42,
+      10.3,
+      8.72
+     ],
+     "texture": "#rubber"
+    },
+    "down": {
+     "uv": [
+      6.78,
+      9.74,
+      7.08,
+      12.04
+     ],
+     "texture": "#rubber"
+    }
+   }
+  }
+ ]
+}

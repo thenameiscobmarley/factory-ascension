@@ -1,16 +1,17 @@
 {
-  "replace": false,
-  "values": [
-    "factoryascension:ascension_vault",
-    "factoryascension:card_binder",
-    "factoryascension:essence_forge",
-    "factoryascension:pack_opener",
-    "factoryascension:salvager",
-    "factoryascension:tome_fusion_table",
-    "factoryascension:super_smelter",
-    "factoryascension:storage_terminal",
-    "factoryascension:ascension_workbench",
-    "factoryascension:mini_crusher",
-    "factoryascension:essence_crystal_ore"
-  ]
+ "replace": false,
+ "values": [
+  "factoryascension:ascension_vault",
+  "factoryascension:card_binder",
+  "factoryascension:essence_forge",
+  "factoryascension:pack_opener",
+  "factoryascension:salvager",
+  "factoryascension:tome_fusion_table",
+  "factoryascension:super_smelter",
+  "factoryascension:storage_terminal",
+  "factoryascension:ascension_workbench",
+  "factoryascension:mini_crusher",
+  "factoryascension:essence_crystal_ore",
+  "factoryascension:weapons_workbench"
+ ]
 }

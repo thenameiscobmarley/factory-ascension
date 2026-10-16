@@ -33,6 +33,19 @@ if (Platform.isLoaded(FA_MOD)) {
     event.shaped(FA_MOD + ':shotgun', G.shotgun.recipe[0], G.shotgun.recipe[1]).id('kubejs:factory_ascension/shotgun')
     event.shaped(Item.of(FA_MOD + ':shotgun_shell', G.shellsPerCraft), G.shells[0], G.shells[1]).id('kubejs:factory_ascension/shotgun_shell')
     event.shaped(FA_MOD + ':flare_gun', G.flareGun.recipe[0], G.flareGun.recipe[1]).id('kubejs:factory_ascension/flare_gun')
+    event.shaped(FA_MOD + ':weapons_workbench', G.workbench.recipe[0], G.workbench.recipe[1]).id('kubejs:factory_ascension/weapons_workbench')
+    event.shaped(Item.of('minecraft:enchanted_book').enchant(FA_MOD + ':jury_rigged', 1), G.workbench.juryRiggedBook[0], G.workbench.juryRiggedBook[1])
+      .id('kubejs:factory_ascension/jury_rigged_book')
+    G.list.forEach(g => event.shaped(FA_MOD + ':' + g.id, g.recipe[0], g.recipe[1]).id('kubejs:factory_ascension/gun_' + g.id))
+    // Plain rounds of every caliber: a nugget bullet, gunpowder, a copper case
+    Object.keys(G.ammo.perCraft).forEach(cal => {
+      let round = Item.of(FA_MOD + ':cartridge', G.ammo.perCraft[cal],
+        '{Cal:"' + cal + '",Type:"REGULAR",Prop:"minecraft:gunpowder",Case:"minecraft:copper_ingot",Color:13140028,Power:1.0f,Rel:1.0f}')
+      let mk = G.ammo.markers[cal]
+      let keys = Object.assign({}, G.ammo.recipe)
+      if (mk) keys.M = mk
+      event.shaped(round, mk ? ['NM', 'G ', 'C '] : ['N', 'G', 'C'], keys).id('kubejs:factory_ascension/round_' + cal)
+    })
     event.shaped(Item.of(FA_MOD + ':flare_red', G.flares.perCraft), G.flares.red[0], G.flares.red[1]).id('kubejs:factory_ascension/flare_red')
     event.shaped(Item.of(FA_MOD + ':flare_green', G.flares.perCraft), G.flares.green[0], G.flares.green[1]).id('kubejs:factory_ascension/flare_green')
     let GL = global.FA.machines.glass

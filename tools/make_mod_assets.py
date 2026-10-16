@@ -1023,6 +1023,11 @@ def main():
     gun_gen.main()            # the shotgun and its shells
     import tarkov_gen
     tarkov_gen.main()         # the flare gun, flares and the duffel bag
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("gun_models", os.path.join(os.path.dirname(__file__), "guns", "build.py"))
+    gun_models = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gun_models)
+    gun_models.main(set())    # every other gun (tools/guns/)
     import fx_art
     fx_art.main()             # smoke puffs for the effects
     mod_id_list()
