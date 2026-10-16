@@ -16,7 +16,8 @@ void main() {
     if (Mode == 0) {
         vec3 c = texture(DiffuseSampler, texCoord).rgb;
         float l = max(c.r, max(c.g, c.b));
-        float k = smoothstep(Threshold, Threshold + 0.25, l);
+        // Bright pixels that aren't sky-blue (the sky would bloom into a white fog): saturated or warm brights only
+        float k = smoothstep(Threshold, Threshold + 0.06, l) * (1.0 - smoothstep(0.0, 0.3, c.b - c.r) * 0.85);
         fragColor = vec4(c * k, 1.0);
         return;
     }

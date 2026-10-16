@@ -51,10 +51,10 @@ void main() {
         // Depth of field while aiming: what's well behind (or in front of) what you're looking at goes soft
         if (Aim > 0.01 && !sky) {
             float focus = length(viewPos(vec2(0.5)));
-            float coc = smoothstep(0.15, 0.6, abs(dist - focus) / max(focus, 1.0));
-            lit = mix(lit, texture(BlurSampler, texCoord).rgb, coc * Aim * 0.9);
+            float coc = smoothstep(0.35, 1.2, abs(dist - focus) / max(focus, 1.0));
+            lit = mix(lit, texture(BlurSampler, texCoord).rgb, coc * Aim * 0.65);
         } else if (Aim > 0.01) {
-            lit = mix(lit, texture(BlurSampler, texCoord).rgb, Aim * 0.6);
+            lit = mix(lit, texture(BlurSampler, texCoord).rgb, Aim * 0.35);
         }
         // Aerial perspective: distance fades into a haze lit by the sun (only out under the sky)
         if (Haze > 0.0 && !sky) {
@@ -82,11 +82,13 @@ void main() {
                 }
                 lit += (sunc * glare + ghosts) * SunScreen.z;
             }
+            // A gentle film curve: deeper shadows, highlights rolled off rather than clipped, mixed with the picture so
+            // the overall brightness stays where the game had it
             vec3 linc = pow(max(lit, 0.0), vec3(2.2));
-            linc = aces(linc * 1.65);
-            lit = pow(linc, vec3(1.0 / 2.2));
+            vec3 film = pow(aces(linc * 1.25), vec3(1.0 / 2.2));
+            lit = mix(lit, film, 0.6);
             float lum = dot(lit, vec3(0.299, 0.587, 0.114));
-            lit = mix(vec3(lum), lit, 1.06);
+            lit = mix(vec3(lum), lit, 1.05);
         }
         fragColor = vec4(lit, sceneTex.a);
     }

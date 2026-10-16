@@ -322,8 +322,6 @@ public class FactoryAscension {
 
     public FactoryAscension() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        // Our custom arm poses join the game's list now, before anything is drawn (see client/gun/ArmPoses.init)
-        net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () -> dev.factoryascension.client.gun.ArmPoses.init());
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, dev.factoryascension.client.FAClientConfig.SPEC);
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, FACommonConfig.SPEC);
         dev.factoryascension.gun.GunGeometry.apply();   // where each gun is held when aimed (from its model)

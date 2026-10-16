@@ -17,13 +17,28 @@ sys.path.insert(0, os.path.join(HERE, ".."))
 import make_textures as T  # noqa: E402
 from core import Model, NS  # noqa: E402
 from mesh import MeshModel  # noqa: E402
-import mesh_tex  # noqa: E402
+import mesh_tex
+import detail  # noqa: E402
 import tex  # noqa: E402
 import designs  # noqa: E402
 import designs2  # noqa: E402
 import attach  # noqa: E402
 
 SLOTS = ["MUZZLE", "BARREL", "HANDGUARD", "FOREGRIP", "OPTIC", "STOCK", "MAGAZINE", "UNDERBARREL", "TACTICAL", "GRIP", "TRIGGER", "CHARM"]
+
+
+def _gun_names():
+    """id -> (name, caliber label) from the mod's own Guns.java and Caliber.java (for the roll marks)."""
+    import re
+    src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "mod", "src", "main", "java", "dev", "factoryascension", "gun")
+    cals = dict(re.findall(r'^\s+([A-Z0-9_]+)\("([^"]+)"', open(os.path.join(src, "Caliber.java")).read(), re.M))
+    out = {}
+    for gid, name, cal in re.findall(r'new GunSpec\("(\w+)", "([^"]+)", Kind\.\w+, Caliber\.(\w+)\)', open(os.path.join(src, "Guns.java")).read()):
+        out[gid] = (name, cals.get(cal, ""))
+    return out
+
+
+GUN_NAMES = _gun_names()
 
 
 def mounts(m, gid):
@@ -178,6 +193,11 @@ def main(only):
         model = {"parent": "builtin/entity", "textures": {"particle": t + "steel"}, "gui_light": "front", "display": display(m, scale_fp)}
         write_json(os.path.join(ASSETS, "models", "item", gid + ".json"), model)
         geo[gid] = list(geometry(m, scale_fp, relief)) + [scale_fp] + mounts(m, gid)
+        # The detail pass: roll marks and cross pins, placed from this gun's own surfaces
+        mt = mounts(m, gid)
+        named = {s: tuple(mt[i * 3:i * 3 + 3]) for i, s in enumerate(SLOTS)}
+        nm, cal = GUN_NAMES.get(gid, (gid.upper(), ""))
+        detail.run(m, nm, cal, named)
         size = m.mesh.write(os.path.join(meshdir, gid + ".fam"))
         print("%-14s %4d parts %6d quads %4d KB  sight %s  ads %s" % (gid, len(m.els), len(m.mesh.quads), size // 1024, tuple(round(v, 2) for v in m.sight), geo[gid][:3]))
     write_json(geo_path, geo)

@@ -55,8 +55,8 @@ public class OperatorRenderer extends HumanoidMobRenderer<Operator, PlayerModel<
         try {
             PlayerModel<Operator> m = getModel();
             boolean armed = !e.getMainHandItem().isEmpty() && e.alertLevel() == 2;
-            HumanoidModel.ArmPose p = armed ? ArmPoses.forOperator(e) : HumanoidModel.ArmPose.EMPTY;
-            if (e.action() == 3) p = ArmPoses.MEDIC;
+            // The game's own poses only (shouldered when aiming); reloads, low ready and the rest go on top (ArmPoses.after)
+            HumanoidModel.ArmPose p = armed && ArmPoses.forOperator(e) == ArmPoses.Pose.NONE && e.aiming() ? HumanoidModel.ArmPose.CROSSBOW_HOLD : HumanoidModel.ArmPose.EMPTY;
             m.rightArmPose = p;
             m.leftArmPose = p == HumanoidModel.ArmPose.EMPTY ? HumanoidModel.ArmPose.EMPTY : p;
             m.crouching = e.isCrouching();

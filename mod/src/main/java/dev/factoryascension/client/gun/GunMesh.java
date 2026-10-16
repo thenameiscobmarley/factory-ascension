@@ -114,7 +114,10 @@ public final class GunMesh {
 
     static GunMesh parse(byte[] raw) {
         ByteBuffer b = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN);
-        if (b.get() != 'F' || b.get() != 'A' || b.get() != 'M' || b.get() != '2') throw new IllegalArgumentException("not a gun mesh");
+        if (b.get() != 'F' || b.get() != 'A' || b.get() != 'M') throw new IllegalArgumentException("not a gun mesh");
+        int version = b.get();
+        if (version != '2' && version != '3') throw new IllegalArgumentException("not a gun mesh");
+        boolean hasAo = version == '3';     // FAM3: baked ambient occlusion per vertex
         int nm = b.getShort() & 0xFFFF;
         int[] mCls = new int[nm], mRgb = new int[nm], mFlags = new int[nm];
         for (int i = 0; i < nm; i++) {
@@ -127,7 +130,7 @@ public final class GunMesh {
         int nv = b.getInt();
         float[] vx = new float[nv * 3], vn = new float[nv * 3];
         int[] vm = new int[nv];
-        float[] vw = new float[nv];
+        float[] vw = new float[nv], vao = new float[nv];
         for (int i = 0; i < nv; i++) {
             vx[i * 3] = b.getShort() / 500f;
             vx[i * 3 + 1] = b.getShort() / 500f;
@@ -140,6 +143,7 @@ public final class GunMesh {
             vn[i * 3 + 2] = nz / l;
             vm[i] = Math.min(nm - 1, b.get() & 0xFF);
             vw[i] = (b.get() & 0xFF) / 255f;
+            vao[i] = hasAo ? (b.get() & 0xFF) / 255f : 1f;
         }
         int nq = b.getInt();
         boolean big = b.get() != 0;
@@ -183,7 +187,7 @@ public final class GunMesh {
                 }
                 uv[dst * 2] = u + off;
                 uv[dst * 2 + 1] = w + off * 0.61f;
-                col[dst] = bake(mRgb[m], mCls[m], mFlags[m], vw[v], nx, ny, nz);
+                col[dst] = bake(mRgb[m], mCls[m], mFlags[m], vw[v], nx, ny, nz, vao[v]);
                 flags[dst] = (byte) mFlags[m];
                 cls[dst] = (byte) mCls[m];
             }
@@ -194,7 +198,7 @@ public final class GunMesh {
     }
 
     /** Colour + edge wear + a soft studio highlight, scaled for the detail texture's average (0.88). */
-    static int bake(int rgb, int cls, int flags, float wear, float nx, float ny, float nz) {
+    static int bake(int rgb, int cls, int flags, float wear, float nx, float ny, float nz, float ao) {
         float r = (rgb >> 16 & 255) / 255f, g = (rgb >> 8 & 255) / 255f, b = (rgb & 255) / 255f;
         if (cls == GLOW || cls == GLASS) return 0xFF000000 | rgb;
         boolean metal = cls == 0 || cls == 7 || cls == 10;
@@ -209,7 +213,10 @@ public final class GunMesh {
         float h = Math.max(0, nx * hx + ny * hy + nz * hz);
         float sheen = (float) Math.pow(h, (flags & FLAG_SHINY) != 0 ? 22 : 8) * ((flags & FLAG_SHINY) != 0 ? 0.32f : (metal ? 0.14f : 0.06f));
         float top = 0.94f + 0.06f * ny;
-        r = r * top + sheen; g = g * top + sheen; b = b * top + sheen;
+        // Baked occlusion: enclosed spots darker, and no sheen down in the crevices
+        float occ = 0.38f + 0.62f * ao * ao;
+        sheen *= ao;
+        r = r * top * occ + sheen; g = g * top * occ + sheen; b = b * top * occ + sheen;
         float s = 1 / 0.88f;
         return 0xFF000000 | clamp(r * s) << 16 | clamp(g * s) << 8 | clamp(b * s);
     }

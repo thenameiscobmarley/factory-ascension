@@ -27,21 +27,21 @@ CLASSES = ["metal", "polymer", "wood", "rubber", "plain", "glass", "glow", "knur
 TINT, SHINY, NOWEAR = 1, 2, 4
 
 MATS = {
-    "steel": ("metal", (66, 68, 72), 0), "steel_dark": ("metal", (40, 41, 44), 0), "steel_light": ("metal", (150, 152, 156), SHINY),
-    "blued": ("metal", (38, 42, 58), SHINY), "chrome": ("metal", (196, 198, 204), SHINY), "alu": ("metal", (54, 56, 60), 0),
+    "steel": ("metal", (78, 80, 84), 0), "steel_dark": ("metal", (56, 57, 61), 0), "steel_light": ("metal", (150, 152, 156), SHINY),
+    "blued": ("metal", (38, 42, 58), SHINY), "chrome": ("metal", (196, 198, 204), SHINY), "alu": ("metal", (70, 72, 77), 0),
     "alu_tan": ("polymer", (168, 146, 108), 0), "alu_od": ("polymer", (86, 92, 66), 0), "brass": ("metal", (206, 160, 66), SHINY),
-    "polymer": ("polymer", (46, 46, 47), 0), "polymer_tan": ("polymer", (156, 134, 98), 0), "polymer_od": ("polymer", (80, 86, 60), 0),
+    "polymer": ("polymer", (52, 52, 54), 0), "polymer_tan": ("polymer", (156, 134, 98), 0), "polymer_od": ("polymer", (80, 86, 60), 0),
     "polymer_plum": ("polymer", (98, 52, 44), 0), "polymer_grey": ("polymer", (72, 74, 76), 0),
     "walnut": ("wood", (118, 68, 38), 0), "walnut_dark": ("wood", (80, 46, 28), 0), "birch": ("wood", (178, 116, 62), 0), "beech": ("wood", (152, 98, 54), 0),
-    "grip_check": ("check", (46, 46, 47), NOWEAR), "grip_check_tan": ("check", (150, 128, 94), NOWEAR), "wood_check": ("check", (96, 54, 30), NOWEAR),
-    "knurl": ("knurl", (62, 64, 68), 0), "rail": ("rail", (50, 52, 56), 0), "rail_tan": ("rail", (160, 138, 102), 0),
+    "grip_check": ("check", (50, 50, 52), NOWEAR), "grip_check_tan": ("check", (150, 128, 94), NOWEAR), "wood_check": ("check", (96, 54, 30), NOWEAR),
+    "knurl": ("knurl", (74, 76, 80), 0), "rail": ("rail", (64, 66, 71), 0), "rail_tan": ("rail", (160, 138, 102), 0),
     "rubber": ("rubber", (32, 32, 32), NOWEAR), "bore": ("plain", (8, 8, 10), NOWEAR), "lens": ("glass", (60, 140, 150), NOWEAR),
-    "red_dot": ("glow", (255, 50, 36), NOWEAR), "scope_body": ("metal", (40, 41, 44), 0), "spring": ("metal", (130, 132, 136), SHINY),
+    "red_dot": ("glow", (255, 50, 36), NOWEAR), "scope_body": ("metal", (54, 55, 59), 0), "spring": ("metal", (130, 132, 136), SHINY),
     "tint": ("metal", (214, 214, 216), TINT), "paint_red": ("polymer", (170, 30, 26), 0), "paint_white": ("glow", (235, 235, 225), NOWEAR),
     # Only in the meshes
     "copper": ("metal", (184, 110, 64), SHINY), "gold": ("metal", (222, 176, 64), SHINY), "nickel": ("metal", (176, 178, 176), SHINY),
     "stainless": ("metal", (168, 170, 172), SHINY), "parkerized": ("metal", (72, 74, 70), 0), "gunmetal": ("metal", (58, 62, 68), SHINY),
-    "bakelite": ("polymer", (78, 40, 26), SHINY), "polymer_black": ("polymer", (30, 30, 31), 0), "polymer_fde": ("polymer", (168, 146, 110), 0),
+    "bakelite": ("polymer", (78, 40, 26), SHINY), "polymer_black": ("polymer", (44, 44, 46), 0), "polymer_fde": ("polymer", (168, 146, 110), 0),
     "polymer_green": ("polymer", (66, 76, 52), 0), "polymer_sand": ("polymer", (190, 168, 128), 0), "polymer_white": ("polymer", (200, 200, 196), 0),
     "cerakote_grey": ("polymer", (98, 102, 104), 0), "cerakote_red": ("polymer", (124, 40, 32), 0),
     "carbon": ("fabric", (36, 36, 38), SHINY), "canvas": ("fabric", (104, 98, 72), NOWEAR), "leather": ("fabric", (98, 58, 34), NOWEAR),
@@ -69,6 +69,10 @@ def sub(a, b):
 
 def mul(a, s):
     return (a[0] * s, a[1] * s, a[2] * s)
+
+
+def dist(a, b):
+    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2) ** 0.5
 
 
 def dot(a, b):
@@ -191,16 +195,68 @@ class Mesh:
         hi = [max(v[i] for v in self.verts) / 500 for i in range(3)]
         return lo, hi
 
-    def write(self, path):
-        out = bytearray(b"FAM2")
+    def bake_ao(self, cell=0.18, reach=3.2, ndirs=72):
+        """Ambient occlusion per vertex: how much of the world each point can see. The mesh is voxelized (its surfaces
+        sampled into cells), then from every vertex rays go out over the half of the sky it faces; whatever cell they
+        hit (closer = darker) shades it. Crevices, under rails, inside trigger guards and round sights go dark, as in a
+        photo. Returns one value per vertex, 0 (enclosed) .. 1 (open)."""
+        import math as _m
+        occ = set()
+        inv = 1.0 / cell
+        for q in self.quads:
+            pa, pb, pc, pd = (self.pos(i) for i in q)
+            la = max(dist(pa, pb), dist(pd, pc), 1e-6)
+            lb = max(dist(pa, pd), dist(pb, pc), 1e-6)
+            nu = max(1, int(la / (cell * 0.7)) + 1)
+            nv = max(1, int(lb / (cell * 0.7)) + 1)
+            for i in range(nu + 1):
+                u = i / nu
+                e0 = (pa[0] + (pb[0] - pa[0]) * u, pa[1] + (pb[1] - pa[1]) * u, pa[2] + (pb[2] - pa[2]) * u)
+                e1 = (pd[0] + (pc[0] - pd[0]) * u, pd[1] + (pc[1] - pd[1]) * u, pd[2] + (pc[2] - pd[2]) * u)
+                for j in range(nv + 1):
+                    v = j / nv
+                    occ.add((int(_m.floor((e0[0] + (e1[0] - e0[0]) * v) * inv)), int(_m.floor((e0[1] + (e1[1] - e0[1]) * v) * inv)),
+                             int(_m.floor((e0[2] + (e1[2] - e0[2]) * v) * inv))))
+        # Directions spread evenly over a sphere (a Fibonacci spiral)
+        dirs = []
+        golden = _m.pi * (3 - _m.sqrt(5))
+        for i in range(ndirs):
+            y = 1 - 2 * (i + 0.5) / ndirs
+            r = _m.sqrt(1 - y * y)
+            dirs.append((_m.cos(golden * i) * r, y, _m.sin(golden * i) * r))
+        steps = int(reach / cell)
+        out = []
+        for k in self.verts:
+            p = (k[0] / 500, k[1] / 500, k[2] / 500)
+            n = (k[3] / 127, k[4] / 127, k[5] / 127)
+            total = blocked = 0.0
+            for d in dirs:
+                c = d[0] * n[0] + d[1] * n[1] + d[2] * n[2]
+                if c < 0.08:
+                    continue
+                total += c
+                x0, y0, z0 = p[0] + n[0] * cell * 1.6, p[1] + n[1] * cell * 1.6, p[2] + n[2] * cell * 1.6
+                for s in range(steps):
+                    t = (s + 1) * cell
+                    key = (int(_m.floor((x0 + d[0] * t) * inv)), int(_m.floor((y0 + d[1] * t) * inv)), int(_m.floor((z0 + d[2] * t) * inv)))
+                    if key in occ:
+                        blocked += c * (1 - 0.6 * t / reach)
+                        break
+            out.append(1.0 - (blocked / total if total > 0 else 0.0))
+        return out
+
+    def write(self, path, ao=True):
+        """FAM3: as FAM2, plus one byte per vertex of baked ambient occlusion."""
+        aos = self.bake_ao() if ao and self.verts else [1.0] * len(self.verts)
+        out = bytearray(b"FAM3")
         out += struct.pack("<H", len(self.mats))
         for name in self.mats:
             cls, rgb, flags = mat_of(name)
             nb = name.encode()
             out += struct.pack("<B", len(nb)) + nb + struct.pack("<BBBBB", CLASSES.index(cls), rgb[0], rgb[1], rgb[2], flags)
         out += struct.pack("<I", len(self.verts))
-        for k in self.verts:
-            out += struct.pack("<hhhbbbBB", *k)
+        for k, a in zip(self.verts, aos):
+            out += struct.pack("<hhhbbbBBB", *k, max(0, min(255, int(round(a * 255)))))
         big = len(self.verts) > 65535
         out += struct.pack("<IB", len(self.quads), 1 if big else 0)
         fmt = "<IIII" if big else "<HHHH"

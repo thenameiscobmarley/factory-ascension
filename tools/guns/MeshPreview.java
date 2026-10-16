@@ -23,7 +23,8 @@ public class MeshPreview {
         byte[] raw;
         try (var in = new GZIPInputStream(new FileInputStream(path))) { raw = in.readAllBytes(); }
         ByteBuffer b = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN);
-        b.position(4);
+        b.position(3);
+        boolean hasAo = b.get() == '3';
         int nm = b.getShort() & 0xFFFF;
         int[] mCls = new int[nm], mRgb = new int[nm], mFl = new int[nm];
         for (int i = 0; i < nm; i++) {
@@ -36,7 +37,7 @@ public class MeshPreview {
         int nv = b.getInt();
         float[] vx = new float[nv * 3], vn = new float[nv * 3];
         int[] vm = new int[nv];
-        float[] vw = new float[nv];
+        float[] vw = new float[nv], vao = new float[nv];
         for (int i = 0; i < nv; i++) {
             for (int k = 0; k < 3; k++) vx[i * 3 + k] = b.getShort() / 500f;
             float nx = b.get() / 127f, ny = b.get() / 127f, nz = b.get() / 127f;
@@ -45,6 +46,7 @@ public class MeshPreview {
             vn[i * 3] = nx / l; vn[i * 3 + 1] = ny / l; vn[i * 3 + 2] = nz / l;
             vm[i] = b.get() & 0xFF;
             vw[i] = (b.get() & 0xFF) / 255f;
+            vao[i] = hasAo ? (b.get() & 0xFF) / 255f : 1f;
         }
         int nq = b.getInt();
         boolean big = b.get() != 0;
@@ -66,7 +68,7 @@ public class MeshPreview {
                 float off = m * 0.371f, u, w;
                 if (axis == 0) { u = z / 8; w = -y / 8; } else if (axis == 1) { u = x / 8; w = z / 8; } else { u = x / 8; w = -y / 8; }
                 uv[dst * 2] = u + off; uv[dst * 2 + 1] = w + off * 0.61f;
-                col[dst] = bake(mRgb[m], mCls[m], mFl[m], vw[v], vn[v * 3], vn[v * 3 + 1], vn[v * 3 + 2]);
+                col[dst] = bake(mRgb[m], mCls[m], mFl[m], vw[v], vn[v * 3], vn[v * 3 + 1], vn[v * 3 + 2], vao[v]);
                 cls[dst] = mCls[m];
             }
         }
@@ -75,7 +77,7 @@ public class MeshPreview {
 
     static int clamp(float v) { return Math.max(0, Math.min(255, Math.round(v * 255))); }
 
-    static int bake(int rgb, int cls, int flags, float wear, float nx, float ny, float nz) {
+    static int bake(int rgb, int cls, int flags, float wear, float nx, float ny, float nz, float ao) {
         float r = (rgb >> 16 & 255) / 255f, g = (rgb >> 8 & 255) / 255f, b = (rgb & 255) / 255f;
         if (cls == 6 || cls == 5) return rgb;
         boolean metal = cls == 0 || cls == 7 || cls == 10;
@@ -87,7 +89,10 @@ public class MeshPreview {
         float h = Math.max(0, nx * 0.25f + ny * 0.88f + nz * 0.4f);
         float sheen = (float) Math.pow(h, (flags & 2) != 0 ? 22 : 8) * ((flags & 2) != 0 ? 0.32f : (metal ? 0.14f : 0.06f));
         float top = 0.94f + 0.06f * ny;
-        r = r * top + sheen; g = g * top + sheen; b = b * top + sheen;
+        // Baked occlusion: enclosed spots darker, and no sheen down in the crevices
+        float occ = 0.38f + 0.62f * ao * ao;
+        sheen *= ao;
+        r = r * top * occ + sheen; g = g * top * occ + sheen; b = b * top * occ + sheen;
         float s = 1 / 0.88f;
         return clamp(r * s) << 16 | clamp(g * s) << 8 | clamp(b * s);
     }

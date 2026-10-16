@@ -241,7 +241,7 @@ public final class AscensionLighting {
         if (grade) {
             glow.setSampler("DiffuseSampler", main.getColorTextureId());
             glow.safeGetUniform("Mode").set(0);
-            glow.safeGetUniform("Threshold").set(0.78f);
+            glow.safeGetUniform("Threshold").set(0.93f);   // only what's really bright: lamps, fire, the sun
             pass(glow, bloomA);
             for (int k = 0; k < 2; k++) {
                 glow.safeGetUniform("Mode").set(1);
@@ -281,7 +281,7 @@ public final class AscensionLighting {
         composite.setSampler("DepthSampler", main.getDepthTextureId());
         composite.safeGetUniform("InvProjMat").set(invProj);
         composite.safeGetUniform("Grade").set(grade ? 1f : 0f);
-        composite.safeGetUniform("BloomAmount").set(0.55f);
+        composite.safeGetUniform("BloomAmount").set(0.3f);
         composite.safeGetUniform("Aim").set(aimK);
         float haze = FAClientConfig.on(FAClientConfig.HAZE) ? 0.0035f * (1 + rain * 1.5f) : 0f;
         composite.safeGetUniform("Haze").set(haze);

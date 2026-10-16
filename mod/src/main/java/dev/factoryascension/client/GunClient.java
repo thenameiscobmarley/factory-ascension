@@ -69,7 +69,7 @@ public final class GunClient {
         @Override
         public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack) {
             if (dev.factoryascension.gun.GunItem.spec(stack) == null) return HumanoidModel.ArmPose.CROSSBOW_HOLD;   // the shotgun: shouldered
-            return dev.factoryascension.client.gun.ArmPoses.forPlayer(entity, stack);
+            return dev.factoryascension.client.gun.ArmPoses.vanillaFor(entity, stack);
         }
 
         @Override
