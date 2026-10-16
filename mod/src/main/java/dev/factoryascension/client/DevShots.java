@@ -134,7 +134,8 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.npc")) step = 600;     // only the operators, structures, realism camera and new bench tabs
                     if (Boolean.getBoolean("fa.lens")) step = 650;    // only the realism camera
                     if (Boolean.getBoolean("fa.v25")) step = 700;
-                    if (Boolean.getBoolean("fa.sliders")) step = 750;  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
+                    if (Boolean.getBoolean("fa.sliders")) step = 750;
+                    if (Boolean.getBoolean("fa.tab")) step = 760;     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -428,6 +429,19 @@ public final class DevShots {
                     }
                 }
                 case 752 -> { shot(mc, "sliders_after"); mc.setScreen(null); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                case 760 -> {
+                    net.minecraft.world.item.CreativeModeTabs.tryRebuildTabContents(mc.player.connection.enabledFeatures(), true, mc.level.registryAccess());
+                    var items = dev.factoryascension.FactoryAscension.TAB.get().getDisplayItems();
+                    long atts = items.stream().filter(i -> i.getItem() == dev.factoryascension.FactoryAscension.ATTACHMENT.get()).count();
+                    long missing = dev.factoryascension.FactoryAscension.ITEMS.getEntries().stream().map(e -> e.get())
+                        .filter(it -> items.stream().noneMatch(st -> st.getItem() == it)).count();
+                    log("tab: " + items.size() + " stacks, " + atts + " attachments (of " + dev.factoryascension.gun.Attachments.ALL.size() + "), mod items missing from it: " + missing);
+                    cmd(mc, "gamemode creative @a"); cmd(mc, "time set 2000"); cmd(mc, "weather clear"); FAClientConfig.LIGHTING.set(3); FAClientConfig.REALISM.set(false);
+                    cmd(mc, "fill -12 -61 -12 12 -61 30 grass_block"); cmd(mc, "fill -12 -60 -12 12 -50 30 air");
+                    cmd(mc, "place feature minecraft:oak 0 -60 8"); cmd(mc, "place feature minecraft:oak 4 -60 12");
+                    cmd(mc, "tp @a -3 -58.4 0 -20 25"); wait = 120; }
+                case 761 -> { shot(mc, "shadow_near"); cmd(mc, "tp @a -6 -52 -18 -10 22"); wait = 120; }
+                case 762 -> { shot(mc, "shadow_far"); FAClientConfig.REALISM.set(true); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }

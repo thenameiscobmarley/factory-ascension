@@ -51,22 +51,28 @@ public class OperatorRenderer extends HumanoidMobRenderer<Operator, PlayerModel<
 
     @Override
     public void render(Operator e, float yaw, float partial, PoseStack pose, MultiBufferSource buffers, int light) {
-        PlayerModel<Operator> m = getModel();
-        boolean armed = !e.getMainHandItem().isEmpty() && e.alertLevel() == 2;
-        HumanoidModel.ArmPose p = armed ? ArmPoses.forOperator(e) : HumanoidModel.ArmPose.EMPTY;
-        if (e.action() == 3) p = ArmPoses.MEDIC;
-        m.rightArmPose = p;
-        m.leftArmPose = p == HumanoidModel.ArmPose.EMPTY ? HumanoidModel.ArmPose.EMPTY : p;
-        m.crouching = e.isCrouching();
-        var cam = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-        boolean near = e.position().distanceToSqr(cam) < 100;
-        GunRenderer.closeUp = near;
+        PoseStack.Pose fa$top = pose.last();
         try {
-            super.render(e, yaw, partial, pose, buffers, light);
-        } finally {
-            GunRenderer.closeUp = false;
+            PlayerModel<Operator> m = getModel();
+            boolean armed = !e.getMainHandItem().isEmpty() && e.alertLevel() == 2;
+            HumanoidModel.ArmPose p = armed ? ArmPoses.forOperator(e) : HumanoidModel.ArmPose.EMPTY;
+            if (e.action() == 3) p = ArmPoses.MEDIC;
+            m.rightArmPose = p;
+            m.leftArmPose = p == HumanoidModel.ArmPose.EMPTY ? HumanoidModel.ArmPose.EMPTY : p;
+            m.crouching = e.isCrouching();
+            var cam = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+            boolean near = e.position().distanceToSqr(cam) < 100;
+            GunRenderer.closeUp = near;
+            try {
+                super.render(e, yaw, partial, pose, buffers, light);
+            } finally {
+                GunRenderer.closeUp = false;
+            }
+            indicator(e, pose, buffers, light);
+        } catch (Throwable err) {
+            while (pose.last() != fa$top && !pose.clear()) pose.popPose();   // back to where it started
+            dev.factoryascension.client.FAClientConfig.renderFailed("Operator drawing", err);
         }
-        indicator(e, pose, buffers, light);
     }
 
     /** "?" (unsure, filling up) or "!" (just raised the alarm) over its head. */

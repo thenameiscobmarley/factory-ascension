@@ -150,6 +150,9 @@ def main(only):
     os.makedirs(TEXDIR, exist_ok=True)
     for name, fn in tex.TEXTURES.items():
         T.png(os.path.join(TEXDIR, name + ".png"), fn())
+    # The mesh-only materials still need a flat texture: the cuboid models (icons, guns far away) use them too
+    for name, fn in tex.mesh_only_textures().items():
+        T.png(os.path.join(TEXDIR, name + ".png"), fn())
     geo = {}
     geo_path = os.path.join(HERE, "geometry.json")
     if os.path.exists(geo_path):

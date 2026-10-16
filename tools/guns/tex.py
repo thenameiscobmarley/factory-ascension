@@ -167,3 +167,24 @@ TEXTURES = {
     "paint_red": lambda: surface((170, 30, 26), 41, grain=0.04),
     "paint_white": lambda: surface((220, 220, 214), 42, grain=0.03),
 }
+
+
+def mesh_only_textures():
+    """A flat texture for every mesh material (mesh.MATS) that has no hand-made one above, from its colour and class."""
+    import mesh as M
+    out = {}
+    for i, (name, (cls, col, _flags)) in enumerate(M.MATS.items()):
+        if name in TEXTURES:
+            continue
+        seed = 200 + i
+        if cls == "wood":
+            out[name] = (lambda c, sd: lambda: wood(c, sd))(col, seed)
+        elif cls == "metal":
+            out[name] = (lambda c, sd: lambda: surface(c, sd, grain=0.05, brush=0.05, blotch=0.05))(col, seed)
+        elif cls == "check":
+            out[name] = (lambda c, sd: lambda: checker(c, sd))(col, seed)
+        elif cls == "rubber":
+            out[name] = (lambda sd: lambda: rubber(sd))(seed)
+        else:
+            out[name] = (lambda c, sd: lambda: surface(c, sd, grain=0.07, blotch=0.04, speck=0.02))(col, seed)
+    return out

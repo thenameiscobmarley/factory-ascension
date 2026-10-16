@@ -69,23 +69,32 @@ void main() {
     // Bounce: the average colour of what blocks the sky, lighting this surface, tinted by its own colour
     vec3 albedo = texture(DiffuseSampler, texCoord).rgb;
     vec3 gi = (occl > 0.0 ? bounce / occl : vec3(0.0)) * albedo * blocked * 1.4 * Strength;
-    // Sun shadows: march toward the sun through the depth buffer; anything on screen in the way shadows this pixel
+    // Sun shadows: march toward the sun through the depth buffer; anything on screen in the way shadows this pixel.
+    // The ray is a fixed length in the world (8 blocks, even steps) and the occluder thickness is fixed, so a tree's
+    // shadow is the same however near or far you stand; far away it fades out rather than swimming.
     float sun = 1.0;
-    if (SunLight > 0.0 && dot(n, SunDir) > 0.02 && dist < 64.0) {
-        vec3 q = p + n * (0.03 + dist * 0.003);
-        float stepLen = 0.08 + dist * 0.004;
-        float j = ign(gl_FragCoord.xy + 17.0);
-        q += SunDir * stepLen * j;
+    float reachFade = 1.0 - smoothstep(24.0, 44.0, dist);
+    if (SunLight > 0.0 && reachFade > 0.0 && dot(n, SunDir) > 0.02) {
+        const float REACH = 8.0;
+        float stepLen = REACH / float(max(ShadowSteps, 1));
+        vec3 q = p + n * 0.05 + SunDir * stepLen * ign(gl_FragCoord.xy + 17.0);
+        float hit = 0.0;
         for (int i = 0; i < 48; i++) {
             if (i >= ShadowSteps) break;
             q += SunDir * stepLen;
-            stepLen *= 1.16;
+            if (q.z > -0.05) break;
             vec2 uv = toScreen(q);
-            if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || q.z > -0.05) break;
+            if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) break;
             if (texture(DepthSampler, uv).r >= 0.99999) continue;
             float diff = viewPos(uv).z - q.z;
-            if (diff > 0.03 && diff < 1.2 + stepLen) { sun = 1.0 - 0.45 * SunLight * (1.0 - smoothstep(40.0, 64.0, dist)); break; }
+            if (diff > 0.05 && diff < 0.9) {
+                // Softer the further along the ray the blocker is (a penumbra), and gone toward the screen's edges
+                vec2 e = min(uv, 1.0 - uv);
+                hit = (1.0 - float(i) / float(ShadowSteps) * 0.5) * smoothstep(0.0, 0.06, min(e.x, e.y));
+                break;
+            }
         }
+        sun = 1.0 - 0.42 * SunLight * hit * reachFade;
     }
     fragColor = vec4(gi, ao * sun);
 }

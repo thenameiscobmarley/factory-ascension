@@ -31,6 +31,13 @@ public final class FAClientConfig {
         return SAFE_MODE.get() ? 0 : LIGHTING.get();
     }
 
+    private static final java.util.Set<String> RENDER_FAILED = new java.util.HashSet<>();
+
+    /** Something failed while drawing: logged once per kind, and that one thing is skipped (the game keeps going). */
+    public static void renderFailed(String what, Throwable err) {
+        if (RENDER_FAILED.add(what)) org.slf4j.LoggerFactory.getLogger("Factory Ascension").error("{} failed; skipping it", what, err);
+    }
+
     /** Called when an effect fails: everything off, saved, and said once in chat. */
     public static void failSafe(String what, Throwable err) {
         org.slf4j.LoggerFactory.getLogger("Factory Ascension").error("Graphics: {} failed, turning effects off (safe mode)", what, err);

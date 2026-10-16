@@ -329,6 +329,7 @@ public class Operator extends Monster {
             GunSpec spec = GunItem.spec(gun);
             for (int i = 0; i < extras && spec != null; i++) {
                 Attachments.Att a = Attachments.ALL.get(r.nextInt(Attachments.ALL.size()));
+                if (a.id.startsWith("cursed_")) continue;   // the cursed ones are for players
                 if (a.fits(spec) && a.slot != Attachments.Slot.STOCK && a.slot != Attachments.Slot.GRIP) ids.add(a.id);
             }
             GunStats.setIds(gun, ids);
@@ -370,6 +371,22 @@ public class Operator extends Monster {
     int magSize() {
         GunStats st = GunStats.of(getMainHandItem());
         return st == null ? 0 : st.mag;
+    }
+
+    private static boolean tickFailed = false;
+
+    /** Anything going wrong in an operator's tick removes that operator (and says so once) instead of crashing the game. */
+    @Override
+    public void tick() {
+        try {
+            super.tick();
+        } catch (RuntimeException err) {
+            if (!tickFailed) {
+                tickFailed = true;
+                org.slf4j.LoggerFactory.getLogger("Factory Ascension").error("An armed operator ({}) failed; removing it so the game keeps running", type.id, err);
+            }
+            discard();
+        }
     }
 
     // ---- Shooting ----

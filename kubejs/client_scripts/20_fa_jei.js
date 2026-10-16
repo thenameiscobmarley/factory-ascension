@@ -6,6 +6,17 @@
 // and hides the assembly line's half-made item. Only runs when JEI is installed.
 
 if (typeof JEIEvents != 'undefined') {
+  // Attachments and rounds are one item each, told apart by their data: list every one separately
+  JEIEvents.subtypes(event => {
+    if (!Platform.isLoaded('factoryascension')) return
+    try {
+      event.useNBTKey('factoryascension:attachment', 'Att')
+      event.useNBTKey('factoryascension:cartridge', 'Cal')
+    } catch (err) {
+      console.warn('[Factory Ascension] JEI subtypes: ' + err)
+    }
+  })
+
   JEIEvents.hideItems(event => {
     event.hide('kubejs:incomplete_ascension_core')
   })

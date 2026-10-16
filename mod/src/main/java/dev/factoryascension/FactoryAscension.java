@@ -238,7 +238,12 @@ public class FactoryAscension {
     public static final RegistryObject<CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
         .title(Component.translatable("itemGroup.factoryascension"))
         .icon(() -> new ItemStack(VAULT.get()))
-        .displayItems((params, out) -> {
+        .displayItems((params, raw) -> {
+            // Every stack once (the tab throws on a repeat), so the catch-all at the end can't double anything up
+            java.util.Set<String> seen = new java.util.HashSet<>();
+            CreativeModeTab.Output out = (stack, vis) -> {
+                if (seen.add(net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(stack.getItem()) + "|" + stack.getTag())) raw.accept(stack, vis);
+            };
             out.accept(VAULT.get());
             out.accept(BINDER.get());
             out.accept(FORGE.get());
@@ -295,6 +300,14 @@ public class FactoryAscension {
             GLASS_BLOCKS.forEach(g -> out.accept(g.get()));
             FactoryAscension.BACKPACKS.forEach(b -> out.accept(b.get()));
             FAMobs.ALL.forEach(m -> out.accept(m.egg().get()));
+            // Every attachment (cursed ones too), so they show in the tab and in JEI
+            for (var a : dev.factoryascension.gun.Attachments.ALL) out.accept(dev.factoryascension.gun.AttachmentItem.of(a.id));
+            // And anything of ours not listed above (the plain attachment and round need their data, so not those)
+            for (var e : ITEMS.getEntries()) {
+                Item it = e.get();
+                if (it == ATTACHMENT.get() || it == CARTRIDGE.get()) continue;
+                out.accept(new net.minecraft.world.item.ItemStack(it));
+            }
         })
         .build());
 

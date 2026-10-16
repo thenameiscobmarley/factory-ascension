@@ -142,10 +142,11 @@ FakePos.prototype = {
   offset: function (a, b, c) { return new FakePos(this.x + a, this.y + b, this.z + c) }
 }
 var StartupEvents = { registry: function (type, fn) { handlers.registry.push({ type: type, fn: fn }) } }
-var jei = { hidden: [], info: {} }
+var jei = { hidden: [], info: {}, subtypeFns: [], subtypes: {} }
 var JEIEvents = {
   hideItems: function (fn) { fn({ hide: function (id) { jei.hidden.push(id) } }) },
-  information: function (fn) { fn({ addItem: function (id, lines) { jei.info[id] = lines } }) }
+  information: function (fn) { fn({ addItem: function (id, lines) { jei.info[id] = lines } }) },
+  subtypes: function (fn) { jei.subtypeFns.push(fn) }
 }
 var PlayerEvents = { loggedIn: function (fn) { (handlers.loggedIn = handlers.loggedIn || []).push(fn) } }
 var BlockEvents = { placed: function (id, fn) { (handlers.placed = handlers.placed || {})[id] = fn }, broken: function (id, fn) { (handlers.broken = handlers.broken || {})[id] = fn },
@@ -1660,6 +1661,12 @@ check('no hordes in the safe zone', bolts.length == nsBefore)
 
 print('\njei')
 check('JEI hides only the half-made assembly item', jei.hidden.join() == 'kubejs:incomplete_ascension_core')
+var jeiIsLoaded = Platform.isLoaded
+Platform.isLoaded = function (m) { return m == 'factoryascension' || jeiIsLoaded(m) }
+jei.subtypeFns.forEach(function (fn) { fn({ useNBTKey: function (id, key) { jei.subtypes[id] = key }, useNBT: function (id) { jei.subtypes[id] = '*' } }) })
+Platform.isLoaded = jeiIsLoaded
+check('JEI lists every attachment and every caliber of round separately (by their data)', jei.subtypes && jei.subtypes['factoryascension:attachment'] == 'Att' &&
+  jei.subtypes['factoryascension:cartridge'] == 'Cal', JSON.stringify(jei.subtypes))
 var needInfo = ['kubejs:essence_condenser', 'kubejs:ascension_altar', 'kubejs:condensed_essence_0', 'kubejs:mythic_fragment', 'kubejs:chaos_tome', 'kubejs:ascension_core', 'kubejs:gem_onyx_3', 'kubejs:tome_sharpness']
 check('JEI explains everything that comes from a machine or the world', needInfo.every(function (id) { return jei.info[id] && jei.info[id].length > 0 }),
   needInfo.filter(function (id) { return !jei.info[id] }).join(','))

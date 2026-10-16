@@ -105,20 +105,26 @@ public final class GunRenderer extends BlockEntityWithoutLevelRenderer {
 
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext ctx, PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
-        GunSpec spec = GunItem.spec(stack);
-        if (spec == null) return;
-        GunStats stats = GunStats.of(stack);
-        boolean firstPerson = ctx == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND || ctx == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
-        boolean held = firstPerson || ctx == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND || ctx == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
-        pose.pushPose();
-        if (held && !firstPerson && stats != null && stats.gangster) {
-            // Gangster grip: rolled onto its side about the hand
-            pose.translate(5 / 16f, 6 / 16f, 8 / 16f);
-            pose.mulPose(Axis.XP.rotationDegrees(-78));
-            pose.translate(-5 / 16f, -6 / 16f, -8 / 16f);
+        PoseStack.Pose fa$top = pose.last();
+        try {
+            GunSpec spec = GunItem.spec(stack);
+            if (spec == null) return;
+            GunStats stats = GunStats.of(stack);
+            boolean firstPerson = ctx == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND || ctx == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+            boolean held = firstPerson || ctx == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND || ctx == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
+            pose.pushPose();
+            if (held && !firstPerson && stats != null && stats.gangster) {
+                // Gangster grip: rolled onto its side about the hand
+                pose.translate(5 / 16f, 6 / 16f, 8 / 16f);
+                pose.mulPose(Axis.XP.rotationDegrees(-78));
+                pose.translate(-5 / 16f, -6 / 16f, -8 / 16f);
+            }
+            drawGun(stack, spec, stats, ctx, pose, buffers, light, overlay);
+            pose.popPose();
+        } catch (Throwable err) {
+            while (pose.last() != fa$top && !pose.clear()) pose.popPose();   // back to where it started
+            dev.factoryascension.client.FAClientConfig.renderFailed("Gun drawing", err);
         }
-        drawGun(stack, spec, stats, ctx, pose, buffers, light, overlay);
-        pose.popPose();
     }
 
     private void drawGun(ItemStack stack, GunSpec spec, GunStats stats, ItemDisplayContext ctx, PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
