@@ -389,6 +389,290 @@
   ],
   "subtitle": "subtitles.factoryascension.gun.whiz"
  },
+ "ambient.wind": {
+  "sounds": [
+   {
+    "name": "factoryascension:ambient/wind_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/wind_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/wind_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.ambient.wind"
+ },
+ "ambient.bird": {
+  "sounds": [
+   {
+    "name": "factoryascension:ambient/bird_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/bird_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/bird_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/bird_4",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/bird_5",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/bird_6",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.ambient.bird"
+ },
+ "ambient.crickets": {
+  "sounds": [
+   {
+    "name": "factoryascension:ambient/crickets_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/crickets_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.ambient.crickets"
+ },
+ "ambient.drip": {
+  "sounds": [
+   {
+    "name": "factoryascension:ambient/drip_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/drip_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/drip_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.ambient.drip"
+ },
+ "ambient.rumble": {
+  "sounds": [
+   {
+    "name": "factoryascension:ambient/rumble_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:ambient/rumble_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.ambient.rumble"
+ },
+ "footstep.stone": {
+  "sounds": [
+   {
+    "name": "factoryascension:footstep/stone_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/stone_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/stone_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/stone_4",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/stone_5",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/stone_6",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.footstep.stone"
+ },
+ "footstep.grass": {
+  "sounds": [
+   {
+    "name": "factoryascension:footstep/grass_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/grass_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/grass_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/grass_4",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/grass_5",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/grass_6",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.footstep.grass"
+ },
+ "footstep.gravel": {
+  "sounds": [
+   {
+    "name": "factoryascension:footstep/gravel_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/gravel_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/gravel_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/gravel_4",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/gravel_5",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/gravel_6",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.footstep.gravel"
+ },
+ "footstep.wood": {
+  "sounds": [
+   {
+    "name": "factoryascension:footstep/wood_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/wood_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/wood_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/wood_4",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/wood_5",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/wood_6",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.footstep.wood"
+ },
+ "footstep.sand": {
+  "sounds": [
+   {
+    "name": "factoryascension:footstep/sand_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/sand_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/sand_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/sand_4",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/sand_5",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/sand_6",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.footstep.sand"
+ },
+ "footstep.snow": {
+  "sounds": [
+   {
+    "name": "factoryascension:footstep/snow_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/snow_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/snow_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/snow_4",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/snow_5",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/snow_6",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.footstep.snow"
+ },
+ "footstep.metal": {
+  "sounds": [
+   {
+    "name": "factoryascension:footstep/metal_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/metal_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/metal_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:footstep/metal_4",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.footstep.metal"
+ },
  "vehicle.engine": {
   "sounds": [
    {

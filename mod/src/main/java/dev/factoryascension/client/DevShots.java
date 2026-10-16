@@ -136,7 +136,8 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.v25")) step = 700;
                     if (Boolean.getBoolean("fa.sliders")) step = 750;
                     if (Boolean.getBoolean("fa.tab")) step = 760;
-                    if (Boolean.getBoolean("fa.enemies")) step = 780;  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
+                    if (Boolean.getBoolean("fa.enemies")) step = 780;
+                    if (Boolean.getBoolean("fa.aaa")) step = 800;      // only: the cinematic look, haze, sun, aim depth of field, structure spacing  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -468,6 +469,30 @@ public final class DevShots {
                 case 784 -> { shot(mc, "enemies_3"); log("after 90 s among enemies and at the gas station: still running, " +
                     mc.level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, mc.player.getBoundingBox().inflate(64)).size() + " living things near");
                     cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                case 800 -> {
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) {
+                        var dir = new java.io.File(mc.gameDirectory, "screenshots");
+                        double[] r = dev.factoryascension.worldgen.SiteGrid.survey(sp.overworld().getSeed(), sp.overworld().getSharedSpawnPos(), 10000,
+                            new java.io.File(dir, "fa_aaa_structure_map.png"));
+                        log("structure sites in 20000 x 20000 blocks: " + (int) r[0] + ", closest two " + Math.round(r[1]) + " blocks apart");
+                    }
+                    cmd(mc, "gamemode creative @a"); cmd(mc, "time set 1000"); cmd(mc, "weather clear");
+                    FAClientConfig.REALISM.set(false); FAClientConfig.LIGHTING.set(3);
+                    cmd(mc, "fill -30 -61 -10 30 -50 120 air"); cmd(mc, "fill -30 -61 -10 30 -61 120 grass_block");
+                    for (int z = 10; z <= 110; z += 14) { cmd(mc, "place feature minecraft:oak -8 -60 " + z); cmd(mc, "place feature minecraft:birch 9 -60 " + (z + 6)); }
+                    cmd(mc, "fill -3 -61 20 3 -61 40 water");
+                    cmd(mc, "tp @a 0 -58 0 0 4"); FAClientConfig.CINEMATIC.set(false); FAClientConfig.HAZE.set(false); wait = 160; }
+                case 801 -> { shot(mc, "aaa_off"); FAClientConfig.CINEMATIC.set(true); FAClientConfig.HAZE.set(true); wait = 60; }
+                case 802 -> { shot(mc, "aaa_on"); cmd(mc, "time set 23300"); cmd(mc, "tp @a 0 -58 0 -90 -12"); wait = 100; }
+                case 803 -> { shot(mc, "aaa_sunrise_glare"); cmd(mc, "time set 18000"); cmd(mc, "tp @a 0 -58 0 0 4");
+                    for (int z = 8; z <= 40; z += 8) { cmd(mc, "setblock -2 -60 " + z + " lantern"); cmd(mc, "setblock 2 -60 " + (z + 4) + " torch"); } wait = 100; }
+                case 804 -> { shot(mc, "aaa_night_bloom"); cmd(mc, "time set 6000"); cmd(mc, "gamemode survival @a"); cmd(mc, "tp @a 0 -60 0 0 2");
+                    cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:m4a1");
+                    cmd(mc, "summon zombie 0 -60 9 {NoAI:1b}"); wait = 60; }
+                case 805 -> { dev.factoryascension.client.gun.GunAnim.devAim = true; wait = 40; }
+                case 806 -> { shot(mc, "aaa_aim_dof"); dev.factoryascension.client.gun.GunAnim.devAim = false; wait = 10; }
+                case 807 -> { FAClientConfig.REALISM.set(true); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }

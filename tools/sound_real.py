@@ -239,15 +239,21 @@ def read_wav(path):
 
 
 def convolve(x, ir):
-    """x * ir, by ffmpeg's partitioned FFT convolution (no gain games: plain maths)."""
+    """x * ir, by ffmpeg's partitioned FFT convolution (no gain games: plain maths), in 32-bit float end to end so
+    nothing clips on the way (clipping there shows up as clicks)."""
     d = tempfile.mkdtemp()
-    a, b, o = os.path.join(d, "x.wav"), os.path.join(d, "ir.wav"), os.path.join(d, "o.wav")
+    a, b, o = os.path.join(d, "x.f32"), os.path.join(d, "ir.f32"), os.path.join(d, "o.f32")
     sx, si = peak(x), peak(ir)
-    write_wav(a, [v / sx * 0.9 for v in x] + [0.0] * len(ir))
-    write_wav(b, [v / si * 0.9 for v in ir])
-    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", a, "-i", b, "-filter_complex",
-                    "[0][1]afir=gtype=-1:irnorm=-1:dry=1:wet=1", "-ac", "1", "-ar", str(SR), o], check=True)
-    y = read_wav(o)
+    with open(a, "wb") as f:
+        f.write(struct.pack("<%df" % (len(x) + len(ir)), *([v / sx * 0.5 for v in x] + [0.0] * len(ir))))
+    with open(b, "wb") as f:
+        f.write(struct.pack("<%df" % len(ir), *[v / si * 0.5 for v in ir]))
+    raw = ["-f", "f32le", "-ar", str(SR), "-ac", "1"]
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"] + raw + ["-i", a] + raw + ["-i", b] + ["-filter_complex",
+                    "[0][1]afir=gtype=-1:irnorm=-1:dry=1:wet=1", "-f", "f32le", "-ac", "1", "-ar", str(SR), o], check=True)
+    with open(o, "rb") as f:
+        data = f.read()
+    y = list(struct.unpack("<%df" % (len(data) // 4), data))
     for f in (a, b, o):
         os.unlink(f)
     os.rmdir(d)
@@ -437,3 +443,145 @@ def ringing(rnd):
         ph += 2 * math.pi * f * (1 + 0.002 * math.sin(2 * math.pi * 0.7 * t)) / SR
         out.append(math.sin(ph) * math.exp(-t / 0.9) * min(1, t / 0.05) * 0.4)
     return trim_tail(out)
+
+
+# ---- The world around you (ambience) ----
+def wind(rnd, sec=7.0):
+    """Wind: broad noise whose brightness and loudness swell and fall in gusts, with a soft whistle at the peaks."""
+    n = int(sec * SR)
+    x = white(sec, rnd)
+    # gust shape: a few overlapping slow swells
+    g = [0.0] * n
+    for _ in range(3):
+        c, w, a = rnd.uniform(0.2, 0.8) * sec, rnd.uniform(1.2, 2.6), rnd.uniform(0.5, 1.0)
+        for i in range(n):
+            t = i / SR
+            g[i] += a * math.exp(-((t - c) / w) ** 2)
+    out, y1, y2 = [], 0.0, 0.0
+    for i, v in enumerate(x):
+        fc = 250 + 900 * g[i]
+        a = math.exp(-2 * math.pi * fc / SR)
+        y1 = (1 - a) * v + a * y1
+        y2 = (1 - a) * y1 + a * y2
+        out.append(y2 * (0.25 + g[i]))
+    whistle = bp(white(sec, rnd), rnd.uniform(700, 1100), 12)
+    out = [o + w * gg * 0.4 for o, w, gg in zip(out, whistle, g)]
+    for i in range(n):
+        f = min(1, i / (0.8 * SR), (n - i) / (0.8 * SR))
+        out[i] *= f
+    return norm(out, 0.7)
+
+
+def bird(rnd):
+    """A songbird's phrase: a run of quick whistled chirps sweeping in pitch, then the woods answering faintly."""
+    x = zeros(1.6)
+    t = 0.0
+    style = rnd.randint(0, 2)
+    base = rnd.uniform(2600, 4200)
+    for k in range(rnd.randint(4, 9)):
+        dur = rnd.uniform(0.03, 0.11)
+        f0 = base * rnd.uniform(0.85, 1.3)
+        f1 = f0 * (rnd.uniform(1.2, 1.6) if style == 0 else rnd.uniform(0.55, 0.8) if style == 1 else rnd.uniform(0.9, 1.1))
+        n = int(dur * SR)
+        ph, chirp = 0.0, []
+        for i in range(n):
+            u = i / n
+            f = f0 + (f1 - f0) * u + 180 * math.sin(2 * math.pi * 38 * i / SR) * (style == 2)
+            ph += 2 * math.pi * f / SR
+            env = math.sin(math.pi * u) ** 1.5
+            chirp.append((math.sin(ph) + 0.12 * math.sin(2 * ph)) * env)
+        add(x, chirp, t, rnd.uniform(0.6, 1.0))
+        t += dur + rnd.uniform(0.02, 0.09)
+        if t > 1.3:
+            break
+    y = convolve(norm(x), ir_outdoor(rnd, 0.9, 0.6, 0.3, 0.003, 6, 0.2, 0.35))
+    return trim_tail(norm(y, 0.6))
+
+
+def crickets(rnd, sec=4.0):
+    """Crickets at night: a high carrier, pulsed in quick trains, a few insects slightly out of step."""
+    n = int(sec * SR)
+    out = [0.0] * n
+    for _ in range(rnd.randint(2, 4)):
+        f = rnd.uniform(4200, 5200)
+        rate = rnd.uniform(25, 40)
+        train = rnd.uniform(0.25, 0.45)
+        gap = rnd.uniform(0.2, 0.5)
+        off = rnd.uniform(0, 0.4)
+        amp = rnd.uniform(0.4, 1.0)
+        for i in range(n):
+            t = i / SR + off
+            ph = t % (train + gap)
+            if ph < train:
+                edge = min(1.0, ph / 0.03, (train - ph) / 0.03)          # each train fades in and out: no clicks
+                pulse = max(0.0, math.sin(math.pi * ((t * rate) % 1.0))) ** 3
+                out[i] += amp * edge * pulse * math.sin(2 * math.pi * f * t)
+    for i in range(n):
+        out[i] *= min(1, i / (0.3 * SR), (n - i) / (0.3 * SR))
+    return norm(out, 0.35)
+
+
+def cave_drip(rnd):
+    """A water drop in a cave: a tiny falling 'plip', then the cave's long, dark echo."""
+    x = zeros(0.1)
+    f0 = rnd.uniform(1400, 2400)
+    n = int(0.05 * SR)
+    ph = 0.0
+    plip = []
+    for i in range(n):
+        u = i / n
+        f = f0 * (1.5 - 0.6 * u)
+        ph += 2 * math.pi * f / SR
+        plip.append(math.sin(ph) * math.exp(-u * 5))
+    add(x, plip, 0, 1.0)
+    y = convolve(norm(x), ir_outdoor(rnd, 2.6, 2.2, 0.9, 0.006, 16, 0.4, 1.4))
+    return trim_tail(norm(y, 0.5), fade=0.3)
+
+
+def cave_rumble(rnd, sec=5.0):
+    """Deep underground: a very low, slow rumble, as if the stone itself were settling."""
+    x = lp(white(sec, rnd), 60, 3)
+    n = len(x)
+    for i in range(n):
+        x[i] *= min(1, i / (1.2 * SR), (n - i) / (1.2 * SR)) * (0.6 + 0.4 * math.sin(2 * math.pi * 0.15 * i / SR))
+    return norm(x, 0.6)
+
+
+# ---- Footsteps ----
+def grains(rnd, sec, count, lo, hi, size=(0.0005, 0.003)):
+    """Lots of tiny noise bursts: crunching (grass, gravel, snow, sand)."""
+    x = zeros(sec)
+    for _ in range(count):
+        t = rnd.uniform(0, sec * 0.85) ** 1.3 / (sec * 0.85) ** 0.3
+        g = decay_env(bp(white(0.012, rnd), rnd.uniform(lo, hi), 1.5), 0.0002, rnd.uniform(*size))
+        add(x, g, t, rnd.uniform(0.3, 1.0))
+    return x
+
+
+def footstep(rnd, surface):
+    """One step: a heel strike and a softer toe roll, each made of what the ground's made of."""
+    x = zeros(0.4)
+    toe = rnd.uniform(0.07, 0.11)
+    for at, k in ((0.0, 1.0), (toe, rnd.uniform(0.4, 0.6))):
+        thump = decay_env(lp(white(0.08, rnd), 140, 3), 0.002, 0.018)
+        add(x, thump, at, 1.6 * k)
+        if surface == "stone":
+            add(x, decay_env(hp(white(0.02, rnd), 1800), 0.0002, 0.0025), at, 0.9 * k)
+            add(x, grains(rnd, 0.04, 6, 2500, 6000), at, 0.25 * k)
+        elif surface == "grass":
+            add(x, grains(rnd, 0.09, 40, 1500, 5000, (0.0008, 0.004)), at, 0.5 * k)
+        elif surface == "gravel":
+            add(x, grains(rnd, 0.14, 90, 900, 5500, (0.001, 0.005)), at, 0.9 * k)
+        elif surface == "wood":
+            base = rnd.uniform(160, 230)
+            add(x, modes(rnd, 0.06, [(base, 0.014, 1.0), (base * 2.3, 0.01, 0.6), (base * 4.1, 0.007, 0.35), (base * 6.6, 0.005, 0.2)], 0.001), at, 0.55 * k)
+            add(x, decay_env(bp(white(0.03, rnd), 1200, 1.2), 0.0003, 0.004), at, 0.5 * k)
+        elif surface == "sand":
+            add(x, lp(grains(rnd, 0.1, 50, 800, 3500, (0.002, 0.008)), 3000, 1), at, 0.45 * k)
+        elif surface == "snow":
+            add(x, grains(rnd, 0.12, 60, 700, 3000, (0.002, 0.006)), at, 0.6 * k)
+            add(x, decay_env(bp(white(0.06, rnd), rnd.uniform(1000, 1500), 6), 0.01, 0.03), at + 0.02, 0.3 * k)
+        elif surface == "metal":
+            add(x, metal_hit(rnd, 1.6, 0.7, 0.15), at, 0.5 * k)
+    y = convolve(norm(x), ir_room(rnd, 0.15, 0.05, 0.15))
+    return trim_tail(norm(y, 0.6))

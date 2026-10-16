@@ -362,4 +362,14 @@ public final class FAConfig {
         raidBreaksDoors = breakDoors;
         bulletsPenetrate = penetrate;
     }
+
+    // Structures (worldgen/SiteGrid): at least this many blocks between any two of the mod's overworld structures, and the
+    // chance each 2x-spacing square cell gets one
+    public static int structureSpacing = 500;
+    public static float structureCellChance = 0.8f;
+
+    public static void setStructureSpacing(int spacing, double cellChance) {
+        structureSpacing = Math.max(64, spacing);
+        structureCellChance = (float) Math.max(0, Math.min(1, cellChance));
+    }
 }

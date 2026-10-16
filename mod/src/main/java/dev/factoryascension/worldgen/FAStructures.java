@@ -66,6 +66,8 @@ public final class FAStructures {
             RandomSource r = ctx.random();
             // The whole structure stays inside the chunk being generated: one reaching into a neighbour that's already
             // been explored would change ground the player has seen (and look like it appeared from nowhere)
+            if ((kind == Kind.FACTORY_RUIN || kind == Kind.ASCENSION_CRYPT)
+                && !SiteGrid.here(level, kind == Kind.FACTORY_RUIN ? "factory_ruin" : "ascension_crypt", ctx.origin())) return false;
             return switch (kind) {
                 case FACTORY_RUIN -> ruin(level, onSurface(level, inChunk(ctx.origin(), 5)), r);
                 case ASCENSION_CRYPT -> crypt(level, inChunk(ctx.origin(), 4), r);

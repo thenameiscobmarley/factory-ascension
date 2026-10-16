@@ -490,6 +490,18 @@ SOUNDS = {
     "grenade.explode": (2, lambda r, k: R.explosion(r), "Grenade explodes"),
     "gun.crack": (3, lambda r, k: bullet_crack(r), "Round cracks past"),
     "gun.whiz": (3, lambda r, k: bullet_whiz(r), "Round whizzes past"),
+    "ambient.wind": (3, lambda r, k: R.wind(r), "Wind"),
+    "ambient.bird": (6, lambda r, k: R.bird(r), "A bird sings"),
+    "ambient.crickets": (2, lambda r, k: R.crickets(r), "Crickets"),
+    "ambient.drip": (3, lambda r, k: R.cave_drip(r), "Water drips"),
+    "ambient.rumble": (2, lambda r, k: R.cave_rumble(r), "The cave rumbles"),
+    "footstep.stone": (6, lambda r, k: R.footstep(r, "stone"), "Footsteps"),
+    "footstep.grass": (6, lambda r, k: R.footstep(r, "grass"), "Footsteps"),
+    "footstep.gravel": (6, lambda r, k: R.footstep(r, "gravel"), "Footsteps"),
+    "footstep.wood": (6, lambda r, k: R.footstep(r, "wood"), "Footsteps"),
+    "footstep.sand": (6, lambda r, k: R.footstep(r, "sand"), "Footsteps"),
+    "footstep.snow": (6, lambda r, k: R.footstep(r, "snow"), "Footsteps"),
+    "footstep.metal": (4, lambda r, k: R.footstep(r, "metal"), "Footsteps"),
     "vehicle.engine": (1, lambda r, k: engine_loop(r, 1), "Dirt bike engine"),
     "vehicle.engine_v12": (1, lambda r, k: engine_loop(r, 12), "V12 engine"),
 }
@@ -511,6 +523,23 @@ def main():
         print("%-22s %d variant(s)" % (sid, variants))
     with open(os.path.join(ASSETS, "sounds.json"), "w") as f:
         json.dump(sounds_json, f, indent=1)
+    # The game's own footsteps, replaced by ours (assets/minecraft/sounds.json: only the step events)
+    steps = {"stone": ["block.stone.step", "block.deepslate.step", "block.deepslate_bricks.step", "block.deepslate_tiles.step",
+                       "block.polished_deepslate.step", "block.tuff.step", "block.calcite.step", "block.netherrack.step", "block.nether_bricks.step"],
+             "grass": ["block.grass.step", "block.moss.step", "block.azalea_leaves.step", "block.rooted_dirt.step"],
+             "gravel": ["block.gravel.step"], "wood": ["block.wood.step", "block.bamboo_wood.step", "block.cherry_wood.step", "block.nether_wood.step"],
+             "sand": ["block.sand.step", "block.suspicious_sand.step"], "snow": ["block.snow.step", "block.powder_snow.step"],
+             "metal": ["block.metal.step", "block.copper.step", "block.chain.step", "block.anvil.step"]}
+    vanilla = {}
+    for surface, events in steps.items():
+        n = SOUNDS["footstep." + surface][0]
+        files = [{"name": "factoryascension:footstep/%s_%d" % (surface, k + 1), "volume": 0.9} for k in range(n)]
+        for ev in events:
+            vanilla[ev] = {"replace": True, "sounds": files, "subtitle": "subtitles.block.generic.footsteps"}
+    vdir = os.path.join(ASSETS, "..", "minecraft")
+    os.makedirs(vdir, exist_ok=True)
+    with open(os.path.join(vdir, "sounds.json"), "w") as f:
+        json.dump(vanilla, f, indent=1)
     lang_path = os.path.join(ASSETS, "lang", "en_us.json")
     lang = json.load(open(lang_path))
     for sid, (_, _, subtitle) in SOUNDS.items():

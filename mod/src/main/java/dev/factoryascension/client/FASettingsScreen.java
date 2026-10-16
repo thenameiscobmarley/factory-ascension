@@ -59,6 +59,9 @@ public class FASettingsScreen extends Screen {
         items.add((x, y) -> toggle(x, y, w, "Sun rays", FAClientConfig.SUN_RAYS));
         items.add((x, y) -> toggle(x, y, w, "Reflections (traced)", FAClientConfig.SCREEN_REFLECTIONS));
         items.add((x, y) -> toggle(x, y, w, "Sun shadows", FAClientConfig.SUN_SHADOWS));
+        items.add((x, y) -> toggle(x, y, w, "Cinematic grade + bloom", FAClientConfig.CINEMATIC));
+        items.add((x, y) -> toggle(x, y, w, "Distance haze", FAClientConfig.HAZE));
+        items.add((x, y) -> toggle(x, y, w, "Aim depth of field", FAClientConfig.AIM_DOF));
         items.add((x, y) -> toggle(x, y, w, "Glints (old)", FAClientConfig.REFLECTIONS));
         items.add((x, y) -> toggle(x, y, w, "Smoke", FAClientConfig.SMOKE));
         items.add((x, y) -> slider(x, y, w, "Smoke amount", FAClientConfig.SMOKE_AMOUNT, 0.1, 3.0, v -> String.format("x%.1f", v)));
@@ -72,6 +75,7 @@ public class FASettingsScreen extends Screen {
         items.add((x, y) -> slider(x, y, w, "Desaturate", FAClientConfig.DESATURATE, 0.0, 1.0, v -> String.format("%.0f%%", v * 100)));
         items.add((x, y) -> slider(x, y, w, "Vignette", FAClientConfig.VIGNETTE, 0.0, 2.5, v -> String.format("%.0f%%", v * 100)));
         items.add((x, y) -> toggle(x, y, w, "Dread sounds", FAClientConfig.DREAD));
+        items.add((x, y) -> toggle(x, y, w, "Ambience", FAClientConfig.AMBIENCE));
         items.add((x, y) -> toggle(x, y, w, "Smooth guns", FAClientConfig.GUN_MESHES));
         items.add((x, y) -> toggle(x, y, w, "Inventory animation", FAClientConfig.TARKOV_ANIMATION));
         items.add((x, y) -> toggle(x, y, w, "Safe mode (all off)", FAClientConfig.SAFE_MODE));

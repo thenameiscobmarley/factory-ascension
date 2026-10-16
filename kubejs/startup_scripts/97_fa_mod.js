@@ -25,6 +25,7 @@ if (Platform.isLoaded('factoryascension')) {
   $FAModConfig.setNpcs(NP.healthScale, NP.damageScale, NP.spreadScale, NP.bleedChance, NP.gunDropChance, NP.patrols, NP.patrolChance, NP.patrolMinDanger,
     NP.maxNearby, NP.flareHunters)
   $FAModConfig.setMobHearing(NP.mobsHearShots, NP.mobHearingScale)
+  $FAModConfig.setStructureSpacing(global.FA.structures.spacing, global.FA.structures.cellChance)
   let RD = global.FA.raids
   $FAModConfig.setRaids(RD.enabled, RD.markTicks, RD.killsPerLevel, RD.firstRaidTicks, RD.raidEveryTicks, RD.partySize, RD.breakDoors, RD.bulletsPenetrate)
   let VH = global.FA.vehicles, $FABike = Java.loadClass('dev.factoryascension.vehicle.BikeParts')

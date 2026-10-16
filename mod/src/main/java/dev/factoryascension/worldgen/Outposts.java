@@ -85,6 +85,7 @@ public final class Outposts {
             double dist = Math.sqrt(Math.pow(cx - spawn.getX(), 2) + Math.pow(cz - spawn.getZ(), 2));
             // In world generation only so far out; placed by command (/place feature) anywhere
             if (level instanceof net.minecraft.server.level.WorldGenRegion && dist < kind.minDistance) return false;
+            if (!SiteGrid.here(level, kind.id, o)) return false;   // one site per cell: at least structureSpacing apart
             try {
                 Site s = new Site(level, r, cx, cz, dist);
                 return switch (kind) {

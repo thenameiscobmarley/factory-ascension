@@ -1572,6 +1572,10 @@ global.FA = {
     }
   },
 
+  // Structures: at least `spacing` blocks between any two of the mod's overworld structures (outposts, ruins, crypts);
+  // the world is cut into cells 2 x spacing wide, and each holds one with this chance
+  structures: { spacing: 500, cellChance: 0.8 },
+
   npcs: {
     healthScale: 1, damageScale: 0.45, spreadScale: 1, bleedChance: 0.2, gunDropChance: 0.85,
     // Monsters (hordes too) hear gunshots and come: hearing x the shot's reach (about 100 blocks for a rifle, a few for a suppressed one)

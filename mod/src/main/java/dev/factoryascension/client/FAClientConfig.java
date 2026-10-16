@@ -10,7 +10,7 @@ public final class FAClientConfig {
     public static final ForgeConfigSpec.IntValue MAX_GLINTS;
     public static final ForgeConfigSpec.DoubleValue STRENGTH;
     public static final ForgeConfigSpec.BooleanValue CONFLICT_MESSAGES;
-    public static final ForgeConfigSpec.BooleanValue SCREEN_REFLECTIONS, SUN_SHADOWS;
+    public static final ForgeConfigSpec.BooleanValue SCREEN_REFLECTIONS, SUN_SHADOWS, CINEMATIC, HAZE, AIM_DOF, AMBIENCE;
     public static final ForgeConfigSpec.BooleanValue SAFE_MODE, SUN_RAYS, SMOKE, DEBRIS, WATER, OCULUS_KEY_MOVED, DEPTH_ADDED, PACK_DEFAULTS, TARKOV_ANIMATION;
     public static final ForgeConfigSpec.BooleanValue GUN_MESHES, REALISM, DREAD;
     public static final ForgeConfigSpec.DoubleValue FISHEYE, GRAIN, DESATURATE, VIGNETTE, DEPTH_SMOOTH, DEPTH_STRENGTH;
@@ -65,6 +65,10 @@ public final class FAClientConfig {
             .defineInRange("lighting", 3, 0, 3);
         LIGHT_STRENGTH = b.comment("How strong the shadows and bounced light are").defineInRange("lightingStrength", 1.0, 0.1, 2.0);
         SCREEN_REFLECTIONS = b.comment("Ascension Lighting: ray-traced reflections on water, wet ground in the rain, and the sky's sheen on flat ground").define("screenReflections", true);
+        AMBIENCE = b.comment("A living soundscape: wind (stronger up high and in storms), birdsong by day, crickets at night, drips and rumbles underground").define("ambience", true);
+        CINEMATIC = b.comment("Ascension Lighting: a filmic tone curve (highlights roll off like film) and bloom round bright lights and sky").define("cinematic", true);
+        HAZE = b.comment("Ascension Lighting: aerial perspective, distant land fading into a sunlit haze").define("haze", true);
+        AIM_DOF = b.comment("Ascension Lighting: depth of field while aiming down sights (what's far behind your target softens)").define("aimDepthOfField", true);
         SUN_SHADOWS = b.comment("Ascension Lighting: shadows cast by the sun (and moon) from whatever's on screen").define("sunShadows", true);
         SUN_RAYS = b.comment("Light shafts from the sun and moon").define("sunRays", true);
         SMOKE = b.comment("Real smoke from explosions, gunfire and fires").define("smoke", true);

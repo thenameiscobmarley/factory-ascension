@@ -137,7 +137,9 @@ def placed_id(s):
 def main():
     for s, (rarity, how, where) in STRUCTURES.items():
         A.write_json(os.path.join(DATA, "worldgen", "configured_feature", s + ".json"), {"type": NS + ":" + s, "config": {}})
-        place = [{"type": "minecraft:rarity_filter", "chance": rarity}, {"type": "minecraft:in_square"}]
+        # Overworld structures: every chunk asks, and worldgen/SiteGrid says yes in only one chunk per cell (spacing);
+        # their rarities here are SiteGrid's weights
+        place = [{"type": "minecraft:rarity_filter", "chance": 1 if where == "overworld" else rarity}, {"type": "minecraft:in_square"}]
         if how == "surface":
             place.append({"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"})
         else:
@@ -151,7 +153,7 @@ def main():
         A.write_json(os.path.join(DATA, "loot_tables", "chests", s + ".json"), {"type": "minecraft:chest", "pools": LOOT[s]})
     for s, rarity in OUTPOSTS.items():
         A.write_json(os.path.join(DATA, "worldgen", "configured_feature", s + ".json"), {"type": NS + ":" + s, "config": {}})
-        place = [{"type": "minecraft:rarity_filter", "chance": rarity}, {"type": "minecraft:in_square"},
+        place = [{"type": "minecraft:rarity_filter", "chance": 1}, {"type": "minecraft:in_square"},
                  {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]
         A.write_json(os.path.join(DATA, "worldgen", "placed_feature", s + ".json"), {"feature": NS + ":" + s, "placement": place})
         A.write_json(os.path.join(DATA, "forge", "biome_modifier", "structure_" + s + ".json"), {

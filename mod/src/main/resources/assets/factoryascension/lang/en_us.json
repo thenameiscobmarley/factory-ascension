@@ -406,5 +406,17 @@
  "item.factoryascension.gearbox_race": "Close-Ratio Race Gearbox",
  "item.factoryascension.fuel_can": "Fuel Can",
  "item.factoryascension.racing_fuel": "Racing Fuel",
- "entity.factoryascension.dirt_bike": "Dirt Bike"
+ "entity.factoryascension.dirt_bike": "Dirt Bike",
+ "subtitles.factoryascension.ambient.wind": "Wind",
+ "subtitles.factoryascension.ambient.bird": "A bird sings",
+ "subtitles.factoryascension.ambient.crickets": "Crickets",
+ "subtitles.factoryascension.ambient.drip": "Water drips",
+ "subtitles.factoryascension.ambient.rumble": "The cave rumbles",
+ "subtitles.factoryascension.footstep.stone": "Footsteps",
+ "subtitles.factoryascension.footstep.grass": "Footsteps",
+ "subtitles.factoryascension.footstep.gravel": "Footsteps",
+ "subtitles.factoryascension.footstep.wood": "Footsteps",
+ "subtitles.factoryascension.footstep.sand": "Footsteps",
+ "subtitles.factoryascension.footstep.snow": "Footsteps",
+ "subtitles.factoryascension.footstep.metal": "Footsteps"
 }

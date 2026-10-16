@@ -16,6 +16,15 @@
   },
   {
    "name": "ReflSampler"
+  },
+  {
+   "name": "BloomSampler"
+  },
+  {
+   "name": "BlurSampler"
+  },
+  {
+   "name": "DepthSampler"
   }
  ],
  "uniforms": [
@@ -33,6 +42,117 @@
    "count": 1,
    "values": [
     1
+   ]
+  },
+  {
+   "name": "InvProjMat",
+   "type": "matrix4x4",
+   "count": 16,
+   "values": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "name": "Grade",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1
+   ]
+  },
+  {
+   "name": "BloomAmount",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0.5
+   ]
+  },
+  {
+   "name": "Haze",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0.004
+   ]
+  },
+  {
+   "name": "HazeColor",
+   "type": "float",
+   "count": 3,
+   "values": [
+    0.7,
+    0.8,
+    0.9
+   ]
+  },
+  {
+   "name": "SunDir",
+   "type": "float",
+   "count": 3,
+   "values": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "name": "SunColor",
+   "type": "float",
+   "count": 3,
+   "values": [
+    1,
+    0.9,
+    0.7
+   ]
+  },
+  {
+   "name": "SkyOpen",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1
+   ]
+  },
+  {
+   "name": "Aim",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
+  },
+  {
+   "name": "SunScreen",
+   "type": "float",
+   "count": 3,
+   "values": [
+    0.5,
+    0.5,
+    0
+   ]
+  },
+  {
+   "name": "Aspect",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1.7778
    ]
   }
  ]

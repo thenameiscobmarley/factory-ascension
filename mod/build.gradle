@@ -101,6 +101,7 @@ minecraft {
                 if (project.hasProperty('faSliders')) property 'fa.sliders', 'true'
                 if (project.hasProperty('faTab')) property 'fa.tab', 'true'
                 if (project.hasProperty('faEnemies')) property 'fa.enemies', 'true'
+                if (project.hasProperty('faAaa')) property 'fa.aaa', 'true'
                 if (project.hasProperty('faShot')) property 'fa.shot', project.property('faShot')
                 jvmArgs '-Xmx1500m'
                 args '--quickPlaySingleplayer', 'devworld', '--width', '1280', '--height', '720'

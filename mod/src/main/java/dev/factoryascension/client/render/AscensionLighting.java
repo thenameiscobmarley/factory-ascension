@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class AscensionLighting {
     private static final Logger LOG = LoggerFactory.getLogger("Factory Ascension");
-    private static ShaderInstance gi, blur, rays, composite, ssr;
-    private static RenderTarget giTarget, blurTarget, raysTarget, sceneTarget, reflTarget;
+    private static ShaderInstance gi, blur, rays, composite, ssr, glow;
+    private static RenderTarget giTarget, blurTarget, raysTarget, sceneTarget, reflTarget, bloomA, bloomB, dofA, dofB;
     private static int lastW = -1, lastH = -1;
     // For the self-test and the frame-time check: how long the last frame's passes took (ns, CPU side) and how many ran
     public static long lastNanos = 0;
@@ -69,13 +69,14 @@ public final class AscensionLighting {
     public static final class Shaders {
         @SubscribeEvent
         public static void register(RegisterShadersEvent event) {
-            gi = blur = rays = composite = ssr = null;
+            gi = blur = rays = composite = ssr = glow = null;
             try {
                 event.registerShader(load(event, "fa_gi"), s -> gi = s);
                 event.registerShader(load(event, "fa_blur"), s -> blur = s);
                 event.registerShader(load(event, "fa_rays"), s -> rays = s);
                 event.registerShader(load(event, "fa_composite"), s -> composite = s);
                 event.registerShader(load(event, "fa_ssr"), s -> ssr = s);
+                event.registerShader(load(event, "fa_glow"), s -> glow = s);
                 event.registerShader(new ShaderInstance(event.getResourceProvider(), new ResourceLocation(FactoryAscension.MODID, "fa_soft_particle"),
                     DefaultVertexFormat.PARTICLE), s -> FxParticles.softShader = s);
             } catch (Throwable err) {
@@ -96,7 +97,7 @@ public final class AscensionLighting {
             if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) return;
             lastNanos = 0;
             int q = FAClientConfig.lighting();
-            if (q <= 0 || gi == null || blur == null || rays == null || composite == null || ssr == null || shaderPackActive()) return;
+            if (q <= 0 || gi == null || blur == null || rays == null || composite == null || ssr == null || glow == null || shaderPackActive()) return;
             long t0 = System.nanoTime();
             // Whatever GL state the game had, it gets back exactly: later drawing (the vignette, the hand, the HUD)
             // counts on it, and changing it shows up as a different picture
@@ -123,7 +124,11 @@ public final class AscensionLighting {
         raysTarget = new TextureTarget(hw, hh, false, Minecraft.ON_OSX);
         sceneTarget = new TextureTarget(w, h, false, Minecraft.ON_OSX);
         reflTarget = new TextureTarget(hw, hh, false, Minecraft.ON_OSX);
-        for (RenderTarget t : new RenderTarget[] {giTarget, blurTarget, raysTarget, sceneTarget, reflTarget}) {
+        bloomA = new TextureTarget(hw, hh, false, Minecraft.ON_OSX);
+        bloomB = new TextureTarget(hw, hh, false, Minecraft.ON_OSX);
+        dofA = new TextureTarget(hw, hh, false, Minecraft.ON_OSX);
+        dofB = new TextureTarget(hw, hh, false, Minecraft.ON_OSX);
+        for (RenderTarget t : all()) {
             t.setFilterMode(com.mojang.blaze3d.platform.GlConst.GL_LINEAR);   // the half-size result stays smooth when scaled up
             t.setClearColor(0, 0, 0, 1);
         }
@@ -133,15 +138,19 @@ public final class AscensionLighting {
 
     /** Frees the GPU targets (on resize and when the game closes); never leaks the old ones. */
     public static void free() {
-        for (RenderTarget t : new RenderTarget[] {giTarget, blurTarget, raysTarget, sceneTarget, reflTarget}) if (t != null) t.destroyBuffers();
-        giTarget = blurTarget = raysTarget = sceneTarget = reflTarget = null;
+        for (RenderTarget t : all()) if (t != null) t.destroyBuffers();
+        giTarget = blurTarget = raysTarget = sceneTarget = reflTarget = bloomA = bloomB = dofA = dofB = null;
         lastW = lastH = -1;
     }
 
-    /** How many GPU targets it holds right now (the leak check expects 0 or 5). */
+    private static RenderTarget[] all() {
+        return new RenderTarget[] {giTarget, blurTarget, raysTarget, sceneTarget, reflTarget, bloomA, bloomB, dofA, dofB};
+    }
+
+    /** How many GPU targets it holds right now (the leak check expects 0 or 9). */
     public static int targetsHeld() {
         int n = 0;
-        for (RenderTarget t : new RenderTarget[] {giTarget, blurTarget, raysTarget, sceneTarget, reflTarget}) if (t != null) n++;
+        for (RenderTarget t : all()) if (t != null) n++;
         return n;
     }
 
@@ -225,11 +234,68 @@ public final class AscensionLighting {
         rays.safeGetUniform("Steps").set(quality == 1 ? 16 : quality == 2 ? 28 : 48);
         pass(rays, raysTarget);
 
+        // 3b. Cinematic: bloom (bright pass, blurred wide) and, while aiming, a blurred copy for depth of field
+        boolean grade = FAClientConfig.on(FAClientConfig.CINEMATIC);
+        float aimK = FAClientConfig.on(FAClientConfig.AIM_DOF) ? dev.factoryascension.client.gun.GunAnim.aim : 0;
+        glow.safeGetUniform("OutSize").set((float) hw, (float) hh);
+        if (grade) {
+            glow.setSampler("DiffuseSampler", main.getColorTextureId());
+            glow.safeGetUniform("Mode").set(0);
+            glow.safeGetUniform("Threshold").set(0.78f);
+            pass(glow, bloomA);
+            for (int k = 0; k < 2; k++) {
+                glow.safeGetUniform("Mode").set(1);
+                glow.safeGetUniform("Radius").set(k == 0 ? 2.0f : 4.5f);
+                glow.setSampler("DiffuseSampler", bloomA.getColorTextureId());
+                glow.safeGetUniform("Direction").set(1f, 0f);
+                pass(glow, bloomB);
+                glow.setSampler("DiffuseSampler", bloomB.getColorTextureId());
+                glow.safeGetUniform("Direction").set(0f, 1f);
+                pass(glow, bloomA);
+            }
+        } else {
+            bloomA.setClearColor(0, 0, 0, 1);
+            bloomA.clear(Minecraft.ON_OSX);
+        }
+        if (aimK > 0.01f) {
+            glow.setSampler("DiffuseSampler", main.getColorTextureId());
+            glow.safeGetUniform("Mode").set(2);
+            pass(glow, dofA);
+            glow.safeGetUniform("Mode").set(1);
+            glow.safeGetUniform("Radius").set(1.6f);
+            glow.setSampler("DiffuseSampler", dofA.getColorTextureId());
+            glow.safeGetUniform("Direction").set(1f, 0f);
+            pass(glow, dofB);
+            glow.setSampler("DiffuseSampler", dofB.getColorTextureId());
+            glow.safeGetUniform("Direction").set(0f, 1f);
+            pass(glow, dofA);
+        }
+
         // 4. Back onto the frame, with no blending at all: copy the frame, then draw frame x shadow + light + rays over it
         composite.setSampler("DiffuseSampler", giTarget.getColorTextureId());
         composite.setSampler("RaySampler", raysTarget.getColorTextureId());
         composite.setSampler("SceneSampler", main.getColorTextureId());
         composite.setSampler("ReflSampler", reflTarget.getColorTextureId());
+        composite.setSampler("BloomSampler", bloomA.getColorTextureId());
+        composite.setSampler("BlurSampler", dofA.getColorTextureId());
+        composite.setSampler("DepthSampler", main.getDepthTextureId());
+        composite.safeGetUniform("InvProjMat").set(invProj);
+        composite.safeGetUniform("Grade").set(grade ? 1f : 0f);
+        composite.safeGetUniform("BloomAmount").set(0.55f);
+        composite.safeGetUniform("Aim").set(aimK);
+        float haze = FAClientConfig.on(FAClientConfig.HAZE) ? 0.0035f * (1 + rain * 1.5f) : 0f;
+        composite.safeGetUniform("Haze").set(haze);
+        net.minecraft.world.phys.Vec3 fogc = mc.level != null ? mc.level.getSkyColor(cam.getPosition(), event.getPartialTick()) : net.minecraft.world.phys.Vec3.ZERO;
+        float day = sunWorld[2];
+        composite.safeGetUniform("HazeColor").set((float) fogc.x * 0.85f + 0.12f * day, (float) fogc.y * 0.85f + 0.12f * day, (float) fogc.z * 0.85f + 0.13f * day);
+        composite.safeGetUniform("SunDir").set(sunView.x, sunView.y, sunView.z);
+        composite.safeGetUniform("SunColor").set(1.0f * day, 0.86f * day, 0.66f * day);
+        composite.safeGetUniform("SkyOpen").set(skyOpen);
+        // The sun's glare and ghosts only when it's on screen and nothing's in front of it (the rays pass already knows)
+        float sunVis = raysOn ? Math.min(1, sun[2]) * (1 - rain) : 0;
+        if (sunVis > 0 && main.getDepthTextureId() > 0) sunVis *= sunOpen(sun[0], sun[1]);
+        composite.safeGetUniform("SunScreen").set(sun[0], sun[1], sunVis);
+        composite.safeGetUniform("Aspect").set((float) main.width / Math.max(1, main.height));
         composite.safeGetUniform("RaysOn").set(raysOn ? 1f : 0f);
         composite.safeGetUniform("Mode").set(4);
         pass(composite, sceneTarget);
@@ -259,6 +325,27 @@ public final class AscensionLighting {
         }
     }
 
+
+    /** Is the sun's spot on screen open sky (not behind a hill or a wall)? Read from the depth buffer: 1 or 0. */
+    private static int sunReadIn = 0;
+    private static float sunWasOpen = 0;
+
+    private static float sunOpen(float x, float y) {
+        if (x < 0 || x > 1 || y < 0 || y > 1) return 0;
+        if (--sunReadIn > 0) return sunWasOpen;     // a GPU read-back stalls the frame: every fourth frame is plenty
+        sunReadIn = 4;
+        RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
+        java.nio.FloatBuffer buf = org.lwjgl.BufferUtils.createFloatBuffer(1);
+        main.bindRead();
+        int fbo = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_BINDING);
+        org.lwjgl.opengl.GL30.glBindFramebuffer(org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER, main.frameBufferId);
+        org.lwjgl.opengl.GL11.glReadPixels(Math.round(x * (main.width - 1)), Math.round(y * (main.height - 1)), 1, 1,
+            org.lwjgl.opengl.GL11.GL_DEPTH_COMPONENT, org.lwjgl.opengl.GL11.GL_FLOAT, buf);
+        org.lwjgl.opengl.GL30.glBindFramebuffer(org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER, fbo);
+        main.unbindRead();
+        sunWasOpen = buf.get(0) >= 0.9999f ? 1 : 0;
+        return sunWasOpen;
+    }
 
     /** The sun's direction in the world {x, y, strength of its shadows}; the moon's (weaker) at night. */
     private static float[] sunDirection(Minecraft mc, float partial) {

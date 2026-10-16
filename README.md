@@ -333,7 +333,7 @@ a **Bandage** (2 seconds) or a **Medkit** (4 seconds, heals more). **Frag Grenad
 to throw; they bounce.
 
 **Patrols** roam the danger zones: more of them, and worse, the further out you go (scavs near home; raiders, rogues
-and juggernauts deep), more at night, cultists only at night. **Their places**: twelve kinds, every one built fresh from
+and juggernauts deep), more at night, cultists only at night. **Their places** (never within 500 blocks of another, `structures.spacing`): twelve kinds, every one built fresh from
 its own random roll (size, layout, materials, how wrecked it is, where the loot is, who holds it): scav camps, ruined
 houses and gas stations near home; checkpoints, trench lines and sniper towers further out; military outposts,
 underground bunkers, helicopter crash sites and radio towers beyond; warlords' forts and cult shrines far out. Their
@@ -475,6 +475,9 @@ so the game keeps running:
   Off / Low / Medium / High plus a strength slider, and a switch each for the reflections and sun shadows. Standard
   OpenGL only (AMD and NVIDIA alike). It steps aside by itself when an Oculus shader pack is on. (The old "Shiny
   Reflections" glints are now **Glints (old)**, off unless you turn them on.)
+- **Cinematic grade**: a filmic tone curve (highlights roll off like film instead of clipping), bloom round lights and
+  bright sky, the sun's glare and faint lens ghosts when you look toward it, **distance haze** (far land fades into a
+  sunlit haze), and **depth of field while aiming** (what's well behind your target softens). Each is a switch.
 - **Smoke**: soft, drifting smoke from explosions and gunfire.
 - **Voxel debris**: broken and blown-up blocks shatter into small 3D pieces of their texture that tumble, bounce and settle.
 - **Water**: foam where waterfalls land and where water flows, bubbles underwater, and a splash ring when something drops in.
@@ -489,6 +492,17 @@ so the game keeps running:
   Minecraft's own renderer **and with Embeddium** (the mod hands Embeddium the pack's block shaders while the pack is on;
   if the game ever closes while Embeddium is building them, the next start uses Embeddium's own). Turn it off with
   **Parallax depth** in the settings or in Resource Packs.
+
+## Sound
+
+Every sound the mod makes is synthesized by its own generator (tools/sound_gen.py and tools/sound_real.py), no
+recordings: gunshots are built from blast waves, gas, the action cycling and a clipping microphone, then played through
+a synthesized world (the ground bounce, echoes off terrain, a long tail that loses its treble), so a rifle cracks and
+rolls away and a pistol is short and tight; reloads are real friction and metal resonances; grenades boom, rumble and
+patter debris. Footsteps are replaced with synthesized ones for stone, grass, gravel, wood, sand, snow and metal (a heel
+and a toe each step). **Ambience** (a switch): wind that grows up high and in storms, birdsong by day near trees,
+crickets on warm nights, drips and rumbles underground. Gunshots no longer ring your ears (blasts and flashbangs still
+do).
 
 ## Default settings and keys
 

@@ -1,0 +1,56 @@
+{
+ "vertex": "factoryascension:fa_fullscreen",
+ "fragment": "factoryascension:fa_glow",
+ "attributes": [
+  "Position"
+ ],
+ "samplers": [
+  {
+   "name": "DiffuseSampler"
+  }
+ ],
+ "uniforms": [
+  {
+   "name": "OutSize",
+   "type": "float",
+   "count": 2,
+   "values": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "Direction",
+   "type": "float",
+   "count": 2,
+   "values": [
+    1,
+    0
+   ]
+  },
+  {
+   "name": "Radius",
+   "type": "float",
+   "count": 1,
+   "values": [
+    1
+   ]
+  },
+  {
+   "name": "Threshold",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0.8
+   ]
+  },
+  {
+   "name": "Mode",
+   "type": "int",
+   "count": 1,
+   "values": [
+    0
+   ]
+  }
+ ]
+}

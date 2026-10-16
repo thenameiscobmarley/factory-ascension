@@ -76,7 +76,11 @@ public final class GunAnim {
     static int stepIndex = Integer.MIN_VALUE;
     static float stepAmp = 1, stepAmpPrev = 1, stepSway = 0, stepSwayPrev = 0, stepTwist = 0, stepTwistPrev = 0;
     // Smoothed states
-    static float strafeRoll = 0, strafeTarget = 0, forwardLean = 0, sprint = 0, aim = 0, onGroundO = 1;
+    static float strafeRoll = 0, strafeTarget = 0, forwardLean = 0, sprint = 0, onGroundO = 1;
+    /** 0..1: how far into aiming down sights (the lighting uses it for depth of field). */
+    public static float aim = 0;
+    /** Dev screenshots: hold the gun aimed. */
+    public static boolean devAim = false;
     static float sprintCantY = 30, sprintCantZ = 18, sprintDrop = 0.12f;
     static int sprintStyle = 0;
     static boolean wasSprinting = false;
@@ -142,7 +146,7 @@ public final class GunAnim {
         }
         lastYaw = yaw;
         lastPitch = pitch;
-        boolean aiming = p.isUsingItem() && p.getUseItem() == stack;
+        boolean aiming = (p.isUsingItem() && p.getUseItem() == stack) || devAim;
         aim += ((aiming ? 1 : 0) - aim) * Math.min(1, dt * 12);
         float hip = 1 - aim;
 
