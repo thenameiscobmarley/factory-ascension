@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 
 /**
@@ -15,6 +16,9 @@ import net.minecraft.world.inventory.Slot;
  */
 public class DarkInventoryScreen extends InventoryScreen {
     private boolean opened = false;
+    /** Drag and drop: the slot the item was picked up from by a press (null when not dragging one). */
+    @org.jetbrains.annotations.Nullable private Slot dragFrom;
+    private int dragButton;
     private final Player who;
 
     public DarkInventoryScreen(Player player) {
@@ -37,6 +41,56 @@ public class DarkInventoryScreen extends InventoryScreen {
         super.removed();
         TarkovClient.closed();
         TarkovScreen.freeBlur();
+    }
+
+    // ---- Drag and drop: press on an item, drag it, let go over a slot: it lands there (swapping if the slot is taken) ----
+    @Override
+    public boolean mouseClicked(double mx, double my, int button) {
+        Slot s = findSlot(mx, my);
+        boolean emptyHand = menu.getCarried().isEmpty();
+        boolean r = super.mouseClicked(mx, my, button);
+        // Only a plain press that picked something up starts a drag (shift-clicks, number keys, creative act as usual)
+        dragFrom = emptyHand && s != null && !hasShiftDown() && !menu.getCarried().isEmpty() && (button == 0 || button == 1) ? s : null;
+        dragButton = button;
+        return r;
+    }
+
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        Slot from = dragFrom;
+        dragFrom = null;
+        if (from != null && button == dragButton && !menu.getCarried().isEmpty()) {
+            Slot to = findSlot(mx, my);
+            if (to != null && to != from && to.mayPlace(menu.getCarried())) {
+                // Drop it on the target (places, merges, or swaps: the target's item comes up into the hand)...
+                slotClicked(to, to.index, 0, ClickType.PICKUP);
+                // ...and a swapped-out item goes back where the dragged one came from
+                if (!menu.getCarried().isEmpty() && !from.hasItem() && from.mayPlace(menu.getCarried())) slotClicked(from, from.index, 0, ClickType.PICKUP);
+                return true;
+            }
+        }
+        return super.mouseReleased(mx, my, button);
+    }
+
+    @org.jetbrains.annotations.Nullable
+    private Slot findSlot(double mx, double my) {
+        for (Slot s : menu.slots) {
+            if (s.isActive() && mx >= leftPos + s.x - 1 && mx < leftPos + s.x + 17 && my >= topPos + s.y - 1 && my < topPos + s.y + 17) return s;
+        }
+        return null;
+    }
+
+    /** Where a dragged item will land: an amber outline on the slot under the mouse. */
+    private void drawDropTarget(GuiGraphics g, int mx, int my) {
+        if (dragFrom == null || menu.getCarried().isEmpty()) return;
+        Slot to = findSlot(mx, my);
+        if (to == null || to == dragFrom) return;
+        int x = leftPos + to.x - 1, y = topPos + to.y - 1;
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 300);
+        g.renderOutline(x, y, 18, 18, to.mayPlace(menu.getCarried()) ? TarkovScreen.ACCENT : 0xFFC8452E);
+        g.renderOutline(x - 1, y - 1, 20, 20, 0x80000000 | (TarkovScreen.ACCENT & 0xFFFFFF));
+        g.pose().popPose();
     }
 
     @Override
@@ -62,6 +116,7 @@ public class DarkInventoryScreen extends InventoryScreen {
             mx = my = -10000;
         }
         super.render(g, mx, my, partial);
+        drawDropTarget(g, mx, my);
         g.pose().popPose();
     }
 

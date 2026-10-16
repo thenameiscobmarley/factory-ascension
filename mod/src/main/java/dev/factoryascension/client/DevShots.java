@@ -137,7 +137,8 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.sliders")) step = 750;
                     if (Boolean.getBoolean("fa.tab")) step = 760;
                     if (Boolean.getBoolean("fa.enemies")) step = 780;
-                    if (Boolean.getBoolean("fa.aaa")) step = 800;      // only: the cinematic look, haze, sun, aim depth of field, structure spacing  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
+                    if (Boolean.getBoolean("fa.aaa")) step = 800;
+                    if (Boolean.getBoolean("fa.inv")) step = 820;      // only: drag and drop in the inventory      // only: the cinematic look, haze, sun, aim depth of field, structure spacing  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -493,6 +494,46 @@ public final class DevShots {
                 case 805 -> { dev.factoryascension.client.gun.GunAnim.devAim = true; wait = 40; }
                 case 806 -> { shot(mc, "aaa_aim_dof"); dev.factoryascension.client.gun.GunAnim.devAim = false; wait = 10; }
                 case 807 -> { FAClientConfig.REALISM.set(true); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                case 820 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "clear @a");
+                    cmd(mc, "item replace entity @a container.9 with dirt 32"); cmd(mc, "item replace entity @a container.20 with stone 16");
+                    cmd(mc, "item replace entity @a container.12 with diamond 5"); cmd(mc, "item replace entity @a container.14 with apple 3");
+                    dev.factoryascension.client.tarkov.TarkovClient.debugTime = 3f; wait = 40; }
+                case 821 -> { mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); wait = 30; }
+                case 822 -> {
+                    log("screen: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()));
+                    if (mc.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> scr) {
+                        var menu = scr.getMenu();
+                        java.util.function.IntFunction<double[]> at = idx -> {
+                            for (var sl : menu.slots) if (sl.container == mc.player.getInventory() && sl.getContainerSlot() == idx)
+                                return new double[] {scr.getGuiLeft() + sl.x + 8, scr.getGuiTop() + sl.y + 8};
+                            return null;
+                        };
+                        double[] a = at.apply(9), b = at.apply(20), c = at.apply(12), e = at.apply(30), f = at.apply(14), h = at.apply(31);
+                        // 1. Drag dirt onto stone: they swap
+                        scr.mouseClicked(a[0], a[1], 0);
+                        for (int k = 1; k <= 6; k++) scr.mouseDragged(a[0] + (b[0] - a[0]) * k / 6, a[1] + (b[1] - a[1]) * k / 6, 0, 1, 1);
+                        scr.mouseReleased(b[0], b[1], 0);
+                        // 2. Drag diamonds onto an empty slot: they move
+                        scr.mouseClicked(c[0], c[1], 0);
+                        for (int k = 1; k <= 6; k++) scr.mouseDragged(c[0] + (e[0] - c[0]) * k / 6, c[1] + (e[1] - c[1]) * k / 6, 0, 1, 1);
+                        scr.mouseReleased(e[0], e[1], 0);
+                        // 3. The old way still works: click, then click
+                        scr.mouseClicked(f[0], f[1], 0);
+                        scr.mouseReleased(f[0], f[1], 0);
+                        scr.mouseClicked(h[0], h[1], 0);
+                        scr.mouseReleased(h[0], h[1], 0);
+                    }
+                    wait = 20; }
+                case 823 -> {
+                    var inv = mc.player.getInventory();
+                    String r = "slot9=" + inv.getItem(9) + " slot20=" + inv.getItem(20) + " slot12=" + inv.getItem(12) + " slot30=" + inv.getItem(30)
+                        + " slot14=" + inv.getItem(14) + " slot31=" + inv.getItem(31) + " carried=" + mc.player.containerMenu.getCarried();
+                    boolean ok = inv.getItem(9).is(net.minecraft.world.item.Items.STONE) && inv.getItem(20).is(net.minecraft.world.item.Items.DIRT)
+                        && inv.getItem(30).is(net.minecraft.world.item.Items.DIAMOND) && inv.getItem(12).isEmpty()
+                        && inv.getItem(31).is(net.minecraft.world.item.Items.APPLE) && mc.player.containerMenu.getCarried().isEmpty();
+                    log("drag and drop " + (ok ? "WORKS" : "FAILED") + ": " + r);
+                    shot(mc, "inv_drag_result"); wait = 10; }
+                case 824 -> { mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null; cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }
