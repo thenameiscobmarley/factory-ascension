@@ -302,4 +302,13 @@ public final class FAConfig {
         npcMaxNearby = Math.max(0, maxNearby);
         npcHunters = hunters;
     }
+
+    // Monsters hear gunfire (gun/MobHearing): on or off, and how far they hear compared with the sound's reach
+    public static boolean mobsHearShots = true;
+    public static double mobHearingScale = 0.8;
+
+    public static void setMobHearing(boolean on, double scale) {
+        mobsHearShots = on;
+        mobHearingScale = Math.max(0, scale);
+    }
 }

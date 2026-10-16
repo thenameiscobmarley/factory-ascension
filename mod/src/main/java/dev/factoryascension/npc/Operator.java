@@ -78,9 +78,22 @@ import java.util.List;
  */
 public class Operator extends Monster {
     static final EntityDataAccessor<Boolean> AIMING = SynchedEntityData.defineId(Operator.class, EntityDataSerializers.BOOLEAN);
+    /** 0 calm (gun slung), 1 suspicious (looking around), 2 alert (gun up, hunting). */
+    static final EntityDataAccessor<Integer> ALERT = SynchedEntityData.defineId(Operator.class, EntityDataSerializers.INT);
+    /** 0..1: how sure it is it saw someone (the meter over its head). */
+    static final EntityDataAccessor<Float> SUSPICION = SynchedEntityData.defineId(Operator.class, EntityDataSerializers.FLOAT);
+    /** For the animations: 0 nothing, 1 reloading, 2 fumbling a reload, 3 healing, 4 throwing. */
+    static final EntityDataAccessor<Integer> ACTION = SynchedEntityData.defineId(Operator.class, EntityDataSerializers.INT);
+    int alertTimer = 0, barkCooldown = 0;
     public final OpType type;
+    boolean reloadFumbled = false;
     int ammo = -1, reload = 0, fireCooldown = 0, burstLeft = 0, grenades = 0, bandages = 0, grenadeCooldown = 0, healing = 0;
-    int seenTicks = 0, unseenTicks = 0, healCooldown = 0;
+    int seenTicks = 0, unseenTicks = 0, healCooldown = 0, dazzled = 0;
+
+    /** Blinded (a 20,000 lumen light, a flashbang): it can barely see and can't aim. */
+    public void dazzle(int ticks) {
+        dazzled = Math.max(dazzled, ticks);
+    }
     @Nullable BlockPos home;
     @Nullable Vec3 lastSeen, investigate;
     long investigateUntil = 0;
@@ -106,6 +119,130 @@ public class Operator extends Monster {
     protected void defineSynchedData() {
         super.defineSynchedData();
         entityData.define(AIMING, false);
+        entityData.define(ALERT, 0);
+        entityData.define(SUSPICION, 0f);
+        entityData.define(ACTION, 0);
+    }
+
+    public int alertLevel() {
+        return entityData.get(ALERT);
+    }
+
+    public float suspicion() {
+        return entityData.get(SUSPICION);
+    }
+
+    public int action() {
+        return entityData.get(ACTION);
+    }
+
+    void setAction(int a) {
+        if (entityData.get(ACTION) != a) entityData.set(ACTION, a);
+    }
+
+    void setAlert(int a) {
+        if (entityData.get(ALERT) != a) entityData.set(ALERT, a);
+    }
+
+    /** Start calm (structures, patrols) or already hunting (hunters, juggernauts). */
+    public void startAlert(int level) {
+        setAlert(level);
+        alertTimer = level == 2 ? 1200 : level == 1 ? 600 : 0;
+    }
+
+    // ---- Stealth: noticing, raising the alarm, standing down ----
+    /** Sound the alarm: gun up, the whole group near it too. */
+    public void raiseAlert(@Nullable LivingEntity target, boolean spread) {
+        boolean fresh = alertLevel() < 2;
+        setAlert(2);
+        alertTimer = 1200;
+        entityData.set(SUSPICION, 1f);
+        if (target != null && target.isAlive()) {
+            if (getTarget() == null) setTarget(target);
+            lastSeen = target.getEyePosition();
+            investigate = target.position();
+            investigateUntil = level().getGameTime() + 1200;
+        }
+        if (fresh) bark(true);
+        if (!spread) return;
+        for (Operator o : level().getEntitiesOfClass(Operator.class, getBoundingBox().inflate(48), o -> o != this && o.isAlive() && o.type.faction == type.faction)) {
+            if (o.alertLevel() >= 2 && o.getTarget() != null) continue;
+            o.setAlert(2);
+            o.alertTimer = 1200;
+            o.entityData.set(SUSPICION, 1f);
+            if (target != null) {
+                o.lastSeen = target.getEyePosition();
+                o.investigate = target.position();
+                o.investigateUntil = level().getGameTime() + 1200;
+                if (o.hasLineOfSight(target)) o.setTarget(target);
+            } else if (investigate != null) {
+                o.investigate = investigate;
+                o.investigateUntil = level().getGameTime() + 1200;
+            }
+        }
+    }
+
+    /** Something odd (a quiet shot, a glimpse): look into it. */
+    public void suspect(Vec3 at, float amount) {
+        if (alertLevel() >= 2) return;
+        float s = Math.min(0.99f, suspicion() + amount);
+        entityData.set(SUSPICION, s);
+        if (s > 0.3f) {
+            if (alertLevel() == 0) bark(false);
+            setAlert(1);
+            alertTimer = 600;
+            investigate = at;
+            investigateUntil = level().getGameTime() + 600;
+        }
+    }
+
+    /** A voice: villager and pillager noises, pitched like a person. */
+    void bark(boolean alarm) {
+        if (barkCooldown > 0) return;
+        barkCooldown = 40 + getRandom().nextInt(60);
+        var s = alarm ? (type.faction == OpType.Faction.SCAV ? SoundEvents.PILLAGER_CELEBRATE : SoundEvents.VINDICATOR_CELEBRATE)
+            : (getRandom().nextBoolean() ? SoundEvents.VILLAGER_NO : SoundEvents.PILLAGER_AMBIENT);
+        level().playSound(null, getX(), getY() + 1.6, getZ(), s, SoundSource.HOSTILE, 1.4f, 0.65f + getRandom().nextFloat() * 0.25f);
+    }
+
+    /** Every other tick while not yet hunting: does it see you? Bodies? */
+    void awareness() {
+        if (!(level() instanceof ServerLevel sl)) return;
+        float s = suspicion();
+        boolean saw = false;
+        Vec3 look = getViewVector(1);
+        for (ServerPlayer p : sl.players()) {
+            if (p.isCreative() || p.isSpectator() || !p.isAlive() || p.distanceToSqr(this) > 56 * 56) continue;
+            Vec3 to = p.getEyePosition().subtract(getEyePosition());
+            double d = to.length();
+            boolean inView = to.normalize().dot(look) > (alertLevel() == 1 ? -0.2 : 0.35) || d < 3;
+            if (!inView || !spots(p) || !hasLineOfSight(p)) continue;
+            saw = true;
+            float rate = (float) Math.max(0.012, 0.16 * (1 - d / 56));
+            if (p.isCrouching()) rate *= 0.45f;
+            if (p.isSprinting()) rate *= 1.5f;
+            if (level().getMaxLocalRawBrightness(p.blockPosition()) < 7 && !type.has(OpType.Trait.NVG)) rate *= 0.5f;
+            if (GunItem.spec(p.getMainHandItem()) != null) rate *= 1.3f;
+            if (alertLevel() == 1) rate *= 1.7f;
+            s += rate;
+            lastSeen = p.getEyePosition();
+            if (s >= 1) {
+                entityData.set(SUSPICION, 1f);
+                raiseAlert(p, true);
+                return;
+            }
+            if (s > 0.3f) suspect(p.position(), 0);
+        }
+        // A body
+        for (Corpse c : sl.getEntitiesOfClass(Corpse.class, getBoundingBox().inflate(20))) {
+            if (hasLineOfSight(c) && c.position().subtract(position()).normalize().dot(look) > 0.0) {
+                investigate = c.position();
+                raiseAlert(null, true);
+                return;
+            }
+        }
+        if (!saw) s = Math.max(0, s - 0.008f);
+        entityData.set(SUSPICION, s);
     }
 
     public boolean aiming() {
@@ -128,8 +265,8 @@ public class Operator extends Monster {
         goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 0.7));
         goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 16));
         goalSelector.addGoal(8, new RandomLookAroundGoal(this));
-        targetSelector.addGoal(1, new HurtByTargetGoal(this).setAlertOthers());
-        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, this::spots));
+        targetSelector.addGoal(1, new HurtByTargetGoal(this));
+        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, e -> alertLevel() == 2 && spots(e)));
         targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Operator.class, 10, true, false,
             e -> e instanceof Operator o && OpType.hostile(type.faction, o.type.faction) && spots(e)));
     }
@@ -138,9 +275,14 @@ public class Operator extends Monster {
     boolean spots(LivingEntity e) {
         if (e instanceof Player p && (p.isCreative() || p.isSpectator())) return false;
         double d = distanceTo(e);
+        if (dazzled > 0) return d < 4;
         double range = getAttributeValue(Attributes.FOLLOW_RANGE);
+        if (alertLevel() == 2) range *= 1.4;     // on alert: every shadow gets looked into
         int light = level().getMaxLocalRawBrightness(e.blockPosition());
-        if (light < 6 && !type.has(OpType.Trait.NVG)) range = Math.min(range, 14 + light * 2);
+        // A weapon light on gives you away from far off
+        GunStats ls = GunStats.of(e.getMainHandItem());
+        if (ls != null && ls.light) light = 15;
+        if (light < 6 && !type.has(OpType.Trait.NVG)) range = Math.min(range, (alertLevel() == 2 ? 22 : 14) + light * 2);
         if (e.isCrouching()) range *= 0.6;
         if (e.hasEffect(net.minecraft.world.effect.MobEffects.INVISIBILITY)) range *= 0.25;
         return d <= range;
@@ -212,7 +354,7 @@ public class Operator extends Monster {
         float moving = getDeltaMovement().horizontalDistanceSqr() > 0.002 ? 1.4f : 1;
         float settle = 1 + Math.max(0, 16 - seenTicks) / 10f;
         float targetMove = intended != null ? (float) Math.min(3, intended.getDeltaMovement().horizontalDistance() * 12) : 0;
-        double spreadDeg = (st.spreadHip * 0.45 + 0.6) * type.spread * moving * settle * FAConfig.npcSpread + targetMove + extraSpread;
+        double spreadDeg = (st.spreadHip * 0.45 + 0.6) * type.spread * moving * settle * FAConfig.npcSpread + targetMove + extraSpread + (dazzled > 0 ? 12 : 0);
         double spread = Math.toRadians(spreadDeg);
         Vec3 right = look.cross(new Vec3(0, 1, 0));
         if (right.lengthSqr() < 1e-4) right = new Vec3(1, 0, 0);
@@ -293,9 +435,11 @@ public class Operator extends Monster {
         };
         if (getHealth() < getMaxHealth() * 0.5f && getRandom().nextFloat() < 0.3f) {
             t += 20 + getRandom().nextInt(25);   // fumbled it: hurt hands
+            reloadFumbled = true;
             level().playSound(null, getX(), getY(), getZ(), SoundEvents.CHAIN_FALL, SoundSource.HOSTILE, 0.8f, 1.3f);
         }
         reload = Math.max(10, t);
+        if (t < 30) reloadFumbled = false;
         level().playSound(null, getX(), getY(), getZ(), spec.reload == GunSpec.Reload.MAG || spec.reload == GunSpec.Reload.BELT ? FASounds.MAG_OUT.get() : FASounds.SHELL_IN.get(),
             SoundSource.HOSTILE, 0.8f, 1);
     }
@@ -308,6 +452,7 @@ public class Operator extends Monster {
         if (reload == 8 && (spec.reload == GunSpec.Reload.MAG || spec.reload == GunSpec.Reload.BELT))
             level().playSound(null, getX(), getY(), getZ(), FASounds.MAG_IN.get(), SoundSource.HOSTILE, 0.8f, 1);
         if (reload == 0) {
+            reloadFumbled = false;
             ammo = magSize();
             level().playSound(null, getX(), getY(), getZ(), spec.manual ? FASounds.BOLT.get() : FASounds.RACK.get(), SoundSource.HOSTILE, 0.8f, 1);
         }
@@ -317,6 +462,8 @@ public class Operator extends Monster {
         if (!(level() instanceof ServerLevel level) || grenades <= 0) return;
         grenades--;
         Grenade g = new Grenade(level, this);
+        // Breachers and bodyguards go in behind a flashbang; the rest throw frags, now and then a flash
+        if (type.has(OpType.Trait.RUSHER) || type.has(OpType.Trait.GUARD) || getRandom().nextFloat() < 0.25f) g.flash();
         Vec3 from = getEyePosition();
         Vec3 d = at.subtract(from);
         double flat = Math.sqrt(d.x * d.x + d.z * d.z);
@@ -371,7 +518,24 @@ public class Operator extends Monster {
         if (fireCooldown > 0) fireCooldown--;
         if (grenadeCooldown > 0) grenadeCooldown--;
         if (healCooldown > 0) healCooldown--;
+        if (dazzled > 0) dazzled--;
+        if (barkCooldown > 0) barkCooldown--;
         tickReload();
+        setAction(healing > 0 ? 3 : reload > 0 ? (reloadFumbled ? 2 : 1) : 0);
+        // Stealth: calm or suspicious, it keeps looking; alert, it hunts until it's been quiet a long while
+        if (alertLevel() < 2 && tickCount % 2 == 0) awareness();
+        else if (alertLevel() == 2 && getTarget() == null && --alertTimer <= 0) {
+            setAlert(1);
+            alertTimer = 900;
+        } else if (alertLevel() == 1 && suspicion() < 0.05f && --alertTimer <= 0) {
+            setAlert(0);
+        }
+        if (getTarget() != null && alertLevel() < 2) raiseAlert(getTarget(), true);
+        // Calm in a group, now and then they talk
+        if (alertLevel() == 0 && tickCount % 200 == (getId() % 200) && getRandom().nextFloat() < 0.3f
+            && !level().getEntitiesOfClass(Operator.class, getBoundingBox().inflate(6), o -> o != this).isEmpty()) {
+            level().playSound(null, getX(), getY() + 1.6, getZ(), SoundEvents.VILLAGER_AMBIENT, SoundSource.HOSTILE, 0.9f, 0.6f + getRandom().nextFloat() * 0.2f);
+        }
         // Out of a fight with a part-empty gun: top it up
         if (getTarget() == null && reload <= 0 && ammo >= 0 && ammo < magSize() / 2) startReload();
         // Night only (cultists): at dawn they slip away
@@ -380,12 +544,39 @@ public class Operator extends Monster {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
+        // A takedown: hit from behind, by hand, by someone it never noticed
+        if (alertLevel() == 0 && source.getDirectEntity() instanceof Player p && !GunItem.firing && source.getEntity() == p) {
+            Vec3 toAttacker = p.position().subtract(position()).normalize();
+            if (toAttacker.dot(getViewVector(1)) < -0.2) {
+                amount = Math.max(amount * 8, getHealth() + 1);
+                level().playSound(null, getX(), getY() + 1, getZ(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1, 0.6f);
+            }
+        }
         boolean r = super.hurt(source, amount);
         if (r && source.getEntity() instanceof LivingEntity attacker && isAlive()) {
-            if (getTarget() == null && !(attacker instanceof Operator o && !OpType.hostile(type.faction, o.type.faction))) setTarget(attacker);
+            boolean ally = attacker instanceof Operator o && !OpType.hostile(type.faction, o.type.faction);
+            if (!ally) raiseAlert(attacker, true);
             lastSeen = attacker.position();
         }
         return r;
+    }
+
+    @Override
+    public void die(DamageSource source) {
+        super.die(source);
+        if (!(level() instanceof ServerLevel sl)) return;
+        // Anyone who saw it go down raises the alarm (at the killer, if they can see them too)
+        LivingEntity killer = source.getEntity() instanceof LivingEntity le ? le : null;
+        for (Operator o : sl.getEntitiesOfClass(Operator.class, getBoundingBox().inflate(32), o -> o != this && o.isAlive() && o.type.faction == type.faction)) {
+            if (!o.hasLineOfSight(this)) continue;
+            o.investigate = position();
+            o.raiseAlert(killer != null && o.hasLineOfSight(killer) ? killer : null, true);
+        }
+        // It stays where it fell (others may find it)
+        Corpse c = new Corpse(Operators.CORPSE.get(), sl);
+        c.moveTo(getX(), getY(), getZ(), getYRot(), 0);
+        c.setKind(type.id);
+        sl.addFreshEntity(c);
     }
 
     // ---- Death: what it carried ----
@@ -428,6 +619,7 @@ public class Operator extends Monster {
         tag.putInt("FAGrenades", grenades);
         tag.putInt("FABandages", bandages);
         tag.putBoolean("FAStructure", fromStructure);
+        tag.putInt("FAAlert", alertLevel());
         if (home != null) tag.putLong("FAHome", home.asLong());
     }
 
@@ -438,6 +630,7 @@ public class Operator extends Monster {
         grenades = tag.getInt("FAGrenades");
         bandages = tag.getInt("FABandages");
         fromStructure = tag.getBoolean("FAStructure");
+        startAlert(Math.min(1, tag.getInt("FAAlert")));
         if (tag.contains("FAHome")) home = BlockPos.of(tag.getLong("FAHome"));
     }
 

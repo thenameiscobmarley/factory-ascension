@@ -1473,6 +1473,8 @@ global.FA = {
   // it), spare rounds, kit and dog tag drop.
   npcs: {
     healthScale: 1, damageScale: 0.45, spreadScale: 1, bleedChance: 0.2, gunDropChance: 0.85,
+    // Monsters (hordes too) hear gunshots and come: hearing x the shot's reach (about 100 blocks for a rifle, a few for a suppressed one)
+    mobsHearShots: true, mobHearingScale: 0.8,
     patrols: true, patrolChance: 0.06, patrolMinDanger: 1, maxNearby: 14, flareHunters: true,
     kinds: {
       scav: 'A scavenger with whatever gun he found. Cheap, numerous, nervous.',
@@ -1577,14 +1579,16 @@ global.FA = {
   },
 
   // ---- Skinwalkers: some animals out in the wilderness aren't animals ----
-  // A rare passive animal spawning in the danger zones is secretly a skinwalker. It looks and acts normal, until a player
+  // A passive animal is sometimes secretly a skinwalker: most often out in the danger zones, but even at home (safeChance). It looks and acts normal, until a player
   // comes near: then it follows them at a distance and stops to stare. After a while (sooner at night), or the moment
   // it's hit, it shapeshifts (twitching, cracking, rising) into a strong mob, and only then is it revealed:
   // always an Elite, sometimes a rare variant as well, with extra loot.
   skinwalkers: {
     enabled: true,
-    chance: 0.02,              // per animal spawning at danger minDanger or deeper
+    chance: 0.05,              // per animal spawning at danger minDanger or deeper
     minDanger: 2,
+    safeChance: 0.02,          // per animal spawning closer in, even in the safe zone: nowhere is safe
+    mimicChancePerSecond: 0.04, // while it stalks you: footsteps behind you, a knock, a voice, someone hurt...
     animals: ['minecraft:cow', 'minecraft:pig', 'minecraft:sheep', 'minecraft:chicken', 'minecraft:horse', 'minecraft:donkey', 'minecraft:goat',
       'minecraft:llama', 'minecraft:rabbit', 'minecraft:fox', 'minecraft:mooshroom', 'factoryascension:copper_cow', 'factoryascension:ember_hen'],
     noticeRange: 48,           // it starts following a player this close

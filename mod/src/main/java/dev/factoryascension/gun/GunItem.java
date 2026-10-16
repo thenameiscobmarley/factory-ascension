@@ -170,6 +170,10 @@ public class GunItem extends Item {
     // ---- Firing ----
     /** For the self-test: what the last shot did. */
     public static int lastHits = 0, lastPellets = 0;
+    /** The shot being fired: how far the player leans (-1..1) and where the gun points off the crosshair (degrees). */
+    public static float shotLean = 0, shotYaw = 0, shotPitch = 0;
+    /** True while a shot's damage is being dealt (so a gunshot is never taken for a punch: npc takedowns). */
+    public static boolean firing = false;
     public static float lastDamage = 0;
     public static String lastResult = "";
 
@@ -225,6 +229,17 @@ public class GunItem extends Item {
         Stress.add(player, 0.004f);
 
         Vec3 eye = player.getEyePosition(), look = player.getViewVector(1);
+        // Leaning: the round leaves from where you peek (not through the wall beside you)
+        if (shotLean != 0) {
+            Vec3 side = look.cross(new Vec3(0, 1, 0));
+            if (side.lengthSqr() > 1e-4) {
+                Vec3 to = eye.add(side.normalize().scale(shotLean * Lean.DISTANCE)).add(0, -Math.abs(shotLean) * 0.08, 0);
+                BlockHitResult wall = level.clip(new ClipContext(eye, to, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+                eye = wall.getType() == HitResult.Type.MISS ? to : eye.add(wall.getLocation().subtract(eye).scale(0.8));
+            }
+        }
+        // From the hip, the round goes where the gun points (the crosshair shows it), not dead centre
+        if (shotYaw != 0 || shotPitch != 0) look = Vec3.directionFromRotation(player.getXRot() + shotPitch, player.getYRot() + shotYaw);
         boolean aim = aimingNow && aiming(player);
         // Pellets: the round's (snakeshot, buckshot, ...) if it has several, else the gun's (a shotgun's plain shell);
         // a single projectile from a shotgun (slug, AP, ...) carries the weight of the whole shell
@@ -281,6 +296,7 @@ public class GunItem extends Item {
         lastPellets = pellets;
         lastDamage = 0;
         final AmmoType ft = type;
+        final Vec3 shotDir = look;
         hits.forEach((e, dmg) -> {
             float d = dmg;
             if (e instanceof LivingEntity le) {
@@ -291,8 +307,13 @@ public class GunItem extends Item {
             }
             e.invulnerableTime = 0;
             lastDamage += d;
-            e.hurt(player.damageSources().playerAttack(player), d);
-            if (e instanceof LivingEntity le && le.isAlive()) effects(level, player, le, ft, look, d, spec);
+            firing = true;
+            try {
+                e.hurt(player.damageSources().playerAttack(player), d);
+            } finally {
+                firing = false;
+            }
+            if (e instanceof LivingEntity le && le.isAlive()) effects(level, player, le, ft, shotDir, d, spec);
             if (ft == AmmoType.EXPLOSIVE) pop(level, player, e.position().add(0, e.getBbHeight() / 2, 0));
         });
         // Muzzle flash, smoke and the bang
@@ -606,6 +627,19 @@ public class GunItem extends Item {
             return;
         }
         tickReload(player, stack);
+        // A 20,000 lumen light: everything in front of it is blinded (mobs, operators, other players)
+        if (player.tickCount % 10 == 0) {
+            GunStats bs = GunStats.of(stack);
+            if (bs != null && bs.blinding) {
+                Vec3 eye = player.getEyePosition(), look = player.getViewVector(1);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(16), e -> e != player && e.isAlive())) {
+                    Vec3 to = e.getEyePosition().subtract(eye);
+                    if (to.length() > 16 || to.normalize().dot(look) < 0.85 || !player.hasLineOfSight(e)) continue;
+                    e.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 40, 0));
+                    if (e instanceof dev.factoryascension.npc.Operator o) o.dazzle(30);
+                }
+            }
+        }
         // A weapon light: you see in the dark while it's in your hand
         if (player.tickCount % 20 == 0) {
             GunStats st = GunStats.of(stack);

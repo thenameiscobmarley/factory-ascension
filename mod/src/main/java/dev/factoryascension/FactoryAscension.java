@@ -151,6 +151,8 @@ public class FactoryAscension {
     public static final DeferredRegister<net.minecraft.world.effect.MobEffect> EFFECTS = DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, MODID);
     public static final RegistryObject<net.minecraft.world.effect.MobEffect> BLEEDING = EFFECTS.register("bleeding", dev.factoryascension.npc.Bleeding::new);
     public static final RegistryObject<Item> FRAG_GRENADE = ITEMS.register("frag_grenade", () -> new dev.factoryascension.npc.GrenadeItem(new Item.Properties().stacksTo(8)));
+    public static final RegistryObject<Item> FLASHBANG = ITEMS.register("flashbang", () -> new dev.factoryascension.npc.GrenadeItem(new Item.Properties().stacksTo(8), true));
+    public static final RegistryObject<net.minecraft.world.effect.MobEffect> FLASHED = EFFECTS.register("flashed", dev.factoryascension.npc.Flashed::new);
     public static final RegistryObject<Item> BANDAGE = ITEMS.register("bandage", () -> new dev.factoryascension.npc.MedItem(new Item.Properties().stacksTo(16), false));
     public static final RegistryObject<Item> MEDKIT = ITEMS.register("medkit", () -> new dev.factoryascension.npc.MedItem(new Item.Properties().stacksTo(4), true));
     public static final RegistryObject<Item> DOG_TAG = ITEMS.register("dog_tag", () -> new dev.factoryascension.npc.DogTagItem(new Item.Properties().stacksTo(1)));
@@ -250,6 +252,7 @@ public class FactoryAscension {
             out.accept(FLARE_GREEN.get());
             out.accept(WEAPONS_BENCH.get());
             out.accept(FRAG_GRENADE.get());
+            out.accept(FLASHBANG.get());
             out.accept(BANDAGE.get());
             out.accept(MEDKIT.get());
             dev.factoryascension.npc.Operators.EGGS.values().forEach(e -> out.accept(e.get()));

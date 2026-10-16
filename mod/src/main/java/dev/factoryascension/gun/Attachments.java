@@ -38,7 +38,7 @@ public final class Attachments {
         public int magAdd = 0;
         public float zoom = 0;          // added zoom (an optic's magnification); the highest optic counts
         public float sightRaise = 0;    // how much higher the sight line is (model units) with this optic
-        public boolean auto = false, laser = false, light = false, noBolt = false, akimbo = false, gangster = false;
+        public boolean auto = false, laser = false, light = false, noBolt = false, akimbo = false, gangster = false, blinding = false;
         public int pelletsAdd = 0;
     }
 
@@ -182,9 +182,37 @@ public final class Attachments {
         fam("charm_skull", "Skull Charm", Slot.CHARM, "charm", ALL_KINDS, 1, (m, q) -> m.damage = 1 + 0.01f * q);
         fam("charm_core", "Ascension Core Charm", Slot.CHARM, "charm", ALL_KINDS, 2, (m, q) -> m.damage = 1 + 0.02f * q);
 
+        // ---- Cursed: one of each, fits anything, absurd ----
+        fam("cursed_belt200", "200-Round Belt Box", Slot.MAGAZINE, "cursed_box", ALL_KINDS, 12, (m, q) -> { m.magAdd = 200; m.reload = 2.2f; m.weight = 6; m.ads = 1.4f; });
+        fam("cursed_barrel_of_rounds", "Barrel of Rounds (1,000)", Slot.MAGAZINE, "cursed_drum", ALL_KINDS, 20, (m, q) -> { m.magAdd = 1000; m.reload = 4; m.weight = 18; m.ads = 2.2f; });
+        fam("cursed_scope20", "20x Observatory Scope", Slot.OPTIC, "cursed_scope", ALL_KINDS, 14, (m, q) -> { m.zoom = 0.95f; m.sightRaise = 4.8f; m.spread = 0.3f; m.ads = 1.9f; m.weight = 3; });
+        fam("cursed_barrel50", "50-Inch Barrel", Slot.BARREL, "cursed_barrel", ALL_KINDS, 16, (m, q) -> { m.range = 3.2f; m.damage = 1.35f; m.spread = 0.5f; m.ads = 2.3f; m.weight = 7; });
+        fam("cursed_light20k", "20,000 Lumen Light", Slot.TACTICAL, "cursed_light", ALL_KINDS, 10, (m, q) -> { m.light = true; m.blinding = true; m.weight = 1.5f; });
+        fam("cursed_hypersear", "Hyper Sear", Slot.TRIGGER, "none", ALL_KINDS, 15, (m, q) -> { m.auto = true; m.noBolt = true; m.rpm = 3.2f; m.recoil = 2.2f; m.spread = 1.6f; });
+        fam("cursed_shotgun_kit", "Shotgun Conversion Kit", Slot.BARREL, "cursed_barrel_wide", ALL_KINDS, 12, (m, q) -> { m.pelletsAdd = 11; m.spread = 4; m.range = 0.5f; });
+        fam("cursed_railcoil", "Railgun Coil", Slot.BARREL, "cursed_coil", ALL_KINDS, 22, (m, q) -> { m.damage = 2.6f; m.rpm = 0.3f; m.sound = 3; m.range = 2.5f; m.weight = 5; });
+        fam("cursed_jetpack", "Recoil Jetpack", Slot.STOCK, "cursed_jet", ALL_KINDS, 14, (m, q) -> { m.recoil = 0.08f; m.weight = 9; m.ads = 1.3f; });
+        fam("cursed_mag_tape", "Mag Taped to a Mag Taped to a Mag", Slot.MAGAZINE, "mag_coupled", ALL_KINDS, 8, (m, q) -> { m.magMult = 1.5f; m.reload = 0.3f; m.weight = 1.2f; });
+        fam("cursed_chainsaw", "Chainsaw Bayonet", Slot.MUZZLE, "cursed_saw", ALL_KINDS, 12, (m, q) -> { m.damage = 1.25f; m.ads = 1.5f; m.weight = 4; m.sound = 1.6f; });
+        fam("cursed_suppressor_stack", "Six Suppressors, Taped", Slot.MUZZLE, "cursed_stack", ALL_KINDS, 18, (m, q) -> { m.sound = 0.02f; m.recoil = 0.5f; m.ads = 2.4f; m.weight = 4; });
+        fam("cursed_gold", "Gold-Plated Everything", Slot.CHARM, "charm", ALL_KINDS, 25, (m, q) -> { m.damage = 1.12f; m.weight = 8; });
+        fam("cursed_duck", "Rubber Duck", Slot.CHARM, "cursed_duck", ALL_KINDS, 2, (m, q) -> { m.recoil = 0.94f; m.spread = 0.95f; });
+        fam("cursed_toaster", "Tactical Toaster", Slot.UNDERBARREL, "cursed_toaster", ALL_KINDS, 6, (m, q) -> { m.weight = 2; m.ads = 1.2f; m.damage = 1.02f; });
+        fam("cursed_bipod_tall", "Three-Metre Bipod", Slot.UNDERBARREL, "cursed_bipod", ALL_KINDS, 8, (m, q) -> { m.spread = 0.2f; m.recoil = 0.3f; m.ads = 2.6f; m.weight = 6; });
+
         // Each family x makers x finishes x grades, deterministic. Not every maker makes every finish:
         // a maker makes 2-4 of the finishes, picked from its index, so names and colours vary across the catalog.
         for (Family f : FAMILIES) {
+            if (f.key.startsWith("cursed_")) {
+                // One of each, from no maker anyone admits to
+                Mod m = new Mod();
+                f.effect.apply(m, 1);
+                String id = f.key;
+                Att a = new Att(id, "Cursed " + f.name, f.key, f.shape, f.slot, 3, 0xB03A2E, m, f.fits, f.cost);
+                ALL.add(a);
+                BY_ID.put(id, a);
+                continue;
+            }
             for (int mk = 0; mk < MAKERS.length; mk++) {
                 int finishes = 2 + (mk + f.key.length()) % 3;
                 for (int fi = 0; fi < finishes; fi++) {

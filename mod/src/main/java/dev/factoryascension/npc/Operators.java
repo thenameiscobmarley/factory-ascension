@@ -13,6 +13,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -44,6 +45,9 @@ public final class Operators {
     public static final RegistryObject<EntityType<Grenade>> GRENADE = ENTITIES.register("frag_grenade",
         () -> EntityType.Builder.<Grenade>of(Grenade::new, MobCategory.MISC).sized(0.25f, 0.25f).clientTrackingRange(6).updateInterval(5).build(FactoryAscension.MODID + ":frag_grenade"));
 
+    public static final RegistryObject<EntityType<Corpse>> CORPSE = ENTITIES.register("operator_corpse",
+        () -> EntityType.Builder.<Corpse>of(Corpse::new, MobCategory.MISC).sized(1.6f, 0.4f).clientTrackingRange(8).build(FactoryAscension.MODID + ":operator_corpse"));
+
     static {
         for (OpType t : OpType.values()) {
             RegistryObject<EntityType<Operator>> type = ENTITIES.register(t.id, () -> EntityType.Builder.<Operator>of((et, l) -> new Operator(et, l, t), MobCategory.MONSTER)
@@ -60,6 +64,7 @@ public final class Operators {
         ENTITIES.register(modBus);
         modBus.addListener(Operators::attributes);
         Hearing.listen(Operators::heard);
+        Hearing.listen(dev.factoryascension.gun.MobHearing::heard);
         Rescue.onFlare = c -> flare(c.level(), c.lz());
     }
 
@@ -78,6 +83,8 @@ public final class Operators {
         if (structure) o.setPersistenceRequired();    // patrols may despawn once you're far away
         o.finalizeSpawn(level, level.getCurrentDifficultyAt(at), why, null, null);
         if (structure) o.restrictTo(at, 14);
+        // Calm (gun slung) unless they're out hunting
+        o.startAlert(t.has(OpType.Trait.TRACKER) || t == OpType.JUGGERNAUT ? 2 : 0);
         level.addFreshEntityWithPassengers(o);
         return o;
     }
@@ -85,20 +92,25 @@ public final class Operators {
     // ---- Hearing a shot: come and look ----
     static void heard(ServerLevel level, Entity shooter, double range) {
         double r2 = range * range;
+        boolean loud = range > 30;
         for (Operator o : level.getEntitiesOfClass(Operator.class, shooter.getBoundingBox().inflate(range), o -> o.isAlive() && o != shooter)) {
-            if (o.getTarget() != null || o.distanceToSqr(shooter) > r2) continue;
-            if (shooter instanceof Operator so && !OpType.hostile(o.type.faction, so.type.faction)) {
-                // An ally shooting: go help
-            } else if (shooter instanceof Player p && (p.isCreative() || p.isSpectator())) {
-                continue;
-            }
+            if (o.distanceToSqr(shooter) > r2) continue;
+            if (shooter instanceof Player p && (p.isCreative() || p.isSpectator())) continue;
+            boolean ally = shooter instanceof Operator so && !OpType.hostile(o.type.faction, so.type.faction);
             double d = Math.sqrt(o.distanceToSqr(shooter));
             RandomSource r = o.getRandom();
             double err = d * 0.15;
-            o.investigate = shooter.position().add((r.nextDouble() - 0.5) * err, 0, (r.nextDouble() - 0.5) * err);
+            Vec3 near = shooter.position().add((r.nextDouble() - 0.5) * err, 0, (r.nextDouble() - 0.5) * err);
+            // A suppressed shot: something odd over there. An open one: the alarm
+            if (!loud && !ally) {
+                o.suspect(near, d < 10 ? 0.6f : 0.35f);
+                continue;
+            }
+            if (o.getTarget() != null) continue;
+            o.investigate = near;
             o.investigateUntil = level.getGameTime() + 600;
-            if (d < 28 && shooter instanceof net.minecraft.world.entity.LivingEntity le && !(shooter instanceof Operator so2 && !OpType.hostile(o.type.faction, so2.type.faction))
-                && o.hasLineOfSight(le)) o.setTarget(le);
+            LivingEntity le = shooter instanceof LivingEntity l ? l : null;
+            o.raiseAlert(!ally && le != null && d < 28 && o.hasLineOfSight(le) ? le : null, false);
         }
     }
 
@@ -132,6 +144,7 @@ public final class Operators {
             Operator o = spawn(level, t, new BlockPos(bx, y, bz), MobSpawnType.EVENT, false);
             if (o == null) continue;
             if (goal != null) {
+                o.startAlert(Math.max(1, o.alertLevel()));
                 o.investigate = goal;
                 o.investigateUntil = level.getGameTime() + 3000;
             }

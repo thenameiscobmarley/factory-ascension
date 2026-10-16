@@ -3,6 +3,7 @@
 tactical units stick out to the right (+z), stocks reach back (-x). Faces on the "tint" texture take the attachment's
 finish colour in game (tintindex 0); lenses, bores and rubber keep their own colours."""
 from mesh import MeshModel as Model
+import parts as P
 
 C = 8.0
 
@@ -117,6 +118,50 @@ SHAPES = {
     "grip_wrap": lambda m: (m.box((C - 1.1, C - 3.0, C - 0.85), (C + 1.1, C, C + 0.85), "tint", rot=("z", -22.5, (C, C, C)))),
     "charm": lambda m: (m.box((C - 0.08, C - 1.2, C - 0.08), (C + 0.08, C, C + 0.08), "steel_light"),
                         m.box((C - 0.45, C - 2.0, C - 0.45), (C + 0.45, C - 1.1, C + 0.45), "tint")),
+    # ---- Cursed ----
+    "cursed_box": lambda m: (m.box((C - 2.5, C - 5.0, C - 1.6), (C + 2.5, C, C + 1.6), "alu_od", r=0.3),
+                             m.box((C - 2.6, C - 0.6, C - 1.7), (C + 2.6, C - 0.2, C + 1.7), "steel_dark", r=0.1),
+                             m.box((C - 0.6, C - 2.5, C + 1.6), (C + 0.6, C - 1.5, C + 1.9), "steel", r=0.1),
+                             [P.cartridge(m, C - 2.0 + k * 0.5, C - 0.1, C + 1.4, length=1.6, r=0.19) for k in range(8)]),
+    "cursed_drum": lambda m: (m.lathe("y", [(C - 9, 0), (C - 9, 3.4), (C - 8.6, 3.6), (C - 0.4, 3.6), (C, 3.4), (C, 0)], C, C, "tint"),
+                              [m.lathe("y", [(C - 8 + k * 2.2, 3.6), (C - 8 + k * 2.2, 3.75), (C - 7.6 + k * 2.2, 3.75), (C - 7.6 + k * 2.2, 3.6)], C, C, "steel_dark", icon=False) for k in range(4)]),
+    "cursed_scope": lambda m: (m.box((C - 3, C, C - 0.8), (C - 2, C + 1.2, C + 0.8), "steel_dark"), m.box((C + 8, C, C - 0.8), (C + 9, C + 1.2, C + 0.8), "steel_dark"),
+                               m.lathe("x", [(C - 6, 1.2), (C - 6, 1.6), (C - 3, 1.6), (C - 2, 1.2), (C + 10, 1.2), (C + 14, 2.6), (C + 18, 2.8), (C + 18, 2.4)], C + 3.0, C, "tint"),
+                               m.lathe("x", [(C + 17.6, 2.4), (C + 17.6, 0)], C + 3.0, C, "lens", icon=False),
+                               m.cyl("y", C + 4.2, C + 5.6, C + 3, C, 0.9, "knurl")),
+    "cursed_barrel": lambda m: (m.lathe("x", [(C, 0), (C, 0.7), (C + 23.5, 0.62), (C + 23.5, 0)], C, C, "tint"),
+                                m.lathe("x", [(C + 23.5, 0.3), (C + 23.5, 0.6), (C + 52, 0.55), (C + 52, 0.3), (C + 51, 0.28), (C + 51, 0)], C, C, "tint",
+                                        mats=["tint", "tint", "tint", "bore", "bore"], icon=False),
+                                [m.lathe("x", [(C + 6 + k * 9, 0.62), (C + 6 + k * 9, 0.9), (C + 7 + k * 9, 0.9), (C + 7 + k * 9, 0.62)], C, C, "steel_dark", icon=False) for k in range(5)]),
+    "cursed_barrel_wide": lambda m: (m.lathe("x", [(C, 0), (C, 0.7), (C + 3, 1.2), (C + 6, 2.2), (C + 6, 1.9), (C + 3.5, 0)], C, C, "tint"),),
+    "cursed_light": lambda m: (m.box((C - 1.2, C - 0.6, C), (C + 1.2, C + 0.6, C + 1.0), "steel_dark"),
+                               m.lathe("x", [(C - 3, 0), (C - 3, 1.4), (C + 2, 1.6), (C + 3.5, 2.6), (C + 3.5, 0)], C, C + 3.2, "tint",
+                                       mats=["tint", "tint", "tint", "paint_white"]),
+                               m.lathe("x", [(C + 3.45, 2.4), (C + 3.45, 0)], C, C + 3.2, "glow_white", icon=False)),
+    "cursed_coil": lambda m: (m.lathe("x", [(C, 0), (C, 0.6), (C + 14, 0.6), (C + 14, 0)], C, C, "steel_dark"),
+                              [m.lathe("x", [(C + 0.5 + k * 1.1, 0.6), (C + 0.5 + k * 1.1, 1.3), (C + 1.1 + k * 1.1, 1.3), (C + 1.1 + k * 1.1, 0.6)], C, C, "copper", icon=False)
+                               for k in range(12)],
+                              [m.cyl("x", C + 0.2 + k * 1.1, C + 0.5 + k * 1.1, C, C, 1.35, "glow_green", mesh_only=True, ends=False) for k in range(0, 12, 3)]),
+    "cursed_jet": lambda m: (m.box((C - 3, C - 2, C - 2.4), (C, C + 2, C + 2.4), "tint", r=0.4),
+                             [m.lathe("x", [(C - 6, 0.5), (C - 6, 1.1), (C - 3, 1.0), (C - 3, 0)], C - 0.5, C + s2 * 1.4, "steel_dark") for s2 in (-1, 1)],
+                             [m.lathe("x", [(C - 6.1, 0.9), (C - 6.1, 0)], C - 0.5, C + s2 * 1.4, "glow_amber", icon=False) for s2 in (-1, 1)]),
+    "cursed_saw": lambda m: (m.box((C - 1, C - 1.6, C - 0.6), (C + 2, C, C + 0.6), "paint_red", r=0.3),
+                             m.plate([(C + 1.5, C - 1.6), (C + 10, C - 1.4), (C + 10.6, C - 0.9), (C + 10, C - 0.4), (C + 1.5, C - 0.2)], C - 0.12, C + 0.12, "steel_light", bevel=0.04),
+                             [m.box((C + 2 + k * 0.6, C - 1.75, C - 0.15), (C + 2.3 + k * 0.6, C - 1.55, C + 0.15), "steel_dark", r=0.02) for k in range(14)]),
+    "cursed_stack": lambda m: [muzzle_can(m, 0, 0) if False else m.lathe("x", [(C + k * 4.0, 0), (C + k * 4.0, 0.85), (C + k * 4.0 + 3.9, 0.85), (C + k * 4.0 + 3.9, 0)],
+                                                                              C, C, "tint" if k % 2 else "steel_dark", icon=k < 5) for k in range(6)],
+    "cursed_duck": lambda m: (m.box((C - 0.08, C - 1.2, C - 0.08), (C + 0.08, C, C + 0.08), "steel_light"),
+                              m.lathe("y", [(C - 2.6, 0), (C - 2.6, 0.55), (C - 2.0, 0.6), (C - 1.6, 0)], C, C, "polymer_sand"),
+                              m.lathe("y", [(C - 1.7, 0), (C - 1.7, 0.35), (C - 1.2, 0)], C + 0.3, C, "polymer_sand"),
+                              m.box((C + 0.55, C - 1.55, C - 0.12), (C + 0.85, C - 1.4, C + 0.12), "paint_red", r=0.04)),
+    "cursed_toaster": lambda m: (m.box((C - 2, C - 2.6, C - 1.3), (C + 2, C - 0.2, C + 1.3), "chrome", r=0.4),
+                                 m.box((C - 1.4, C - 0.3, C - 0.8), (C + 1.4, C - 0.15, C - 0.3), "bore", faces=["up"]),
+                                 m.box((C - 1.4, C - 0.3, C + 0.3), (C + 1.4, C - 0.15, C + 0.8), "bore", faces=["up"]),
+                                 m.box((C - 1.2, C - 0.2, C - 0.7), (C + 1.2, C + 0.6, C - 0.4), "beech", r=0.1),
+                                 m.box((C + 2, C - 1.6, C - 0.2), (C + 2.4, C - 1.2, C + 0.2), "steel_dark", r=0.05)),
+    "cursed_bipod": lambda m: (m.box((C - 0.7, C - 0.8, C - 0.7), (C + 0.7, C, C + 0.7), "tint"),
+                               [m.pipe([(C, C - 0.6, C + s2 * 0.4), (C + 2, C - 30, C + s2 * 9)], 0.22, "tint", icon=False) for s2 in (-1, 1)],
+                               m.box((C - 0.3, C - 6, C - 0.4), (C + 0.3, C - 0.8, C + 0.4), "tint")),
     "none": lambda m: m.box((C - 0.01, C - 0.01, C - 0.01), (C + 0.01, C + 0.01, C + 0.01), "tint", faces=["up"]),
 }
 

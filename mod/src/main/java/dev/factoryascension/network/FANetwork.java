@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 /** The mod's custom messages: the Ascension Vault's search box, the guns' fire and reload, effects, and the Tarkov inventory grid. */
 public final class FANetwork {
-    private static final String VERSION = "7";
+    private static final String VERSION = "8";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(FactoryAscension.MODID, "main"),
         () -> VERSION, VERSION::equals, VERSION::equals);
 
@@ -156,16 +156,24 @@ public final class FANetwork {
     }
 
     /** Client -> server: fire (aimed or from the hip) or reload the gun in the main hand. */
-    public record GunAction(int action, boolean aiming) {
+    /** lean: -1 (left) .. 1 (right); dyaw / dpitch: where the gun points off the crosshair at the hip, degrees. */
+    public record GunAction(int action, boolean aiming, float lean, float dyaw, float dpitch) {
         public static final int FIRE = 0, RELOAD = 1;
+
+        public GunAction(int action, boolean aiming) {
+            this(action, aiming, 0, 0, 0);
+        }
 
         static void encode(GunAction msg, FriendlyByteBuf buf) {
             buf.writeByte(msg.action);
             buf.writeBoolean(msg.aiming);
+            buf.writeFloat(msg.lean);
+            buf.writeFloat(msg.dyaw);
+            buf.writeFloat(msg.dpitch);
         }
 
         static GunAction decode(FriendlyByteBuf buf) {
-            return new GunAction(buf.readByte(), buf.readBoolean());
+            return new GunAction(buf.readByte(), buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat());
         }
 
         static void handle(GunAction msg, Supplier<NetworkEvent.Context> ctx) {
@@ -173,7 +181,16 @@ public final class FANetwork {
                 ServerPlayer player = ctx.get().getSender();
                 if (player == null || player.isSpectator() || !player.isAlive()) return;
                 if (player.getMainHandItem().getItem() instanceof dev.factoryascension.gun.GunItem) {
-                    if (msg.action == FIRE) dev.factoryascension.gun.GunItem.fire(player, msg.aiming);
+                    if (msg.action == FIRE) {
+                        dev.factoryascension.gun.GunItem.shotLean = Math.max(-1, Math.min(1, msg.lean));
+                        dev.factoryascension.gun.GunItem.shotYaw = Math.max(-10, Math.min(10, msg.dyaw));
+                        dev.factoryascension.gun.GunItem.shotPitch = Math.max(-10, Math.min(10, msg.dpitch));
+                        try {
+                            dev.factoryascension.gun.GunItem.fire(player, msg.aiming);
+                        } finally {
+                            dev.factoryascension.gun.GunItem.shotLean = dev.factoryascension.gun.GunItem.shotYaw = dev.factoryascension.gun.GunItem.shotPitch = 0;
+                        }
+                    }
                     else if (msg.action == RELOAD) dev.factoryascension.gun.GunItem.startReload(player, player.getMainHandItem());
                     return;
                 }

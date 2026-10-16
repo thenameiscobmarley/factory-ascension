@@ -24,6 +24,7 @@ if (Platform.isLoaded('factoryascension')) {
   let NP = global.FA.npcs
   $FAModConfig.setNpcs(NP.healthScale, NP.damageScale, NP.spreadScale, NP.bleedChance, NP.gunDropChance, NP.patrols, NP.patrolChance, NP.patrolMinDanger,
     NP.maxNearby, NP.flareHunters)
+  $FAModConfig.setMobHearing(NP.mobsHearShots, NP.mobHearingScale)
   let $FAStress = Java.loadClass('dev.factoryascension.gun.Stress')
   global.FA_MOD_DANGER = (player, danger) => $FAStress.setDanger(player, danger)
   Object.keys(global.FA.guns.ammo.perCraft).forEach(c => $FAModConfig.setAmmoPerCraft(c, global.FA.guns.ammo.perCraft[c]))

@@ -41,6 +41,11 @@ public final class Dread {
     private Dread() {
     }
 
+    /** A flashbang: full ringing, whatever the setting. */
+    public static void flash() {
+        ring = 1;
+    }
+
     /** 0..1: how loud your ears are ringing. */
     public static float ring() {
         return ring;

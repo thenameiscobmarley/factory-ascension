@@ -68,7 +68,8 @@ public final class GunClient {
 
         @Override
         public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack) {
-            return HumanoidModel.ArmPose.CROSSBOW_HOLD;   // both hands up, shouldered
+            if (dev.factoryascension.gun.GunItem.spec(stack) == null) return HumanoidModel.ArmPose.CROSSBOW_HOLD;   // the shotgun: shouldered
+            return dev.factoryascension.client.gun.ArmPoses.forPlayer(entity, stack);
         }
 
         @Override
@@ -158,7 +159,8 @@ public final class GunClient {
                     || dev.factoryascension.gun.GunItem.phase(held) == dev.factoryascension.gun.GunItem.OUT
                     || (dev.factoryascension.gun.GunItem.reloading(held) && (spec.reload == dev.factoryascension.gun.GunSpec.Reload.MAG || spec.reload == dev.factoryascension.gun.GunSpec.Reload.BELT)));
                 if (!blocked) {
-                    FANetwork.CHANNEL.sendToServer(new FANetwork.GunAction(FANetwork.GunAction.FIRE, aim));
+                    FANetwork.CHANNEL.sendToServer(new FANetwork.GunAction(FANetwork.GunAction.FIRE, aim, dev.factoryascension.client.gun.LeanClient.lean,
+                        aim ? 0 : dev.factoryascension.client.gun.GunAnim.aimYaw, aim ? 0 : dev.factoryascension.client.gun.GunAnim.aimPitch));
                     boolean loaded = spec != null ? dev.factoryascension.gun.GunItem.ammo(held) > 0 || p.isCreative() : ShotgunItem.shells(held) > 0;
                     if (loaded) {
                         float rUp = stats != null ? stats.recoilUp : animSpec(held).recoilUp, rSide = stats != null ? stats.recoilSide : animSpec(held).recoilSide;

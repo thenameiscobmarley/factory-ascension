@@ -121,8 +121,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
     if (event.loadedFromDisk() || S.animals.indexOf(String(mob.type)) < 0 || mob.isBaby()) return
     let data = mob.getPersistentData()
     if (data.contains('fa_variant') || mob.hasCustomName()) return
-    if (Math.random() >= S.chance) return
-    if (global.FA_dangerLevel(mob.level, mob.getX(), mob.getZ()) < S.minDanger) return
+    let deep = global.FA_dangerLevel(mob.level, mob.getX(), mob.getZ()) >= S.minDanger
+    if (Math.random() >= (deep ? S.chance : S.safeChance)) return
     global.FA_makeSkinwalker(mob)
   } catch (err) {
     faWarnOnce('skinwalker spawns', err)
@@ -162,6 +162,17 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$ServerTickEvent', event 
       else {
         mob.getNavigation().stop()
         mob.getLookControl().setLookAt(p, 30, 30)
+      }
+      // Mimicry: a sound from where it stands, or just behind you
+      if (Math.random() < S.mimicChancePerSecond * 0.5) {
+        let sounds = ['minecraft:entity.player.hurt', 'minecraft:block.wooden_door.open', 'minecraft:entity.villager.ambient', 'minecraft:block.grass.step',
+          'minecraft:block.chest.open', 'minecraft:entity.player.breath', 'minecraft:entity.villager.no', 'minecraft:item.armor.equip_leather']
+        let snd = sounds[Math.floor(Math.random() * sounds.length)]
+        let behind = Math.random() < 0.5
+        let yaw = p.getYRot() * Math.PI / 180
+        let sx = behind ? p.getX() + Math.sin(yaw) * 4 : mob.getX(), sz = behind ? p.getZ() - Math.cos(yaw) * 4 : mob.getZ()
+        server.runCommandSilent('execute in ' + String(mob.level.dimension) + ' run playsound ' + snd + ' hostile ' + p.username + ' ' +
+          sx.toFixed(1) + ' ' + p.getY().toFixed(1) + ' ' + sz.toFixed(1) + ' 0.8 ' + (0.75 + Math.random() * 0.2).toFixed(2))
       }
       if (d > S.stareRange * 2) return
       e.stalk += 0.5

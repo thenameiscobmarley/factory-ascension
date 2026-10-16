@@ -21,8 +21,15 @@ import java.util.List;
 public class GrenadeItem extends Item {
     static final int FUSE = 55;
 
+    final boolean flash;
+
     public GrenadeItem(Properties props) {
+        this(props, false);
+    }
+
+    public GrenadeItem(Properties props, boolean flash) {
         super(props);
+        this.flash = flash;
     }
 
     @Override
@@ -48,6 +55,7 @@ public class GrenadeItem extends Item {
         if (level.isClientSide) return;
         Grenade g = new Grenade(level, e);
         g.setFuse(FUSE - held);
+        if (flash) g.flash();
         g.shootFromRotation(e, e.getXRot(), e.getYRot(), 0, 1.1f, 1);
         level.addFreshEntity(g);
         level.playSound(null, e.getX(), e.getY(), e.getZ(), SoundEvents.SNOWBALL_THROW, SoundSource.PLAYERS, 0.8f, 0.5f);
@@ -65,7 +73,7 @@ public class GrenadeItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tip, TooltipFlag flag) {
-        tip.add(Component.literal("Hold right-click to pull the pin (it's cooking), let go to throw. Bounces; goes off after about 3 seconds")
-            .withStyle(ChatFormatting.GRAY));
+        tip.add(Component.literal(flash ? "Hold right-click to pull the pin, let go to throw. A blinding flash and a deafening bang: no damage, but nobody near can see"
+            : "Hold right-click to pull the pin (it's cooking), let go to throw. Bounces; goes off after about 3 seconds").withStyle(ChatFormatting.GRAY));
     }
 }

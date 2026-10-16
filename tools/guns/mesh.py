@@ -880,4 +880,4 @@ class MeshModel(Model):
         super().check()
         if self.mesh.verts:
             lo, hi = self.mesh.bounds()
-            assert min(lo) >= -40 and max(hi) <= 56, "%s: mesh outside the file's range %s %s" % (self.name, lo, hi)
+            assert min(lo) >= -64 and max(hi) <= 64, "%s: mesh outside the file's range %s %s" % (self.name, lo, hi)

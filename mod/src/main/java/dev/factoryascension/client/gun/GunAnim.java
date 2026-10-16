@@ -90,6 +90,8 @@ public final class GunAnim {
     static int reloadSeen = 0;
     static float rlRoll = -35, rlYaw = 20, rlDrop = 0.08f, rlSpeedWobble = 1;
     static float last = 0;
+    /** Where the gun points off the crosshair right now (degrees; + is right / down), for the hip-fire crosshair and the shot. */
+    public static float aimYaw = 0, aimPitch = 0;
     // For skins: heat from firing (embers, flames) and how fast the gun is swinging (cloth strips, grass)
     static float heatV = 0, swingX = 0, swingY = 0, lastYaw = Float.NaN, lastPitch = 0;
 
@@ -224,6 +226,10 @@ public final class GunAnim {
         float[] rl = reload(stack, spec, t);
 
         pose.translate(x + fidgetPose[0] + rl[0], y + fidgetPose[1] + rl[1], z + fidgetPose[2] + rl[2]);
+        // The barrel's own aim, off the crosshair (only at the hip: aimed, the sights are on it)
+        float hipK = Math.max(0, 1 - aim * 1.2f);
+        aimYaw = -(twist * speed * moveK + fidgetPose[4] + kickSide.x * 0.4f + strafeRoll * 0.05f) * hipK * 0.8f;
+        aimPitch = -(kickPitch.x * 0.35f + fidgetPose[3] + (bobY + breath) * 40 * moveK) * hipK * 0.8f;
         pose.mulPose(Axis.YP.rotationDegrees(side * (-sprint * sprintCantY * (sprintStyle == 2 ? 1.3f : 1)) + twist * speed * moveK + fidgetPose[4] + rl[4] + kickSide.x * 0.4f));
         pose.mulPose(Axis.XP.rotationDegrees(kickPitch.x * 0.35f - forwardLean * moveK * 0.4f + fidgetPose[3] + rl[3] + sprint * (sprintStyle == 0 ? 12 : 4)));
         // Gangster grip: the gun turned flat on its side, held up and in

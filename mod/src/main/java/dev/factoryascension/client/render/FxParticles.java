@@ -144,7 +144,7 @@ public final class FxParticles {
             if (age++ >= lifetime) { remove(); return; }
             double vyBefore = yd;
             yd -= 0.04 * gravity;
-            move(xd, yd, zd);
+            collideMove(xd, yd, zd);
             if (onGround) {
                 // Bounce, losing most of the energy; then roll to a stop
                 if (Math.abs(vyBefore) > 0.12) { yd = -vyBefore * 0.35; spin *= 0.6f; }
@@ -154,6 +154,30 @@ public final class FxParticles {
             xd *= friction; zd *= friction;
             if (!settled) angle += spin;
             if (lifetime - age < 20) alpha = (lifetime - age) / 20f;
+        }
+
+        /**
+         * Our own move: vanilla particles stop moving for good after their first vertical bump (a ceiling, the edge of
+         * a block mid-bounce), which left pieces frozen in the air. This one always keeps falling until it's resting.
+         */
+        private void collideMove(double dx, double dy, double dz) {
+            double ox = dx, oy = dy, oz = dz;
+            Vec3 v = net.minecraft.world.entity.Entity.collideBoundingBox(null, new Vec3(dx, dy, dz), getBoundingBox(), level, java.util.List.of());
+            dx = v.x; dy = v.y; dz = v.z;
+            if (dx != 0 || dy != 0 || dz != 0) {
+                setBoundingBox(getBoundingBox().move(dx, dy, dz));
+                setLocationFromBoundingbox();
+            }
+            onGround = oy != dy && oy < 0;
+            if (ox != dx) xd = -xd * 0.3;      // off a wall
+            if (oz != dz) zd = -zd * 0.3;
+            if (oy != dy && oy > 0) yd = 0;    // under a ceiling: drop
+            // Stuck inside a block (it spawned in one): let it fall through rather than hang there
+            if (dx == 0 && dy == 0 && dz == 0 && oy < 0 && !level.getBlockState(net.minecraft.core.BlockPos.containing(x, y - 0.05, z)).isSolid()) {
+                setBoundingBox(getBoundingBox().move(0, oy, 0));
+                setLocationFromBoundingbox();
+                onGround = false;
+            }
         }
 
         @Override
