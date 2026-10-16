@@ -381,5 +381,15 @@
  "subtitles.factoryascension.dread.helicopter": "Helicopter",
  "subtitles.factoryascension.grenade.explode": "Grenade explodes",
  "subtitles.factoryascension.gun.crack": "Round cracks past",
- "subtitles.factoryascension.gun.whiz": "Round whizzes past"
+ "subtitles.factoryascension.gun.whiz": "Round whizzes past",
+ "item.factoryascension.lsd_tab": "LSD Tab",
+ "item.factoryascension.ecstasy": "Ecstasy",
+ "item.factoryascension.xanax": "Xanax",
+ "item.factoryascension.ketamine": "Ketamine",
+ "item.factoryascension.vodka": "Vodka",
+ "item.factoryascension.energy_drink": "Energy Drink",
+ "effect.factoryascension.rolling": "Rolling",
+ "effect.factoryascension.sedated": "Sedated",
+ "effect.factoryascension.dissociated": "Dissociated",
+ "effect.factoryascension.drunk": "Drunk"
 }

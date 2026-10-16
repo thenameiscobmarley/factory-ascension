@@ -6,10 +6,13 @@
 //  Trip (mushrooms): the world breathes - slow warping waves, colours rolling through the hues, long trails.
 //  Psych (psychosis): colour drains, the edges darken and crawl in, a faint pulse, now and then a flicker.
 //  Crash: grey, dim and slow, a slight blur.  Numb (morphine): soft focus, muted, warm.
+//  Rolling (ecstasy): warm, glowing, colour pulsing with your heartbeat.  Sedated (xanax): heavy eyelids that droop shut
+//  now and then.  Dissoc (ketamine): the world stretches away down a tunnel, smeared trails.  Drunk: a slow sway and
+//  double vision that drifts apart and back.
 uniform sampler2D DiffuseSampler;
 uniform sampler2D PrevSampler;
 uniform vec2 OutSize;
-uniform float Clock, Stoned, Wired, Tweak, Trip, Psych, Crash, Numb;
+uniform float Clock, Stoned, Wired, Tweak, Trip, Psych, Crash, Numb, Rolling, Sedated, Dissoc, Drunk;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -51,6 +54,10 @@ void main() {
     uv = 0.5 + (uv - 0.5) * (1.0 - Trip * 0.02 * sin(t * 0.8));
     // Stoned: a slow drift
     uv += Stoned * 0.003 * vec2(sin(t * 0.37), cos(t * 0.29));
+    // Drunk: the room sways
+    uv += Drunk * vec2(sin(t * 0.9) * 0.012, sin(t * 0.7 + 1.0) * 0.006);
+    // Ketamine: everything pulled away from you, down a long tunnel
+    uv = 0.5 + (uv - 0.5) * (1.0 + Dissoc * (0.18 + 0.06 * sin(t * 0.4)) * smoothstep(0.0, 0.7, length(c)));
     // Tweak: jitter, a few times a second
     vec2 j = vec2(hash(vec2(floor(t * 14.0), 3.1)), hash(vec2(floor(t * 14.0), 7.7))) - 0.5;
     uv += Tweak * j * 0.004;
@@ -58,6 +65,11 @@ void main() {
     // ---- The picture ----
     float soft = Stoned * 1.2 + Crash * 1.0 + Numb * 1.3;
     vec3 col = soft > 0.01 ? mix(texture(DiffuseSampler, uv).rgb, blur(uv, 1.5 + soft), clamp(soft * 0.6, 0.0, 0.8)) : texture(DiffuseSampler, uv).rgb;
+    // Drunk: double vision drifting apart and back together
+    if (Drunk > 0.0) {
+        vec2 o = vec2(0.012 + 0.008 * sin(t * 0.6), 0.003 * sin(t * 0.43)) * Drunk;
+        col = mix(col, texture(DiffuseSampler, clamp(uv + o, 0.001, 0.999)).rgb, 0.4 * Drunk);
+    }
     // Chromatic shimmer (meth, mushrooms)
     float ca = Tweak * 0.003 * (0.6 + 0.4 * sin(t * 31.0)) + Trip * 0.004;
     if (ca > 0.0) {
@@ -81,6 +93,12 @@ void main() {
         l = lum(col);
         col = mix(vec3(l), col, 1.0 + Trip * 0.7);
     }
+    // Ecstasy: warm and glowing, pulsing with the heartbeat
+    if (Rolling > 0.0) {
+        float beat = pow(0.5 + 0.5 * sin(t * 7.5), 6.0);
+        l = lum(col);
+        col = mix(col, mix(vec3(l), col, 1.5) * vec3(1.08, 1.0, 1.04) + 0.05 + beat * 0.05, Rolling * 0.8);
+    }
     // Tweak: crushed, hard, tunnel
     col = mix(col, max(vec3(0.0), (col - 0.06) * 1.15), Tweak * 0.7);
     // Numb: muted and warm
@@ -100,8 +118,19 @@ void main() {
     float crawl = 0.04 * sin(atan(c.y, c.x) * 7.0 + t * 0.6) + 0.03 * sin(atan(c.y, c.x) * 13.0 - t * 1.1);
     float edge = Tweak * smoothstep(0.42, 0.95, r) * 0.7 + Psych * smoothstep(0.5 - 0.08 * pulse + crawl, 0.95, r) * 0.9;
     col *= 1.0 - clamp(edge, 0.0, 0.95);
+    // Xanax: heavy eyelids, drooping shut now and then
+    if (Sedated > 0.0) {
+        float droop = Sedated * (0.12 + 0.35 * pow(0.5 + 0.5 * sin(t * 0.35), 8.0));
+        float lid = smoothstep(0.5 - droop - 0.08, 0.5 - droop, abs(texCoord.y - 0.5));
+        col *= 1.0 - lid;
+        l = lum(col);
+        col = mix(col, vec3(l), Sedated * 0.25);
+    }
+    // Ketamine: drained, with a cold cast
+    l = lum(col);
+    col = mix(col, vec3(l) * vec3(0.9, 1.0, 1.08), Dissoc * 0.5);
     // ---- Trails: the last frame lingers ----
-    float trail = clamp(Trip * 0.72 + Stoned * 0.35 + Tweak * 0.15, 0.0, 0.82);
+    float trail = clamp(Trip * 0.72 + Stoned * 0.35 + Tweak * 0.15 + Dissoc * 0.8 + Drunk * 0.3, 0.0, 0.88);
     if (trail > 0.0) {
         vec3 prev = texture(PrevSampler, texCoord).rgb;
         col = max(col, mix(col, prev, trail));

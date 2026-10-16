@@ -221,7 +221,7 @@ public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
     }
 
     // ---- The look: soft shadows, gradients, a lit top edge ----
-    static void shadowBox(GuiGraphics g, int x, int y, int w, int h) {
+    public static void shadowBox(GuiGraphics g, int x, int y, int w, int h) {
         g.fill(x - 1, y + 1, x + w + 2, y + h + 3, 0x40000000);
         g.fill(x, y + 2, x + w + 1, y + h + 2, SHADOW);
     }
@@ -231,7 +231,7 @@ public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
     private static int blurW = -1, blurH = -1;
     private static boolean blurBroken = false;
 
-    static void blurWorld(float amount) {
+    public static void blurWorld(float amount) {
         if (blurBroken || amount <= 0.01f || dev.factoryascension.client.FAClientConfig.SAFE_MODE.get()) return;
         Minecraft mc = Minecraft.getInstance();
         try {
@@ -264,7 +264,7 @@ public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
         }
     }
 
-    static void freeBlur() {
+    public static void freeBlur() {
         if (blurChain != null) blurChain.close();
         blurChain = null;
     }

@@ -1504,7 +1504,8 @@ global.FA = {
   },
 
   // ---- Drugs (Full download; single player's your own business). Each has its own effect, then a comedown; three
-  // doses inside a minute is an overdose. Meth can leave you with Psychosis (you see things that aren't there); so can
+  // doses inside a minute is an overdose. Taking one while another is still on you can mix (Speedball, Candyflip,
+  // Crossfade, Blackout, Overamped...). Right-click a villager with one: it pays you, smokes it and gets high. Meth can leave you with Psychosis (you see things that aren't there); so can
   // mushrooms. Cannabis and coca seeds drop from grass (seedChance); plant them on farmland. The rest is made at the
   // Chem Lab: right-click it with the inputs in your inventory, and it makes the first recipe here you have everything for.
   drugs: {
@@ -1516,7 +1517,13 @@ global.FA = {
       { out: 'factoryascension:methamphetamine', count: 2, in: [['minecraft:redstone', 2], ['minecraft:gunpowder', 2], ['minecraft:sugar', 1], ['minecraft:glowstone_dust', 1]] },
       { out: 'factoryascension:morphine', count: 2, in: [['minecraft:poppy', 3], ['minecraft:glass_bottle', 1]] },
       { out: 'factoryascension:adrenaline_shot', count: 2, in: [['minecraft:glass_bottle', 1], ['minecraft:sugar', 2], ['minecraft:redstone', 1]] },
-      { out: 'factoryascension:magic_mushrooms', count: 3, in: [['minecraft:red_mushroom', 2], ['minecraft:brown_mushroom', 2], ['minecraft:fermented_spider_eye', 1]] }
+      { out: 'factoryascension:magic_mushrooms', count: 3, in: [['minecraft:red_mushroom', 2], ['minecraft:brown_mushroom', 2], ['minecraft:fermented_spider_eye', 1]] },
+      { out: 'factoryascension:lsd_tab', count: 4, in: [['minecraft:wheat', 3], ['minecraft:brown_mushroom', 1], ['minecraft:paper', 1], ['minecraft:glass_bottle', 1]] },
+      { out: 'factoryascension:ecstasy', count: 3, in: [['minecraft:sugar', 2], ['minecraft:glowstone_dust', 1], ['minecraft:pink_dye', 1]] },
+      { out: 'factoryascension:xanax', count: 4, in: [['minecraft:bone_meal', 2], ['minecraft:sugar', 1], ['minecraft:white_dye', 1]] },
+      { out: 'factoryascension:ketamine', count: 2, in: [['minecraft:sugar', 1], ['minecraft:quartz', 2], ['minecraft:glass_bottle', 1]] },
+      { out: 'factoryascension:vodka', count: 2, in: [['minecraft:potato', 6], ['minecraft:sugar', 1], ['minecraft:glass_bottle', 2]] },
+      { out: 'factoryascension:energy_drink', count: 3, in: [['minecraft:sugar', 2], ['minecraft:cocoa_beans', 1], ['minecraft:iron_nugget', 3]] }
     ]
   },
 
@@ -1558,7 +1565,9 @@ global.FA = {
   // weight: each cell weighs kgPerCell (a full stack of a 1x1 item = 1 cell; a lone block weighs 1/64 of that).
   // Past carryKg you slow down by slowPerKg (0.01 = 1% per kg), never more than maxSlow (0.5 = half speed).
   inventory: {
-    enabled: true, width: 10, height: 6, blockPickup: true,
+    // grid: false = the game's own inventory layout in the dark Tarkov look (still opened out of the duffel bag);
+    // true = the grid where items take their real size (blockPickup only applies to the grid)
+    enabled: true, grid: false, width: 10, height: 6, blockPickup: true,
     sizes: [['minecraft:totem_of_undying', 1, 2], ['minecraft:spyglass', 1, 2], ['minecraft:anvil', 2, 2]],
     weight: { enabled: true, kgPerCell: 1, carryKg: 100, slowPerKg: 0.01, maxSlow: 0.5 }
   },
@@ -1602,14 +1611,16 @@ global.FA = {
 
   // ---- Factory Room TNT: blasts out a ready-made underground room ----
   // Right-click a block with one. After the fuse it hollows out a room in front of you (width x length x height inside),
-  // lines the floor, walls and roof with the style's block, sets its lights into the roof every lightSpacing blocks and
-  // leaves a doorway on your side, level with your feet. It never touches bedrock or anything with an inventory or a
+  // lines the floor, walls and roof with the style's block, and lights it all the way down: lights in the roof every
+  // lightSpacing blocks, a row along every wall at half height, and lights set flush into the floor between the roof's,
+  // so even a 16-high room is bright at the bottom. It leaves a doorway on your side, level with your feet. Styles with
+  // `window` are for building above ground: their walls get rows of windows. It never touches bedrock or anything with an inventory or a
   // machine inside (chests, Create machines, spawners), and ores it blasts through drop in the middle of the room.
   roomCharges: {
     enabled: true,
     fuseSeconds: 3,
     blocksPerTick: 6000,       // spread over a few ticks so the server never freezes
-    lightSpacing: 6,
+    lightSpacing: 5,
     doorway: [3, 3],           // width, height of the opening on your side
     collectOres: true,
     // size: [width, length, height inside]; craft: how many of the next size down make one
@@ -1623,7 +1634,8 @@ global.FA = {
       { id: 'sandstone', name: 'Sandstone', shell: 'minecraft:smooth_sandstone', light: 'minecraft:glowstone', color: [226, 208, 152], lightColor: [255, 214, 120] },
       { id: 'stone_brick', name: 'Stone Brick', shell: 'minecraft:stone_bricks', light: 'minecraft:sea_lantern', color: [140, 140, 140], lightColor: [196, 236, 230] },
       { id: 'deepslate', name: 'Deepslate', shell: 'minecraft:deepslate_tiles', light: 'minecraft:ochre_froglight', color: [70, 70, 80], lightColor: [250, 220, 140] },
-      { id: 'quartz', name: 'Quartz', shell: 'minecraft:smooth_quartz', light: 'minecraft:sea_lantern', color: [236, 230, 222], lightColor: [196, 236, 230] }
+      { id: 'quartz', name: 'Quartz', shell: 'minecraft:smooth_quartz', light: 'minecraft:sea_lantern', color: [236, 230, 222], lightColor: [196, 236, 230] },
+      { id: 'cabin', name: 'Outdoor Cabin', shell: 'minecraft:spruce_planks', light: 'minecraft:pearlescent_froglight', window: 'minecraft:glass', color: [112, 84, 50], lightColor: [250, 214, 230] }
     ]
   },
 
@@ -2145,17 +2157,21 @@ global.FA_dangerMult = (danger, elite) => {
 // The inside is W x L x H; around it is a one-block shell (floor, walls, roof) with lights in the roof and a doorway
 // in the near wall. (cx, cz): the block you clicked (the middle of the near wall); floorY: the floor layer, one below
 // your feet; (fx, fz): the way you face (one of the four directions).
-global.FA_roomPlan = (sizeId, cx, floorY, cz, fx, fz) => {
+global.FA_roomPlan = (sizeId, cx, floorY, cz, fx, fz, styleId) => {
   let R = global.FA.roomCharges
+  let ST = styleId ? R.styles.filter(z => z.id == styleId)[0] : false
   let S = R.sizes.filter(z => z.id == sizeId)[0]
   if (!S) return false
   let W = S.size[0], L = S.size[1], H = S.size[2]
   let umin = -Math.floor(W / 2)
   return { cx: cx, cz: cz, floorY: floorY, fx: fx, fz: fz, rx: -fz, rz: fx, W: W, L: L, H: H, umin: umin, umax: umin + W - 1,
-    cols: W + 2, rows: L + 2, layers: H + 2, total: (W + 2) * (L + 2) * (H + 2), spacing: Math.max(2, R.lightSpacing), door: R.doorway }
+    cols: W + 2, rows: L + 2, layers: H + 2, total: (W + 2) * (L + 2) * (H + 2), spacing: Math.max(2, R.lightSpacing), door: R.doorway,
+    windows: !!(ST && ST.window) }
 }
 
-// What goes at a local spot: 'air' (inside or the doorway), 'shell', 'light', or false (outside the room)
+// What goes at a local spot: 'air' (inside or the doorway), 'shell', 'light', 'window' (styles with windows), or false
+// (outside the room). Lights: in the roof on a grid, flush in the floor on the grid shifted by half (between the roof's),
+// and along every wall at half height, so light reaches the floor of even the tallest room.
 global.FA_roomKind = (plan, u, v, h) => {
   if (u < plan.umin - 1 || u > plan.umax + 1 || v < 0 || v > plan.L + 1 || h < 0 || h > plan.H + 1) return false
   let inside = u >= plan.umin && u <= plan.umax && v >= 1 && v <= plan.L
@@ -2163,9 +2179,21 @@ global.FA_roomKind = (plan, u, v, h) => {
   // The doorway: the middle of the near wall, from the floor up
   let half = Math.floor(plan.door[0] / 2)
   if (v == 0 && Math.abs(u) <= half && h >= 1 && h <= Math.min(plan.H, plan.door[1])) return 'air'
-  if (inside && h == plan.H + 1) {
-    let sp = plan.spacing, off = Math.floor(sp / 2)
-    if ((u - plan.umin) % sp == off && (v - 1) % sp == off) return 'light'
+  let sp = plan.spacing, off = Math.floor(sp / 2)
+  let gu = u - plan.umin, gv = v - 1
+  if (inside && h == plan.H + 1 && gu % sp == off && gv % sp == off) return 'light'
+  if (inside && h == 0 && plan.H >= 6 && (gu + off) % sp == 0 && (gv + off) % sp == 0 && gu > 0 && gv > 0 && gu < plan.W - 1 && gv < plan.L - 1) return 'light'
+  // The walls (not the corners): a light row at half height, windows (if the style has them) between
+  let wallU = (u == plan.umin - 1 || u == plan.umax + 1) && v >= 1 && v <= plan.L
+  let wallV = (v == 0 || v == plan.L + 1) && u >= plan.umin && u <= plan.umax
+  if ((wallU || wallV) && h >= 1 && h <= plan.H) {
+    let along = wallU ? gv : gu
+    let mid = Math.max(2, Math.ceil(plan.H / 2))
+    if (h == mid && along % sp == off) return 'light'
+    if (plan.windows) {
+      let top = Math.min(plan.H - 1, 2 + Math.floor(plan.H / 4))
+      if (h >= 2 && h <= top && along % 4 != 0 && along % sp != off && along > 0 && along < (wallU ? plan.L : plan.W) - 1) return 'window'
+    }
   }
   return 'shell'
 }
@@ -2437,7 +2465,9 @@ global.FA_meteorPool = () => {
     put(P.basics, ['factoryascension:shotgun_shell', 'factoryascension:flare_red', 'factoryascension:flare_green', 'factoryascension:cartridge', 'factoryascension:attachment',
       'factoryascension:bandage', 'factoryascension:medkit', 'factoryascension:frag_grenade', 'factoryascension:flashbang',
       'factoryascension:cannabis_seeds', 'factoryascension:coca_seeds', 'factoryascension:cannabis_leaf', 'factoryascension:coca_leaf',
-      'factoryascension:joint', 'factoryascension:morphine', 'factoryascension:adrenaline_shot', 'factoryascension:polyethylene_plate'])
+      'factoryascension:joint', 'factoryascension:morphine', 'factoryascension:adrenaline_shot', 'factoryascension:polyethylene_plate',
+      'factoryascension:vodka', 'factoryascension:energy_drink', 'factoryascension:xanax'])
+    put(P.machines, ['lsd_tab', 'ecstasy', 'ketamine'].map(b => 'factoryascension:' + b))
     put(P.machines, ['plate_carrier', 'steel_plate', 'ceramic_plate', 'titanium_plate', 'nods_green', 'chem_lab', 'cocaine', 'methamphetamine',
       'magic_mushrooms', 'ballistic_concrete', 'ballistic_glass', 'ballistic_glass_pane', 'steel_door', 'steel_trapdoor'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['hybrid_plate', 'ascendite_plate', 'nods_white'].map(b => 'factoryascension:' + b))

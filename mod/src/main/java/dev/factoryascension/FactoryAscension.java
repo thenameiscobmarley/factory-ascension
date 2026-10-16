@@ -272,7 +272,9 @@ public class FactoryAscension {
             out.accept(dev.factoryascension.drugs.DrugBlocks.CANNABIS_LEAF.get());
             out.accept(dev.factoryascension.drugs.DrugBlocks.COCA_LEAF.get());
             for (var d : new net.minecraftforge.registries.RegistryObject[] {dev.factoryascension.drugs.Drugs.JOINT, dev.factoryascension.drugs.Drugs.COCAINE,
-                dev.factoryascension.drugs.Drugs.METH, dev.factoryascension.drugs.Drugs.MORPHINE, dev.factoryascension.drugs.Drugs.ADRENALINE, dev.factoryascension.drugs.Drugs.MUSHROOMS})
+                dev.factoryascension.drugs.Drugs.METH, dev.factoryascension.drugs.Drugs.MORPHINE, dev.factoryascension.drugs.Drugs.ADRENALINE, dev.factoryascension.drugs.Drugs.MUSHROOMS,
+                dev.factoryascension.drugs.Drugs.LSD, dev.factoryascension.drugs.Drugs.ECSTASY, dev.factoryascension.drugs.Drugs.XANAX, dev.factoryascension.drugs.Drugs.KETAMINE,
+                dev.factoryascension.drugs.Drugs.VODKA, dev.factoryascension.drugs.Drugs.ENERGY_DRINK})
                 out.accept((Item) d.get());
             out.accept(NODS_WHITE.get());
             PLATES.values().forEach(p -> out.accept(p.get()));
@@ -310,6 +312,7 @@ public class FactoryAscension {
         dev.factoryascension.npc.Operators.register(bus);   // the same for the operators' eggs
         dev.factoryascension.drugs.Drugs.init();            // drug effects and items
         dev.factoryascension.drugs.DrugBlocks.init();       // crops and the chem lab
+        dev.factoryascension.drugs.VillagerHighs.init();    // villagers take them too
         dev.factoryascension.npc.Raids.init();              // being marked, raid parties, ballistic blocks
         EFFECTS.register(bus);
         if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks"))

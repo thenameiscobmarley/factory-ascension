@@ -1,8 +1,8 @@
 // Factory Ascension depth: real relief on block and mob textures without a shader pack (vanilla renderer and Embeddium).
 // A texel's depth comes from how much darker it is than its texture's average (dark = deep). Depth is read *between*
 // texels (bilinear), from a softer mip the more "smoothing" is set, so surfaces are smooth slopes instead of stacked
-// layers; and it's flush (zero) at each block's edge, with every read kept inside that block's own sprite, so there are no
-// seams or outlines between blocks. The relief is lit (a sun-like light from above, plus a highlight that moves with your
+// layers. The texture's average brightness sits at the surface (only darker detail sinks), and every read stays inside the
+// block's own sprite, so there are no outlines and no bowl: faces are as flat as the texture says, edge to edge. The relief is lit (a sun-like light from above, plus a highlight that moves with your
 // view), so you can see the depth even face-on. Mobs get the lit relief only (their textures are made of many small
 // islands; shifting them would bleed one into the next).
 // DepthShaders puts the settings in front of this file: FA_SMOOTH (0..1), FA_DEPTH (0..2), FA_MIPS (the atlas' mip levels).
@@ -24,7 +24,8 @@ float faLum(vec3 c) {
 
 float faTexel(sampler2D tex, ivec2 p, ivec2 lo, ivec2 hi, int lod, float avg) {
     vec4 c = texelFetch(tex, clamp(p, lo, hi), lod);
-    return clamp(0.5 + (avg - faLum(c.rgb)) * 2.2, 0.0, 1.0);
+    // The texture's average sits just under the surface; only what's darker than that sinks (mortar, cracks, gaps)
+    return clamp(0.1 + (avg - faLum(c.rgb)) * 2.4, 0.0, 1.0);
 }
 
 // Depth at uv from one mip level: bilinear between its texels, never reading outside the sprite
@@ -49,8 +50,9 @@ float faDepth(sampler2D tex, vec2 uv, vec2 org, vec2 spr, float avg) {
     float h = faDepthLod(tex, uv, org, spr, l0, avg);
     float lf = L - float(l0);
     if (lf > 0.02 && l0 < FA_MIPS) h = mix(h, faDepthLod(tex, uv, org, spr, l0 + 1, avg), lf);
-    vec2 e = min(uv - org, org + spr - uv) / spr;      // 0 at the sprite's edge .. 0.5 in its middle
-    return h * smoothstep(0.0, 0.12, min(e.x, e.y));
+    // No pulling the edges up to the surface: that bowed every block. The texture's own detail runs right to the edge,
+    // so tiling and connected textures (Continuity, CTM) carry on smoothly into the next block.
+    return h;
 }
 
 // The surface's frame: its normal (towards the camera) and the world-space gradients of u and v. False if degenerate.
@@ -134,7 +136,7 @@ void faBlock(sampler2D tex, vec2 uv, vec3 p, vec3 dp1, vec3 dp2, vec2 duv1, vec2
     float sv = hy * 0.5 * depthWorld * length(gv) / texel.y;
     float gloss = 1.0 - d * 0.7;                        // the raised parts catch the light, the cracks don't
     vec2 l = faLight(n, gu, gv, v, su, sv, gloss, fade);
-    shade = l.x * (1.0 - d * 0.28 * fade);              // deep spots are darker
+    shade = l.x * (1.0 - max(0.0, d - 0.1) * 0.3 * fade);   // deep spots (cracks, mortar) are darker
     spec = l.y;
 }
 

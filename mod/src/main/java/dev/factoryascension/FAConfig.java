@@ -174,6 +174,12 @@ public final class FAConfig {
     // Tarkov inventory (tarkov/): the main inventory is a grid where items take their real size. The pack's config
     // section `inventory`. Sizes are width x height in cells; weight is per cell (a full stack of a 1x1 item = one cell).
     public static boolean tarkovEnabled = true;
+    /** The grid (items take their real size). Off: the game's own inventory layout in the Tarkov look. */
+    public static boolean tarkovGrid = false;
+
+    public static void setTarkovGrid(boolean grid) {
+        tarkovGrid = grid;
+    }
     public static int tarkovWidth = 10, tarkovHeight = 6;
     public static boolean tarkovBlockPickup = true;
     public static final java.util.Map<String, int[]> tarkovSizes = new java.util.HashMap<>();

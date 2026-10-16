@@ -487,12 +487,18 @@ check('13 tomes use a mob part tied to their effect (Night Sight: Fried Pig Eyes
 check('starter recipes: brass, precision mechanism, blaze burner, TFMG steel', ['starter_brass', 'starter_precision_mechanism', 'starter_blaze_burner', 'starter_steel'].every(function (id) { return !!byId(id) }))
 // ---- Factory Room TNT: the room's shape ----
 var roomPlan = global.FA_roomPlan('50', 100, 10, 200, 0, -1)   // facing north
-var rc = { air: 0, shell: 0, light: 0 }, roomSpots = []
+var rc = { air: 0, shell: 0, light: 0, window: 0 }, roomSpots = []
 for (var ri = 0; ri < roomPlan.total; ri++) { var sp = global.FA_roomSpot(roomPlan, ri); if (sp.kind) { rc[sp.kind]++; roomSpots.push(sp) } }
 var door = global.FA.roomCharges.doorway
 check('a 50x50 room: 50 x 50 x 16 hollowed out plus a ' + door[0] + 'x' + door[1] + ' doorway (' + rc.air + ' air)', rc.air == 50 * 50 * 16 + door[0] * door[1], rc.air)
-check('it has a full shell: floor, roof, four walls (' + rc.shell + ' blocks) with ' + rc.light + ' lights in the roof',
-  rc.shell + rc.light + rc.air == 52 * 52 * 18 && rc.light >= 64 && roomSpots.filter(function (x) { return x.kind == 'light' }).every(function (x) { return x.y == 10 + 17 }), rc.shell + ' / ' + rc.light)
+var roofLights = roomSpots.filter(function (x) { return x.kind == 'light' && x.y == 10 + 17 }).length
+var floorLights = roomSpots.filter(function (x) { return x.kind == 'light' && x.y == 10 }).length
+var wallLights = roomSpots.filter(function (x) { return x.kind == 'light' && x.y == 10 + 8 }).length
+check('it has a full shell: floor, roof, four walls (' + rc.shell + ' blocks) lit all the way down: ' + roofLights + ' roof, ' + wallLights + ' wall, ' + floorLights + ' floor lights',
+  rc.shell + rc.light + rc.air == 52 * 52 * 18 && rc.window == 0 && roofLights >= 64 && floorLights >= 49 && wallLights >= 32 && roofLights + floorLights + wallLights == rc.light, rc.shell + ' / ' + rc.light)
+var cabin = global.FA_roomPlan('16', 0, 0, 0, 0, -1, 'cabin'), cw = 0
+for (var ci = 0; ci < cabin.total; ci++) if (global.FA_roomSpot(cabin, ci).kind == 'window') cw++
+check('the Outdoor Cabin style has windows in its walls (' + cw + ')', cw >= 24, cw)
 check('the room opens away from you (facing north: all of it is north of the clicked block) and the floor is the layer under your feet',
   roomSpots.every(function (x) { return x.z <= 200 && x.y >= 10 && x.y <= 27 }) && roomSpots.some(function (x) { return x.z == 200 - 51 }) &&
   global.FA_roomSpot(roomPlan, 0).y == 27, '')

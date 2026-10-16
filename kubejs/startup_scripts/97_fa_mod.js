@@ -46,6 +46,7 @@ if (Platform.isLoaded('factoryascension')) {
   $FAModConfig.setRescue(FG.rescue, FG.rescueChance, Math.round(FG.rescueSeconds * 20), FG.rescueRadius)
   let INV = global.FA.inventory
   $FAModConfig.setTarkov(INV.enabled, INV.width, INV.height, INV.blockPickup)
+  $FAModConfig.setTarkovGrid(!!INV.grid)
   INV.sizes.forEach(s => $FAModConfig.setTarkovSize(s[0], s[1], s[2]))
   $FAModConfig.setWeight(INV.weight.enabled, INV.weight.kgPerCell, INV.weight.carryKg, INV.weight.slowPerKg, INV.weight.maxSlow)
   $FAModConfig.setQuarry(M.quarry.radius, M.quarry.work, M.quarry.maxPerTick, M.quarry.minRpm, M.quarry.stress)

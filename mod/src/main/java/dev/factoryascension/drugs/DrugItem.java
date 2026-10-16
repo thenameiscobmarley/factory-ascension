@@ -56,7 +56,9 @@ public class DrugItem extends Item {
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity e) {
         if (!level.isClientSide && e instanceof ServerPlayer p) {
             level.playSound(null, p.getX(), p.getY(), p.getZ(), sound, SoundSource.PLAYERS, 0.8f, 0.9f + level.random.nextFloat() * 0.2f);
+            var had = Drugs.before(p);
             apply.accept(p);
+            Drugs.mixes(p, had);
             Drugs.dose(p);
             if (!p.isCreative()) stack.shrink(1);
         }

@@ -51,7 +51,7 @@ function faArmRoom(player, level, clicked, stack) {
   let t = faRoomTypes[String(stack.getId())]
   if (!R.enabled || !t) return 0
   let f = faFacing(player.yaw)
-  let plan = global.FA_roomPlan(t.size.id, clicked.getX(), Math.floor(player.getY()) - 1, clicked.getZ(), f[0], f[1])
+  let plan = global.FA_roomPlan(t.size.id, clicked.getX(), Math.floor(player.getY()) - 1, clicked.getZ(), f[0], f[1], t.style.id)
   let hgt = faWorldHeight(level)
   if (plan.floorY < hgt[0] + 1 || plan.floorY + plan.H + 1 >= hgt[1]) {
     player.displayClientMessage(Text.red('Not enough room up or down here for a ' + plan.W + 'x' + plan.L + ' room.'), true)
@@ -83,7 +83,8 @@ function faCarve(job, budget) {
   let states = job.states || (job.states = {
     air: Block.getBlock('minecraft:air').defaultBlockState(),
     shell: Block.getBlock(job.style.shell).defaultBlockState(),
-    light: Block.getBlock(job.style.light).defaultBlockState()
+    light: Block.getBlock(job.style.light).defaultBlockState(),
+    window: Block.getBlock(job.style.window || job.style.shell).defaultBlockState()
   })
   let used = 0
   while (used < budget && job.i < plan.total) {
@@ -166,7 +167,7 @@ ServerEvents.tick(event => {
 // For /ascension selftest: carve a room right away (no fuse)
 global.FA_carveRoomNow = (level, sizeId, styleId, x, floorY, z, fx, fz) => {
   let style = global.FA.roomCharges.styles.filter(s => s.id == styleId)[0]
-  let job = { level: level, plan: global.FA_roomPlan(sizeId, x, floorY, z, fx, fz), style: style, i: 0, player: '00000000-0000-0000-0000-000000000000',
+  let job = { level: level, plan: global.FA_roomPlan(sizeId, x, floorY, z, fx, fz, styleId), style: style, i: 0, player: '00000000-0000-0000-0000-000000000000',
     ores: {}, changed: 0, kept: 0 }
   while (job.i < job.plan.total) faCarve(job, 100000)
   return job

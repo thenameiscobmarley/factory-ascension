@@ -523,7 +523,7 @@
     sz.size[0] + "x" + sz.size[1] + " " + esc(st.name) + ' Light Factory TNT"><img src="' + tex("room_tnt_" + st.id + "_" + sz.id) + '" alt="" /></button>').join("")).join("");
   const drawRoom = () => {
     const st = RC.styles.find(x => x.id == roomPick[0]), sz = RC.sizes.find(x => x.id == roomPick[1]);
-    const plan = global.FA_roomPlan(sz.id, 0, 0, 0, 0, -1), c = $("#roomMap"), g = c.getContext("2d");
+    const plan = global.FA_roomPlan(sz.id, 0, 0, 0, 0, -1, st.id), c = $("#roomMap"), g = c.getContext("2d");
     c.width = plan.cols; c.height = plan.rows + 1;
     g.fillStyle = "#3a3a3a"; g.fillRect(0, 0, c.width, c.height);
     for (let v = 0; v < plan.rows; v++) for (let col = 0; col < plan.cols; col++) {
@@ -539,7 +539,7 @@
     for (let i = 0; i < plan.total; i++) if (global.FA_roomSpot(plan, i).kind == "light") lights++;
     const idx = RC.sizes.indexOf(sz);
     $("#roomInfo").innerHTML = "<b>" + sz.size[0] + "x" + sz.size[1] + " " + esc(st.name) + " Light Factory TNT</b><br>" + sz.size[0] + " x " + sz.size[1] + " inside, " + sz.size[2] +
-      " high · walls of " + esc(itemName(st.shell)) + " · " + lights + " " + esc(itemName(st.light)) + "s in the roof<br>Made from " +
+      " high · walls of " + esc(itemName(st.shell)) + " · " + lights + " " + esc(itemName(st.light)) + "s (roof, walls and floor)" + (st.window ? " · windows of " + esc(itemName(st.window)) : "") + "<br>Made from " +
       (idx == 0 ? "TNT, 4 " + esc(itemName(st.shell)) + " and 2 " + esc(itemName(st.light)) : sz.craft + " of the " + RC.sizes[idx - 1].size[0] + "x" + RC.sizes[idx - 1].size[1]);
     $("#roomPick").querySelectorAll(".att").forEach(b => b.classList.toggle("is-active", b.dataset.st == st.id && b.dataset.sz == sz.id));
   };

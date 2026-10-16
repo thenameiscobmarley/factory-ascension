@@ -72,7 +72,7 @@ public final class TarkovClient {
     static float raised() {
         if (!animated()) return 0;
         Minecraft mc = Minecraft.getInstance();
-        if (mc.screen instanceof TarkovScreen) return ease(sinceOpen() / LOOK);
+        if (ours(mc.screen)) return ease(sinceOpen() / LOOK);
         float since = (Util.getMillis() - closedAt) / 1000f;
         return since < CLOSE ? 1 - ease(since / CLOSE) : 0;
     }
@@ -80,12 +80,17 @@ public final class TarkovClient {
     /** 0 closed .. 1 open (the zip). */
     static float zip() {
         Minecraft mc = Minecraft.getInstance();
-        return mc.screen instanceof TarkovScreen ? ease((sinceOpen() - ZIP_AT) / ZIP) : 0;
+        return ours(mc.screen) ? ease((sinceOpen() - ZIP_AT) / ZIP) : 0;
     }
 
     /** 0..1: how grown the inventory is. */
     static float grown() {
         return animated() ? ease((sinceOpen() - GROW_AT) / GROW) : 1;
+    }
+
+    /** One of our inventory screens (the dark one, or the grid one if the config turns the grid on). */
+    static boolean ours(net.minecraft.client.gui.screens.Screen s) {
+        return s instanceof TarkovScreen || s instanceof DarkInventoryScreen;
     }
 
     static void opened() {
@@ -107,7 +112,7 @@ public final class TarkovClient {
         Minecraft mc = Minecraft.getInstance();
         if (!enabled || mc.player == null || event.getNewScreen() == null || event.getNewScreen().getClass() != InventoryScreen.class) return;
         try {
-            event.setNewScreen(new TarkovScreen(mc.player));
+            event.setNewScreen(FAConfig.tarkovGrid ? new TarkovScreen(mc.player) : new DarkInventoryScreen(mc.player));
         } catch (Throwable err) {
             org.slf4j.LoggerFactory.getLogger("Factory Ascension").error("Tarkov inventory failed to open; using the normal one", err);
         }
@@ -178,7 +183,7 @@ public final class TarkovClient {
     // ---- Size and weight in the tooltip, while the inventory is open ----
     @SubscribeEvent
     public static void tooltip(ItemTooltipEvent event) {
-        if (!enabled || !(Minecraft.getInstance().screen instanceof TarkovScreen) || event.getItemStack().isEmpty()) return;
+        if (!enabled || !FAConfig.tarkovGrid || !(Minecraft.getInstance().screen instanceof TarkovScreen) || event.getItemStack().isEmpty()) return;
         int[] s = TarkovLayout.size(event.getItemStack());
         event.getToolTip().add(Component.literal(s[0] + "x" + s[1] + " · " + String.format("%.1f kg", TarkovLayout.weight(event.getItemStack())))
             .withStyle(ChatFormatting.DARK_AQUA));

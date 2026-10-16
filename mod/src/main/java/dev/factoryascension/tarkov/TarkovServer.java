@@ -102,7 +102,7 @@ public final class TarkovServer {
     // ---- Picking things up: refused when there's nowhere for it ----
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void pickup(EntityItemPickupEvent event) {
-        if (!FAConfig.tarkovEnabled || !FAConfig.tarkovBlockPickup || !(event.getEntity() instanceof ServerPlayer player)) return;
+        if (!FAConfig.tarkovEnabled || !FAConfig.tarkovGrid || !FAConfig.tarkovBlockPickup || !(event.getEntity() instanceof ServerPlayer player)) return;
         if (player.isCreative() || player.isSpectator() || player instanceof net.minecraftforge.common.util.FakePlayer) return;
         ItemStack stack = event.getItem().getItem();
         if (canTake(player, stack)) return;

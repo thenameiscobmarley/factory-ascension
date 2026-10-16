@@ -53,6 +53,8 @@ def ell(px, cx, cy, rx, ry, col, lit=0.25, dark=-0.3):
 
 
 def line(px, x0, y0, x1, y1, c):
+    if len(c) == 3:
+        c = tuple(c) + (255,)
     n = max(abs(x1 - x0), abs(y1 - y0), 1)
     for i in range(n + 1):
         x, y = round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)
@@ -254,6 +256,53 @@ def seeds(name, c):
         x, y = rng.randint(4, 10), rng.randint(5, 11)
         ell(px, x + 0.5, y + 0.5, 1.8, 1.3, c, 0.35, -0.3)
     save_item(name + "_seeds", px, shade(c, -0.6))
+
+
+def tab():
+    px = canvas()
+    for y in range(5, 12):
+        for x in range(4, 12):
+            px[y][x] = shade((240, 236, 224), 0.1 if y < 7 else -0.05)
+    # A little printed design
+    for (x, y, c) in ((6, 7, (220, 60, 160)), (7, 7, (240, 200, 40)), (8, 8, (60, 180, 220)), (9, 9, (220, 60, 160)), (6, 9, (60, 200, 90)), (8, 10, (240, 120, 30))):
+        px[y][x] = c + (255,)
+    save_item("lsd_tab", px, (120, 110, 100, 255))
+
+
+def pill(name, c, mark):
+    px = canvas()
+    ell(px, 8, 8.5, 5.2, 4.2, c, 0.35, -0.3)
+    if mark == "x":
+        line(px, 6, 7, 10, 10, shade(c, -0.35))
+        line(px, 10, 7, 6, 10, shade(c, -0.35))
+    else:
+        line(px, 4, 8, 12, 8, shade(c, -0.35))
+    save_item(name, px, shade(c, -0.6))
+
+
+def bottle():
+    px = canvas()
+    rect(px, 7, 1, 8, 2, (200, 40, 40))
+    rect(px, 7, 3, 8, 5, None, lambda x, y: (220, 236, 240, 200))
+    for y in range(6, 15):
+        for x in range(5, 11):
+            f = 0.25 if x == 5 else (-0.2 if x == 10 else 0)
+            px[y][x] = shade((210, 230, 240), f)[:3] + (190,)
+    rect(px, 5, 9, 10, 11, (230, 220, 200))
+    rect(px, 6, 10, 9, 10, (180, 30, 30))
+    save_item("vodka", px, (60, 80, 90, 255))
+
+
+def can():
+    px = canvas()
+    for y in range(3, 15):
+        for x in range(5, 11):
+            f = 0.3 if x == 5 else (-0.3 if x == 10 else 0)
+            px[y][x] = shade((30, 30, 34), f)
+    rect(px, 5, 2, 10, 2, (170, 170, 176))
+    line(px, 6, 12, 9, 5, (120, 230, 60))
+    line(px, 7, 12, 10, 5, (90, 200, 40))
+    save_item("energy_drink", px, (10, 10, 12, 255))
 
 
 # ---------------- Crops ----------------
@@ -583,6 +632,17 @@ def effects():
         rect(p, 11, 7, 12, 8, (230, 230, 220, 255))
         line(p, 6, 13, 12, 12, (20, 20, 20, 255))
     out["psychosis"] = icon(psych)
+
+    def heart(p):
+        for y in range(18):
+            for x in range(18):
+                dx, dy = (x - 8.5) / 7, (y - 9) / 7
+                if (dx * dx + dy * dy - 0.35) ** 3 - dx * dx * (-dy) ** 3 * 1.4 <= 0 and dy < 1:
+                    p[y][x] = shade((240, 110, 170), 0.2 if dx < 0 and dy < 0 else 0)
+    out["rolling"] = icon(heart)
+    out["sedated"] = icon(lambda p: [ell(p, 9, 10, 7, 4, (128, 144, 176)), rect(p, 2, 6, 15, 9, (40, 44, 60, 255))])
+    out["dissociated"] = icon(lambda p: [ell(p, 9, 9, 7, 7, (96, 160, 168)), ell(p, 9, 9, 4.5, 4.5, (40, 70, 76), 0, 0), ell(p, 9, 9, 2, 2, (180, 230, 236), 0, 0)])
+    out["drunk"] = icon(lambda p: [ell(p, 7, 10, 5, 5, (200, 144, 64)), ell(p, 11, 8, 5, 5, (220, 170, 90))])
     for k, px in out.items():
         tex("mob_effect/" + k, px)
     return list(out)
@@ -601,6 +661,12 @@ def main():
     syringe("morphine", (230, 220, 160))
     syringe("adrenaline_shot", (220, 60, 50))
     mushrooms()
+    tab()
+    pill("ecstasy", (240, 120, 190), "x")
+    pill("xanax", (236, 236, 240), "line")
+    baggie("ketamine", (236, 240, 244), False)
+    bottle()
+    can()
     leaf("cannabis", (70, 140, 50), "cannabis")
     leaf("coca", (60, 130, 60), "coca")
     seeds("cannabis", (110, 100, 70))
@@ -624,12 +690,14 @@ def main():
                  "titanium_plate": "Titanium Plate", "ceramic_plate": "Ceramic Plate", "hybrid_plate": "Hybrid Plate",
                  "ascendite_plate": "Ascendite Plate", "joint": "Joint", "cocaine": "Cocaine", "methamphetamine": "Methamphetamine",
                  "morphine": "Morphine", "adrenaline_shot": "Adrenaline Shot", "magic_mushrooms": "Magic Mushrooms",
+                 "lsd_tab": "LSD Tab", "ecstasy": "Ecstasy", "xanax": "Xanax", "ketamine": "Ketamine", "vodka": "Vodka", "energy_drink": "Energy Drink",
                  "cannabis_seeds": "Cannabis Seeds", "coca_seeds": "Coca Seeds", "cannabis_leaf": "Cannabis Leaf", "coca_leaf": "Coca Leaf"},
         "block": {"cannabis": "Cannabis", "coca": "Coca", "chem_lab": "Chem Lab", "ballistic_concrete": "Ballistic Concrete",
                   "ballistic_glass": "Ballistic Glass", "ballistic_glass_pane": "Ballistic Glass Pane", "steel_door": "Steel Door",
                   "steel_trapdoor": "Steel Trapdoor"},
         "effect": {"flashed": "Flashed", "marked": "Marked", "stoned": "Stoned", "wired": "Wired", "tweaking": "Tweaking",
-                   "crash": "Comedown", "numb": "Numb", "tripping": "Tripping", "psychosis": "Psychosis"},
+                   "crash": "Comedown", "numb": "Numb", "tripping": "Tripping", "psychosis": "Psychosis",
+                   "rolling": "Rolling", "sedated": "Sedated", "dissociated": "Dissociated", "drunk": "Drunk"},
     }
     for kind, m in names.items():
         for k, v in m.items():

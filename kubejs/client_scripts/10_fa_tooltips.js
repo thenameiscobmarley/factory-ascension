@@ -553,7 +553,8 @@ ItemEvents.tooltip(event => {
     details('kubejs:room_tnt_' + st.id + '_' + sz.id, 'Some assembly required. Not much, though.', () => [
       Text.gray('Right-click a block: after ' + RC.fuseSeconds + 's it blasts out a ').append(Text.white(sz.size[0] + ' x ' + sz.size[1] + ' room, ' + sz.size[2] + ' high inside')),
       tip('In front of you, floor level with your feet, with a ' + RC.doorway[0] + '-wide doorway where you stand'),
-      tip('Floor, walls and roof lined with ' + faItemName(st.shell) + ', ' + faItemName(st.light) + ' set into the roof every ' + RC.lightSpacing + ' blocks'),
+      tip('Floor, walls and roof lined with ' + faItemName(st.shell) + '; lit all the way down with ' + faItemName(st.light) + ' (roof, walls at half height, flush in the floor)'),
+      st.window ? tip('Made for above ground: rows of ' + faItemName(st.window) + ' windows in the walls') : tip('Made for digging in: solid walls'),
       tip('Never breaks bedrock, chests or machines' + (RC.collectOres ? '. Ores it blasts through drop in the middle of the room' : '')),
       made(i == 0 ? 'TNT, 4 ' + faItemName(st.shell) + ', 2 ' + faItemName(st.light) + ' (crafting grid)'
         : sz.craft + ' of the ' + RC.sizes[i - 1].size[0] + 'x' + RC.sizes[i - 1].size[1] + ' ' + st.name + ' TNT'),
@@ -807,13 +808,20 @@ ItemEvents.tooltip(event => {
       methamphetamine: ['You haven\'t slept in days.', 'very fast and strong for a long time, jittery aim, tunnel vision; a hard crash, and it can leave you with Psychosis'],
       morphine: ['It doesn\'t hurt. Nothing does.', 'hits hurt much less and stress stops building, but you\'re slower and soft-focused'],
       adrenaline_shot: ['Get up.', 'health and speed at once, for a short time'],
-      magic_mushrooms: ['The walls are breathing.', 'the world warps and changes colour, trails behind everything; you see and hear things that aren\'t there']
+      magic_mushrooms: ['The walls are breathing.', 'the world warps and changes colour, trails behind everything; you see and hear things that aren\'t there'],
+      lsd_tab: ['Hours. It lasts hours.', 'a long, strong trip: colour, breathing walls and trails (sometimes things that aren\'t there)'],
+      ecstasy: ['Everyone is your best friend.', 'warm, glowing and fearless, you heal; then a low'],
+      xanax: ['Take the edge off.', 'calm, steady hands (tighter aim), stress won\'t build; heavy eyelids, a little slower'],
+      ketamine: ['Somewhere far away.', 'you float outside yourself: hits hurt less, the world stretches away, very slow'],
+      vodka: ['For courage.', 'brave, tougher and stronger, and the room sways and doubles'],
+      energy_drink: ['Sugar, caffeine, regret.', 'a little faster and quicker for a while']
     }
     Object.keys(drugText).forEach(id => details('factoryascension:' + id, drugText[id][0], () => [
       use(drugText[id][1]),
-      tip('Three doses inside a minute: overdose'),
+      tip('Three doses inside a minute: overdose. Right-click a villager with it: it pays you and gets high'),
       made(id == 'joint' ? shapedList(DR.jointRecipe) + ' (crafting grid)' : (labOf(id).join('; ') || 'nowhere (config)') + ' (Chem Lab)')]))
     details('factoryascension:chem_lab', 'Glassware, a burner, no questions.', () => [
+      tip('Mixes: Speedball (cocaine + morphine), Overamped (cocaine + meth), Candyflip (ecstasy + LSD/mushrooms), Hippie flip (ecstasy + psychosis), Crossfade (joint + vodka), Blackout (xanax + vodka), Deep hole (ketamine + vodka), Wake and bake (joint + cocaine)'),
       use('right-click it with the inputs in your inventory: it makes the first of its recipes you have everything for'),
       tip(DR.lab.map(labLine).join('; ')),
       made(shapedList(DR.chemLab) + ' (crafting grid)')])

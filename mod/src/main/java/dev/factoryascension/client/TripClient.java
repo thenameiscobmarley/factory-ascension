@@ -67,8 +67,10 @@ public final class TripClient {
         float stoned = ramp("stoned", strength(p, Drugs.STONED)), wired = ramp("wired", strength(p, Drugs.WIRED)),
             tweak = ramp("tweak", strength(p, Drugs.TWEAKING)), trip = ramp("trip", strength(p, Drugs.TRIPPING)),
             psych = ramp("psych", strength(p, Drugs.PSYCHOSIS)), crash = ramp("crash", strength(p, Drugs.CRASH)),
-            numb = ramp("numb", strength(p, Drugs.NUMB));
-        if (stoned + wired + tweak + trip + psych + crash + numb < 0.003f) {
+            numb = ramp("numb", strength(p, Drugs.NUMB)), rolling = ramp("rolling", strength(p, Drugs.ROLLING)),
+            sedated = ramp("sedated", strength(p, Drugs.SEDATED)), dissoc = ramp("dissoc", strength(p, Drugs.DISSOCIATED)),
+            drunk = ramp("drunk", strength(p, Drugs.DRUNK));
+        if (stoned + wired + tweak + trip + psych + crash + numb + rolling + sedated + dissoc + drunk < 0.003f) {
             if (chain != null) free();
             return;
         }
@@ -95,6 +97,10 @@ public final class TripClient {
                 e.safeGetUniform("Psych").set(psych);
                 e.safeGetUniform("Crash").set(crash);
                 e.safeGetUniform("Numb").set(numb);
+                e.safeGetUniform("Rolling").set(rolling);
+                e.safeGetUniform("Sedated").set(sedated);
+                e.safeGetUniform("Dissoc").set(dissoc);
+                e.safeGetUniform("Drunk").set(drunk);
             }
             RenderSystem.disableBlend();
             RenderSystem.disableDepthTest();
