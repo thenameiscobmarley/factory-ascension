@@ -77,12 +77,6 @@ public final class Dread {
             heartIn = Math.round(20 * (1.05f - 0.6f * k));
             sm.play(SimpleSoundInstance.forUI(FASounds.HEARTBEAT.get(), 0.95f + RNG.nextFloat() * 0.1f, 0.2f + 0.7f * k));
         }
-        // Breath: panic, or a long run
-        sprintTicks = p.isSprinting() ? sprintTicks + 1 : Math.max(0, sprintTicks - 2);
-        if ((fear > 0.5f || sprintTicks > 140) && --breathIn <= 0) {
-            breathIn = 44 + RNG.nextInt(24) - Math.round(fear * 16);
-            sm.play(SimpleSoundInstance.forUI(FASounds.BREATH.get(), 0.95f + RNG.nextFloat() * 0.1f, 0.25f + 0.35f * Math.max(fear, Math.min(1, sprintTicks / 400f))));
-        }
         // Gunfire somewhere far off, out in the zones
         if (danger > 0 && --ambientIn <= 0) {
             boolean night = mc.level.isNight();
@@ -111,14 +105,7 @@ public final class Dread {
         float hit = 0;
         String path = id.getPath();
         if (path.equals("entity.generic.explode") || path.equals("grenade.explode")) hit = d < 7 ? 1 - (float) d / 9 : 0;
-        else if (id.getNamespace().equals(FactoryAscension.MODID) && path.startsWith("gun.") && !path.equals("gun.suppressed") && !path.startsWith("gun.distant")
-            && !path.contains("mag") && !path.equals("gun.rack") && !path.equals("gun.bolt") && !path.equals("gun.pump") && !path.equals("gun.dry")
-            && !path.equals("gun.casing") && !path.equals("gun.shell_in")) {
-            boolean heavy = path.equals("gun.fifty") || path.equals("gun.shotgun") || path.equals("gun.magnum") || path.equals("gun.sniper");
-            boolean indoors = mc.level.getBrightness(LightLayer.SKY, p.blockPosition()) < 4;
-            if (d < 1.5 && (heavy || indoors)) hit = heavy && indoors ? 0.7f : 0.25f;   // your own
-            else if (d >= 1.5 && d < 4) hit = heavy ? 0.6f : 0.3f;                        // someone right beside you
-        }
+        // (Gunshots don't ring your ears: only blasts and flashbangs do)
         if (hit > 0.2f) {
             boolean fresh = ring < 0.3f;
             ring = Math.min(1, Math.max(ring, hit));

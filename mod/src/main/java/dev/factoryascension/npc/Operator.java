@@ -460,10 +460,6 @@ public class Operator extends Monster {
             }
             Vec3 tracerEnd = hit != null ? eye.add(dir.scale(Math.sqrt(best))) : stop;
             if (i < 2) passBy(level, eye, tracerEnd, hit, spec);
-            for (double d = 2; d < eye.distanceTo(tracerEnd); d += 3) {
-                Vec3 p = eye.add(dir.scale(d));
-                level.sendParticles(ParticleTypes.CRIT, p.x, p.y, p.z, 1, 0, 0, 0, 0);
-            }
             if (hit != null) {
                 double dist = Math.sqrt(best);
                 float falloff = (float) Mth.clampedLerp(1.0, 0.5, (dist - range * 0.3) / Math.max(1, range * 0.7));
@@ -471,8 +467,6 @@ public class Operator extends Monster {
             } else if (block.getType() == HitResult.Type.BLOCK) {
                 BlockPos pos = block.getBlockPos();
                 BlockState state = level.getBlockState(pos);
-                level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), stop.x, stop.y, stop.z, 3, 0.05, 0.05, 0.05, 0.1);
-                if (i < 2) dev.factoryascension.FxEvents.impact(level, stop, pos, state);
                 if (FAConfig.gunBreaksGlass && (state.is(Tags.Blocks.GLASS) || state.is(Tags.Blocks.GLASS_PANES))) level.destroyBlock(pos, false, this);
                 // A near miss: the crack of a round going past you is frightening
                 for (ServerPlayer sp : level.players()) {
@@ -491,7 +485,6 @@ public class Operator extends Monster {
             }
         });
         Vec3 muzzle = eye.add(look.scale(1.1)).add(0, -0.15, 0);
-        if (spec.sound >= 0.5f) level.sendParticles(ParticleTypes.FLAME, muzzle.x, muzzle.y, muzzle.z, 2, 0.03, 0.03, 0.03, 0.02);
         level.sendParticles(ParticleTypes.SMOKE, muzzle.x, muzzle.y, muzzle.z, 2, 0.03, 0.03, 0.03, 0.01);
         GunSounds.shot(level, this, spec, st.sound, r);
         GunSounds.casing(level, this, spec, r);

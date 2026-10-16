@@ -15,6 +15,14 @@ import net.minecraft.world.item.ItemStack;
  * entity's own tick count, so every reload looks a little different on every body.
  */
 public final class ArmPoses {
+    /**
+     * Called from the mod's constructor (client only): the poses must join the game's list before anything draws an arm,
+     * or the game's pose lookup (built the first time an arm is drawn) is too short for them and drawing crashes
+     * ("Index 10 out of bounds for length 10"; seen with Mekanism, which changes when that first draw happens).
+     */
+    public static void init() {
+    }
+
     private ArmPoses() {
     }
 

@@ -135,7 +135,8 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.lens")) step = 650;    // only the realism camera
                     if (Boolean.getBoolean("fa.v25")) step = 700;
                     if (Boolean.getBoolean("fa.sliders")) step = 750;
-                    if (Boolean.getBoolean("fa.tab")) step = 760;     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
+                    if (Boolean.getBoolean("fa.tab")) step = 760;
+                    if (Boolean.getBoolean("fa.enemies")) step = 780;  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -442,6 +443,31 @@ public final class DevShots {
                     cmd(mc, "tp @a -3 -58.4 0 -20 25"); wait = 120; }
                 case 761 -> { shot(mc, "shadow_near"); cmd(mc, "tp @a -6 -52 -18 -10 22"); wait = 120; }
                 case 762 -> { shot(mc, "shadow_far"); FAClientConfig.REALISM.set(true); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                case 780 -> {
+                    log("mods: " + net.minecraftforge.fml.ModList.get().getMods().stream().map(m -> m.getModId()).sorted().collect(java.util.stream.Collectors.joining(",")));
+                    cmd(mc, "gamemode survival @a"); cmd(mc, "difficulty hard"); cmd(mc, "time set 2000");
+                    cmd(mc, "effect give @a resistance 1000000 255 true"); cmd(mc, "effect give @a regeneration 1000000 255 true"); cmd(mc, "effect give @a saturation 1000000 255 true");
+                    cmd(mc, "fill -20 -61 -20 30 -50 40 air"); cmd(mc, "fill -20 -61 -20 30 -61 40 grass_block");
+                    cmd(mc, "fill -6 -61 -6 -2 -61 -2 water");
+                    cmd(mc, "place feature factoryascension:gas_station 14 -60 18");
+                    cmd(mc, "tp @a 0 -60 0 45 10");
+                    cmd(mc, "give @a factoryascension:ak12"); cmd(mc, "give @a factoryascension:cartridge 64");
+                    wait = 60; }
+                case 781 -> {
+                    String[] ops = {"scav", "raider", "breacher", "grenadier", "marksman", "rogue", "cultist", "juggernaut", "hunter", "bodyguard", "machine_gunner", "looter"};
+                    for (int i = 0; i < ops.length; i++) {
+                        double a = i * Math.PI * 2 / ops.length;
+                        cmd(mc, String.format(java.util.Locale.ROOT, "summon factoryascension:%s %.1f -60 %.1f", ops[i], Math.cos(a) * 14, Math.sin(a) * 14));
+                    }
+                    for (String m : new String[] {"zombie", "skeleton", "spider", "husk", "drowned", "pillager", "vindicator", "witch"})
+                        cmd(mc, "summon minecraft:" + m + " " + (int) (Math.random() * 16 - 8) + " -60 " + (int) (Math.random() * 16 - 8));
+                    cmd(mc, "summon minecraft:villager 3 -60 3");
+                    wait = 600; }
+                case 782 -> { shot(mc, "enemies_1"); log("after 30 s among enemies: still running"); wait = 600; }
+                case 783 -> { shot(mc, "enemies_2"); cmd(mc, "tp @a 14 -60 14 0 10"); wait = 600; }
+                case 784 -> { shot(mc, "enemies_3"); log("after 90 s among enemies and at the gas station: still running, " +
+                    mc.level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, mc.player.getBoundingBox().inflate(64)).size() + " living things near");
+                    cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }

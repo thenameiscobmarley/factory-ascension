@@ -395,8 +395,7 @@ Press **E** and you look down at a duffel bag in your hands, unzip it, and your 
 Tarkov's gear screen: your gear in labelled frames around your silhouette (headwear, body armor, leg armor, footwear,
 holster = off hand, on sling = what's in your hand), crafting and overflow in the middle, the backpack on the right
 with filter buttons down its side (weapons, armor, tools, blocks, food, other), your weight, health, food and armor along
-the bottom, and the hotbar as the numbered **Quick use** row, over the world blurred behind it, in a clean UI font
-(Noto Sans) with shaded panels and an amber accent. **By default it's now the game's own inventory layout** in that dark
+the bottom, and the hotbar as the numbered **Quick use** row, over the world blurred behind it, with shaded panels and an amber accent. **By default it's now the game's own inventory layout** in that dark
 look (still opened out of the duffel bag); set `inventory.grid: true` for the grid below. With the grid, the main
 inventory is a **grid** where items take their real size: a block 1x1, a pickaxe 1x2, a sword or a bow 1x3, a helmet
 2x2, a chestplate 3x3, the shotgun 5x2, a backpack 3x3.

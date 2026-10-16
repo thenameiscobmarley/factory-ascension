@@ -165,8 +165,8 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$ServerTickEvent', event 
       }
       // Mimicry: a sound from where it stands, or just behind you
       if (Math.random() < S.mimicChancePerSecond * 0.5) {
-        let sounds = ['minecraft:entity.player.hurt', 'minecraft:block.wooden_door.open', 'minecraft:entity.villager.ambient', 'minecraft:block.grass.step',
-          'minecraft:block.chest.open', 'minecraft:entity.player.breath', 'minecraft:entity.villager.no', 'minecraft:item.armor.equip_leather']
+        let sounds = ['minecraft:entity.player.hurt', 'minecraft:block.wooden_door.open', 'minecraft:entity.villager.ambient',
+          'minecraft:block.chest.open', 'minecraft:entity.villager.no']
         let snd = sounds[Math.floor(Math.random() * sounds.length)]
         let behind = Math.random() < 0.5
         let yaw = p.yaw * Math.PI / 180

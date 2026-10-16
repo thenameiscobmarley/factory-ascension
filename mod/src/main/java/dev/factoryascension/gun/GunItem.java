@@ -288,8 +288,7 @@ public class GunItem extends Item {
                 if (block.getType() != HitResult.Type.BLOCK) break;
                 BlockPos pos = block.getBlockPos();
                 BlockState state = level.getBlockState(pos);
-                level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), stop.x, stop.y, stop.z, 3, 0.05, 0.05, 0.05, 0.1);
-                if (impacts++ < 3) dev.factoryascension.FxEvents.impact(level, stop, pos, state);
+                impacts++;
                 if (type == AmmoType.EXPLOSIVE && impacts <= 2) pop(level, player, stop);
                 if (type == AmmoType.INCENDIARY || type == AmmoType.DRAGONS_BREATH) level.sendParticles(ParticleTypes.FLAME, stop.x, stop.y, stop.z, 3, 0.1, 0.1, 0.1, 0.01);
                 boolean glass = state.is(Tags.Blocks.GLASS) || state.is(Tags.Blocks.GLASS_PANES);
@@ -336,7 +335,6 @@ public class GunItem extends Item {
         });
         // Muzzle flash, smoke and the bang
         Vec3 muzzle = eye.add(look.scale(1.3)).add(right.scale(aim ? 0 : 0.3)).add(up.scale(aim ? -0.08 : -0.22));
-        if (type != AmmoType.SUBSONIC) level.sendParticles(ParticleTypes.FLAME, muzzle.x, muzzle.y, muzzle.z, 2, 0.03, 0.03, 0.03, 0.02);
         if (type == AmmoType.DRAGONS_BREATH) level.sendParticles(ParticleTypes.FLAME, muzzle.x, muzzle.y, muzzle.z, 30, 0.2, 0.2, 0.2, 0.15);
         level.sendParticles(ParticleTypes.SMOKE, muzzle.x, muzzle.y, muzzle.z, 2, 0.03, 0.03, 0.03, 0.01);
         if (r.nextInt(3) == 0) dev.factoryascension.FxEvents.smoke(level, muzzle, 0.25f);
@@ -356,7 +354,9 @@ public class GunItem extends Item {
     }
 
     private static void tracer(ServerLevel level, Vec3 eye, Vec3 dir, double len, AmmoType type) {
-        var particle = type == AmmoType.TRACER ? ParticleTypes.END_ROD : (type == AmmoType.INCENDIARY || type == AmmoType.DRAGONS_BREATH ? ParticleTypes.SMALL_FLAME : ParticleTypes.CRIT);
+        // Only tracer rounds leave a visible streak (that's what they're for); other rounds leave nothing in the air
+        if (type != AmmoType.TRACER) return;
+        var particle = ParticleTypes.END_ROD;
         double stepLen = type == AmmoType.TRACER ? 1.2 : 3.0;
         for (double d = 1.5; d < len; d += stepLen) {
             Vec3 p = eye.add(dir.scale(d));

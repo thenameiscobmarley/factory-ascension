@@ -18,6 +18,9 @@ import subprocess
 import tempfile
 import wave
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import sound_real as R  # noqa: E402
+
 SR = 44100
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 ASSETS = os.path.join(ROOT, "mod", "src", "main", "resources", "assets", "factoryascension")
@@ -459,31 +462,32 @@ def write_ogg(name, x):
 
 SOUNDS = {
     # id: (variants, maker(rnd, k), subtitle)
-    "gun.pistol": (3, lambda r, k: gunshot(r, crack=0.8, blast_tau=0.035, body=3200, thump=(160, 55, 0.06), tail=0.9, mech=0.3, roomy=0.25), "Pistol shot"),
-    "gun.magnum": (2, lambda r, k: gunshot(r, crack=1.0, blast_tau=0.06, body=2600, thump=(130, 40, 0.11), tail=1.3, mech=0.1, roomy=0.3), "Magnum shot"),
-    "gun.smg": (3, lambda r, k: gunshot(r, crack=0.6, blast_tau=0.03, body=3600, thump=(170, 60, 0.05), tail=0.8, mech=0.35, roomy=0.22), "SMG shot"),
-    "gun.rifle": (3, lambda r, k: gunshot(r, crack=1.2, blast_tau=0.045, body=2800, thump=(140, 45, 0.08), tail=1.3, mech=0.25, roomy=0.3), "Rifle shot"),
-    "gun.battle": (2, lambda r, k: gunshot(r, crack=1.3, blast_tau=0.06, body=2400, thump=(120, 38, 0.1), tail=1.5, mech=0.2, roomy=0.32), "Battle rifle shot"),
-    "gun.sniper": (2, lambda r, k: gunshot(r, crack=1.5, blast_tau=0.08, body=2100, thump=(110, 32, 0.14), tail=2.0, mech=0.0, roomy=0.36), "Sniper shot"),
-    "gun.fifty": (2, lambda r, k: gunshot(r, crack=1.6, blast_tau=0.11, body=1700, thump=(90, 26, 0.2), tail=2.4, mech=0.1, roomy=0.4), ".50 cal shot"),
-    "gun.shotgun": (2, lambda r, k: gunshot(r, crack=0.3, blast_tau=0.07, body=2000, thump=(110, 38, 0.12), tail=1.4, mech=0.0, roomy=0.32), "Shotgun blast"),
-    "gun.lmg": (2, lambda r, k: gunshot(r, crack=1.1, blast_tau=0.045, body=2600, thump=(135, 45, 0.08), tail=1.1, mech=0.3, roomy=0.28), "Machine gun fire"),
-    "gun.suppressed": (3, lambda r, k: suppressed(r), "Suppressed shot"),
-    "gun.distant": (4, lambda r, k: distant(r, 1), "Distant gunfire"),
-    "gun.distant_burst": (3, lambda r, k: distant(r, r.randint(3, 6)), "Distant gunfire"),
-    "gun.dry": (2, lambda r, k: dry(r), "Dry fire"),
-    "gun.mag_out": (2, lambda r, k: mag_out(r), "Magazine out"),
-    "gun.mag_in": (2, lambda r, k: mag_in(r), "Magazine in"),
-    "gun.rack": (2, lambda r, k: rack(r), "Gun racked"),
-    "gun.bolt": (2, lambda r, k: bolt(r), "Bolt worked"),
-    "gun.pump": (2, lambda r, k: pump(r), "Shotgun pumped"),
-    "gun.shell_in": (3, lambda r, k: shell_in(r), "Round loaded"),
-    "gun.casing": (4, lambda r, k: casing(r), "Brass falls"),
-    "dread.heartbeat": (1, lambda r, k: heartbeat(r), "Heartbeat"),
+    # Guns: tools/sound_real.py (blast waves, gas, action, a clipping mic, the world's reflections)
+    "gun.pistol": (3, lambda r, k: R.gunshot(r, cal=0.6, supersonic=False, auto=True, rumble=0.8, room="close"), "Pistol shot"),
+    "gun.magnum": (2, lambda r, k: R.gunshot(r, cal=0.95, supersonic=False, auto=False, rumble=1.2), "Magnum shot"),
+    "gun.smg": (3, lambda r, k: R.gunshot(r, cal=0.55, supersonic=False, auto=True, rumble=0.7, room="close", bright=1.1), "SMG shot"),
+    "gun.rifle": (3, lambda r, k: R.gunshot(r, cal=1.0, supersonic=True, auto=True), "Rifle shot"),
+    "gun.battle": (2, lambda r, k: R.gunshot(r, cal=1.25, supersonic=True, auto=True, rumble=1.15), "Battle rifle shot"),
+    "gun.sniper": (2, lambda r, k: R.gunshot(r, cal=1.4, supersonic=True, auto=False, rumble=1.25, room="valley"), "Sniper shot"),
+    "gun.fifty": (2, lambda r, k: R.gunshot(r, cal=1.8, supersonic=True, auto=False, rumble=1.5, room="valley", bright=0.85), ".50 cal shot"),
+    "gun.shotgun": (2, lambda r, k: R.shotgun_blast(r), "Shotgun blast"),
+    "gun.lmg": (2, lambda r, k: R.gunshot(r, cal=1.1, supersonic=True, auto=True, rumble=1.1), "Machine gun fire"),
+    "gun.suppressed": (3, lambda r, k: R.suppressed_shot(r), "Suppressed shot"),
+    "gun.distant": (4, lambda r, k: R.distant_fire(r, 1), "Distant gunfire"),
+    "gun.distant_burst": (3, lambda r, k: R.distant_fire(r, r.randint(3, 6)), "Distant gunfire"),
+    "gun.dry": (2, lambda r, k: R.dry_fire(r), "Dry fire"),
+    "gun.mag_out": (2, lambda r, k: R.mag_out(r), "Magazine out"),
+    "gun.mag_in": (2, lambda r, k: R.mag_in(r), "Magazine in"),
+    "gun.rack": (2, lambda r, k: R.rack(r), "Gun racked"),
+    "gun.bolt": (2, lambda r, k: R.bolt(r), "Bolt worked"),
+    "gun.pump": (2, lambda r, k: R.pump(r), "Shotgun pumped"),
+    "gun.shell_in": (3, lambda r, k: R.shell_in(r), "Round loaded"),
+    "gun.casing": (4, lambda r, k: R.brass(r), "Brass falls"),
+    "dread.heartbeat": (1, lambda r, k: R.heartbeat(r), "Heartbeat"),
     "dread.breath": (3, lambda r, k: breath(r, 1.0 + k * 0.35), "Heavy breathing"),
-    "dread.ringing": (1, lambda r, k: ringing(r), "Ears ringing"),
+    "dread.ringing": (1, lambda r, k: R.ringing(r), "Ears ringing"),
     "dread.helicopter": (1, lambda r, k: helicopter(r), "Helicopter"),
-    "grenade.explode": (2, lambda r, k: grenade_explosion(r), "Grenade explodes"),
+    "grenade.explode": (2, lambda r, k: R.explosion(r), "Grenade explodes"),
     "gun.crack": (3, lambda r, k: bullet_crack(r), "Round cracks past"),
     "gun.whiz": (3, lambda r, k: bullet_whiz(r), "Round whizzes past"),
     "vehicle.engine": (1, lambda r, k: engine_loop(r, 1), "Dirt bike engine"),
