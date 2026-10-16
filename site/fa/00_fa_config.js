@@ -1267,17 +1267,337 @@ global.FA = {
     // 8 shells: paper, gunpowder, iron nuggets and a gold nugget for the head
     shells: [[' P ', 'GNG', ' U '], { P: 'minecraft:paper', G: 'minecraft:gunpowder', N: 'minecraft:iron_nugget', U: 'minecraft:gold_nugget' }],
     shellsPerCraft: 8,
-    // Flare gun: the shotgun's controls, one flare at a time (R loads; R again swaps colour). A red flare is a signal;
+    // More guns (Full download): the controls are the shotgun's. Each one's base numbers are in the mod (gun/Guns.java);
+    // these scale them: damage (x), rpmScale (fire rate x), magBonus (+ rounds), spreadScale, rangeScale, recoilScale.
+    // Guns are built at the Weapons Workbench (its GUNSMITH tab) from `cost`: [item, count] pairs taken from your inventory.
+    // Rounds: crafted plain (ammo below) or made at the Weapons Workbench from any items (type, propellant, case, colour).
+    list: [
+      { id: 'm1911', name: "M1911", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A hundred years old and still hits like a door.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'p17', name: "P17 Pistol", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Polymer, boring, never jams. Mostly.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'hawk50', name: "Hawk .50", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A hand cannon. Mind your wrists.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'r357', name: "R357 Revolver", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Six chances. Reloads one chamber at a time.",
+        cost: [['minecraft:iron_ingot', 7], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'mp5', name: "MP5 SMG", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Smooth, accurate, and pleasant to hold. The classic.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'mp7', name: "MP7 PDW", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Tiny rounds, very fast, goes straight through armor.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'uz9', name: "UZ-9 SMG", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A box that sprays. Aim is a suggestion.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'kv45', name: "KV .45 SMG", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The recoil goes down instead of up. Empties itself in a second.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'ak74', name: "AK-74M", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Light recoil, cheap rounds, works in mud.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'akm', name: "AKM", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The AK everyone knows. Hits hard, kicks harder.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'm4a1', name: "M4A1", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Modular, flat-shooting, everywhere.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'mk17', name: "MK17 Battle Rifle", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A full-power rifle round on full auto. Brace yourself.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'aug', name: "AUG A3", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A bullpup: the magazine sits behind the grip. Built-in optic.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spyglass', 1]] },
+      { id: 'svd', name: "SVD Dragunov", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A long, thin, semi-automatic marksman rifle with a classic scope.",
+        cost: [['minecraft:iron_ingot', 15], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['kubejs:ascension_core', 1], ['minecraft:spyglass', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'sr25', name: "SR-25 DMR", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "An AR built for precision at range.",
+        cost: [['minecraft:iron_ingot', 15], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['kubejs:ascension_core', 1], ['minecraft:spyglass', 1]] },
+      { id: 'm700', name: "M700 Bolt Rifle", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Bolt action. Work the bolt after every shot. Loads round by round.",
+        cost: [['minecraft:iron_ingot', 16], ['kubejs:ascendite_ingot', 4], ['create:fluid_pipe', 2], ['kubejs:ascension_core', 1], ['minecraft:spyglass', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'mosin', name: "Mosin-Nagant", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A century-old bolt rifle. Long, heavy, and it still works.",
+        cost: [['minecraft:iron_ingot', 16], ['kubejs:ascendite_ingot', 4], ['create:fluid_pipe', 2], ['kubejs:ascension_core', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'ax338', name: "AX .338", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The long-range sniper. One shot, one problem solved.",
+        cost: [['minecraft:iron_ingot', 16], ['kubejs:ascendite_ingot', 4], ['create:fluid_pipe', 2], ['kubejs:ascension_core', 1], ['minecraft:spyglass', 1]] },
+      { id: 'saiga12', name: "Saiga-12", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A semi-automatic shotgun with a box magazine.",
+        cost: [['minecraft:iron_ingot', 12], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'double_barrel', name: "Double Barrel", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Two barrels, both at once if you're quick.",
+        cost: [['minecraft:iron_ingot', 12], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'pkm', name: "PKM", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A hundred-round belt of full-power rifle rounds.",
+        cost: [['minecraft:iron_ingot', 22], ['kubejs:ascendite_ingot', 5], ['create:fluid_pipe', 3], ['minecraft:piston', 2], ['kubejs:ascension_core', 1]] },
+      { id: 'm249', name: "M249 SAW", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A belt-fed 5.56 that never stops.",
+        cost: [['minecraft:iron_ingot', 22], ['kubejs:ascendite_ingot', 5], ['create:fluid_pipe', 3], ['minecraft:piston', 2], ['kubejs:ascension_core', 1]] },
+      { id: 'glock18', name: "G18 Auto Pistol", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A pistol that thinks it's an SMG. Empties in a second.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'm9', name: "M9", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A long-slide service pistol with an open top.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'usp45', name: "USP .45", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A heavy polymer .45. Takes a can well.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'five7', name: "Five-seveN", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Twenty tiny, fast rounds that punch through armor.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'p226', name: "P226", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "An alloy-framed classic with a decocker.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'cz75', name: "CZ 75", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "All steel, sits low in the hand, shoots flat.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'makarov', name: "PM Makarov", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Small, simple, everywhere.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'tt33', name: "TT-33", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A hot little bottleneck round from a thin old pistol.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'luger', name: "P08 Luger", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The toggle lock folds up like a knee with every shot.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'c96', name: "C96 Broomhandle", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The magazine's in front of the trigger. Loaded from stripper clips.",
+        cost: [['minecraft:iron_ingot', 6], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'python', name: "Python .357", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A vent-ribbed, full-lug .357. Smooth as glass.",
+        cost: [['minecraft:iron_ingot', 7], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'm29', name: "Model 29 .44", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The most powerful handgun in the world, once.",
+        cost: [['minecraft:iron_ingot', 7], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'judge', name: "Judge", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A revolver that takes shotgun shells.",
+        cost: [['minecraft:iron_ingot', 7], ['kubejs:ascendite_ingot', 1], ['create:fluid_pipe', 1]] },
+      { id: 'vector', name: "Vector .45", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The recoil is sent downward. Absurdly fast, absurdly flat.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'p90', name: "P90", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Fifty rounds lie across the top. Spits brass straight down.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'ump45', name: "UMP-45", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A slow, heavy-hitting polymer SMG.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'thompson', name: "Thompson", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The Chicago typewriter. Fifty in the drum.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'ppsh', name: "PPSh-41", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Seventy-one rounds in the drum, and it fires them all fast.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'mac10', name: "MAC-10", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A suppressed brick that empties in under two seconds.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'bizon', name: "PP-19 Bizon", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A helical magazine under the barrel holds sixty-four.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1]] },
+      { id: 'mp40', name: "MP40", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Slow, steady, controllable.",
+        cost: [['minecraft:iron_ingot', 10], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 1], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'hk416', name: "HK416", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A piston AR. Runs dirty, runs hot, keeps running.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'mcx', name: "MCX .300", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Built around its suppressor. Heavy subsonic punch, quiet.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'ak12', name: "AK-12", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The modern AK: rails, a folding stock, the same mud-proof heart.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'aks74u', name: "AKS-74U", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A rifle cut down to a carbine. Loud, short, and mean.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'galil', name: "Galil ACE", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "An AK action dressed in rails and a red dot.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'as_val', name: "AS VAL", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A rifle that's mostly suppressor. Heavy, slow, silent rounds.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'scar_l', name: "SCAR-L", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Light, modular, rails all round.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'g36', name: "G36", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A carry handle with a built-in optic, see-through mags.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spyglass', 1]] },
+      { id: 'famas', name: "FAMAS", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The bugle: a fast bullpup under a long carry handle.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'l85', name: "L85A2", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A bullpup with a 4x SUSAT scope. Accurate, finally.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spyglass', 1]] },
+      { id: 'tavor', name: "Tavor X95", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A compact bullpup, rifle barrel in a carbine's length.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'fal', name: "FN FAL", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The right arm of the free world. Full-power, full auto.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'm1_garand', name: "M1 Garand", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Eight rounds in an en-bloc clip. Ping.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'mk14', name: "Mk 14 EBR", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "An M14 in a chassis with a scope. Fast, heavy, precise.",
+        cost: [['minecraft:iron_ingot', 15], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['kubejs:ascension_core', 1], ['minecraft:spyglass', 1]] },
+      { id: 'vss', name: "VSS Vintorez", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A silent scoped rifle that also goes full auto.",
+        cost: [['minecraft:iron_ingot', 15], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['kubejs:ascension_core', 1], ['minecraft:spyglass', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'awm', name: "AWM", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A green bolt-action magnum. Ends arguments at a kilometre.",
+        cost: [['minecraft:iron_ingot', 16], ['kubejs:ascendite_ingot', 4], ['create:fluid_pipe', 2], ['kubejs:ascension_core', 1], ['minecraft:spyglass', 1]] },
+      { id: 'm82', name: "M82 Barrett", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A semi-automatic .50 anti-materiel rifle. Shoots through things.",
+        cost: [['minecraft:iron_ingot', 28], ['kubejs:ascendite_ingot', 6], ['create:fluid_pipe', 2], ['kubejs:ascension_core', 2], ['minecraft:spyglass', 1]] },
+      { id: 'kar98k', name: "Kar98k", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A turned-down bolt, iron sights, and a long reach.",
+        cost: [['minecraft:iron_ingot', 16], ['kubejs:ascendite_ingot', 4], ['create:fluid_pipe', 2], ['kubejs:ascension_core', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'winchester', name: "Winchester 1873", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The gun that won the West. Work the lever, load through the gate.",
+        cost: [['minecraft:iron_ingot', 14], ['kubejs:ascendite_ingot', 3], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'm870', name: "M870", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Pump action. Rack it after every shot.",
+        cost: [['minecraft:iron_ingot', 12], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'm1014', name: "M1014", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A semi-automatic combat shotgun with ghost-ring sights.",
+        cost: [['minecraft:iron_ingot', 12], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'spas12', name: "SPAS-12", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A pump with a heat shield and attitude.",
+        cost: [['minecraft:iron_ingot', 12], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'aa12', name: "AA-12", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A full-auto shotgun with a twenty-shell drum. Barely kicks.",
+        cost: [['minecraft:iron_ingot', 12], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'ksg', name: "KSG", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A bullpup pump with two tubes: fourteen shells.",
+        cost: [['minecraft:iron_ingot', 12], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 2], ['minecraft:piston', 1]] },
+      { id: 'sawnoff', name: "Sawn-Off", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Two barrels, cut short. Devastating, up close.",
+        cost: [['minecraft:iron_ingot', 12], ['kubejs:ascendite_ingot', 2], ['create:fluid_pipe', 2], ['minecraft:piston', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'rpk', name: "RPK", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A long, heavy AK with a 75-round drum and a bipod.",
+        cost: [['minecraft:iron_ingot', 22], ['kubejs:ascendite_ingot', 5], ['create:fluid_pipe', 3], ['minecraft:piston', 2], ['kubejs:ascension_core', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'mg42', name: "MG 42", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Hitler's buzzsaw: twelve hundred rounds a minute.",
+        cost: [['minecraft:iron_ingot', 22], ['kubejs:ascendite_ingot', 5], ['create:fluid_pipe', 3], ['minecraft:piston', 2], ['kubejs:ascension_core', 1]] },
+      { id: 'm60', name: "M60", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "The pig. A hundred-round belt.",
+        cost: [['minecraft:iron_ingot', 22], ['kubejs:ascendite_ingot', 5], ['create:fluid_pipe', 3], ['minecraft:piston', 2], ['kubejs:ascension_core', 1]] },
+      { id: 'dp28', name: "DP-28", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "A flat pan of forty-seven rounds on top, a bipod at the front.",
+        cost: [['minecraft:iron_ingot', 22], ['kubejs:ascendite_ingot', 5], ['create:fluid_pipe', 3], ['minecraft:piston', 2], ['kubejs:ascension_core', 1], ['minecraft:spruce_log', 2]] },
+      { id: 'minigun', name: "M134 Minigun", damage: 1, rpmScale: 1, magBonus: 0, spreadScale: 1, rangeScale: 1, recoilScale: 1, lore: "Six barrels. Spin it up, then nothing in front of you survives.",
+        cost: [['minecraft:iron_ingot', 48], ['kubejs:ascendite_ingot', 12], ['create:fluid_pipe', 6], ['kubejs:ascension_core', 3]] }
+    ],
+    // Plain rounds: a nugget (the bullet) over gunpowder over the case's copper, with the caliber's marker item to the
+    // right of the bullet (9x19mm has none). Makes `perCraft[caliber]`.
+    ammo: {
+      recipe: { N: 'minecraft:iron_nugget', G: 'minecraft:gunpowder', C: 'minecraft:copper_ingot' },
+      markers: { p9: false, p45: 'minecraft:gold_nugget', p50: 'minecraft:gold_ingot', r357: 'minecraft:redstone', p46: 'minecraft:quartz',
+        r545: 'minecraft:flint', r556: 'minecraft:iron_ingot', r762s: 'minecraft:coal', r762n: 'minecraft:charcoal', r762r: 'minecraft:clay_ball',
+        r338: 'minecraft:diamond', g12: 'minecraft:paper', p57: 'minecraft:prismarine_crystals', p762t: 'minecraft:bone_meal',
+        r44: 'minecraft:glowstone_dust', r9x39: 'minecraft:lapis_lazuli', r300: 'minecraft:amethyst_shard', b50: 'minecraft:netherite_scrap' },
+      perCraft: { p9: 16, p45: 12, p50: 6, r357: 8, p46: 16, r545: 12, r556: 12, r762s: 10, r762n: 8, r762r: 8, r338: 4, g12: 8,
+        p57: 16, p762t: 14, r44: 8, r9x39: 10, r300: 12, b50: 3 }
+    },
+    // Weapons Workbench: puts attachments on guns (1000+ of them, each `cost` x partItem, plus (grade - 1) x tierItem
+    // from grade 2 up) and presses rounds from any items. The Jury-Rigged book lets a gun take any attachment, anywhere.
+    workbench: {
+      partItem: 'minecraft:iron_ingot', tierItem: 'kubejs:ascendite_ingot',
+      recipe: [['SAS', 'IWI', 'I I'], { S: 'minecraft:smooth_stone_slab', A: 'kubejs:ascendite_ingot', I: 'minecraft:iron_ingot', W: 'minecraft:smithing_table' }],
+      juryRiggedBook: [['TCT', 'SBS', 'TCT'], { T: 'minecraft:string', C: 'minecraft:copper_ingot', S: 'minecraft:slime_ball', B: 'minecraft:book' }],
+      // Skins (the SKINS tab): animated finishes, some with 3D parts (snow, torn cloth, flames...). Each costs this.
+      skinItem: 'minecraft:amethyst_shard', skinCost: 2
+    },
+    // Grenades, bandages and medkits (crafting grid). Hold right-click to cook a grenade, let go to throw; hold to use meds.
+    fragGrenade: [[' I ', 'GTG', ' I '], { I: 'minecraft:iron_ingot', G: 'minecraft:gunpowder', T: 'minecraft:tnt' }],
+    fragGrenadesPerCraft: 2,
+    bandage: [['PSP'], { P: 'minecraft:paper', S: 'minecraft:string' }],
+    bandagesPerCraft: 3,
+    medkit: [['WBW', 'BHB', 'WBW'], { W: 'minecraft:white_wool', B: 'factoryascension:bandage', H: 'minecraft:glistering_melon_slice' }],
+    // Flashbangs (crafting grid): no shrapnel, a blinding flash and a bang; operators throw them too
+    flashbang: [[' I ', 'GQG', ' I '], { I: 'minecraft:iron_ingot', G: 'minecraft:glowstone_dust', Q: 'minecraft:gunpowder' }],
+    flashbangsPerCraft: 2,
+    // Plate carrier (chest slot) and its plates (crafting grid). Right-click the carrier with a plate in your other hand
+    // to slide it in (front first, then back); sneak + right-click takes them out. Plates wear down as they stop rounds.
+    plateCarrier: [['S S', 'LSL', 'LLL'], { S: 'minecraft:string', L: 'minecraft:leather' }],
+    plates: {
+      polyethylene_plate: [['WSW', 'WSW', 'WSW'], { W: 'minecraft:white_wool', S: 'minecraft:slime_ball' }],
+      steel_plate: [['III', 'IBI', 'III'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_block' }],
+      titanium_plate: [['IDI', 'IBI', 'IDI'], { I: 'minecraft:iron_ingot', D: 'minecraft:diamond', B: 'minecraft:iron_block' }],
+      ceramic_plate: [['CTC', 'TBT', 'CTC'], { C: 'minecraft:clay_ball', T: 'minecraft:terracotta', B: 'minecraft:bricks' }],
+      hybrid_plate: [['C', 'I', 'P'], { C: 'factoryascension:ceramic_plate', I: 'minecraft:iron_ingot', P: 'factoryascension:polyethylene_plate' }],
+      ascendite_plate: [['AAA', 'AHA', 'AAA'], { A: 'kubejs:ascendite_ingot', H: 'factoryascension:hybrid_plate' }]
+    },
+    // Night vision goggles (helmet slot; N flips them down and up)
+    nodsGreen: [['SIS', 'GRG', ' E '], { S: 'minecraft:string', I: 'minecraft:iron_ingot', G: 'minecraft:glass_pane', R: 'minecraft:redstone', E: 'minecraft:emerald' }],
+    nodsWhite: [['SIS', 'GRG', ' A '], { S: 'minecraft:string', I: 'minecraft:iron_ingot', G: 'minecraft:glass_pane', R: 'minecraft:redstone', A: 'kubejs:ascendite_ingot' }],
+    // Reloading under stress: chance a reload step goes wrong = base + stress^1.5 x stress (stress 0..1)
+    fumbles: { enabled: true, base: 0.02, stress: 0.55 },
+    explosiveRoundsBreakBlocks: false,
+    // Flare gun: the shotgun's controls, one flare at a time (R loads; R again swaps colour). A red flare calls for rescue;
     // a green one calls an airdrop: after airdropSeconds a supply crate falls from airdropHeight blocks up, 8 blocks
     // ahead of where you fired, under green smoke, and lands as a chest filled from airdropLoot.
+    // A red flare calls for rescue: after rescueSeconds, with rescueChance, a helicopter comes, circles the flare, and takes
+    // you home with everything you carry if you're within rescueRadius blocks of where you fired it. Or no one comes.
     flareGun: {
       cooldownTicks: 30, speed: 1.6, airdropSeconds: 20, airdropHeight: 60, airdropLoot: 'factoryascension:chests/airdrop',
+      rescue: true, rescueChance: 0.7, rescueSeconds: 60, rescueRadius: 12,
       recipe: [['IIB', ' GR', '  P'], { I: 'minecraft:iron_ingot', B: 'minecraft:copper_ingot', G: 'kubejs:ascendite_ingot', R: 'minecraft:redstone', P: 'minecraft:orange_dye' }]
     },
     flares: {
       red: [[' P ', 'GRG', ' U '], { P: 'minecraft:paper', G: 'minecraft:gunpowder', R: 'minecraft:red_dye', U: 'minecraft:gold_nugget' }],
       green: [[' P ', 'GDG', ' C '], { P: 'minecraft:paper', G: 'minecraft:gunpowder', D: 'minecraft:green_dye', C: 'kubejs:ascension_core' }],
       perCraft: 2
+    }
+  },
+
+  // ---- Armed operators (Full download): people out there with guns, who fight like players ----
+  // They hear gunshots and come to look, call their squad onto you, take cover to reload and patch up, flank, throw
+  // grenades and keep firing where you were. Patrols roam the danger zones (more and worse the deeper you go, and at
+  // night); squads hold the structures out there (scav camps near home, bunkers and outposts further, warlords' forts far
+  // out); a red flare sends hunters. Their hits can leave you Bleeding (bandage it). Kill one: its gun (with what's left in
+  // it), spare rounds, kit and dog tag drop.
+  // ---- Raids (Full download): kill the people holding a structure and you're Marked for a while (longer and stronger
+  // the more you kill). Marked, now and then a raid party comes for you: to your bed if you're near it, otherwise wherever
+  // you are. You'll hear them talking. They bash in wooden doors, trapdoors, gates and glass, and bring grenades.
+  // Ballistic concrete, glass and steel doors hold (and stop bullets); thin things (wood, glass, leaves) let rounds through.
+  raids: {
+    enabled: true, markTicks: 72000, killsPerLevel: 8, firstRaidTicks: 3600, raidEveryTicks: 9600, partySize: 3,
+    breakDoors: true, bulletsPenetrate: true,
+    ballisticConcrete: [['CIC', 'IOI', 'CIC'], { C: 'minecraft:gray_concrete', I: 'minecraft:iron_ingot', O: 'minecraft:obsidian' }],
+    ballisticConcretePerCraft: 8,
+    ballisticGlass: [['GIG', 'IGI', 'GIG'], { G: 'minecraft:glass', I: 'minecraft:iron_ingot' }],
+    ballisticGlassPerCraft: 5,
+    steelDoor: [['II', 'IB', 'II'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_block' }],
+    steelTrapdoor: [['IBI', 'III'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_block' }]
+  },
+
+  // ---- Drugs (Full download; single player's your own business). Each has its own effect, then a comedown; three
+  // doses inside a minute is an overdose. Taking one while another is still on you can mix (Speedball, Candyflip,
+  // Crossfade, Blackout, Overamped...). Right-click a villager with one: it pays you, smokes it and gets high. Meth can leave you with Psychosis (you see things that aren't there); so can
+  // mushrooms. Cannabis and coca seeds drop from grass (seedChance); plant them on farmland. The rest is made at the
+  // Chem Lab: right-click it with the inputs in your inventory, and it makes the first recipe here you have everything for.
+  drugs: {
+    seedChance: 0.03,
+    jointRecipe: [['P', 'L'], { P: 'minecraft:paper', L: 'factoryascension:cannabis_leaf' }],
+    chemLab: [['BTB', 'III', 'I I'], { B: 'minecraft:glass_bottle', T: 'minecraft:brewing_stand', I: 'minecraft:iron_ingot' }],
+    lab: [
+      { out: 'factoryascension:cocaine', count: 2, in: [['factoryascension:coca_leaf', 4], ['minecraft:gunpowder', 1]] },
+      { out: 'factoryascension:methamphetamine', count: 2, in: [['minecraft:redstone', 2], ['minecraft:gunpowder', 2], ['minecraft:sugar', 1], ['minecraft:glowstone_dust', 1]] },
+      { out: 'factoryascension:morphine', count: 2, in: [['minecraft:poppy', 3], ['minecraft:glass_bottle', 1]] },
+      { out: 'factoryascension:adrenaline_shot', count: 2, in: [['minecraft:glass_bottle', 1], ['minecraft:sugar', 2], ['minecraft:redstone', 1]] },
+      { out: 'factoryascension:magic_mushrooms', count: 3, in: [['minecraft:red_mushroom', 2], ['minecraft:brown_mushroom', 2], ['minecraft:fermented_spider_eye', 1]] },
+      { out: 'factoryascension:lsd_tab', count: 4, in: [['minecraft:wheat', 3], ['minecraft:brown_mushroom', 1], ['minecraft:paper', 1], ['minecraft:glass_bottle', 1]] },
+      { out: 'factoryascension:ecstasy', count: 3, in: [['minecraft:sugar', 2], ['minecraft:glowstone_dust', 1], ['minecraft:pink_dye', 1]] },
+      { out: 'factoryascension:xanax', count: 4, in: [['minecraft:bone_meal', 2], ['minecraft:sugar', 1], ['minecraft:white_dye', 1]] },
+      { out: 'factoryascension:ketamine', count: 2, in: [['minecraft:sugar', 1], ['minecraft:quartz', 2], ['minecraft:glass_bottle', 1]] },
+      { out: 'factoryascension:vodka', count: 2, in: [['minecraft:potato', 6], ['minecraft:sugar', 1], ['minecraft:glass_bottle', 2]] },
+      { out: 'factoryascension:energy_drink', count: 3, in: [['minecraft:sugar', 2], ['minecraft:cocoa_beans', 1], ['minecraft:iron_nugget', 3]] }
+    ]
+  },
+
+  // ---- Dirt bike (Full download): built from parts, and it rides like what's fitted. Put it down with the item,
+  // right-click to ride (W throttle, S brake/reverse, A/D steer, Space hops, Sprint pulls a wheelie, Sneak gets off).
+  // Sneak + right-click it with a part to fit it (the old one drops); with an empty hand to pack it up. Right-click with
+  // fuel to fill up, with a dye to paint it. Speeds: blocks per tick (1 = 72 km/h). An engine's size must fit the frame.
+  vehicles: {
+    engines: {
+      engine_125: { name: '125cc Two-Stroke', power: 0.020, top: 0.75, weight: 20, size: 1, fuelUse: 0.004, pitch: 1.25 },
+      engine_250: { name: '250cc Two-Stroke', power: 0.028, top: 0.95, weight: 25, size: 2, fuelUse: 0.006, pitch: 1.1 },
+      engine_450: { name: '450cc Four-Stroke', power: 0.036, top: 1.15, weight: 32, size: 3, fuelUse: 0.008, pitch: 0.9 },
+      engine_v12: { name: 'V12', power: 0.070, top: 1.8, weight: 160, size: 4, fuelUse: 0.030, pitch: 0.75 }
+    },
+    frames: {
+      frame_standard: { name: 'Standard Frame', weight: 70, maxEngine: 3, grip: 1.0, turn: 1.0 },
+      frame_long: { name: 'Long Frame', weight: 95, maxEngine: 4, grip: 1.1, turn: 0.75 }
+    },
+    gearboxes: {
+      gearbox_4: { name: '4-Speed Gearbox', gears: 4, topMul: 1.0, accelMul: 1.0 },
+      gearbox_6: { name: '6-Speed Gearbox', gears: 6, topMul: 1.15, accelMul: 0.95 },
+      gearbox_race: { name: 'Close-Ratio Race Gearbox', gears: 5, topMul: 1.05, accelMul: 1.22 }
+    },
+    // amount: how much of the tank one fills (of 100); power / use: what it does to the engine; leftover: given back
+    fuels: [
+      { item: 'factoryascension:fuel_can', name: 'Petrol', amount: 100, power: 1.0, use: 1.0, leftover: '' },
+      { item: 'factoryascension:racing_fuel', name: 'Racing Fuel', amount: 100, power: 1.22, use: 1.6, leftover: '' },
+      { item: 'tfmg:gasoline_bucket', name: 'Gasoline', amount: 100, power: 1.0, use: 1.0, leftover: 'minecraft:bucket' },
+      { item: 'tfmg:diesel_bucket', name: 'Diesel', amount: 100, power: 0.9, use: 0.7, leftover: 'minecraft:bucket' },
+      { item: 'minecraft:blaze_rod', name: 'Blaze Rod', amount: 15, power: 1.1, use: 1.2, leftover: '' }
+    ],
+    recipes: {
+      dirt_bike: [[' L ', 'EFG', 'K K'], { L: 'minecraft:leather', E: 'factoryascension:engine_125', F: 'factoryascension:frame_standard', G: 'factoryascension:gearbox_4', K: 'minecraft:dried_kelp_block' }],
+      engine_125: [['IPI', 'RBR', 'ICI'], { I: 'minecraft:iron_ingot', P: 'minecraft:piston', R: 'minecraft:redstone', B: 'minecraft:iron_block', C: 'minecraft:copper_ingot' }],
+      engine_250: [['IPI', 'PEP', 'III'], { I: 'minecraft:iron_ingot', P: 'minecraft:piston', E: 'factoryascension:engine_125' }],
+      engine_450: [['GPG', 'PEP', 'IDI'], { G: 'minecraft:gold_ingot', P: 'minecraft:piston', E: 'factoryascension:engine_250', I: 'minecraft:iron_ingot', D: 'minecraft:diamond' }],
+      engine_v12: [['EAE', 'ANA', 'EAE'], { E: 'factoryascension:engine_450', A: 'kubejs:ascendite_ingot', N: 'minecraft:netherite_ingot' }],
+      frame_standard: [['  I', 'III', 'I I'], { I: 'minecraft:iron_ingot' }],
+      frame_long: [['III', 'IFI', 'I I'], { I: 'minecraft:iron_ingot', F: 'factoryascension:frame_standard' }],
+      gearbox_4: [['ICI', 'CRC', 'ICI'], { I: 'minecraft:iron_ingot', C: 'create:cogwheel', R: 'minecraft:redstone' }],
+      gearbox_6: [[' C ', 'LGL', ' C '], { C: 'create:cogwheel', L: 'create:large_cogwheel', G: 'factoryascension:gearbox_4' }],
+      gearbox_race: [['DGD', 'LRL', 'DGD'], { D: 'minecraft:diamond', G: 'factoryascension:gearbox_6', L: 'create:large_cogwheel', R: 'minecraft:redstone_block' }],
+      fuel_can: [['I I', 'ICI', 'III'], { I: 'minecraft:iron_ingot', C: 'minecraft:coal_block' }],
+      fuelCansPerCraft: 2,
+      racing_fuel: [['BGB', 'GFG', 'BGB'], { B: 'minecraft:blaze_powder', G: 'minecraft:glowstone_dust', F: 'factoryascension:fuel_can' }]
+    }
+  },
+
+  npcs: {
+    healthScale: 1, damageScale: 0.45, spreadScale: 1, bleedChance: 0.2, gunDropChance: 0.85,
+    // Monsters (hordes too) hear gunshots and come: hearing x the shot's reach (about 100 blocks for a rifle, a few for a suppressed one)
+    mobsHearShots: true, mobHearingScale: 0.8,
+    patrols: true, patrolChance: 0.06, patrolMinDanger: 1, maxNearby: 14, flareHunters: true,
+    kinds: {
+      scav: 'A scavenger with whatever gun he found. Cheap, numerous, nervous.',
+      scav_rifleman: 'A scav who found an AK and some confidence.',
+      scav_sniper: 'Lies out on towers with an old bolt rifle. Patient.',
+      looter: 'Sprays an SMG and runs right at you.',
+      raider: 'A trained fighter in a plate carrier. Flanks, throws grenades, works with his squad.',
+      raider_medic: 'Keeps the raiders alive: patches up anyone hurt near him.',
+      breacher: 'A shotgun and a helmet visor. Comes through the door first.',
+      grenadier: 'Throws grenades at whatever cover you\'re behind.',
+      marksman: 'Accurate at long range with a scoped rifle.',
+      machine_gunner: 'Keeps a belt-fed gun firing where you were last seen.',
+      rogue: 'Ex-military. Heavy armor, night vision, very good.',
+      rogue_sniper: 'Sees you before you see the glint.',
+      cultist: 'Robed, masked, silent. Creeps up at night with a suppressed rifle.',
+      ghost: 'Quiet, crouched, suppressed. You hear him when he\'s already beside you.',
+      juggernaut: 'Armored head to toe with a machine gun. Slow, and nearly unstoppable.',
+      hunter: 'Sent for whoever fired that red flare. Always seems to know where you are.',
+      warlord: 'Rules a fort with his bodyguards. Tough, and carries a hand cannon.',
+      bodyguard: 'Stays by the warlord, shotgun ready.',
+      smuggler: 'Fast, lightly armed, runs when it goes bad.',
+      deserter: 'Left the army with his rifle. Fights alone, fights well.'
     }
   },
 
@@ -1290,7 +1610,9 @@ global.FA = {
   // weight: each cell weighs kgPerCell (a full stack of a 1x1 item = 1 cell; a lone block weighs 1/64 of that).
   // Past carryKg you slow down by slowPerKg (0.01 = 1% per kg), never more than maxSlow (0.5 = half speed).
   inventory: {
-    enabled: true, width: 10, height: 6, blockPickup: true,
+    // grid: false = the game's own inventory layout in the dark Tarkov look (still opened out of the duffel bag);
+    // true = the grid where items take their real size (blockPickup only applies to the grid)
+    enabled: true, grid: false, width: 10, height: 6, blockPickup: true,
     sizes: [['minecraft:totem_of_undying', 1, 2], ['minecraft:spyglass', 1, 2], ['minecraft:anvil', 2, 2]],
     weight: { enabled: true, kgPerCell: 1, carryKg: 100, slowPerKg: 0.01, maxSlow: 0.5 }
   },
@@ -1334,14 +1656,16 @@ global.FA = {
 
   // ---- Factory Room TNT: blasts out a ready-made underground room ----
   // Right-click a block with one. After the fuse it hollows out a room in front of you (width x length x height inside),
-  // lines the floor, walls and roof with the style's block, sets its lights into the roof every lightSpacing blocks and
-  // leaves a doorway on your side, level with your feet. It never touches bedrock or anything with an inventory or a
+  // lines the floor, walls and roof with the style's block, and lights it all the way down: lights in the roof every
+  // lightSpacing blocks, a row along every wall at half height, and lights set flush into the floor between the roof's,
+  // so even a 16-high room is bright at the bottom. It leaves a doorway on your side, level with your feet. Styles with
+  // `window` are for building above ground: their walls get rows of windows. It never touches bedrock or anything with an inventory or a
   // machine inside (chests, Create machines, spawners), and ores it blasts through drop in the middle of the room.
   roomCharges: {
     enabled: true,
     fuseSeconds: 3,
     blocksPerTick: 6000,       // spread over a few ticks so the server never freezes
-    lightSpacing: 6,
+    lightSpacing: 5,
     doorway: [3, 3],           // width, height of the opening on your side
     collectOres: true,
     // size: [width, length, height inside]; craft: how many of the next size down make one
@@ -1355,19 +1679,22 @@ global.FA = {
       { id: 'sandstone', name: 'Sandstone', shell: 'minecraft:smooth_sandstone', light: 'minecraft:glowstone', color: [226, 208, 152], lightColor: [255, 214, 120] },
       { id: 'stone_brick', name: 'Stone Brick', shell: 'minecraft:stone_bricks', light: 'minecraft:sea_lantern', color: [140, 140, 140], lightColor: [196, 236, 230] },
       { id: 'deepslate', name: 'Deepslate', shell: 'minecraft:deepslate_tiles', light: 'minecraft:ochre_froglight', color: [70, 70, 80], lightColor: [250, 220, 140] },
-      { id: 'quartz', name: 'Quartz', shell: 'minecraft:smooth_quartz', light: 'minecraft:sea_lantern', color: [236, 230, 222], lightColor: [196, 236, 230] }
+      { id: 'quartz', name: 'Quartz', shell: 'minecraft:smooth_quartz', light: 'minecraft:sea_lantern', color: [236, 230, 222], lightColor: [196, 236, 230] },
+      { id: 'cabin', name: 'Outdoor Cabin', shell: 'minecraft:spruce_planks', light: 'minecraft:pearlescent_froglight', window: 'minecraft:glass', color: [112, 84, 50], lightColor: [250, 214, 230] }
     ]
   },
 
   // ---- Skinwalkers: some animals out in the wilderness aren't animals ----
-  // A rare passive animal spawning in the danger zones is secretly a skinwalker. It looks and acts normal, until a player
+  // A passive animal is sometimes secretly a skinwalker: most often out in the danger zones, but even at home (safeChance). It looks and acts normal, until a player
   // comes near: then it follows them at a distance and stops to stare. After a while (sooner at night), or the moment
   // it's hit, it shapeshifts (twitching, cracking, rising) into a strong mob, and only then is it revealed:
   // always an Elite, sometimes a rare variant as well, with extra loot.
   skinwalkers: {
     enabled: true,
-    chance: 0.02,              // per animal spawning at danger minDanger or deeper
+    chance: 0.05,              // per animal spawning at danger minDanger or deeper
     minDanger: 2,
+    safeChance: 0.02,          // per animal spawning closer in, even in the safe zone: nowhere is safe
+    mimicChancePerSecond: 0.04, // while it stalks you: footsteps behind you, a knock, a voice, someone hurt...
     animals: ['minecraft:cow', 'minecraft:pig', 'minecraft:sheep', 'minecraft:chicken', 'minecraft:horse', 'minecraft:donkey', 'minecraft:goat',
       'minecraft:llama', 'minecraft:rabbit', 'minecraft:fox', 'minecraft:mooshroom', 'factoryascension:copper_cow', 'factoryascension:ember_hen'],
     noticeRange: 48,           // it starts following a player this close
@@ -1875,17 +2202,21 @@ global.FA_dangerMult = (danger, elite) => {
 // The inside is W x L x H; around it is a one-block shell (floor, walls, roof) with lights in the roof and a doorway
 // in the near wall. (cx, cz): the block you clicked (the middle of the near wall); floorY: the floor layer, one below
 // your feet; (fx, fz): the way you face (one of the four directions).
-global.FA_roomPlan = (sizeId, cx, floorY, cz, fx, fz) => {
+global.FA_roomPlan = (sizeId, cx, floorY, cz, fx, fz, styleId) => {
   let R = global.FA.roomCharges
+  let ST = styleId ? R.styles.filter(z => z.id == styleId)[0] : false
   let S = R.sizes.filter(z => z.id == sizeId)[0]
   if (!S) return false
   let W = S.size[0], L = S.size[1], H = S.size[2]
   let umin = -Math.floor(W / 2)
   return { cx: cx, cz: cz, floorY: floorY, fx: fx, fz: fz, rx: -fz, rz: fx, W: W, L: L, H: H, umin: umin, umax: umin + W - 1,
-    cols: W + 2, rows: L + 2, layers: H + 2, total: (W + 2) * (L + 2) * (H + 2), spacing: Math.max(2, R.lightSpacing), door: R.doorway }
+    cols: W + 2, rows: L + 2, layers: H + 2, total: (W + 2) * (L + 2) * (H + 2), spacing: Math.max(2, R.lightSpacing), door: R.doorway,
+    windows: !!(ST && ST.window) }
 }
 
-// What goes at a local spot: 'air' (inside or the doorway), 'shell', 'light', or false (outside the room)
+// What goes at a local spot: 'air' (inside or the doorway), 'shell', 'light', 'window' (styles with windows), or false
+// (outside the room). Lights: in the roof on a grid, flush in the floor on the grid shifted by half (between the roof's),
+// and along every wall at half height, so light reaches the floor of even the tallest room.
 global.FA_roomKind = (plan, u, v, h) => {
   if (u < plan.umin - 1 || u > plan.umax + 1 || v < 0 || v > plan.L + 1 || h < 0 || h > plan.H + 1) return false
   let inside = u >= plan.umin && u <= plan.umax && v >= 1 && v <= plan.L
@@ -1893,9 +2224,21 @@ global.FA_roomKind = (plan, u, v, h) => {
   // The doorway: the middle of the near wall, from the floor up
   let half = Math.floor(plan.door[0] / 2)
   if (v == 0 && Math.abs(u) <= half && h >= 1 && h <= Math.min(plan.H, plan.door[1])) return 'air'
-  if (inside && h == plan.H + 1) {
-    let sp = plan.spacing, off = Math.floor(sp / 2)
-    if ((u - plan.umin) % sp == off && (v - 1) % sp == off) return 'light'
+  let sp = plan.spacing, off = Math.floor(sp / 2)
+  let gu = u - plan.umin, gv = v - 1
+  if (inside && h == plan.H + 1 && gu % sp == off && gv % sp == off) return 'light'
+  if (inside && h == 0 && plan.H >= 6 && (gu + off) % sp == 0 && (gv + off) % sp == 0 && gu > 0 && gv > 0 && gu < plan.W - 1 && gv < plan.L - 1) return 'light'
+  // The walls (not the corners): a light row at half height, windows (if the style has them) between
+  let wallU = (u == plan.umin - 1 || u == plan.umax + 1) && v >= 1 && v <= plan.L
+  let wallV = (v == 0 || v == plan.L + 1) && u >= plan.umin && u <= plan.umax
+  if ((wallU || wallV) && h >= 1 && h <= plan.H) {
+    let along = wallU ? gv : gu
+    let mid = Math.max(2, Math.ceil(plan.H / 2))
+    if (h == mid && along % sp == off) return 'light'
+    if (plan.windows) {
+      let top = Math.min(plan.H - 1, 2 + Math.floor(plan.H / 4))
+      if (h >= 2 && h <= top && along % 4 != 0 && along % sp != off && along > 0 && along < (wallU ? plan.L : plan.W) - 1) return 'window'
+    }
   }
   return 'shell'
 }
@@ -2163,8 +2506,18 @@ global.FA_meteorPool = () => {
     put(P.machines, ['card_binder', 'pack_opener', 'salvager', 'tome_fusion_table', 'super_smelter', 'storage_terminal'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['ascension_vault', 'essence_forge', 'ascension_workbench'].map(b => 'factoryascension:' + b))
     put(P.machines, ['ascension_quarry', 'mob_grinder', 'warp_hopper'].map(b => 'factoryascension:' + b))
-    put(P.machines, ['factoryascension:shotgun', 'factoryascension:flare_gun'])
-    put(P.basics, ['factoryascension:shotgun_shell', 'factoryascension:flare_red', 'factoryascension:flare_green'])
+    put(P.machines, ['factoryascension:shotgun', 'factoryascension:flare_gun'].concat(FA.guns.list.map(g => 'factoryascension:' + g.id)))
+    put(P.basics, ['factoryascension:shotgun_shell', 'factoryascension:flare_red', 'factoryascension:flare_green', 'factoryascension:cartridge', 'factoryascension:attachment',
+      'factoryascension:bandage', 'factoryascension:medkit', 'factoryascension:frag_grenade', 'factoryascension:flashbang',
+      'factoryascension:cannabis_seeds', 'factoryascension:coca_seeds', 'factoryascension:cannabis_leaf', 'factoryascension:coca_leaf',
+      'factoryascension:joint', 'factoryascension:morphine', 'factoryascension:adrenaline_shot', 'factoryascension:polyethylene_plate',
+      'factoryascension:vodka', 'factoryascension:energy_drink', 'factoryascension:xanax'])
+    put(P.machines, ['lsd_tab', 'ecstasy', 'ketamine'].map(b => 'factoryascension:' + b))
+    put(P.machines, ['plate_carrier', 'steel_plate', 'ceramic_plate', 'titanium_plate', 'nods_green', 'chem_lab', 'cocaine', 'methamphetamine',
+      'magic_mushrooms', 'ballistic_concrete', 'ballistic_glass', 'ballistic_glass_pane', 'steel_door', 'steel_trapdoor'].map(b => 'factoryascension:' + b))
+    put(P.bigMachines, ['hybrid_plate', 'ascendite_plate', 'nods_white', 'engine_v12', 'gearbox_race', 'frame_long'].map(b => 'factoryascension:' + b))
+    put(P.machines, ['dirt_bike', 'engine_125', 'engine_250', 'engine_450', 'frame_standard', 'gearbox_4', 'gearbox_6', 'fuel_can', 'racing_fuel'].map(b => 'factoryascension:' + b))
+    put(P.machines, ['factoryascension:weapons_workbench'])
     put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
     if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))
   }

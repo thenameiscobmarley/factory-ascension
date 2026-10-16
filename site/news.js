@@ -3,6 +3,11 @@
 // area: home, luck, gear, enchants, machines, world. icon: a path under fa/. Newest release first.
 window.FA_NEWS = [
   // ---- v25.0.0 ----
+  { v: "25.0.0", area: "gear", icon: "items/dirt_bike.png", title: "Dirt bike", text: "Build it from parts: 125cc, 250cc, 450cc or a V12 (in a long frame), three gearboxes. Wheelies, hops, a real engine note and a speedo." },
+  { v: "25.0.0", area: "world", icon: "items/steel_door.png", title: "Stealth and raids", text: "Guards grow suspicious, raise the alarm when they find a body, and come for you if you hit their place. Build with ballistic concrete, glass and steel doors." },
+  { v: "25.0.0", area: "gear", icon: "items/plate_carrier.png", title: "Plates, NODs, flashbangs", text: "Plate carriers with front and back plates that wear down, night vision goggles, flashbangs (they throw them too), and leaning with Q / E." },
+  { v: "25.0.0", area: "world", icon: "blocks/chem_lab_top.png", title: "Drugs (single player)", text: "Fourteen of them with their own looks, eight mixes, hallucinations, crops and a Chem Lab. Villagers get high too." },
+  { v: "25.0.0", area: "home", icon: "blocks/ballistic_glass.png", title: "Depth, reflections, Embeddium", text: "Smoother lit 3D textures with a smoothing slider that work with Embeddium, plus traced reflections and sun shadows." },
   { v: "25.0.0", area: "gear", icon: "items/cartridge_case.png", title: "73 guns, smooth up close", text: "51 more guns (Vector, P90, HK416, AWM, M82, KSG, MG 42, a minigun...) and every gun is now a smooth, high-detail mesh in your hands." },
   { v: "25.0.0", area: "world", icon: "items/dog_tag.png", title: "Armed operators", text: "20 kinds of people with guns who fight like players: they hear shots, flank, take cover, reload, heal and throw grenades. Kill one for its gun and dog tag." },
   { v: "25.0.0", area: "world", icon: "items/frag_grenade.png", title: "Randomized outposts", text: "Twelve kinds of place, each built fresh: scav camps, bunkers, sniper towers, crash sites, military outposts, warlords' forts and cult shrines." },
