@@ -55,7 +55,7 @@ def ell(px, cx, cy, rx, ry, col, lit=0.25, dark=-0.3):
 def line(px, x0, y0, x1, y1, c):
     if len(c) == 3:
         c = tuple(c) + (255,)
-    n = max(abs(x1 - x0), abs(y1 - y0), 1)
+    n = int(max(abs(x1 - x0), abs(y1 - y0), 1))
     for i in range(n + 1):
         x, y = round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)
         if 0 <= y < len(px) and 0 <= x < len(px[0]):
@@ -303,6 +303,76 @@ def can():
     line(px, 6, 12, 9, 5, (120, 230, 60))
     line(px, 7, 12, 10, 5, (90, 200, 40))
     save_item("energy_drink", px, (10, 10, 12, 255))
+
+
+# ---------------- Dirt bike ----------------
+def bike_icon():
+    px = canvas()
+    for (cx, cy) in ((3.5, 11.5), (12.5, 11.5)):
+        ell(px, cx, cy, 3.2, 3.2, (30, 30, 30), 0.15, -0.2)
+        ell(px, cx, cy, 1.6, 1.6, (150, 150, 155), 0.3, -0.2)
+    line(px, 4, 11, 8, 8, (80, 80, 84))
+    line(px, 8, 8, 12, 11, (180, 180, 186))
+    line(px, 12, 11, 11, 4, (180, 180, 186))
+    rect(px, 5, 6, 10, 7, (232, 102, 28))
+    rect(px, 3, 5, 7, 5, (30, 30, 32))
+    rect(px, 7, 8, 9, 10, (150, 152, 154))
+    line(px, 10, 3, 12, 3, (40, 40, 42))
+    save_item("dirt_bike", px, (20, 20, 22, 255))
+
+
+def engine_icon(name, scale, v12):
+    px = canvas()
+    if v12:
+        rect(px, 1, 8, 14, 12, (150, 152, 154))
+        rect(px, 1, 5, 14, 7, (40, 41, 44))
+        rect(px, 1, 4, 14, 4, (150, 40, 32))
+        for x in range(2, 14, 2):
+            rect(px, x, 1, x, 3, (200, 200, 206))
+    else:
+        h = int(4 + scale * 3)
+        rect(px, 3, 10, 12, 14, (150, 152, 154))
+        for k in range(h):
+            y = 9 - k
+            rect(px, 5 - (k % 2), y, 10 + (k % 2), y, (170, 172, 176) if k % 2 else (120, 122, 126))
+        rect(px, 6, 9 - h, 9, 9 - h, (40, 41, 44))
+    save_item(name, px, (30, 30, 32, 255))
+
+
+def frame_icon(name, long):
+    px = canvas()
+    L = 14 if long else 11
+    x0 = 1 if long else 3
+    line(px, x0, 12, x0 + L * 0.4, 7, (72, 74, 70))
+    line(px, x0 + int(L * 0.4), 7, x0 + L, 4, (72, 74, 70))
+    line(px, x0 + L, 4, x0 + L - 1, 13, (72, 74, 70))
+    line(px, x0, 12, x0 + L - 1, 13, (150, 152, 154))
+    line(px, x0 + int(L * 0.4), 7, x0 + int(L * 0.45), 12, (72, 74, 70))
+    save_item(name, px, (20, 20, 22, 255))
+
+
+def gearbox_icon(name, gears, colour):
+    px = canvas()
+    rect(px, 2, 4, 13, 13, colour)
+    for i in range(min(gears, 6)):
+        cx = 4 + (i % 3) * 4
+        cy = 7 if i < 3 else 11
+        ell(px, cx + 0.5, cy + 0.5, 1.6, 1.6, (200, 160, 70), 0.3, -0.3)
+    save_item(name, px, (20, 20, 22, 255))
+
+
+def jerrycan(name, c, stripe):
+    px = canvas()
+    for y in range(4, 15):
+        for x in range(3, 13):
+            px[y][x] = shade(c, 0.25 if x == 3 else (-0.3 if x == 12 else 0))
+    rect(px, 4, 2, 7, 3, (60, 60, 64))
+    rect(px, 9, 2, 11, 3, (60, 60, 64))
+    line(px, 4, 6, 11, 12, shade(c, -0.25))
+    line(px, 11, 6, 4, 12, shade(c, -0.25))
+    if stripe:
+        rect(px, 3, 9, 12, 9, stripe)
+    save_item(name, px, (30, 10, 10, 255))
 
 
 # ---------------- Crops ----------------
@@ -662,6 +732,18 @@ def main():
     syringe("adrenaline_shot", (220, 60, 50))
     mushrooms()
     tab()
+    bike_icon()
+    engine_icon("engine_125", 0.2, False)
+    engine_icon("engine_250", 0.5, False)
+    engine_icon("engine_450", 0.9, False)
+    engine_icon("engine_v12", 1, True)
+    frame_icon("frame_standard", False)
+    frame_icon("frame_long", True)
+    gearbox_icon("gearbox_4", 4, (90, 92, 96))
+    gearbox_icon("gearbox_6", 6, (70, 72, 76))
+    gearbox_icon("gearbox_race", 5, (150, 40, 32))
+    jerrycan("fuel_can", (190, 40, 30), None)
+    jerrycan("racing_fuel", (40, 80, 190), (240, 240, 240))
     pill("ecstasy", (240, 120, 190), "x")
     pill("xanax", (236, 236, 240), "line")
     baggie("ketamine", (236, 240, 244), False)
@@ -691,6 +773,10 @@ def main():
                  "ascendite_plate": "Ascendite Plate", "joint": "Joint", "cocaine": "Cocaine", "methamphetamine": "Methamphetamine",
                  "morphine": "Morphine", "adrenaline_shot": "Adrenaline Shot", "magic_mushrooms": "Magic Mushrooms",
                  "lsd_tab": "LSD Tab", "ecstasy": "Ecstasy", "xanax": "Xanax", "ketamine": "Ketamine", "vodka": "Vodka", "energy_drink": "Energy Drink",
+                 "dirt_bike": "Dirt Bike", "engine_125": "125cc Two-Stroke Engine", "engine_250": "250cc Two-Stroke Engine",
+                 "engine_450": "450cc Four-Stroke Engine", "engine_v12": "V12 Engine", "frame_standard": "Standard Bike Frame",
+                 "frame_long": "Long Bike Frame", "gearbox_4": "4-Speed Gearbox", "gearbox_6": "6-Speed Gearbox",
+                 "gearbox_race": "Close-Ratio Race Gearbox", "fuel_can": "Fuel Can", "racing_fuel": "Racing Fuel",
                  "cannabis_seeds": "Cannabis Seeds", "coca_seeds": "Coca Seeds", "cannabis_leaf": "Cannabis Leaf", "coca_leaf": "Coca Leaf"},
         "block": {"cannabis": "Cannabis", "coca": "Coca", "chem_lab": "Chem Lab", "ballistic_concrete": "Ballistic Concrete",
                   "ballistic_glass": "Ballistic Glass", "ballistic_glass_pane": "Ballistic Glass Pane", "steel_door": "Steel Door",
@@ -704,6 +790,7 @@ def main():
             lang["%s.%s.%s" % (kind, NS, k)] = v
     lang["entity.%s.flashbang" % NS] = "Flashbang"
     lang["entity.%s.operator_corpse" % NS] = "Body"
+    lang["entity.%s.dirt_bike" % NS] = "Dirt Bike"
     lang["key.factoryascension.nods"] = "Night vision goggles (flip up/down)"
     lang["key.factoryascension.lean_left"] = lang.get("key.factoryascension.lean_left", "Lean left (while aiming)")
     lang["key.factoryascension.lean_right"] = lang.get("key.factoryascension.lean_right", "Lean right (while aiming)")

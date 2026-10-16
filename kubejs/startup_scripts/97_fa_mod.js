@@ -27,6 +27,12 @@ if (Platform.isLoaded('factoryascension')) {
   $FAModConfig.setMobHearing(NP.mobsHearShots, NP.mobHearingScale)
   let RD = global.FA.raids
   $FAModConfig.setRaids(RD.enabled, RD.markTicks, RD.killsPerLevel, RD.firstRaidTicks, RD.raidEveryTicks, RD.partySize, RD.breakDoors, RD.bulletsPenetrate)
+  let VH = global.FA.vehicles, $FABike = Java.loadClass('dev.factoryascension.vehicle.BikeParts')
+  Object.keys(VH.engines).forEach(id => { let e = VH.engines[id]; $FABike.engine(id, e.name, e.power, e.top, e.weight, e.size, e.fuelUse, e.pitch, id == 'engine_v12') })
+  Object.keys(VH.frames).forEach(id => { let f = VH.frames[id]; $FABike.frameStats(id, f.name, f.weight, f.maxEngine, f.grip, f.turn) })
+  Object.keys(VH.gearboxes).forEach(id => { let g = VH.gearboxes[id]; $FABike.gearbox(id, g.name, g.gears, g.topMul, g.accelMul) })
+  $FABike.clearFuels()
+  VH.fuels.forEach(f => $FABike.fuel(f.item, f.name, f.amount, f.power, f.use, f.leftover))
   let DR = global.FA.drugs
   $FAModConfig.setDrugSeeds(DR.seedChance)
   $FAModConfig.clearChem()

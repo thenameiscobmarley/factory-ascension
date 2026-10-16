@@ -47,6 +47,9 @@ MATS = {
     "carbon": ("fabric", (36, 36, 38), SHINY), "canvas": ("fabric", (104, 98, 72), NOWEAR), "leather": ("fabric", (98, 58, 34), NOWEAR),
     "tape": ("fabric", (40, 40, 42), NOWEAR), "paracord": ("fabric", (70, 80, 58), NOWEAR),
     "walnut_light": ("wood", (150, 94, 52), 0), "teak": ("wood", (132, 82, 44), 0), "maple": ("wood", (196, 150, 98), 0), "rosewood": ("wood", (96, 44, 32), 0),
+    # Vehicles: painted plastic takes the vehicle's colour (TINT), the rest is fixed
+    "plastic_tint": ("polymer", (232, 232, 228), TINT), "plastic_black": ("polymer", (28, 28, 30), 0), "tyre": ("rubber", (24, 24, 24), NOWEAR),
+    "seat": ("fabric", (30, 30, 32), NOWEAR), "chain": ("metal", (60, 58, 56), 0), "engine_alu": ("metal", (150, 152, 154), SHINY),
     "glow_green": ("glow", (90, 255, 120), NOWEAR), "glow_amber": ("glow", (255, 176, 60), NOWEAR), "glow_white": ("glow", (240, 240, 235), NOWEAR),
 }
 

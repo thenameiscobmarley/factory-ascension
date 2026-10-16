@@ -4,6 +4,9 @@ Ideas the player asked to keep, with what was asked for word for word where it m
 
 ## Vehicle builder (start with a dirt bike)
 
+**Started (v25):** the dirt bike is in, with swappable engines (125/250/450/V12), frames (standard/long), gearboxes and fuels,
+each part its own mesh. Still to come: more vehicles, a garage screen, suspension/wheel/exhaust parts.
+
 **Build a dirt bike first.**
 
 A full vehicle builder, like the weapon customisation: assemble a vehicle from parts, and every part changes how it drives.

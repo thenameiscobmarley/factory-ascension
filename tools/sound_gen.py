@@ -407,6 +407,43 @@ def bullet_whiz(rnd):
     return normalize(fade_tail(bandpass(x, base, 0.9)), 0.8)
 
 
+def engine_loop(rnd, cyl=1):
+    """A running engine, one second that loops seamlessly (a whole number of firing cycles): a single's thumping
+    pulses with a rasp of exhaust, or (cyl=12) a V12's smooth, dense howl. The game pitches it with the revs."""
+    sec = 1.0
+    n = int(SR * sec)
+    x = silence(sec)
+    fire = 50 if cyl == 1 else 120                       # firing pulses a second at idle-ish revs
+    crank = 25 if cyl == 1 else 20                       # what repeats (one crank turn / one firing order)
+    per = SR / fire
+    for k in range(fire):
+        start = int(k * per)
+        # each pulse a little different, repeating with the crank so the loop stays seamless
+        var = 1.0 + 0.25 * math.sin(2 * math.pi * (k % (fire // crank)) / max(1, fire // crank))
+        tau = 0.006 if cyl == 1 else 0.0025
+        f1 = 95 if cyl == 1 else 240
+        for i in range(int(per * 1.6)):
+            j = (start + i) % n
+            t = i / SR
+            e = math.exp(-t / tau)
+            x[j] += var * e * (math.sin(2 * math.pi * f1 * t) + 0.5 * math.sin(2 * math.pi * f1 * 2.7 * t))
+    # Exhaust rasp: noise shaped by the same pulses
+    nz = noise(sec, rnd)
+    env_pulse = [0.0] * n
+    for k in range(fire):
+        start = int(k * per)
+        for i in range(int(per)):
+            env_pulse[(start + i) % n] = math.exp(-i / SR / 0.004)
+    rasp = [nz[i] * env_pulse[i] * (0.35 if cyl == 1 else 0.15) for i in range(n)]
+    rasp = bandpass(rasp, 1800 if cyl == 1 else 2600, 0.8)
+    x = [x[i] + rasp[i] for i in range(n)]
+    x = lowpass(x, 3200 if cyl == 1 else 4200)
+    # Remove any DC so the loop point doesn't click
+    m = sum(x) / n
+    x = [v - m for v in x]
+    return normalize(x, 0.85)
+
+
 def write_ogg(name, x):
     os.makedirs(os.path.dirname(os.path.join(OUT, name)), exist_ok=True)
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
@@ -449,6 +486,8 @@ SOUNDS = {
     "grenade.explode": (2, lambda r, k: grenade_explosion(r), "Grenade explodes"),
     "gun.crack": (3, lambda r, k: bullet_crack(r), "Round cracks past"),
     "gun.whiz": (3, lambda r, k: bullet_whiz(r), "Round whizzes past"),
+    "vehicle.engine": (1, lambda r, k: engine_loop(r, 1), "Dirt bike engine"),
+    "vehicle.engine_v12": (1, lambda r, k: engine_loop(r, 12), "V12 engine"),
 }
 
 
@@ -463,7 +502,7 @@ def main():
             if not only or sid in only:
                 rnd = random.Random(hash_str(sid) * 31 + k)
                 write_ogg(name, maker(rnd, k))
-            files.append({"name": "factoryascension:" + name, "stream": False} if sid != "dread.helicopter" else {"name": "factoryascension:" + name})
+            files.append({"name": "factoryascension:" + name, "stream": False} if sid not in ("dread.helicopter",) else {"name": "factoryascension:" + name})
         sounds_json[sid] = {"sounds": files, "subtitle": "subtitles.factoryascension." + sid}
         print("%-22s %d variant(s)" % (sid, variants))
     with open(os.path.join(ASSETS, "sounds.json"), "w") as f:

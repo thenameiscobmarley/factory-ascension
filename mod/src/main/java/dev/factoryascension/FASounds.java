@@ -21,7 +21,7 @@ public final class FASounds {
         MAG_OUT = s("gun.mag_out"), MAG_IN = s("gun.mag_in"), RACK = s("gun.rack"), BOLT = s("gun.bolt"), PUMP = s("gun.pump"),
         SHELL_IN = s("gun.shell_in"), CASING = s("gun.casing"), HEARTBEAT = s("dread.heartbeat"), BREATH = s("dread.breath"),
         RINGING = s("dread.ringing"), HELICOPTER = s("dread.helicopter"), GRENADE = s("grenade.explode"),
-        CRACK = s("gun.crack"), WHIZ = s("gun.whiz");
+        CRACK = s("gun.crack"), WHIZ = s("gun.whiz"), ENGINE = s("vehicle.engine"), ENGINE_V12 = s("vehicle.engine_v12");
 
     private FASounds() {
     }

@@ -16,6 +16,7 @@ public final class ClientSetup {
 
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent event) {
+        dev.factoryascension.client.vehicle.BikeClient.init();
         ClientConflicts.check();
         event.enqueueWork(() -> {
             try { GunClient.fixOculusReloadKey(); } catch (Throwable ignored) { }
@@ -49,5 +50,6 @@ public final class ClientSetup {
         for (var t : dev.factoryascension.npc.Operators.TYPES.values()) event.registerEntityRenderer(t.get(), dev.factoryascension.client.npc.OperatorRenderer::new);
         event.registerEntityRenderer(dev.factoryascension.npc.Operators.GRENADE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         event.registerEntityRenderer(dev.factoryascension.npc.Operators.CORPSE.get(), dev.factoryascension.client.npc.CorpseRenderer::new);
+        event.registerEntityRenderer(dev.factoryascension.vehicle.Vehicles.DIRT_BIKE.get(), dev.factoryascension.client.vehicle.DirtBikeRenderer::new);
     }
 }

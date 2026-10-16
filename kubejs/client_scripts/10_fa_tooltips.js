@@ -820,6 +820,27 @@ ItemEvents.tooltip(event => {
       use(drugText[id][1]),
       tip('Three doses inside a minute: overdose. Right-click a villager with it: it pays you and gets high'),
       made(id == 'joint' ? shapedList(DR.jointRecipe) + ' (crafting grid)' : (labOf(id).join('; ') || 'nowhere (config)') + ' (Chem Lab)')]))
+    // Dirt bike
+    let VH = FA.vehicles
+    let kmh = v => Math.round(v * 72) + ' km/h'
+    details('factoryascension:dirt_bike', 'Braaap.', () => [
+      use('right-click the ground to put it down, right-click it to ride: W throttle, S brake, A/D steer, Space hops, Sprint wheelies, Sneak gets off'),
+      tip('Sneak + right-click it with an engine, frame or gearbox to fit it (the old one drops); sneak + empty hand packs it up'),
+      tip('Fuel: right-click with a Fuel Can, Racing Fuel, TFMG gasoline or diesel, or a blaze rod. Dye paints it'),
+      made(shapedList(VH.recipes.dirt_bike) + ' (crafting grid)')])
+    Object.keys(VH.engines).forEach(id => { let e = VH.engines[id]; details('factoryascension:' + id, e.name + '.', () => [
+      use('a dirt bike: top speed ' + kmh(e.top) + ', ' + e.weight + ' kg, size ' + e.size + (e.size > 3 ? ' (needs a Long Frame)' : '')),
+      made(shapedList(VH.recipes[id]) + ' (crafting grid)')]) })
+    Object.keys(VH.frames).forEach(id => { let f = VH.frames[id]; details('factoryascension:' + id, f.name + '.', () => [
+      use('a dirt bike: ' + f.weight + ' kg, takes engines up to size ' + f.maxEngine + ', grip x' + f.grip + ', steering x' + f.turn),
+      made(shapedList(VH.recipes[id]) + ' (crafting grid)')]) })
+    Object.keys(VH.gearboxes).forEach(id => { let g = VH.gearboxes[id]; details('factoryascension:' + id, g.name + '.', () => [
+      use('a dirt bike: ' + g.gears + ' gears, top speed x' + g.topMul + ', pull x' + g.accelMul),
+      made(shapedList(VH.recipes[id]) + ' (crafting grid)')]) })
+    details('factoryascension:fuel_can', 'Smells like a lawnmower.', () => [
+      use('filling up a dirt bike (a full tank)'), made(VH.recipes.fuelCansPerCraft + ' from ' + shapedList(VH.recipes.fuel_can) + ' (crafting grid)')])
+    details('factoryascension:racing_fuel', 'Smells like a lawnmower that wins.', () => [
+      use('filling up a dirt bike: more power and speed, burns much faster'), made(shapedList(VH.recipes.racing_fuel) + ' (crafting grid)')])
     details('factoryascension:chem_lab', 'Glassware, a burner, no questions.', () => [
       tip('Mixes: Speedball (cocaine + morphine), Overamped (cocaine + meth), Candyflip (ecstasy + LSD/mushrooms), Hippie flip (ecstasy + psychosis), Crossfade (joint + vodka), Blackout (xanax + vodka), Deep hole (ketamine + vodka), Wake and bake (joint + cocaine)'),
       use('right-click it with the inputs in your inventory: it makes the first of its recipes you have everything for'),

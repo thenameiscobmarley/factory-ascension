@@ -388,5 +388,23 @@
    }
   ],
   "subtitle": "subtitles.factoryascension.gun.whiz"
+ },
+ "vehicle.engine": {
+  "sounds": [
+   {
+    "name": "factoryascension:vehicle/engine",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.vehicle.engine"
+ },
+ "vehicle.engine_v12": {
+  "sounds": [
+   {
+    "name": "factoryascension:vehicle/engine_v12",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.vehicle.engine_v12"
  }
 }

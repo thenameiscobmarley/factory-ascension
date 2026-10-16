@@ -391,5 +391,20 @@
  "effect.factoryascension.rolling": "Rolling",
  "effect.factoryascension.sedated": "Sedated",
  "effect.factoryascension.dissociated": "Dissociated",
- "effect.factoryascension.drunk": "Drunk"
+ "effect.factoryascension.drunk": "Drunk",
+ "subtitles.factoryascension.vehicle.engine": "Dirt bike engine",
+ "subtitles.factoryascension.vehicle.engine_v12": "V12 engine",
+ "item.factoryascension.dirt_bike": "Dirt Bike",
+ "item.factoryascension.engine_125": "125cc Two-Stroke Engine",
+ "item.factoryascension.engine_250": "250cc Two-Stroke Engine",
+ "item.factoryascension.engine_450": "450cc Four-Stroke Engine",
+ "item.factoryascension.engine_v12": "V12 Engine",
+ "item.factoryascension.frame_standard": "Standard Bike Frame",
+ "item.factoryascension.frame_long": "Long Bike Frame",
+ "item.factoryascension.gearbox_4": "4-Speed Gearbox",
+ "item.factoryascension.gearbox_6": "6-Speed Gearbox",
+ "item.factoryascension.gearbox_race": "Close-Ratio Race Gearbox",
+ "item.factoryascension.fuel_can": "Fuel Can",
+ "item.factoryascension.racing_fuel": "Racing Fuel",
+ "entity.factoryascension.dirt_bike": "Dirt Bike"
 }

@@ -1033,7 +1033,10 @@ def main():
     import operator_art
     operator_art.main()       # the armed operators' skins, their kit, the bleeding icon
     import v25_art
-    v25_art.main()            # flashbang, NODs, plate carrier, drugs and crops, raid blocks, effect icons
+    v25_art.main()            # flashbang, NODs, plate carrier, drugs and crops, raid blocks, effect icons, bike items
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "vehicles"))
+    import bike_mesh
+    bike_mesh.main()          # the dirt bike's part meshes
     import shutil
     if shutil.which("ffmpeg"):
         import sound_gen

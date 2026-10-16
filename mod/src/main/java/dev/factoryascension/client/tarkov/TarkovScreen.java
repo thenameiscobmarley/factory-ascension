@@ -46,7 +46,7 @@ import java.util.Map;
 public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
     // Tarkov's palette: near-black panels, thin grey edges, warm light-grey text
     static final int BG = 0xEC0C0C0C, PANEL = 0xC0141414, EDGE = 0xFF3A3A38, EDGE_LIGHT = 0xFF5A5A56, CELL = 0xFF121212, CELL_LINE = 0xFF262626;
-    static final int ACCENT = 0xFFC9A55A, SHADOW = 0x70000000, HILITE = 0x22FFFFFF;
+    public static final int ACCENT = 0xFFC9A55A, SHADOW = 0x70000000, HILITE = 0x22FFFFFF;
     /** The UI font: Noto Sans (assets/factoryascension/font, SIL Open Font License), crisp and not blocky. */
     static final net.minecraft.resources.ResourceLocation UI_FONT = new net.minecraft.resources.ResourceLocation(dev.factoryascension.FactoryAscension.MODID, "ui"),
         UI_BOLD = new net.minecraft.resources.ResourceLocation(dev.factoryascension.FactoryAscension.MODID, "ui_bold");
@@ -196,11 +196,11 @@ public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
 
 
     // ---- Text in the UI font ----
-    static net.minecraft.network.chat.Component ui(String s) {
+    public static net.minecraft.network.chat.Component ui(String s) {
         return net.minecraft.network.chat.Component.literal(s).withStyle(st -> st.withFont(UI_FONT));
     }
 
-    static net.minecraft.network.chat.Component uiBold(String s) {
+    public static net.minecraft.network.chat.Component uiBold(String s) {
         return net.minecraft.network.chat.Component.literal(s).withStyle(st -> st.withFont(UI_BOLD));
     }
 

@@ -373,9 +373,21 @@ then a crash), **Methamphetamine** (very fast and strong, jittery aim, tunnel vi
 with **Psychosis**), **Morphine** (hits hurt less), an **Adrenaline Shot** and **Magic Mushrooms** (the world breathes,
 colours roll, trails). Each has its own look on screen. With Psychosis or mushrooms you see things that aren't there: a
 figure standing far off that's gone when you get close or stare at it, a head peeking round a corner that slides back
-when you look, footsteps behind you. Three doses inside a minute is an overdose. **Cannabis** and **coca** seeds drop
-from grass (plant them on farmland); the rest is made at the **Chem Lab** (right-click it with the inputs on you). All in
-`drugs`.
+when you look, footsteps behind you. Three doses inside a minute is an overdose. Also **LSD** (a long, strong trip), **Ecstasy**
+(warm, glowing, you heal), **Xanax** (calm, steady aim, heavy eyelids), **Ketamine** (the world stretches away),
+**Vodka** (brave and tough, the room sways and doubles) and **Energy Drinks**. Take one while another is still on you and
+they **mix**: Speedball, Overamped (a heart attack waiting to happen), Candyflip, Hippie flip, Crossfade (greening out),
+Blackout, Deep hole, Wake and bake. **Villagers** take them too: right-click one with a drug and it pays you, likes you
+better (cheaper trades), smokes it, and then it's high: tweaking (twitching, head snapping, darting about, chattering),
+stoned, drunk, or staring at the sky. **Cannabis** and **coca** seeds drop from grass (plant them on farmland); the rest
+is made at the **Chem Lab** (right-click it with the inputs on you). All in `drugs`.
+
+**Dirt bike**: built from parts, and it rides like what's fitted to it: an engine (125cc and 250cc two-strokes, a 450cc
+four-stroke, or a **V12**, which only fits the **Long Frame**), a frame, and a gearbox (4-speed, 6-speed, or a
+close-ratio race box); you see every part on it. W throttle, S brake and reverse, A/D steer, Space hops, Sprint pulls a
+wheelie; it climbs a block, leans into turns, and its engine note climbs through the gears. It runs on fuel (Fuel Cans,
+Racing Fuel, TFMG gasoline or diesel, blaze rods), takes a dye, and hurts whatever it hits at speed. Sneak +
+right-click with a part to swap it, with an empty hand to pack it up. All in `vehicles`.
 
 ## Tarkov inventory (Full download)
 
@@ -384,7 +396,8 @@ Tarkov's gear screen: your gear in labelled frames around your silhouette (headw
 holster = off hand, on sling = what's in your hand), crafting and overflow in the middle, the backpack on the right
 with filter buttons down its side (weapons, armor, tools, blocks, food, other), your weight, health, food and armor along
 the bottom, and the hotbar as the numbered **Quick use** row, over the world blurred behind it, in a clean UI font
-(Noto Sans) with shaded panels and an amber accent. The main
+(Noto Sans) with shaded panels and an amber accent. **By default it's now the game's own inventory layout** in that dark
+look (still opened out of the duffel bag); set `inventory.grid: true` for the grid below. With the grid, the main
 inventory is a **grid** where items take their real size: a block 1x1, a pickaxe 1x2, a sword or a bow 1x3, a helmet
 2x2, a chestplate 3x3, the shotgun 5x2, a backpack 3x3.
 
@@ -470,7 +483,10 @@ so the game keeps running:
   and mob, no shader pack needed. Each texture's light and dark detail becomes a smooth height field (read between
   pixels, so it's slopes and lumps, not stacked layers), flush at every block's edge (no seams or outlines), and lit by a
   light from above with a highlight that moves as you do, so mortar sinks between bricks, cobblestone is lumpy and bark
-  has grooves even face-on. Mobs get the lit relief without any shifting (so no outlines round their parts).
+  has grooves even face-on. The texture's average sits at the surface and only darker detail sinks, so faces stay flat
+  edge to edge (no bowl in the middle of each block), and it carries on across blocks, so connected textures
+  (**Continuity** via Sinytra Connector, or **CTM** on Forge) join up smoothly. Mobs get the lit relief without any
+  shifting (so no outlines round their parts).
   **Depth smoothing** (sharp per-pixel to soft and rounded) and **Depth strength** sliders in the settings. Works with
   Minecraft's own renderer **and with Embeddium** (the mod hands Embeddium the pack's block shaders while the pack is on;
   if the game ever closes while Embeddium is building them, the next start uses Embeddium's own). Turn it off with
@@ -1029,8 +1045,10 @@ The list is the `conflicts` section of the config.
 ## Factory Room TNT: an underground room in one click
 
 Right-click a block with one: after a 3 second fuse it blasts out a room **in front of you**, floor level with your
-feet, then lines the floor, walls and roof with its block, sets lights into the roof every 6 blocks and leaves a
-3x3 doorway where you're standing. It's built over a few ticks, roof first, so big rooms don't freeze the server or
+feet, then lines the floor, walls and roof with its block, and lights it all the way down: lights in the roof every 5
+blocks, a row along every wall at half height, and lights set flush into the floor between the roof's, so even the
+16-high room is bright at the bottom. It leaves a 3x3 doorway where you're standing. The **Outdoor Cabin** style
+(spruce planks) is for building above ground: its walls get rows of glass windows. It's built over a few ticks, roof first, so big rooms don't freeze the server or
 drop sand on you.
 
 | Size | Inside | Recipe |

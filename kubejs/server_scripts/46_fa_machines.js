@@ -51,6 +51,12 @@ if (Platform.isLoaded(FA_MOD)) {
     event.shaped(Item.of(FA_MOD + ':ballistic_glass_pane', 16), ['GGG', 'GGG'], { G: FA_MOD + ':ballistic_glass' }).id('kubejs:factory_ascension/ballistic_glass_pane')
     event.shaped(FA_MOD + ':steel_door', RD.steelDoor[0], RD.steelDoor[1]).id('kubejs:factory_ascension/steel_door')
     event.shaped(FA_MOD + ':steel_trapdoor', RD.steelTrapdoor[0], RD.steelTrapdoor[1]).id('kubejs:factory_ascension/steel_trapdoor')
+    let VR = global.FA.vehicles.recipes
+    Object.keys(VR).forEach(id => {
+      if (!Array.isArray(VR[id])) return
+      let n = id == 'fuel_can' ? VR.fuelCansPerCraft : 1
+      event.shaped(Item.of(FA_MOD + ':' + id, n), VR[id][0], VR[id][1]).id('kubejs:factory_ascension/' + id)
+    })
     let DR = global.FA.drugs
     event.shaped(FA_MOD + ':joint', DR.jointRecipe[0], DR.jointRecipe[1]).id('kubejs:factory_ascension/joint')
     event.shaped(FA_MOD + ':chem_lab', DR.chemLab[0], DR.chemLab[1]).id('kubejs:factory_ascension/chem_lab')

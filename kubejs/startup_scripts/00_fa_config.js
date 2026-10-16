@@ -1527,6 +1527,51 @@ global.FA = {
     ]
   },
 
+  // ---- Dirt bike (Full download): built from parts, and it rides like what's fitted. Put it down with the item,
+  // right-click to ride (W throttle, S brake/reverse, A/D steer, Space hops, Sprint pulls a wheelie, Sneak gets off).
+  // Sneak + right-click it with a part to fit it (the old one drops); with an empty hand to pack it up. Right-click with
+  // fuel to fill up, with a dye to paint it. Speeds: blocks per tick (1 = 72 km/h). An engine's size must fit the frame.
+  vehicles: {
+    engines: {
+      engine_125: { name: '125cc Two-Stroke', power: 0.020, top: 0.75, weight: 20, size: 1, fuelUse: 0.004, pitch: 1.25 },
+      engine_250: { name: '250cc Two-Stroke', power: 0.028, top: 0.95, weight: 25, size: 2, fuelUse: 0.006, pitch: 1.1 },
+      engine_450: { name: '450cc Four-Stroke', power: 0.036, top: 1.15, weight: 32, size: 3, fuelUse: 0.008, pitch: 0.9 },
+      engine_v12: { name: 'V12', power: 0.070, top: 1.8, weight: 160, size: 4, fuelUse: 0.030, pitch: 0.75 }
+    },
+    frames: {
+      frame_standard: { name: 'Standard Frame', weight: 70, maxEngine: 3, grip: 1.0, turn: 1.0 },
+      frame_long: { name: 'Long Frame', weight: 95, maxEngine: 4, grip: 1.1, turn: 0.75 }
+    },
+    gearboxes: {
+      gearbox_4: { name: '4-Speed Gearbox', gears: 4, topMul: 1.0, accelMul: 1.0 },
+      gearbox_6: { name: '6-Speed Gearbox', gears: 6, topMul: 1.15, accelMul: 0.95 },
+      gearbox_race: { name: 'Close-Ratio Race Gearbox', gears: 5, topMul: 1.05, accelMul: 1.22 }
+    },
+    // amount: how much of the tank one fills (of 100); power / use: what it does to the engine; leftover: given back
+    fuels: [
+      { item: 'factoryascension:fuel_can', name: 'Petrol', amount: 100, power: 1.0, use: 1.0, leftover: '' },
+      { item: 'factoryascension:racing_fuel', name: 'Racing Fuel', amount: 100, power: 1.22, use: 1.6, leftover: '' },
+      { item: 'tfmg:gasoline_bucket', name: 'Gasoline', amount: 100, power: 1.0, use: 1.0, leftover: 'minecraft:bucket' },
+      { item: 'tfmg:diesel_bucket', name: 'Diesel', amount: 100, power: 0.9, use: 0.7, leftover: 'minecraft:bucket' },
+      { item: 'minecraft:blaze_rod', name: 'Blaze Rod', amount: 15, power: 1.1, use: 1.2, leftover: '' }
+    ],
+    recipes: {
+      dirt_bike: [[' L ', 'EFG', 'K K'], { L: 'minecraft:leather', E: 'factoryascension:engine_125', F: 'factoryascension:frame_standard', G: 'factoryascension:gearbox_4', K: 'minecraft:dried_kelp_block' }],
+      engine_125: [['IPI', 'RBR', 'ICI'], { I: 'minecraft:iron_ingot', P: 'minecraft:piston', R: 'minecraft:redstone', B: 'minecraft:iron_block', C: 'minecraft:copper_ingot' }],
+      engine_250: [['IPI', 'PEP', 'III'], { I: 'minecraft:iron_ingot', P: 'minecraft:piston', E: 'factoryascension:engine_125' }],
+      engine_450: [['GPG', 'PEP', 'IDI'], { G: 'minecraft:gold_ingot', P: 'minecraft:piston', E: 'factoryascension:engine_250', I: 'minecraft:iron_ingot', D: 'minecraft:diamond' }],
+      engine_v12: [['EAE', 'ANA', 'EAE'], { E: 'factoryascension:engine_450', A: 'kubejs:ascendite_ingot', N: 'minecraft:netherite_ingot' }],
+      frame_standard: [['  I', 'III', 'I I'], { I: 'minecraft:iron_ingot' }],
+      frame_long: [['III', 'IFI', 'I I'], { I: 'minecraft:iron_ingot', F: 'factoryascension:frame_standard' }],
+      gearbox_4: [['ICI', 'CRC', 'ICI'], { I: 'minecraft:iron_ingot', C: 'create:cogwheel', R: 'minecraft:redstone' }],
+      gearbox_6: [[' C ', 'LGL', ' C '], { C: 'create:cogwheel', L: 'create:large_cogwheel', G: 'factoryascension:gearbox_4' }],
+      gearbox_race: [['DGD', 'LRL', 'DGD'], { D: 'minecraft:diamond', G: 'factoryascension:gearbox_6', L: 'create:large_cogwheel', R: 'minecraft:redstone_block' }],
+      fuel_can: [['I I', 'ICI', 'III'], { I: 'minecraft:iron_ingot', C: 'minecraft:coal_block' }],
+      fuelCansPerCraft: 2,
+      racing_fuel: [['BGB', 'GFG', 'BGB'], { B: 'minecraft:blaze_powder', G: 'minecraft:glowstone_dust', F: 'factoryascension:fuel_can' }]
+    }
+  },
+
   npcs: {
     healthScale: 1, damageScale: 0.45, spreadScale: 1, bleedChance: 0.2, gunDropChance: 0.85,
     // Monsters (hordes too) hear gunshots and come: hearing x the shot's reach (about 100 blocks for a rifle, a few for a suppressed one)
@@ -2470,7 +2515,8 @@ global.FA_meteorPool = () => {
     put(P.machines, ['lsd_tab', 'ecstasy', 'ketamine'].map(b => 'factoryascension:' + b))
     put(P.machines, ['plate_carrier', 'steel_plate', 'ceramic_plate', 'titanium_plate', 'nods_green', 'chem_lab', 'cocaine', 'methamphetamine',
       'magic_mushrooms', 'ballistic_concrete', 'ballistic_glass', 'ballistic_glass_pane', 'steel_door', 'steel_trapdoor'].map(b => 'factoryascension:' + b))
-    put(P.bigMachines, ['hybrid_plate', 'ascendite_plate', 'nods_white'].map(b => 'factoryascension:' + b))
+    put(P.bigMachines, ['hybrid_plate', 'ascendite_plate', 'nods_white', 'engine_v12', 'gearbox_race', 'frame_long'].map(b => 'factoryascension:' + b))
+    put(P.machines, ['dirt_bike', 'engine_125', 'engine_250', 'engine_450', 'frame_standard', 'gearbox_4', 'gearbox_6', 'fuel_can', 'racing_fuel'].map(b => 'factoryascension:' + b))
     put(P.machines, ['factoryascension:weapons_workbench'])
     put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
     if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))

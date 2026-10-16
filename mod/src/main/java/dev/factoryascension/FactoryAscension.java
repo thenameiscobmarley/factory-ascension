@@ -265,6 +265,10 @@ public class FactoryAscension {
             out.accept(PLATE_CARRIER.get());
             out.accept(NODS_GREEN.get());
             out.accept(dev.factoryascension.drugs.DrugBlocks.CHEM_LAB_ITEM.get());
+            out.accept(dev.factoryascension.vehicle.Vehicles.DIRT_BIKE_ITEM.get());
+            dev.factoryascension.vehicle.Vehicles.PARTS.values().forEach(i -> out.accept(i.get()));
+            out.accept(dev.factoryascension.vehicle.Vehicles.FUEL_CAN.get());
+            out.accept(dev.factoryascension.vehicle.Vehicles.RACING_FUEL.get());
             dev.factoryascension.npc.Raids.ITEMS.forEach(i -> out.accept(i.get()));
             out.accept(dev.factoryascension.npc.Raids.STEEL_DOOR_ITEM.get());
             out.accept(dev.factoryascension.drugs.DrugBlocks.CANNABIS_SEEDS.get());
@@ -313,6 +317,7 @@ public class FactoryAscension {
         dev.factoryascension.drugs.Drugs.init();            // drug effects and items
         dev.factoryascension.drugs.DrugBlocks.init();       // crops and the chem lab
         dev.factoryascension.drugs.VillagerHighs.init();    // villagers take them too
+        dev.factoryascension.vehicle.Vehicles.register(bus); // the dirt bike (its items go into ITEMS first)
         dev.factoryascension.npc.Raids.init();              // being marked, raid parties, ballistic blocks
         EFFECTS.register(bus);
         if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks"))
