@@ -158,18 +158,24 @@ public final class Outposts {
 
         /** Ground under a w x d footprint: the middle height, if it's dry land and not a cliff. */
         boolean ground(int halfW, int halfD, int maxStep) {
+            // Nine points over the footprint: the middle must be dry land; a couple of wet or odd points are fine (a
+            // stream, a pond's edge: the pad fills them), but not a lake or a cliff
             int[] ys = new int[9];
-            int i = 0;
+            int n = 0, wet = 0;
             for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
                 BlockPos p = at(dx * halfW, 0, dz * halfD);
                 int y = surface(p.getX(), p.getZ());
                 BlockState g = level.getBlockState(new BlockPos(p.getX(), y - 1, p.getZ()));
-                if (!g.getFluidState().isEmpty() || g.is(BlockTags.LEAVES) && dx == 0 && dz == 0) return false;
-                ys[i++] = y;
+                boolean bad = !g.getFluidState().isEmpty() || g.is(BlockTags.LEAVES);
+                if (bad && dx == 0 && dz == 0) return false;
+                if (bad) { wet++; continue; }
+                ys[n++] = y;
             }
-            java.util.Arrays.sort(ys);
-            if (ys[8] - ys[0] > maxStep) return false;
-            gy = ys[4];
+            if (wet > 2 || n < 5) return false;
+            int[] got = java.util.Arrays.copyOf(ys, n);
+            java.util.Arrays.sort(got);
+            if (got[n - 1] - got[0] > maxStep + 2) return false;
+            gy = got[n / 2];
             if (gy <= level.getMinBuildHeight() + 2 || gy >= level.getMaxBuildHeight() - 40) return false;
             return true;
         }
@@ -217,6 +223,8 @@ public final class Outposts {
                         BlockState s = level.getBlockState(at(x, y, z));
                         if (!s.isAir()) air(x, y, z);
                     }
+                    // Water just under the pad's top (a stream through the site) is filled in
+                    for (int k = 1; k < 4; k++) if (!level.getFluidState(p.below(k)).isEmpty()) set(p.below(k), Blocks.DIRT.defaultBlockState());
                 }
         }
 

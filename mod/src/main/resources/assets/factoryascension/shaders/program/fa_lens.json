@@ -1,0 +1,22 @@
+{
+ "blend": {"func": "add", "srcrgb": "one", "dstrgb": "zero"},
+ "vertex": "sobel",
+ "fragment": "factoryascension:fa_lens",
+ "attributes": ["Position"],
+ "samplers": [{"name": "DiffuseSampler"}],
+ "uniforms": [
+  {"name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]},
+  {"name": "InSize", "type": "float", "count": 2, "values": [1.0, 1.0]},
+  {"name": "OutSize", "type": "float", "count": 2, "values": [1.0, 1.0]},
+  {"name": "Time", "type": "float", "count": 1, "values": [0.0]},
+  {"name": "Fisheye", "type": "float", "count": 1, "values": [1.0]},
+  {"name": "Grain", "type": "float", "count": 1, "values": [1.0]},
+  {"name": "Desat", "type": "float", "count": 1, "values": [0.35]},
+  {"name": "Vignette", "type": "float", "count": 1, "values": [1.0]},
+  {"name": "Stress", "type": "float", "count": 1, "values": [0.0]},
+  {"name": "Ring", "type": "float", "count": 1, "values": [0.0]},
+  {"name": "Hurt", "type": "float", "count": 1, "values": [0.0]},
+  {"name": "Dread", "type": "float", "count": 1, "values": [0.0]},
+  {"name": "Clock", "type": "float", "count": 1, "values": [0.0]}
+ ]
+}

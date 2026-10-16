@@ -497,6 +497,23 @@ public final class GunSkins {
             v(a[0], a[1], a[2], argb, 0, 0, -nx, -ny, -nz, li);
         }
 
+        /** A two-sided quad shaded from one colour at its a-b edge to another at its c-d edge (flames: hot to faint). */
+        void card2(float[] a, float[] b, float[] c, float[] d, int from, int to, int li) {
+            float ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], wx = d[0] - a[0], wy = d[1] - a[1], wz = d[2] - a[2];
+            float nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx;
+            float l = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+            if (l < 1e-6f) return;
+            nx /= l; ny /= l; nz /= l;
+            v(a[0], a[1], a[2], from, 0, 1, nx, ny, nz, li);
+            v(b[0], b[1], b[2], from, 1, 1, nx, ny, nz, li);
+            v(c[0], c[1], c[2], to, 1, 0, nx, ny, nz, li);
+            v(d[0], d[1], d[2], to, 0, 0, nx, ny, nz, li);
+            v(d[0], d[1], d[2], to, 0, 0, -nx, -ny, -nz, li);
+            v(c[0], c[1], c[2], to, 1, 0, -nx, -ny, -nz, li);
+            v(b[0], b[1], b[2], from, 1, 1, -nx, -ny, -nz, li);
+            v(a[0], a[1], a[2], from, 0, 1, -nx, -ny, -nz, li);
+        }
+
         /** A low dome (a lump of snow, moss): `seg` around, 3 rings up. */
         void dome(float x, float y, float z, float rx, float ry, float rz, int argb, int seg) {
             int rings = 3;
@@ -652,17 +669,27 @@ public final class GunSkins {
                 }
             }
             case FLAMES -> {
+                // Additive light: bright and orange at the root, fading to nothing at the tip (dark is see-through)
                 Emit e = new Emit(pose, buffers.getBuffer(GunMesh.type(GunMesh.GLOW)), 0xF000F0, overlay);
                 float[] s = spots(mesh, key, true, 28, seed);
                 for (int k = 0; k < s.length / 3; k++) {
                     float x = s[k * 3], y = s[k * 3 + 1], z = s[k * 3 + 2];
                     float flick = 0.6f + 0.4f * noise(t * 6 + k, k, 0);
                     float h = (0.7f + hash(k, 1, 1) * 0.9f) * flick + GunAnim.heat() * 0.8f;
-                    float w = 0.28f;
+                    float w = 0.24f + 0.08f * hash(k, 3, 3);
                     float lean = -swayX * 2 - 0.3f;
-                    int c = mix(hex(0xFF6010), hex(0xFFD050), hash(k, 2, 2));
-                    e.card(new float[] {x - w, y, z}, new float[] {x + w, y, z}, new float[] {x + lean, y + h, z}, new float[] {x + lean, y + h, z}, c, e.light);
-                    e.card(new float[] {x, y, z - w}, new float[] {x, y, z + w}, new float[] {x + lean, y + h, z}, new float[] {x + lean, y + h, z}, c, e.light);
+                    int root = mix(hex(0xC04008), hex(0xE08020), hash(k, 2, 2));
+                    int mid = mix(hex(0x903008), hex(0xC06010), hash(k, 4, 4));
+                    float my = y + h * 0.45f, mx = x + lean * 0.45f;
+                    for (int side = 0; side < 2; side++) {
+                        float[] a = side == 0 ? new float[] {x - w, y, z} : new float[] {x, y, z - w};
+                        float[] b = side == 0 ? new float[] {x + w, y, z} : new float[] {x, y, z + w};
+                        float[] c = side == 0 ? new float[] {mx + w * 0.6f, my, z} : new float[] {mx, my, z + w * 0.6f};
+                        float[] d = side == 0 ? new float[] {mx - w * 0.6f, my, z} : new float[] {mx, my, z - w * 0.6f};
+                        e.card2(a, b, c, d, root, mid, e.light);
+                        float[] tip = {x + lean, y + h, z};
+                        e.card2(d, c, tip, tip, mid, hex(0x100400), e.light);
+                    }
                 }
             }
             case EMBERS -> {

@@ -130,6 +130,7 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.bench")) step = 400;   // only the workbench and attachment shots
                     if (Boolean.getBoolean("fa.skins")) step = 500;   // only the smooth guns, skins, akimbo and gangster shots
                     if (Boolean.getBoolean("fa.npc")) step = 600;     // only the operators, structures, realism camera and new bench tabs
+                    if (Boolean.getBoolean("fa.lens")) step = 650;    // only the realism camera
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -351,6 +352,13 @@ public final class DevShots {
                 case 617 -> { shot(mc, "bench_gunsmith"); if (mc.screen instanceof dev.factoryascension.client.gun.WeaponsBenchScreen b) { b.devTab(3, null); b.devPick("black_water"); } wait = 40; }
                 case 618 -> { shot(mc, "bench_skins"); if (mc.screen instanceof dev.factoryascension.client.gun.WeaponsBenchScreen b) { b.devTab(1, null); } wait = 30; }
                 case 619 -> { shot(mc, "bench_press18"); mc.setScreen(null); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                // The realism camera: on (calm, then hurt and stressed, then ears ringing), and off
+                case 650 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "tp @a -2 -60 -6 0 0"); cmd(mc, "time set noon");
+                    FAClientConfig.REALISM.set(true); wait = 40; }
+                case 651 -> { shot(mc, "lens_on"); dev.factoryascension.client.gun.GunAnim.stress = 1; cmd(mc, "damage @s 12"); wait = 30; }
+                case 652 -> { shot(mc, "lens_hurt"); cmd(mc, "effect give @a instant_health 1 3"); dev.factoryascension.client.gun.GunAnim.stress = 0; wait = 30; }
+                case 653 -> { FAClientConfig.REALISM.set(false); wait = 40; }
+                case 654 -> { shot(mc, "lens_off"); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }

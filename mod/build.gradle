@@ -94,6 +94,7 @@ minecraft {
                 if (project.hasProperty('faBench')) property 'fa.bench', 'true'
                 if (project.hasProperty('faSkins')) property 'fa.skins', 'true'
                 if (project.hasProperty('faNpc')) property 'fa.npc', 'true'
+                if (project.hasProperty('faLens')) property 'fa.lens', 'true'
                 if (project.hasProperty('faShot')) property 'fa.shot', project.property('faShot')
                 jvmArgs '-Xmx1500m'
                 args '--quickPlaySingleplayer', 'devworld', '--width', '1280', '--height', '720'
