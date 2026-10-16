@@ -27,6 +27,7 @@ public final class FANetwork {
         CHANNEL.registerMessage(3, TarkovSync.class, TarkovSync::encode, TarkovSync::decode, TarkovSync::handle);
         CHANNEL.registerMessage(4, TarkovPlan.class, TarkovPlan::encode, TarkovPlan::decode, TarkovPlan::handle);
         CHANNEL.registerMessage(5, StressSync.class, StressSync::encode, StressSync::decode, StressSync::handle);
+        CHANNEL.registerMessage(7, NodsToggle.class, NodsToggle::encode, NodsToggle::decode, NodsToggle::handle);
         CHANNEL.registerMessage(6, BenchAction.class, BenchAction::encode, BenchAction::decode, BenchAction::handle);
     }
 
@@ -202,6 +203,31 @@ public final class FANetwork {
                     if (flare) dev.factoryascension.item.FlareGunItem.reload(player, player.getMainHandItem());
                     else dev.factoryascension.item.ShotgunItem.startReload(player, player.getMainHandItem());
                 }
+            });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Client -> server: flip the worn night vision goggles down / up. */
+    public record NodsToggle() {
+        static void encode(NodsToggle m, FriendlyByteBuf b) {
+        }
+
+        static NodsToggle decode(FriendlyByteBuf b) {
+            return new NodsToggle();
+        }
+
+        static void handle(NodsToggle m, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> {
+                ServerPlayer p = ctx.get().getSender();
+                if (p == null) return;
+                var head = p.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+                if (!(head.getItem() instanceof dev.factoryascension.armor.NodsItem)) return;
+                boolean down = !dev.factoryascension.armor.NodsItem.down(head);
+                dev.factoryascension.armor.NodsItem.setDown(head, down);
+                if (!down) p.removeEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION);
+                p.level().playSound(null, p.blockPosition(), down ? net.minecraft.sounds.SoundEvents.IRON_TRAPDOOR_CLOSE : net.minecraft.sounds.SoundEvents.IRON_TRAPDOOR_OPEN,
+                    net.minecraft.sounds.SoundSource.PLAYERS, 0.4f, 1.8f);
             });
             ctx.get().setPacketHandled(true);
         }

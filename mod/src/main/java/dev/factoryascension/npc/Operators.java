@@ -134,6 +134,12 @@ public final class Operators {
 
     /** A squad of a kind at x, z (on the surface), sent toward `goal` (or null). */
     public static int squad(ServerLevel level, double x, double z, OpType lead, int n, @Nullable Vec3 goal) {
+        return squad(level, x, z, lead, n, goal, o -> {
+        });
+    }
+
+    /** The same, and `each` for every one made. */
+    public static int squad(ServerLevel level, double x, double z, OpType lead, int n, @Nullable Vec3 goal, java.util.function.Consumer<Operator> each) {
         int made = 0;
         RandomSource r = level.getRandom();
         for (int i = 0; i < n; i++) {
@@ -148,6 +154,7 @@ public final class Operators {
                 o.investigate = goal;
                 o.investigateUntil = level.getGameTime() + 3000;
             }
+            each.accept(o);
             made++;
         }
         return made;

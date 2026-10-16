@@ -1,0 +1,9 @@
+{
+ "targets": ["swap", "previous"],
+ "passes": [
+  {"name": "factoryascension:fa_trip", "intarget": "minecraft:main", "outtarget": "swap",
+   "auxtargets": [{"name": "PrevSampler", "id": "previous"}]},
+  {"name": "blit", "intarget": "swap", "outtarget": "previous"},
+  {"name": "blit", "intarget": "swap", "outtarget": "minecraft:main"}
+ ]
+}

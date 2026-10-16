@@ -41,6 +41,7 @@ public final class Stress {
     }
 
     public static void add(ServerPlayer p, float v) {
+        if (v > 0) v *= dev.factoryascension.drugs.Drugs.stressGain(p);
         set(p, get(p) + v);
     }
 

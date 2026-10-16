@@ -87,6 +87,22 @@ public class Operator extends Monster {
     int alertTimer = 0, barkCooldown = 0;
     public final OpType type;
     boolean reloadFumbled = false;
+    // Plates in its carrier (armored kinds): which, and how worn (0..1 left)
+    dev.factoryascension.armor.Plate plate = null;
+    float plateFront = 0, plateBack = 0;
+
+    /** A round on its plates (armor/Ballistics): what gets through. */
+    public float plateHit(float damage, float pen, boolean front) {
+        if (plate == null) return damage;
+        float left = front ? plateFront : plateBack;
+        if (left <= 0) return damage;
+        float effective = plate.protection * (0.55f + 0.45f * left);
+        boolean stopped = pen < effective;
+        float wear = damage * (stopped ? 1 : 0.6f) * (plate == dev.factoryascension.armor.Plate.CERAMIC ? 2.2f : 1) / plate.durability;
+        if (front) plateFront = Math.max(0, plateFront - wear); else plateBack = Math.max(0, plateBack - wear);
+        level().playSound(null, getX(), getY() + 1.2, getZ(), stopped ? SoundEvents.ANVIL_LAND : SoundEvents.ARMOR_EQUIP_IRON, SoundSource.HOSTILE, 0.35f, 1.8f);
+        return stopped ? damage * plate.blunt : damage * 0.7f;
+    }
     int ammo = -1, reload = 0, fireCooldown = 0, burstLeft = 0, grenades = 0, bandages = 0, grenadeCooldown = 0, healing = 0;
     int seenTicks = 0, unseenTicks = 0, healCooldown = 0, dazzled = 0;
 
@@ -324,6 +340,17 @@ public class Operator extends Monster {
         // Their armor is drawn on their skins (helmets, plate carriers); its protection is in their stats
         getAttribute(Attributes.ARMOR).setBaseValue(type.armorTier * 4 + (type.has(OpType.Trait.HEAVY) ? 6 : 0));
         getAttribute(Attributes.ARMOR_TOUGHNESS).setBaseValue(type.armorTier >= 3 ? type.armorTier : 0);
+        // Plates by how well armored the kind is
+        dev.factoryascension.armor.Plate[][] byTier = {{}, {dev.factoryascension.armor.Plate.POLYETHYLENE},
+            {dev.factoryascension.armor.Plate.STEEL, dev.factoryascension.armor.Plate.POLYETHYLENE},
+            {dev.factoryascension.armor.Plate.CERAMIC, dev.factoryascension.armor.Plate.HYBRID, dev.factoryascension.armor.Plate.TITANIUM},
+            {dev.factoryascension.armor.Plate.HYBRID, dev.factoryascension.armor.Plate.ASCENDITE}};
+        var choices = byTier[Math.min(4, type.armorTier)];
+        if (choices.length > 0) {
+            plate = choices[r.nextInt(choices.length)];
+            plateFront = 1;
+            plateBack = r.nextFloat() < 0.7f ? 1 : 0;
+        }
         grenades = type.has(OpType.Trait.GRENADES) ? 1 + r.nextInt(type.has(OpType.Trait.LOBBER) ? 4 : 2) : 0;
         bandages = 1 + r.nextInt(type.has(OpType.Trait.MEDIC) ? 6 : 2);
         if (!hasCustomName()) setCustomName(Component.literal(Names.make(type, r)));
@@ -399,7 +426,9 @@ public class Operator extends Monster {
                 }
             }
         }
-        hits.forEach((e, d) -> {
+        final AmmoType loaded = AmmoType.REGULAR;
+        hits.forEach((e, d0) -> {
+            float d = dev.factoryascension.armor.Ballistics.hit(e, this, d0, spec.caliber, loaded);
             e.invulnerableTime = 0;
             e.hurt(damageSources().mobAttack(this), d);
             if (e instanceof ServerPlayer sp) {
@@ -602,6 +631,18 @@ public class Operator extends Monster {
         if (r.nextFloat() < 0.35f) spawnAtLocation(new ItemStack(r.nextBoolean() ? Items.BREAD : Items.COOKED_BEEF, 1 + r.nextInt(3)));
         if (r.nextFloat() < 0.25f) spawnAtLocation(new ItemStack(r.nextBoolean() ? Items.GUNPOWDER : Items.IRON_NUGGET, 2 + r.nextInt(6)));
         if (r.nextFloat() < 0.12f) spawnAtLocation(new ItemStack(FactoryAscension.FLARE_RED.get()));
+        // Its carrier, with what's left of its plates
+        if (plate != null && r.nextFloat() < 0.45f) {
+            ItemStack carrier = new ItemStack(FactoryAscension.PLATE_CARRIER.get());
+            for (boolean front : new boolean[] {true, false}) {
+                float left = front ? plateFront : plateBack;
+                if (left <= 0.05f) continue;
+                ItemStack p = new ItemStack(FactoryAscension.PLATES.get(plate).get());
+                p.setDamageValue(Math.round((1 - left) * p.getMaxDamage()));
+                dev.factoryascension.armor.PlateCarrierItem.setPlate(carrier, front, p);
+            }
+            spawnAtLocation(carrier);
+        }
         // A piece of what they wore, now and then
         if (type.armorTier > 0 && r.nextFloat() < 0.25f) {
             net.minecraft.world.item.Item[][] tiers = {{}, {Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE}, {Items.IRON_HELMET, Items.CHAINMAIL_CHESTPLATE, Items.IRON_LEGGINGS},
@@ -620,6 +661,7 @@ public class Operator extends Monster {
         tag.putInt("FABandages", bandages);
         tag.putBoolean("FAStructure", fromStructure);
         tag.putInt("FAAlert", alertLevel());
+        if (plate != null) { tag.putString("FAPlate", plate.id); tag.putFloat("FAPlateF", plateFront); tag.putFloat("FAPlateB", plateBack); }
         if (home != null) tag.putLong("FAHome", home.asLong());
     }
 
@@ -631,6 +673,9 @@ public class Operator extends Monster {
         bandages = tag.getInt("FABandages");
         fromStructure = tag.getBoolean("FAStructure");
         startAlert(Math.min(1, tag.getInt("FAAlert")));
+        plate = dev.factoryascension.armor.Plate.byId(tag.getString("FAPlate"));
+        plateFront = tag.getFloat("FAPlateF");
+        plateBack = tag.getFloat("FAPlateB");
         if (tag.contains("FAHome")) home = BlockPos.of(tag.getLong("FAHome"));
     }
 

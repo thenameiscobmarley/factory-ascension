@@ -194,6 +194,7 @@ public final class GunAnim {
         float fidgetPose[] = fidget(t, still, GunItem.reloading(stack));
         // Stress: shaking hands (worse when stressed, a little even when aiming)
         float shake = stress * stress;
+        if (p.hasEffect(dev.factoryascension.drugs.Drugs.TWEAKING.get())) shake = Math.max(shake, 0.55f);   // meth: jittery hands
         float trX = tremX.at(t) * 0.006f * shake, trY = tremY.at(t) * 0.006f * shake;
 
         // ---- Base pose: hip or aimed ----

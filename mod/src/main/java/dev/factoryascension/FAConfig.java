@@ -311,4 +311,42 @@ public final class FAConfig {
         mobsHearShots = on;
         mobHearingScale = Math.max(0, scale);
     }
+
+    // The Chem Lab's recipes (drugs/DrugBlocks): inputs [item, count], an output and how many
+    public record ChemRecipe(java.util.List<java.util.Map.Entry<String, Integer>> inputs, String output, int count) {
+    }
+
+    public static final java.util.List<ChemRecipe> chemRecipes = new java.util.ArrayList<>();
+    private static java.util.List<java.util.Map.Entry<String, Integer>> pending = new java.util.ArrayList<>();
+
+    public static void clearChem() {
+        chemRecipes.clear();
+        pending = new java.util.ArrayList<>();
+    }
+
+    public static void chemInput(String item, int count) {
+        pending.add(java.util.Map.entry(item, Math.max(1, count)));
+    }
+
+    public static void chemOutput(String item, int count) {
+        chemRecipes.add(new ChemRecipe(pending, item, Math.max(1, count)));
+        pending = new java.util.ArrayList<>();
+    }
+
+    // Raids (npc/Raids): killing a structure's operators marks you; marked, raid parties come
+    public static boolean raids = true, raidBreaksDoors = true;
+    public static int raidMarkTicks = 72000, raidKillsPerLevel = 8, raidFirstDelay = 3600, raidInterval = 9600, raidSize = 3;
+    // Bullets through thin things (wooden doors, planks, glass, leaves...), weaker each time
+    public static boolean bulletsPenetrate = true;
+
+    public static void setRaids(boolean on, int markTicks, int killsPerLevel, int firstDelay, int interval, int size, boolean breakDoors, boolean penetrate) {
+        raids = on;
+        raidMarkTicks = Math.max(200, markTicks);
+        raidKillsPerLevel = Math.max(1, killsPerLevel);
+        raidFirstDelay = Math.max(200, firstDelay);
+        raidInterval = Math.max(600, interval);
+        raidSize = Math.max(1, size);
+        raidBreaksDoors = breakDoors;
+        bulletsPenetrate = penetrate;
+    }
 }

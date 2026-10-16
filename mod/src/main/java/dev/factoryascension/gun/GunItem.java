@@ -251,7 +251,7 @@ public class GunItem extends Item {
         else if (type.pellets > 1) { pellets = type.pellets + Math.max(0, gunPellets - spec.pellets); perPellet = base; }
         else if (spec.pellets > 1) { pellets = 1; perPellet = base * spec.pellets * 0.6f; }
         else { pellets = Math.max(1, gunPellets); perPellet = gunPellets > 1 ? base * 0.5f : base; }
-        double spread = Math.toRadians((aim ? st.spreadAim : st.spreadHip) + (pellets > 1 && spec.pellets == 1 ? 4 : 0));
+        double spread = Math.toRadians(((aim ? st.spreadAim : st.spreadHip) + (pellets > 1 && spec.pellets == 1 ? 4 : 0)) * dev.factoryascension.drugs.Drugs.spread(player));
         double range = st.range * type.range * Math.min(1.5, Math.max(0.3, power));
         Vec3 right = look.cross(new Vec3(0, 1, 0));
         if (right.lengthSqr() < 1e-4) right = new Vec3(1, 0, 0);
@@ -264,31 +264,48 @@ public class GunItem extends Item {
             double a = spread * Math.sqrt(r.nextDouble()), b = r.nextDouble() * Math.PI * 2;
             Vec3 dir = look.add(right.scale(Math.tan(a) * Math.cos(b))).add(up.scale(Math.tan(a) * Math.sin(b))).normalize();
             Vec3 end = eye.add(dir.scale(range));
-            BlockHitResult block = level.clip(new ClipContext(eye, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-            Vec3 stop = block.getType() == HitResult.Type.MISS ? end : block.getLocation();
-            List<EntityHitResult> along = entitiesAlong(player, eye, stop);
-            int n = 0;
-            Vec3 lastHit = null;
-            for (EntityHitResult eh : along) {
-                if (n >= pierce) break;
-                double dist = eye.distanceTo(eh.getLocation());
-                float falloff = (float) Mth.clampedLerp(1.0, 0.45, (dist - range * 0.3) / Math.max(1, range * 0.7));
-                hits.merge(eh.getEntity(), perPellet * falloff, Float::sum);
-                lastHit = eh.getLocation();
-                n++;
-            }
-            Vec3 tracerEnd = lastHit != null && pierce == 1 ? lastHit : stop;
-            tracer(level, eye, dir, eye.distanceTo(tracerEnd), type);
-            if (lastHit != null && pierce == 1) continue;
-            if (block.getType() == HitResult.Type.BLOCK) {
+            // Through thin things (wood, glass, leaves): each one it goes through takes some of it
+            Vec3 from = eye;
+            float left = 1;
+            for (int seg = 0; seg < 3 && left > 0.1f; seg++) {
+                BlockHitResult block = level.clip(new ClipContext(from, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+                Vec3 stop = block.getType() == HitResult.Type.MISS ? end : block.getLocation();
+                List<EntityHitResult> along = entitiesAlong(player, from, stop);
+                int n = 0;
+                Vec3 lastHit = null;
+                for (EntityHitResult eh : along) {
+                    if (n >= pierce) break;
+                    if (hits.containsKey(eh.getEntity()) && seg > 0) continue;
+                    double dist = eye.distanceTo(eh.getLocation());
+                    float falloff = (float) Mth.clampedLerp(1.0, 0.45, (dist - range * 0.3) / Math.max(1, range * 0.7));
+                    hits.merge(eh.getEntity(), perPellet * falloff * left, Float::sum);
+                    lastHit = eh.getLocation();
+                    n++;
+                }
+                Vec3 tracerEnd = lastHit != null && pierce == 1 ? lastHit : stop;
+                if (seg == 0) tracer(level, eye, dir, eye.distanceTo(tracerEnd), type);
+                if (lastHit != null && pierce == 1) break;
+                if (block.getType() != HitResult.Type.BLOCK) break;
                 BlockPos pos = block.getBlockPos();
                 BlockState state = level.getBlockState(pos);
                 level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), stop.x, stop.y, stop.z, 3, 0.05, 0.05, 0.05, 0.1);
                 if (impacts++ < 3) dev.factoryascension.FxEvents.impact(level, stop, pos, state);
                 if (type == AmmoType.EXPLOSIVE && impacts <= 2) pop(level, player, stop);
                 if (type == AmmoType.INCENDIARY || type == AmmoType.DRAGONS_BREATH) level.sendParticles(ParticleTypes.FLAME, stop.x, stop.y, stop.z, 3, 0.1, 0.1, 0.1, 0.01);
-                if (FAConfig.gunBreaksGlass && type != AmmoType.FRANGIBLE && type != AmmoType.RUBBER && (state.is(Tags.Blocks.GLASS) || state.is(Tags.Blocks.GLASS_PANES)))
+                boolean glass = state.is(Tags.Blocks.GLASS) || state.is(Tags.Blocks.GLASS_PANES);
+                if (dev.factoryascension.npc.Raids.ballistic(state)) {
+                    level.playSound(null, pos, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.25f, 1.8f + r.nextFloat() * 0.3f);
+                    break;
+                }
+                if (FAConfig.gunBreaksGlass && type != AmmoType.FRANGIBLE && type != AmmoType.RUBBER && glass)
                     level.destroyBlock(pos, false, player);
+                float cost = FAConfig.bulletsPenetrate ? penetrationCost(level, pos, state, type) : 2;
+                if (cost >= 1) break;
+                left -= cost;
+                // Out the other side of that block
+                Vec3 p = stop;
+                for (int k = 0; k < 20 && BlockPos.containing(p).equals(pos); k++) p = p.add(dir.scale(0.1));
+                from = p;
             }
         }
         // All of a target's pellets land as one hit
@@ -305,6 +322,7 @@ public class GunItem extends Item {
                 if (ft.penetration >= 2) d *= 1 + armor * 0.04f;
                 if (ft == AmmoType.FRANGIBLE) d *= 1.15f;
             }
+            if (e instanceof LivingEntity hitLe) d = dev.factoryascension.armor.Ballistics.hit(hitLe, player, d, spec.caliber, ft);
             e.invulnerableTime = 0;
             lastDamage += d;
             firing = true;
@@ -457,7 +475,7 @@ public class GunItem extends Item {
             }
         }
         GunStats st = GunStats.of(gun);
-        int len = Math.max(1, Math.round(length(spec, phase) * shake * (st != null ? st.reload : 1)));
+        int len = Math.max(1, Math.round(length(spec, phase) * shake * (st != null ? st.reload : 1) * dev.factoryascension.drugs.Drugs.reloadTime(player)));
         t.putInt("RPh", phase);
         t.putInt("RF", -1);
         t.putInt("RT", len);
@@ -690,5 +708,22 @@ public class GunItem extends Item {
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(dev.factoryascension.client.GunClient.EXTENSIONS);
+    }
+
+    /** How much of a bullet a block takes going through it (1 or more: it stops it). */
+    static float penetrationCost(Level level, BlockPos pos, BlockState state, AmmoType type) {
+        float hard = state.getDestroySpeed(level, pos);
+        if (hard < 0) return 2;
+        float ap = type.penetration >= 2 ? 0.55f : type == AmmoType.FRANGIBLE || type == AmmoType.RUBBER ? 2.5f : 1;
+        float c;
+        if (state.is(Tags.Blocks.GLASS) || state.is(Tags.Blocks.GLASS_PANES)) c = 0.15f;
+        else if (state.is(net.minecraft.tags.BlockTags.LEAVES) || state.is(net.minecraft.tags.BlockTags.WOOL) || state.canBeReplaced()) c = 0.05f;
+        else if (state.is(net.minecraft.tags.BlockTags.WOODEN_DOORS) || state.is(net.minecraft.tags.BlockTags.WOODEN_TRAPDOORS)
+            || state.is(net.minecraft.tags.BlockTags.WOODEN_FENCES) || state.is(net.minecraft.tags.BlockTags.FENCE_GATES)) c = 0.3f;
+        else if (state.is(net.minecraft.tags.BlockTags.PLANKS) || state.is(net.minecraft.tags.BlockTags.WOODEN_SLABS)) c = 0.5f;
+        else if (state.is(net.minecraft.tags.BlockTags.LOGS)) c = 0.85f;
+        else if (hard <= 0.6f) c = 0.25f;     // dirt, sand, snow, hay...
+        else c = 2;
+        return c * ap;
     }
 }

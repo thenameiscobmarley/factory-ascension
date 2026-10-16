@@ -1,0 +1,7 @@
+{
+ "targets": ["swap"],
+ "passes": [
+  {"name": "factoryascension:fa_nods", "intarget": "minecraft:main", "outtarget": "swap"},
+  {"name": "blit", "intarget": "swap", "outtarget": "minecraft:main"}
+ ]
+}

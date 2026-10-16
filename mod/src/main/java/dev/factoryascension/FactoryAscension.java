@@ -153,6 +153,15 @@ public class FactoryAscension {
     public static final RegistryObject<Item> FRAG_GRENADE = ITEMS.register("frag_grenade", () -> new dev.factoryascension.npc.GrenadeItem(new Item.Properties().stacksTo(8)));
     public static final RegistryObject<Item> FLASHBANG = ITEMS.register("flashbang", () -> new dev.factoryascension.npc.GrenadeItem(new Item.Properties().stacksTo(8), true));
     public static final RegistryObject<net.minecraft.world.effect.MobEffect> FLASHED = EFFECTS.register("flashed", dev.factoryascension.npc.Flashed::new);
+    // Plate carriers and their plates (armor/)
+    public static final RegistryObject<Item> PLATE_CARRIER = ITEMS.register("plate_carrier", () -> new dev.factoryascension.armor.PlateCarrierItem(new Item.Properties()));
+    public static final java.util.Map<dev.factoryascension.armor.Plate, RegistryObject<Item>> PLATES = new java.util.EnumMap<>(dev.factoryascension.armor.Plate.class);
+    static {
+        for (dev.factoryascension.armor.Plate p : dev.factoryascension.armor.Plate.values())
+            PLATES.put(p, ITEMS.register(p.id, () -> new dev.factoryascension.armor.PlateItem(p, new Item.Properties())));
+    }
+    public static final RegistryObject<Item> NODS_GREEN = ITEMS.register("nods_green", () -> new dev.factoryascension.armor.NodsItem(false, new Item.Properties()));
+    public static final RegistryObject<Item> NODS_WHITE = ITEMS.register("nods_white", () -> new dev.factoryascension.armor.NodsItem(true, new Item.Properties()));
     public static final RegistryObject<Item> BANDAGE = ITEMS.register("bandage", () -> new dev.factoryascension.npc.MedItem(new Item.Properties().stacksTo(16), false));
     public static final RegistryObject<Item> MEDKIT = ITEMS.register("medkit", () -> new dev.factoryascension.npc.MedItem(new Item.Properties().stacksTo(4), true));
     public static final RegistryObject<Item> DOG_TAG = ITEMS.register("dog_tag", () -> new dev.factoryascension.npc.DogTagItem(new Item.Properties().stacksTo(1)));
@@ -253,6 +262,20 @@ public class FactoryAscension {
             out.accept(WEAPONS_BENCH.get());
             out.accept(FRAG_GRENADE.get());
             out.accept(FLASHBANG.get());
+            out.accept(PLATE_CARRIER.get());
+            out.accept(NODS_GREEN.get());
+            out.accept(dev.factoryascension.drugs.DrugBlocks.CHEM_LAB_ITEM.get());
+            dev.factoryascension.npc.Raids.ITEMS.forEach(i -> out.accept(i.get()));
+            out.accept(dev.factoryascension.npc.Raids.STEEL_DOOR_ITEM.get());
+            out.accept(dev.factoryascension.drugs.DrugBlocks.CANNABIS_SEEDS.get());
+            out.accept(dev.factoryascension.drugs.DrugBlocks.COCA_SEEDS.get());
+            out.accept(dev.factoryascension.drugs.DrugBlocks.CANNABIS_LEAF.get());
+            out.accept(dev.factoryascension.drugs.DrugBlocks.COCA_LEAF.get());
+            for (var d : new net.minecraftforge.registries.RegistryObject[] {dev.factoryascension.drugs.Drugs.JOINT, dev.factoryascension.drugs.Drugs.COCAINE,
+                dev.factoryascension.drugs.Drugs.METH, dev.factoryascension.drugs.Drugs.MORPHINE, dev.factoryascension.drugs.Drugs.ADRENALINE, dev.factoryascension.drugs.Drugs.MUSHROOMS})
+                out.accept((Item) d.get());
+            out.accept(NODS_WHITE.get());
+            PLATES.values().forEach(p -> out.accept(p.get()));
             out.accept(BANDAGE.get());
             out.accept(MEDKIT.get());
             dev.factoryascension.npc.Operators.EGGS.values().forEach(e -> out.accept(e.get()));
@@ -285,6 +308,9 @@ public class FactoryAscension {
         dev.factoryascension.gun.GunGeometry.apply();   // where each gun is held when aimed (from its model)
         FAMobs.register(bus);   // first: its spawn eggs go into ITEMS before ITEMS is registered
         dev.factoryascension.npc.Operators.register(bus);   // the same for the operators' eggs
+        dev.factoryascension.drugs.Drugs.init();            // drug effects and items
+        dev.factoryascension.drugs.DrugBlocks.init();       // crops and the chem lab
+        dev.factoryascension.npc.Raids.init();              // being marked, raid parties, ballistic blocks
         EFFECTS.register(bus);
         if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks"))
             dev.factoryascension.compat.SophisticatedBackpacks.register(BLOCKS, ITEMS, BACKPACKS);
