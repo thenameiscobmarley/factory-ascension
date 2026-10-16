@@ -491,6 +491,14 @@ so the game keeps running:
   if the game ever closes while Embeddium is building them, the next start uses Embeddium's own). Turn it off with
   **Parallax depth** in the settings or in Resource Packs.
 
+## Default settings and keys
+
+The first time you start this version, the pack sets: GUI scale 3, 20 chunk render distance, fullscreen, 69% mouse
+sensitivity, FOV 95, **Shift to sprint**, **Ctrl to crouch**, **Tab** for the inventory, **E** for the player list,
+**FTB Ultimine** on mouse button 5, smoke 3.0 and lighting High. It only does this once: change anything afterwards and
+your settings stay. Leaning has its own keys (Controls > Factory Ascension, Q and E by default); while you aim, whatever
+else is on those keys waits.
+
 ## Health checks
 
 The mod watches memory (after garbage collection), open files and threads every 30 seconds and warns in the log and in

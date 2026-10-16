@@ -68,6 +68,8 @@ public final class DevShots {
     private DevShots() {
     }
 
+    private static int sliderIx = 0;
+
     private static void cmd(Minecraft mc, String c) {
         var server = mc.getSingleplayerServer();
         if (server != null) server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), c));
@@ -131,7 +133,8 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.skins")) step = 500;   // only the smooth guns, skins, akimbo and gangster shots
                     if (Boolean.getBoolean("fa.npc")) step = 600;     // only the operators, structures, realism camera and new bench tabs
                     if (Boolean.getBoolean("fa.lens")) step = 650;    // only the realism camera
-                    if (Boolean.getBoolean("fa.v25")) step = 700;     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
+                    if (Boolean.getBoolean("fa.v25")) step = 700;
+                    if (Boolean.getBoolean("fa.sliders")) step = 750;  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -403,6 +406,28 @@ public final class DevShots {
                     mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); wait = 60; }
                 case 720 -> { shot(mc, "v25_inventory"); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     FAClientConfig.REALISM.set(true); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                case 750 -> { mc.setScreen(new FASettingsScreen(null)); wait = 20; }
+                case 751 -> {
+                    // One slider per tick, like a person: click, drag, let go
+                    var scr = mc.screen;
+                    java.util.List<net.minecraft.client.gui.components.AbstractSliderButton> sliders = new java.util.ArrayList<>();
+                    if (scr != null) for (var w : scr.children()) if (w instanceof net.minecraft.client.gui.components.AbstractSliderButton sl) sliders.add(sl);
+                    if (sliderIx < sliders.size()) {
+                        var sl = sliders.get(sliderIx);
+                        double y = sl.getY() + 10, x = sl.getX() + sl.getWidth() * (0.2 + 0.6 * ((sliderIx * 7) % 10) / 10.0);
+                        log("drag slider " + sliderIx + " '" + sl.getMessage().getString() + "'");
+                        sl.mouseClicked(x, y, 0);
+                        for (int k = 1; k <= 8; k++) sl.mouseDragged(x + k * 4, y, 0, 4, 0);
+                        sl.mouseReleased(x + 32, y, 0);
+                        sliderIx++;
+                        step = 751;
+                        wait = 2;
+                    } else {
+                        log("dragged " + sliders.size() + " sliders, all fine");
+                        wait = 60;
+                    }
+                }
+                case 752 -> { shot(mc, "sliders_after"); mc.setScreen(null); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }

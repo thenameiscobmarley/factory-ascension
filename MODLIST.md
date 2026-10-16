@@ -54,6 +54,8 @@ The **Factory Ascension** mod jar (the Full download) isn't on CurseForge; it co
 |---|---|
 | [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) | Recipe lookup, shows all the Factory Ascension recipes |
 | [Jade](https://www.curseforge.com/minecraft/mc-mods/jade) | See what's inside machines |
+| [FTB Ultimine](https://www.curseforge.com/minecraft/mc-mods/ftb-ultimine-forge) | Mine whole veins and areas at once (held on mouse button 5 by default) |
+| [Mouse Tweaks](https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks) | Drag and scroll items between slots |
 
 ## Performance (recommended, especially on lower-end PCs)
 

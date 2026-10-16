@@ -23,6 +23,7 @@ import java.util.function.DoubleFunction;
  * effects, Shiny Reflections, safe mode, and the depth pack for Oculus. Changes apply at once and are saved.
  */
 public class FASettingsScreen extends Screen {
+
     private static final String[] QUALITY = {"Off", "Low", "Medium", "High"};
     private final Screen parent;
     private Component status = Component.empty();
@@ -117,10 +118,37 @@ public class FASettingsScreen extends Screen {
                 setMessage(Component.literal(name + ": " + fmt.apply(min + this.value * (max - min))));
             }
 
+            // Forge's config file saves itself on every set(); doing that on every step of a drag races its file
+            // watcher re-reading the half-written file and crashes the game. So: the value is written once, on release.
             @Override
             protected void applyValue() {
-                cfg.set(Mth.clamp(min + this.value * (max - min), min, max));
-                cfg.save();
+                if (!dragging) commit();
+            }
+
+            boolean dragging = false;
+
+            @Override
+            public void onClick(double mx, double my) {
+                dragging = true;   // a click or a drag: written when the button's let go
+                super.onClick(mx, my);
+            }
+
+            @Override
+            protected void onDrag(double mx, double my, double dx, double dy) {
+                dragging = true;
+                super.onDrag(mx, my, dx, dy);
+            }
+
+            @Override
+            public void onRelease(double mx, double my) {
+                super.onRelease(mx, my);
+                dragging = false;
+                commit();
+            }
+
+            void commit() {
+                double v = Mth.clamp(min + this.value * (max - min), min, max);
+                if (Math.abs(v - cfg.get()) > 1e-9) cfg.set(v);
             }
         };
     }
@@ -138,8 +166,33 @@ public class FASettingsScreen extends Screen {
 
             @Override
             protected void applyValue() {
-                cfg.set((int) Math.round(min + this.value * (max - min)));
-                cfg.save();
+                if (!dragging) commit();
+            }
+
+            boolean dragging = false;
+
+            @Override
+            public void onClick(double mx, double my) {
+                dragging = true;   // a click or a drag: written when the button's let go
+                super.onClick(mx, my);
+            }
+
+            @Override
+            protected void onDrag(double mx, double my, double dx, double dy) {
+                dragging = true;
+                super.onDrag(mx, my, dx, dy);
+            }
+
+            @Override
+            public void onRelease(double mx, double my) {
+                super.onRelease(mx, my);
+                dragging = false;
+                commit();
+            }
+
+            void commit() {
+                int v = (int) Math.round(min + this.value * (max - min));
+                if (v != cfg.get()) cfg.set(v);
             }
         };
     }

@@ -21,7 +21,8 @@ import net.minecraftforge.fml.common.Mod;
 
 /**
  * Leaning (Q left, E right, while aiming a gun): the view tilts and slides around the corner, and your shots leave from
- * there (the fire packet carries it). While you aim, Q and E lean instead of dropping and opening the inventory.
+ * there (the fire packet carries it). Its own keys (Controls: Factory Ascension); while you aim, anything sharing them
+ * (drop, the player list) waits.
  * And the hip-fire crosshair: where the gun actually points (it sways, kicks and fidgets), with a ring for the spread.
  */
 @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
@@ -32,7 +33,42 @@ public final class LeanClient {
     private static final java.lang.reflect.Method SET_POSITION = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findMethod(
         net.minecraft.client.Camera.class, "m_90581_", Vec3.class);
 
+    public static final net.minecraft.client.KeyMapping LEFT = new net.minecraft.client.KeyMapping("key.factoryascension.lean_left",
+        net.minecraftforge.client.settings.KeyConflictContext.IN_GAME, com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM,
+        org.lwjgl.glfw.GLFW.GLFW_KEY_Q, "key.categories.factoryascension");
+    public static final net.minecraft.client.KeyMapping RIGHT = new net.minecraft.client.KeyMapping("key.factoryascension.lean_right",
+        net.minecraftforge.client.settings.KeyConflictContext.IN_GAME, com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM,
+        org.lwjgl.glfw.GLFW.GLFW_KEY_E, "key.categories.factoryascension");
+
     private LeanClient() {
+    }
+
+    @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    public static final class Keys {
+        @SubscribeEvent
+        public static void keys(net.minecraftforge.client.event.RegisterKeyMappingsEvent event) {
+            event.register(LEFT);
+            event.register(RIGHT);
+        }
+    }
+
+    /** Is a lean key held? Read from the keyboard itself, so whatever else shares the key (drop, player list) can't take it. */
+    static boolean held(Minecraft mc, net.minecraft.client.KeyMapping k) {
+        var key = k.getKey();
+        if (key.getType() == com.mojang.blaze3d.platform.InputConstants.Type.MOUSE)
+            return org.lwjgl.glfw.GLFW.glfwGetMouseButton(mc.getWindow().getWindow(), key.getValue()) == org.lwjgl.glfw.GLFW.GLFW_PRESS;
+        return key.getValue() >= 0 && com.mojang.blaze3d.platform.InputConstants.isKeyDown(mc.getWindow().getWindow(), key.getValue());
+    }
+
+    /** While leaning, keys sharing the lean keys do nothing (no dropping your gun, no player list, no inventory). */
+    static void quiet(Minecraft mc) {
+        for (var other : new net.minecraft.client.KeyMapping[] {mc.options.keyDrop, mc.options.keyInventory, mc.options.keyPlayerList, mc.options.keySwapOffhand}) {
+            if (!other.same(LEFT) && !other.same(RIGHT)) continue;
+            while (other.consumeClick()) { }
+            other.setDown(false);
+        }
+        while (LEFT.consumeClick()) { }
+        while (RIGHT.consumeClick()) { }
     }
 
     static boolean aimingGun(net.minecraft.client.player.LocalPlayer p) {
@@ -46,13 +82,21 @@ public final class LeanClient {
         var p = mc.player;
         if (p == null || mc.screen != null) { target = 0; return; }
         if (aimingGun(p)) {
-            // Q and E are ours while aiming: no dropping the gun, no inventory
-            while (mc.options.keyDrop.consumeClick()) { }
-            while (mc.options.keyInventory.consumeClick()) { }
-            target = (mc.options.keyInventory.isDown() ? 1 : 0) - (mc.options.keyDrop.isDown() ? 1 : 0);
+            // The lean keys are ours while aiming
+            quiet(mc);
+            target = (held(mc, RIGHT) ? 1 : 0) - (held(mc, LEFT) ? 1 : 0);
         } else {
             target = 0;
         }
+    }
+
+    /** No player list popping up while you lean (if it shares a lean key). */
+    @SubscribeEvent
+    public static void playerList(net.minecraftforge.client.event.RenderGuiOverlayEvent.Pre event) {
+        if (event.getOverlay() != net.minecraftforge.client.gui.overlay.VanillaGuiOverlay.PLAYER_LIST.type()) return;
+        Minecraft mc = Minecraft.getInstance();
+        var k = mc.options.keyPlayerList;
+        if ((k.same(LEFT) || k.same(RIGHT)) && aimingGun(mc.player)) event.setCanceled(true);
     }
 
     @SubscribeEvent

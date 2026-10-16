@@ -91,6 +91,18 @@
    "projectID": 908741,
    "fileID": 5681725,
    "file": "embeddium-0.3.31+mc1.20.1.jar"
+  },
+  {
+   "slug": "ftb-ultimine-forge",
+   "projectID": 386134,
+   "fileID": 7880472,
+   "file": "ftb-ultimine-forge-2001.1.8.jar"
+  },
+  {
+   "slug": "mouse-tweaks",
+   "projectID": 60089,
+   "fileID": 5338457,
+   "file": "MouseTweaks-forge-mc1.20.1-2.25.1.jar"
   }
  ]
 }

@@ -98,6 +98,7 @@ minecraft {
                 if (project.hasProperty('faNpc')) property 'fa.npc', 'true'
                 if (project.hasProperty('faLens')) property 'fa.lens', 'true'
                 if (project.hasProperty('faV25')) property 'fa.v25', 'true'
+                if (project.hasProperty('faSliders')) property 'fa.sliders', 'true'
                 if (project.hasProperty('faShot')) property 'fa.shot', project.property('faShot')
                 jvmArgs '-Xmx1500m'
                 args '--quickPlaySingleplayer', 'devworld', '--width', '1280', '--height', '720'
