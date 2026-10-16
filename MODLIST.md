@@ -59,6 +59,6 @@ The **Factory Ascension** mod jar (the Full download) isn't on CurseForge; it co
 
 | Mod | Why |
 |---|---|
-| ~~Embeddium~~ | Not with this pack: it draws terrain with its own shaders and skips the Factory Ascension Depth texture pack |
+| [Embeddium](https://www.curseforge.com/minecraft/mc-mods/embeddium) | Much faster chunk rendering. Works with the Factory Ascension Depth pack (the mod gives Embeddium the pack's block shaders) |
 | [ModernFix](https://www.curseforge.com/minecraft/mc-mods/modernfix) | Faster loading, less RAM |
 | [FerriteCore](https://www.curseforge.com/minecraft/mc-mods/ferritecore) | Less RAM |

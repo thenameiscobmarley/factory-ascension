@@ -140,6 +140,66 @@
         },
         {
           "type": "minecraft:item",
+          "name": "factoryascension:cannabis_seeds",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:coca_seeds",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:joint",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cocaine",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:polyethylene_plate",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:flashbang",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
           "name": "factoryascension:bandage",
           "weight": 6,
           "functions": [

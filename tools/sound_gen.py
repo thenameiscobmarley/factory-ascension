@@ -11,6 +11,7 @@ always the same. Mono, 44.1 kHz (Minecraft only places mono sounds in the world)
 import json
 import math
 import os
+import sys
 import random
 import struct
 import subprocess
@@ -377,6 +378,35 @@ def grenade_explosion(rnd):
 
 
 # ---- Writing ----
+def bullet_crack(rnd):
+    """A supersonic round going past: the N-wave snap of its shock wave, then a short ringing hiss."""
+    x = silence(0.25)
+    n = int(SR * 0.0012)
+    for i in range(n):
+        x[i] = 1.0 - 2.0 * i / n                          # the N-wave: up at once, straight down through zero
+    tail = env(highpass(noise(0.08, rnd), 2500), 0.0005, 0.018)
+    mix_into(x, tail, 0.001, 0.45)
+    x = reverb(x, size=0.6, decay=0.35, wet=0.25, damp=5000)
+    return normalize(fade_tail(trim(x)), 0.95)
+
+
+def bullet_whiz(rnd):
+    """A slower round going past: a buzzing whine rising then falling as it passes (Doppler)."""
+    sec = 0.32
+    n = int(SR * sec)
+    x = silence(sec)
+    base = 900 + rnd.random() * 500
+    ph = 0.0
+    nz = noise(sec, rnd)
+    for i in range(n):
+        t = i / n
+        f = base * (1.25 - 0.5 * t)                         # coming, then going
+        ph += 2 * math.pi * f / SR
+        a = math.exp(-((t - 0.45) / 0.18) ** 2)
+        x[i] = (math.sin(ph) * 0.6 + math.sin(ph * 2.01) * 0.2 + nz[i] * 0.35) * a
+    return normalize(fade_tail(bandpass(x, base, 0.9)), 0.8)
+
+
 def write_ogg(name, x):
     os.makedirs(os.path.dirname(os.path.join(OUT, name)), exist_ok=True)
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
@@ -417,19 +447,22 @@ SOUNDS = {
     "dread.ringing": (1, lambda r, k: ringing(r), "Ears ringing"),
     "dread.helicopter": (1, lambda r, k: helicopter(r), "Helicopter"),
     "grenade.explode": (2, lambda r, k: grenade_explosion(r), "Grenade explodes"),
+    "gun.crack": (3, lambda r, k: bullet_crack(r), "Round cracks past"),
+    "gun.whiz": (3, lambda r, k: bullet_whiz(r), "Round whizzes past"),
 }
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     sounds_json = {}
+    only = set(sys.argv[1:])     # sound ids to (re)make; none = all of them (the .ogg files are kept in the repo)
     for sid, (variants, maker, subtitle) in SOUNDS.items():
         files = []
         for k in range(variants):
-            rnd = random.Random(hash_str(sid) * 31 + k)
-            x = maker(rnd, k)
             name = sid.replace(".", "/") + ("_%d" % (k + 1) if variants > 1 else "")
-            write_ogg(name, x)
+            if not only or sid in only:
+                rnd = random.Random(hash_str(sid) * 31 + k)
+                write_ogg(name, maker(rnd, k))
             files.append({"name": "factoryascension:" + name, "stream": False} if sid != "dread.helicopter" else {"name": "factoryascension:" + name})
         sounds_json[sid] = {"sounds": files, "subtitle": "subtitles.factoryascension." + sid}
         print("%-22s %d variant(s)" % (sid, variants))

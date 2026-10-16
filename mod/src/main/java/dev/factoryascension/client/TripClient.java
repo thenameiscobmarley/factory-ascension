@@ -42,10 +42,13 @@ public final class TripClient {
         return Math.min(1, out * amp);
     }
 
+    private static long lastMs = 0;
+    private static float dt = 0;
+
     private static float ramp(String key, float target) {
         Float v = RAMP.get(key);
         float cur = v == null ? 0 : v;
-        cur += (target - cur) * 0.02f;          // per frame: a few seconds to come on
+        cur += (target - cur) * Math.min(1f, dt / 2.5f);   // by time, not frames: a few seconds to come on at any frame rate
         if (Math.abs(target - cur) < 0.002f) cur = target;
         RAMP.put(key, cur);
         return cur;
@@ -58,6 +61,9 @@ public final class TripClient {
         Minecraft mc = Minecraft.getInstance();
         if (broken || mc.player == null || mc.level == null || FAClientConfig.SAFE_MODE.get()) return;
         Player p = mc.player;
+        long now = net.minecraft.Util.getMillis();
+        dt = lastMs == 0 ? 0 : Math.min(1f, (now - lastMs) / 1000f);
+        lastMs = now;
         float stoned = ramp("stoned", strength(p, Drugs.STONED)), wired = ramp("wired", strength(p, Drugs.WIRED)),
             tweak = ramp("tweak", strength(p, Drugs.TWEAKING)), trip = ramp("trip", strength(p, Drugs.TRIPPING)),
             psych = ramp("psych", strength(p, Drugs.PSYCHOSIS)), crash = ramp("crash", strength(p, Drugs.CRASH)),

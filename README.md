@@ -348,13 +348,43 @@ everything else goes muffled.
 slight fisheye, colour fringes at the edges, less colour and a cold grade, moving film grain, and a vignette that
 tightens and pulses with your heart under stress, goes red when you're hurt, and blurs after a blast.
 
+**Stealth**: operators at their posts are calm, their guns slung on their backs. They notice you by sight (what's in
+front of them, how close, how lit you are, whether you're crouched, sprinting or holding a gun) and by sound: a "?"
+over their head fills up as they grow suspicious, and they come to look. Take one down from behind while it's calm and
+it's quiet, but if another sees it happen, or finds the body (sneak + right-click a body to hide it), a red "!" goes up:
+everyone near goes on alert, unslings, and sees much further. Loud gunshots put a whole place on alert; a suppressor
+keeps it to a look round. **Flashbangs** (yours and theirs) blind and deafen whoever sees them. Their rounds **crack**
+past you (supersonic) or **whiz** (pistols, subsonic), and their first shots at you walk in before they land.
+
+**Raids**: kill the people holding a place and you're **Marked** (a few days; more kills, stronger). Marked, now and
+then a raid party comes for you: to your bed if you're near it, otherwise wherever you are. You hear them talking
+before you see them. They bash in wooden doors, trapdoors, gates and glass and bring grenades. **Ballistic concrete**,
+**ballistic glass** (and panes), **steel doors** and **steel trapdoors** hold, open by hand, and stop bullets. Your own
+rounds go through thin things (wood, glass, leaves), weaker for each. All in `raids`.
+
+**Body armor**: a **Plate Carrier** (chest slot) holds a front and a back plate (right-click it with a plate in your
+other hand; sneak + right-click takes them out): polyethylene, steel, titanium, ceramic, hybrid and ascendite, each
+with its own protection, weight, blunt trauma and wear. Rounds to the torso hit the plate facing the shooter; armor-
+piercing rounds go through. Operators wear them too, and drop them. **Night vision goggles** (helmet slot, green or
+white phosphor): **N** flips them down: grain, glowing haloes round lights, a round tube view.
+
+**Drugs** (single player is your own business): a **Joint** (calm, slow, hazy), **Cocaine** (fast, quick hands, no fear,
+then a crash), **Methamphetamine** (very fast and strong, jittery aim, tunnel vision; a hard crash, and it can leave you
+with **Psychosis**), **Morphine** (hits hurt less), an **Adrenaline Shot** and **Magic Mushrooms** (the world breathes,
+colours roll, trails). Each has its own look on screen. With Psychosis or mushrooms you see things that aren't there: a
+figure standing far off that's gone when you get close or stare at it, a head peeking round a corner that slides back
+when you look, footsteps behind you. Three doses inside a minute is an overdose. **Cannabis** and **coca** seeds drop
+from grass (plant them on farmland); the rest is made at the **Chem Lab** (right-click it with the inputs on you). All in
+`drugs`.
+
 ## Tarkov inventory (Full download)
 
 Press **E** and you look down at a duffel bag in your hands, unzip it, and your inventory opens out of it, laid out like
 Tarkov's gear screen: your gear in labelled frames around your silhouette (headwear, body armor, leg armor, footwear,
 holster = off hand, on sling = what's in your hand), crafting and overflow in the middle, the backpack on the right
 with filter buttons down its side (weapons, armor, tools, blocks, food, other), your weight, health, food and armor along
-the bottom, and the hotbar as the numbered **Quick use** row. The main
+the bottom, and the hotbar as the numbered **Quick use** row, over the world blurred behind it, in a clean UI font
+(Noto Sans) with shaded panels and an amber accent. The main
 inventory is a **grid** where items take their real size: a block 1x1, a pickaxe 1x2, a sword or a bow 1x3, a helmet
 2x2, a chestplate 3x3, the shotgun 5x2, a backpack 3x3.
 
@@ -427,18 +457,24 @@ About once every 20 minutes something happens to the whole server:
 so the game keeps running:
 
 - **Ascension Lighting**: screen-space traced lighting: rays marched through the depth of the frame give soft contact
-  shadows in corners and under overhangs, light bounced off nearby surfaces in their colour, and light shafts from the sun
-  and moon. Off / Low / Medium / High plus a strength slider. Standard OpenGL only (AMD and NVIDIA alike). It steps aside
-  by itself when an Oculus shader pack is on.
+  shadows in corners and under overhangs, light bounced off nearby surfaces in their colour, **sun shadows** (whatever's
+  on screen between a spot and the sun shades it), **traced reflections** (water is a near mirror, flat ground shines
+  with the sky, and everything flat gets wet and reflective in the rain), and light shafts from the sun and moon.
+  Off / Low / Medium / High plus a strength slider, and a switch each for the reflections and sun shadows. Standard
+  OpenGL only (AMD and NVIDIA alike). It steps aside by itself when an Oculus shader pack is on. (The old "Shiny
+  Reflections" glints are now **Glints (old)**, off unless you turn them on.)
 - **Smoke**: soft, drifting smoke from explosions and gunfire.
 - **Voxel debris**: broken and blown-up blocks shatter into small 3D pieces of their texture that tumble, bounce and settle.
 - **Water**: foam where waterfalls land and where water flows, bubbles underwater, and a splash ring when something drops in.
-- **Factory Ascension Depth** (a texture pack, built into the mod and on by default): real parallax depth on every block
-  and mob, no shader pack needed. It replaces the game's terrain and entity shaders with versions that march your view
-  through each texture's light and dark detail, so mortar sinks between bricks, cobblestone is lumpy and bark has grooves.
-  Turn it off with **Parallax depth** in the settings or in Resource Packs. It works with Minecraft's own renderer:
-  **Embeddium** draws terrain with its own shaders and would skip it, so the pack doesn't include Embeddium (remove it from
-  your instance too).
+- **Factory Ascension Depth** (a texture pack, built into the mod and on by default): real, lit relief on every block
+  and mob, no shader pack needed. Each texture's light and dark detail becomes a smooth height field (read between
+  pixels, so it's slopes and lumps, not stacked layers), flush at every block's edge (no seams or outlines), and lit by a
+  light from above with a highlight that moves as you do, so mortar sinks between bricks, cobblestone is lumpy and bark
+  has grooves even face-on. Mobs get the lit relief without any shifting (so no outlines round their parts).
+  **Depth smoothing** (sharp per-pixel to soft and rounded) and **Depth strength** sliders in the settings. Works with
+  Minecraft's own renderer **and with Embeddium** (the mod hands Embeddium the pack's block shaders while the pack is on;
+  if the game ever closes while Embeddium is building them, the next start uses Embeddium's own). Turn it off with
+  **Parallax depth** in the settings or in Resource Packs.
 
 ## Health checks
 

@@ -780,6 +780,51 @@
           "type": "minecraft:item",
           "name": "minecraft:spyglass",
           "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:flashbang",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:plate_carrier",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:steel_plate",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:ceramic_plate",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:nods_green",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:adrenaline_shot",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:morphine",
+          "weight": 3
         }
       ]
     },

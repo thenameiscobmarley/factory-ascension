@@ -169,7 +169,7 @@ ForgeEvents.onEvent('net.minecraftforge.event.TickEvent$ServerTickEvent', event 
           'minecraft:block.chest.open', 'minecraft:entity.player.breath', 'minecraft:entity.villager.no', 'minecraft:item.armor.equip_leather']
         let snd = sounds[Math.floor(Math.random() * sounds.length)]
         let behind = Math.random() < 0.5
-        let yaw = p.getYRot() * Math.PI / 180
+        let yaw = p.yaw * Math.PI / 180
         let sx = behind ? p.getX() + Math.sin(yaw) * 4 : mob.getX(), sz = behind ? p.getZ() - Math.cos(yaw) * 4 : mob.getZ()
         server.runCommandSilent('execute in ' + String(mob.level.dimension) + ' run playsound ' + snd + ' hostile ' + p.username + ' ' +
           sx.toFixed(1) + ' ' + p.getY().toFixed(1) + ' ' + sz.toFixed(1) + ' 0.8 ' + (0.75 + Math.random() * 0.2).toFixed(2))

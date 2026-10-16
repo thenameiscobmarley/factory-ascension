@@ -72,6 +72,8 @@ minecraft {
             // Mods built for players (Create...) name things the production way; remap their mixins in dev runs
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            // Our own (optional) mixins: the depth pack's shaders for Embeddium
+            args '-mixin.config=factoryascension.mixins.json'
 
             // Recommended logging level for the console
             // You can set various levels here.
@@ -95,6 +97,7 @@ minecraft {
                 if (project.hasProperty('faSkins')) property 'fa.skins', 'true'
                 if (project.hasProperty('faNpc')) property 'fa.npc', 'true'
                 if (project.hasProperty('faLens')) property 'fa.lens', 'true'
+                if (project.hasProperty('faV25')) property 'fa.v25', 'true'
                 if (project.hasProperty('faShot')) property 'fa.shot', project.property('faShot')
                 jvmArgs '-Xmx1500m'
                 args '--quickPlaySingleplayer', 'devworld', '--width', '1280', '--height', '720'
@@ -213,7 +216,8 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.jar.archiveVersion,
                 'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                'MixinConfigs'            : 'factoryascension.mixins.json'
         ])
     }
 

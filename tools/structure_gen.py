@@ -94,20 +94,25 @@ def outpost_loot():
         out["scav_%d" % t] = [
             pool(2, 4, [entry("minecraft:bread", 10, 1, 4), entry("minecraft:cooked_beef", 6, 1, 3), entry("minecraft:potato", 8, 2, 6), entry("minecraft:gunpowder", 8, 2, 6),
                         entry("minecraft:iron_nugget", 10, 3, 12), entry("minecraft:copper_ingot", 8, 2, 6), entry("minecraft:string", 6, 2, 5), entry("minecraft:paper", 6, 2, 6),
-                        entry(M + "flare_red", 3), entry(M + "flare_green", 1)] + meds(6)),
+                        entry(M + "flare_red", 3), entry(M + "flare_green", 1), entry(M + "cannabis_seeds", 3, 1, 3), entry(M + "coca_seeds", 2, 1, 2),
+                        entry(M + "joint", 3, 1, 3), entry(M + "cocaine", 1), entry(M + "polyethylene_plate", 2), entry(M + "flashbang", 1)] + meds(6)),
             pool(1, 2, [rounds(c, 6, 4, 14) for c in cals[:8]]),
             pool(0, 1, guns(0, 4) + (guns(1, 1) if t > 0 else []) + [{"type": "minecraft:empty", "weight": 30 - t * 8}]),
         ]
         out["military_%d" % t] = [
             pool(2, 4, [rounds(c, 6, 6, 20) for c in cals] + [rounds(c, 1, 4, 10, k) for c in cals[:6] for k in ("HOLLOW_POINT", "ARMOR_PIERCING", "TRACER")]),
             pool(1, 3, meds(8) + [entry(M + "frag_grenade", 6, 1, 2), entry(M + "flare_red", 3), entry(M + "flare_green", 2), entry("minecraft:iron_ingot", 6, 2, 6),
-                                  entry("kubejs:ascendite_ingot", 3, 1, 3), entry("minecraft:spyglass", 2)]),
+                                  entry("kubejs:ascendite_ingot", 3, 1, 3), entry("minecraft:spyglass", 2), entry(M + "flashbang", 5, 1, 2),
+                                  entry(M + "plate_carrier", 2), entry(M + "steel_plate", 2), entry(M + "ceramic_plate", 2), entry(M + "nods_green", 1),
+                                  entry(M + "adrenaline_shot", 3), entry(M + "morphine", 3)]),
             pool(0, 1, guns(min(1 + t, 2), 3) + guns(t, 2) + [{"type": "minecraft:empty", "weight": 22 - t * 6}]),
         ]
         out["bunker_%d" % t] = [
             pool(3, 5, [rounds(c, 6, 8, 24) for c in cals] + [rounds(c, 2, 6, 14, k) for c in cals[:8] for k in ("ARMOR_PIERCING", "RIP", "INCENDIARY", "EXPLOSIVE")]),
             pool(2, 3, meds(10) + [entry(M + "frag_grenade", 8, 1, 3), entry("minecraft:golden_apple", 2), entry("kubejs:ascendite_ingot", 5, 1, 4),
-                                  entry("kubejs:ascension_core", 3, 1, 2), entry("minecraft:diamond", 2, 1, 2), entry(M + "flare_green", 3)]),
+                                  entry("kubejs:ascension_core", 3, 1, 2), entry("minecraft:diamond", 2, 1, 2), entry(M + "flare_green", 3),
+                                  entry(M + "hybrid_plate", 3), entry(M + "titanium_plate", 2), entry(M + "nods_green", 2), entry(M + "nods_white", 1),
+                                  entry(M + "flashbang", 5, 1, 3), entry(M + "methamphetamine", 1), entry(M + "adrenaline_shot", 3, 1, 2)]),
             pool(1, 1, guns(2, 3) + guns(min(3, t + 1), 1) + [{"type": "minecraft:empty", "weight": 10 - t * 3}]),
         ]
     out["fort_treasure"] = [
@@ -119,7 +124,8 @@ def outpost_loot():
     out["cult"] = [
         pool(2, 4, [entry("minecraft:candle", 8, 1, 4), entry("minecraft:bone", 10, 2, 6), entry("minecraft:rotten_flesh", 6, 2, 8), entry("minecraft:ender_pearl", 5, 1, 3),
                     entry("minecraft:experience_bottle", 6, 2, 6), entry("minecraft:crying_obsidian", 3, 1, 2), entry("kubejs:mythic_fragment", 2), entry("kubejs:chaos_tome", 2)]),
-        pool(1, 2, [rounds("R9X39", 8, 6, 18), rounds("R9X39", 3, 6, 12, "SUBSONIC"), entry(M + "vss", 2), entry(M + "as_val", 2), entry(M + "medkit", 3)]),
+        pool(1, 2, [rounds("R9X39", 8, 6, 18), rounds("R9X39", 3, 6, 12, "SUBSONIC"), entry(M + "vss", 2), entry(M + "as_val", 2), entry(M + "medkit", 3),
+                    entry(M + "magic_mushrooms", 4, 1, 3), entry(M + "methamphetamine", 2), entry(M + "nods_white", 1)]),
     ]
     return out
 

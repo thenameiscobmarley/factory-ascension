@@ -1,0 +1,8 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "dev.factoryascension.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": ["EmbeddiumShaderMixin"],
+  "injectors": {"defaultRequire": 0}
+}

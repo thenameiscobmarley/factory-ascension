@@ -10,9 +10,10 @@ public final class FAClientConfig {
     public static final ForgeConfigSpec.IntValue MAX_GLINTS;
     public static final ForgeConfigSpec.DoubleValue STRENGTH;
     public static final ForgeConfigSpec.BooleanValue CONFLICT_MESSAGES;
+    public static final ForgeConfigSpec.BooleanValue SCREEN_REFLECTIONS, SUN_SHADOWS;
     public static final ForgeConfigSpec.BooleanValue SAFE_MODE, SUN_RAYS, SMOKE, DEBRIS, WATER, OCULUS_KEY_MOVED, DEPTH_ADDED, TARKOV_ANIMATION;
     public static final ForgeConfigSpec.BooleanValue GUN_MESHES, REALISM, DREAD;
-    public static final ForgeConfigSpec.DoubleValue FISHEYE, GRAIN, DESATURATE, VIGNETTE;
+    public static final ForgeConfigSpec.DoubleValue FISHEYE, GRAIN, DESATURATE, VIGNETTE, DEPTH_SMOOTH, DEPTH_STRENGTH;
     public static final ForgeConfigSpec.IntValue LIGHTING, MAX_DEBRIS;
     public static final ForgeConfigSpec.DoubleValue LIGHT_STRENGTH, SMOKE_AMOUNT, WATER_AMOUNT;
 
@@ -44,8 +45,8 @@ public final class FAClientConfig {
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
-        b.comment("Shiny Reflections: lights (and the sun) glint off shiny blocks as you move. Cheap: no shaders.").push("reflections");
-        REFLECTIONS = b.comment("Turn it on or off (it also turns itself off if a shader mod is installed)").define("enabled", true);
+        b.comment("Glints: lights (and the sun) glint off shiny blocks as you move. Cheap, no shaders (the old reflections; Ascension Lighting's are better).").push("reflections");
+        REFLECTIONS = b.comment("Turn it on or off (it also turns itself off if a shader mod is installed)").define("glints", false);
         RADIUS = b.comment("How far around you shiny blocks catch light (blocks)").defineInRange("radius", 12, 4, 32);
         MAX_GLINTS = b.comment("Most glints drawn per frame").defineInRange("maxGlints", 400, 16, 4000);
         STRENGTH = b.comment("How bright the glints are").defineInRange("strength", 1.0, 0.1, 3.0);
@@ -56,6 +57,8 @@ public final class FAClientConfig {
         LIGHTING = b.comment("Ascension Lighting: screen-space traced contact shadows, bounced light and sun rays. 0 off, 1 low, 2 medium, 3 high")
             .defineInRange("lighting", 2, 0, 3);
         LIGHT_STRENGTH = b.comment("How strong the shadows and bounced light are").defineInRange("lightingStrength", 1.0, 0.1, 2.0);
+        SCREEN_REFLECTIONS = b.comment("Ascension Lighting: ray-traced reflections on water, wet ground in the rain, and the sky's sheen on flat ground").define("screenReflections", true);
+        SUN_SHADOWS = b.comment("Ascension Lighting: shadows cast by the sun (and moon) from whatever's on screen").define("sunShadows", true);
         SUN_RAYS = b.comment("Light shafts from the sun and moon").define("sunRays", true);
         SMOKE = b.comment("Real smoke from explosions, gunfire and fires").define("smoke", true);
         SMOKE_AMOUNT = b.comment("How much smoke").defineInRange("smokeAmount", 1.0, 0.1, 3.0);
@@ -64,6 +67,8 @@ public final class FAClientConfig {
         WATER = b.comment("Water foams where it flows and falls, bubbles, and splashes").define("water", true);
         WATER_AMOUNT = b.comment("How much foam and bubbles").defineInRange("waterAmount", 1.0, 0.1, 3.0);
         GUN_MESHES = b.comment("Guns up close are smooth, high-detail meshes (off: the blocky models, for very slow computers)").define("gunMeshes", true);
+        DEPTH_SMOOTH = b.comment("Depth pack: how smooth the relief on blocks and mobs is (0 sharp, per pixel; 1 soft, rounded)").defineInRange("depthSmoothing", 0.5, 0.0, 1.0);
+        DEPTH_STRENGTH = b.comment("Depth pack: how deep the relief goes").defineInRange("depthStrength", 1.0, 0.0, 2.0);
         b.pop();
         b.comment("Realism camera: a lens look. Slight fisheye, less colour, film grain, a dark vignette. Toggle in game with F8").push("realism");
         REALISM = b.comment("Turn it on or off").define("enabled", true);

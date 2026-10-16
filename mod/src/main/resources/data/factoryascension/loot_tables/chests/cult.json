@@ -169,6 +169,31 @@
           "type": "minecraft:item",
           "name": "factoryascension:medkit",
           "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:magic_mushrooms",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:methamphetamine",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:nods_white",
+          "weight": 1
         }
       ]
     }

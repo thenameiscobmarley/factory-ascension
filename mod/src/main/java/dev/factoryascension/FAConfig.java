@@ -316,6 +316,13 @@ public final class FAConfig {
     public record ChemRecipe(java.util.List<java.util.Map.Entry<String, Integer>> inputs, String output, int count) {
     }
 
+    /** Chance breaking grass drops a cannabis or coca seed. */
+    public static float drugSeedChance = 0.03f;
+
+    public static void setDrugSeeds(double chance) {
+        drugSeedChance = (float) Math.max(0, Math.min(1, chance));
+    }
+
     public static final java.util.List<ChemRecipe> chemRecipes = new java.util.ArrayList<>();
     private static java.util.List<java.util.Map.Entry<String, Integer>> pending = new java.util.ArrayList<>();
 

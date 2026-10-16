@@ -1,0 +1,156 @@
+{
+ "textures": {
+  "tint": "factoryascension:item/gun2/tint",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    7.3,
+    7.2,
+    7.3
+   ],
+   "to": [
+    8.7,
+    8.0,
+    8.7
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      1.07,
+      1.22,
+      2.47,
+      2.02
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      12.87,
+      1.59,
+      14.27,
+      2.39
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      6.09,
+      4.54,
+      7.49,
+      5.34
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      8.11,
+      2.49,
+      9.51,
+      3.29
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      12.08,
+      1.05,
+      13.48,
+      2.45
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      10.96,
+      7.99,
+      12.36,
+      9.39
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    7.7,
+    2.0,
+    7.6
+   ],
+   "to": [
+    8.3,
+    7.2,
+    8.4
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      8.41,
+      3.85,
+      9.01,
+      9.05
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "south": {
+     "uv": [
+      0.81,
+      0.29,
+      1.41,
+      5.49
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "east": {
+     "uv": [
+      10.76,
+      0.39,
+      11.56,
+      5.59
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "west": {
+     "uv": [
+      12.06,
+      10.3,
+      12.86,
+      15.5
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "up": {
+     "uv": [
+      11.74,
+      9.76,
+      12.34,
+      10.56
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    },
+    "down": {
+     "uv": [
+      8.53,
+      12.31,
+      9.13,
+      13.11
+     ],
+     "texture": "#tint",
+     "tintindex": 0
+    }
+   }
+  }
+ ]
+}

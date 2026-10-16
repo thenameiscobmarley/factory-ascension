@@ -1,0 +1,135 @@
+{
+ "textures": {
+  "steel_dark": "factoryascension:item/gun2/steel_dark",
+  "particle": "factoryascension:item/gun2/tint"
+ },
+ "elements": [
+  {
+   "from": [
+    8.0,
+    7.4,
+    7.4
+   ],
+   "to": [
+    22.0,
+    8.6,
+    8.6
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      0.81,
+      6.25,
+      14.81,
+      7.45
+     ],
+     "texture": "#steel_dark"
+    },
+    "south": {
+     "uv": [
+      1.91,
+      0.63,
+      15.91,
+      1.83
+     ],
+     "texture": "#steel_dark"
+    },
+    "east": {
+     "uv": [
+      5.74,
+      14.5,
+      6.94,
+      15.7
+     ],
+     "texture": "#steel_dark"
+    },
+    "west": {
+     "uv": [
+      14.14,
+      2.72,
+      15.34,
+      3.92
+     ],
+     "texture": "#steel_dark"
+    },
+    "up": {
+     "uv": [
+      0.3,
+      4.39,
+      14.3,
+      5.59
+     ],
+     "texture": "#steel_dark"
+    },
+    "down": {
+     "uv": [
+      0.81,
+      3.04,
+      14.81,
+      4.24
+     ],
+     "texture": "#steel_dark"
+    }
+   }
+  },
+  {
+   "from": [
+    8.0,
+    7.4,
+    7.4
+   ],
+   "to": [
+    22.0,
+    8.6,
+    8.6
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      0.06,
+      7.4,
+      14.06,
+      8.6
+     ],
+     "texture": "#steel_dark"
+    },
+    "south": {
+     "uv": [
+      0.03,
+      5.05,
+      14.03,
+      6.25
+     ],
+     "texture": "#steel_dark"
+    },
+    "up": {
+     "uv": [
+      0.92,
+      9.95,
+      14.92,
+      11.15
+     ],
+     "texture": "#steel_dark"
+    },
+    "down": {
+     "uv": [
+      1.58,
+      0.27,
+      15.58,
+      1.47
+     ],
+     "texture": "#steel_dark"
+    }
+   },
+   "rotation": {
+    "axis": "x",
+    "angle": 45,
+    "origin": [
+     8.0,
+     8.0,
+     8.0
+    ]
+   }
+  }
+ ]
+}

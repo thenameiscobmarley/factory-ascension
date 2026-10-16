@@ -755,6 +755,77 @@ ItemEvents.tooltip(event => {
     details('factoryascension:medkit', 'Everything you need, if you have time.', () => [
       use('hold right-click for 4 seconds: stops Bleeding and poison, heals 3 hearts and more over time'),
       made(shapedList(FA.guns.medkit) + ' (crafting grid)')])
+    details('factoryascension:flashbang', 'Close your eyes. Too late.', () => [
+      use('hold right-click to pull the pin, let go to throw: about 1.5 seconds later, a blinding flash and a deafening bang'),
+      tip('Blinds and deafens everyone who can see it within 20 blocks (you too): operators lose track of you'),
+      made(FA.guns.flashbangsPerCraft + ' from ' + shapedList(FA.guns.flashbang) + ' (crafting grid)')])
+    details('factoryascension:plate_carrier', 'Two pockets that matter.', () => [
+      use('the chest slot: holds a front and a back armor plate that stop rounds before they reach you'),
+      tip('Right-click it with a plate in your other hand to slide it in; sneak + right-click takes the plates out'),
+      tip('A hit to the torso hits the front or back plate (whichever faces the shooter); plates wear down, armor-piercing rounds go through'),
+      made(shapedList(FA.guns.plateCarrier) + ' (crafting grid)')])
+    let plateText = {
+      polyethylene_plate: 'Light, floats, stops pistol and shotgun rounds well; rifle rounds wear it fast.',
+      steel_plate: 'Heavy and nearly unbreakable, but you feel every hit (blunt trauma).',
+      titanium_plate: 'Lighter than steel, tougher than ceramic.',
+      ceramic_plate: 'Stops rifle rounds cold, but cracks quickly.',
+      hybrid_plate: 'Ceramic strike face over polyethylene: stops rifle rounds and lasts.',
+      ascendite_plate: 'The best there is. Light, tough, and barely a bruise.'
+    }
+    Object.keys(plateText).forEach(id => details('factoryascension:' + id, plateText[id], () => [
+      use('a Plate Carrier (right-click the carrier with the plate in your other hand)'),
+      made(shapedList(FA.guns.plates[id]) + ' (crafting grid)')]))
+    ;['nods_green', 'nods_white'].forEach(id => details('factoryascension:' + id, id == 'nods_green' ? 'The world in green.' : 'White phosphor: sharper, colder, rarer.', () => [
+      use('the helmet slot: press N to flip them down and see in the dark (grainy, glowing, narrow), N again to flip them up'),
+      tip('Bright lights bloom through them; a flashbang through NODs is very bad'),
+      made(shapedList(id == 'nods_green' ? FA.guns.nodsGreen : FA.guns.nodsWhite) + ' (crafting grid)')]))
+    // Raids
+    let RD = FA.raids
+    details('factoryascension:ballistic_concrete', 'Let them knock.', () => [
+      use('walls raiders can\'t break through and bullets can\'t go through; shrugs off blasts'),
+      made(RD.ballisticConcretePerCraft + ' from ' + shapedList(RD.ballisticConcrete) + ' (crafting grid)')])
+    details('factoryascension:ballistic_glass', 'See them coming.', () => [
+      use('windows that stop bullets and don\'t break for raiders (normal glass does both)'),
+      made(RD.ballisticGlassPerCraft + ' from ' + shapedList(RD.ballisticGlass) + ' (crafting grid)')])
+    details('factoryascension:ballistic_glass_pane', 'See them coming, thinner.', () => [
+      use('bulletproof window panes'),
+      made('16 from 6 Ballistic Glass (crafting grid)')])
+    details('factoryascension:steel_door', 'The last door they try.', () => [
+      use('a door that opens by hand but that raiders can\'t bash in; stops bullets'),
+      tip('Raiders break wooden doors, trapdoors, gates and glass'),
+      made(shapedList(RD.steelDoor) + ' (crafting grid)')])
+    details('factoryascension:steel_trapdoor', 'Down the hatch, and shut.', () => [
+      use('a trapdoor that opens by hand but that raiders can\'t bash in; stops bullets'),
+      made(shapedList(RD.steelTrapdoor) + ' (crafting grid)')])
+    // Drugs
+    let DR = FA.drugs
+    let labLine = r => (r.in.map(i => i[1] + ' ' + faItemName(i[0])).join(', ')) + ' -> ' + r.count + ' ' + faItemName(r.out)
+    let labOf = id => DR.lab.filter(r => r.out == 'factoryascension:' + id).map(labLine)
+    let drugText = {
+      joint: ['Slow down.', 'calm (less stress), slower, hungry, a warm haze; then a mild comedown'],
+      cocaine: ['Everything, right now.', 'speed, quick hands (faster reloads), no fear; then a crash'],
+      methamphetamine: ['You haven\'t slept in days.', 'very fast and strong for a long time, jittery aim, tunnel vision; a hard crash, and it can leave you with Psychosis'],
+      morphine: ['It doesn\'t hurt. Nothing does.', 'hits hurt much less and stress stops building, but you\'re slower and soft-focused'],
+      adrenaline_shot: ['Get up.', 'health and speed at once, for a short time'],
+      magic_mushrooms: ['The walls are breathing.', 'the world warps and changes colour, trails behind everything; you see and hear things that aren\'t there']
+    }
+    Object.keys(drugText).forEach(id => details('factoryascension:' + id, drugText[id][0], () => [
+      use(drugText[id][1]),
+      tip('Three doses inside a minute: overdose'),
+      made(id == 'joint' ? shapedList(DR.jointRecipe) + ' (crafting grid)' : (labOf(id).join('; ') || 'nowhere (config)') + ' (Chem Lab)')]))
+    details('factoryascension:chem_lab', 'Glassware, a burner, no questions.', () => [
+      use('right-click it with the inputs in your inventory: it makes the first of its recipes you have everything for'),
+      tip(DR.lab.map(labLine).join('; ')),
+      made(shapedList(DR.chemLab) + ' (crafting grid)')])
+    ;[['cannabis', 'Grows anywhere, given a chance.'], ['coca', 'Bitter leaves, sharp mind.']].forEach(c => {
+      details('factoryascension:' + c[0] + '_seeds', c[1], () => [
+        use('plant on farmland; harvest when fully grown for ' + c[0] + ' leaves (and more seeds)'),
+        from('breaking grass now and then (' + Math.round(DR.seedChance * 100) + '%), structure loot')])
+      details('factoryascension:' + c[0] + '_leaf', c[1], () => [
+        use(c[0] == 'cannabis' ? 'rolling a Joint (with paper)' : 'Cocaine, at the Chem Lab'),
+        from('fully grown ' + c[0] + ' plants')])
+      details('factoryascension:' + c[0], c[1], () => [from('planting ' + c[0] + ' seeds on farmland')])
+    })
     details('factoryascension:dog_tag', 'Someone, once.', () => [
       tip('Dropped by every armed operator you put down: their name, what they were, who killed them and when')])
     // The armed operators' spawn eggs

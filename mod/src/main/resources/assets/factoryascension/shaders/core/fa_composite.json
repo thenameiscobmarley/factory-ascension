@@ -13,6 +13,9 @@
   },
   {
    "name": "SceneSampler"
+  },
+  {
+   "name": "ReflSampler"
   }
  ],
  "uniforms": [

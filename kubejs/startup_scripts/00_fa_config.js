@@ -1445,6 +1445,23 @@ global.FA = {
     bandage: [['PSP'], { P: 'minecraft:paper', S: 'minecraft:string' }],
     bandagesPerCraft: 3,
     medkit: [['WBW', 'BHB', 'WBW'], { W: 'minecraft:white_wool', B: 'factoryascension:bandage', H: 'minecraft:glistering_melon_slice' }],
+    // Flashbangs (crafting grid): no shrapnel, a blinding flash and a bang; operators throw them too
+    flashbang: [[' I ', 'GQG', ' I '], { I: 'minecraft:iron_ingot', G: 'minecraft:glowstone_dust', Q: 'minecraft:gunpowder' }],
+    flashbangsPerCraft: 2,
+    // Plate carrier (chest slot) and its plates (crafting grid). Right-click the carrier with a plate in your other hand
+    // to slide it in (front first, then back); sneak + right-click takes them out. Plates wear down as they stop rounds.
+    plateCarrier: [['S S', 'LSL', 'LLL'], { S: 'minecraft:string', L: 'minecraft:leather' }],
+    plates: {
+      polyethylene_plate: [['WSW', 'WSW', 'WSW'], { W: 'minecraft:white_wool', S: 'minecraft:slime_ball' }],
+      steel_plate: [['III', 'IBI', 'III'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_block' }],
+      titanium_plate: [['IDI', 'IBI', 'IDI'], { I: 'minecraft:iron_ingot', D: 'minecraft:diamond', B: 'minecraft:iron_block' }],
+      ceramic_plate: [['CTC', 'TBT', 'CTC'], { C: 'minecraft:clay_ball', T: 'minecraft:terracotta', B: 'minecraft:bricks' }],
+      hybrid_plate: [['C', 'I', 'P'], { C: 'factoryascension:ceramic_plate', I: 'minecraft:iron_ingot', P: 'factoryascension:polyethylene_plate' }],
+      ascendite_plate: [['AAA', 'AHA', 'AAA'], { A: 'kubejs:ascendite_ingot', H: 'factoryascension:hybrid_plate' }]
+    },
+    // Night vision goggles (helmet slot; N flips them down and up)
+    nodsGreen: [['SIS', 'GRG', ' E '], { S: 'minecraft:string', I: 'minecraft:iron_ingot', G: 'minecraft:glass_pane', R: 'minecraft:redstone', E: 'minecraft:emerald' }],
+    nodsWhite: [['SIS', 'GRG', ' A '], { S: 'minecraft:string', I: 'minecraft:iron_ingot', G: 'minecraft:glass_pane', R: 'minecraft:redstone', A: 'kubejs:ascendite_ingot' }],
     // Reloading under stress: chance a reload step goes wrong = base + stress^1.5 x stress (stress 0..1)
     fumbles: { enabled: true, base: 0.02, stress: 0.55 },
     explosiveRoundsBreakBlocks: false,
@@ -1471,6 +1488,38 @@ global.FA = {
   // night); squads hold the structures out there (scav camps near home, bunkers and outposts further, warlords' forts far
   // out); a red flare sends hunters. Their hits can leave you Bleeding (bandage it). Kill one: its gun (with what's left in
   // it), spare rounds, kit and dog tag drop.
+  // ---- Raids (Full download): kill the people holding a structure and you're Marked for a while (longer and stronger
+  // the more you kill). Marked, now and then a raid party comes for you: to your bed if you're near it, otherwise wherever
+  // you are. You'll hear them talking. They bash in wooden doors, trapdoors, gates and glass, and bring grenades.
+  // Ballistic concrete, glass and steel doors hold (and stop bullets); thin things (wood, glass, leaves) let rounds through.
+  raids: {
+    enabled: true, markTicks: 72000, killsPerLevel: 8, firstRaidTicks: 3600, raidEveryTicks: 9600, partySize: 3,
+    breakDoors: true, bulletsPenetrate: true,
+    ballisticConcrete: [['CIC', 'IOI', 'CIC'], { C: 'minecraft:gray_concrete', I: 'minecraft:iron_ingot', O: 'minecraft:obsidian' }],
+    ballisticConcretePerCraft: 8,
+    ballisticGlass: [['GIG', 'IGI', 'GIG'], { G: 'minecraft:glass', I: 'minecraft:iron_ingot' }],
+    ballisticGlassPerCraft: 5,
+    steelDoor: [['II', 'IB', 'II'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_block' }],
+    steelTrapdoor: [['IBI', 'III'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_block' }]
+  },
+
+  // ---- Drugs (Full download; single player's your own business). Each has its own effect, then a comedown; three
+  // doses inside a minute is an overdose. Meth can leave you with Psychosis (you see things that aren't there); so can
+  // mushrooms. Cannabis and coca seeds drop from grass (seedChance); plant them on farmland. The rest is made at the
+  // Chem Lab: right-click it with the inputs in your inventory, and it makes the first recipe here you have everything for.
+  drugs: {
+    seedChance: 0.03,
+    jointRecipe: [['P', 'L'], { P: 'minecraft:paper', L: 'factoryascension:cannabis_leaf' }],
+    chemLab: [['BTB', 'III', 'I I'], { B: 'minecraft:glass_bottle', T: 'minecraft:brewing_stand', I: 'minecraft:iron_ingot' }],
+    lab: [
+      { out: 'factoryascension:cocaine', count: 2, in: [['factoryascension:coca_leaf', 4], ['minecraft:gunpowder', 1]] },
+      { out: 'factoryascension:methamphetamine', count: 2, in: [['minecraft:redstone', 2], ['minecraft:gunpowder', 2], ['minecraft:sugar', 1], ['minecraft:glowstone_dust', 1]] },
+      { out: 'factoryascension:morphine', count: 2, in: [['minecraft:poppy', 3], ['minecraft:glass_bottle', 1]] },
+      { out: 'factoryascension:adrenaline_shot', count: 2, in: [['minecraft:glass_bottle', 1], ['minecraft:sugar', 2], ['minecraft:redstone', 1]] },
+      { out: 'factoryascension:magic_mushrooms', count: 3, in: [['minecraft:red_mushroom', 2], ['minecraft:brown_mushroom', 2], ['minecraft:fermented_spider_eye', 1]] }
+    ]
+  },
+
   npcs: {
     healthScale: 1, damageScale: 0.45, spreadScale: 1, bleedChance: 0.2, gunDropChance: 0.85,
     // Monsters (hordes too) hear gunshots and come: hearing x the shot's reach (about 100 blocks for a rifle, a few for a suppressed one)
@@ -2386,7 +2435,12 @@ global.FA_meteorPool = () => {
     put(P.machines, ['ascension_quarry', 'mob_grinder', 'warp_hopper'].map(b => 'factoryascension:' + b))
     put(P.machines, ['factoryascension:shotgun', 'factoryascension:flare_gun'].concat(FA.guns.list.map(g => 'factoryascension:' + g.id)))
     put(P.basics, ['factoryascension:shotgun_shell', 'factoryascension:flare_red', 'factoryascension:flare_green', 'factoryascension:cartridge', 'factoryascension:attachment',
-      'factoryascension:bandage', 'factoryascension:medkit', 'factoryascension:frag_grenade'])
+      'factoryascension:bandage', 'factoryascension:medkit', 'factoryascension:frag_grenade', 'factoryascension:flashbang',
+      'factoryascension:cannabis_seeds', 'factoryascension:coca_seeds', 'factoryascension:cannabis_leaf', 'factoryascension:coca_leaf',
+      'factoryascension:joint', 'factoryascension:morphine', 'factoryascension:adrenaline_shot', 'factoryascension:polyethylene_plate'])
+    put(P.machines, ['plate_carrier', 'steel_plate', 'ceramic_plate', 'titanium_plate', 'nods_green', 'chem_lab', 'cocaine', 'methamphetamine',
+      'magic_mushrooms', 'ballistic_concrete', 'ballistic_glass', 'ballistic_glass_pane', 'steel_door', 'steel_trapdoor'].map(b => 'factoryascension:' + b))
+    put(P.bigMachines, ['hybrid_plate', 'ascendite_plate', 'nods_white'].map(b => 'factoryascension:' + b))
     put(P.machines, ['factoryascension:weapons_workbench'])
     put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
     if (Platform.isLoaded('sophisticatedbackpacks')) FA.backpacks.tiers.forEach((t, i) => put(P.backpacks[Math.min(i, P.backpacks.length - 1)], ['factoryascension:' + t.id + '_backpack']))

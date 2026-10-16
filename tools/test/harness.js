@@ -1560,7 +1560,7 @@ var mPool = global.FA_meteorPool()
 Platform.isLoaded = mIsLoaded
 var mAll = [].concat.apply([], mPool).filter(function (x) { return typeof x == 'string' })
 var mMissing = created.concat(createdBlocks).map(function (x) { return 'kubejs:' + x }).concat(modItems.filter(function (id) { return !/_spawn_egg$/.test(id) }))
-  .filter(function (id) { return id != 'kubejs:incomplete_ascension_core' && id != 'factoryascension:duffel_bag' && id != 'factoryascension:dog_tag' && mAll.indexOf(id) < 0 })
+  .filter(function (id) { return id != 'kubejs:incomplete_ascension_core' && id != 'factoryascension:duffel_bag' && id != 'factoryascension:dog_tag' && id != 'factoryascension:cannabis' && id != 'factoryascension:coca' && mAll.indexOf(id) < 0 })
 check('meteors can drop every item and block the pack makes (' + mAll.length + ', plus Relics)', mMissing.length == 0, mMissing.slice(0, 8).join(', '))
 var mSeed = 7, mRand = function () { mSeed = (mSeed * 16807) % 2147483647; return mSeed / 2147483647 }
 var mean = function (danger) { var t = 0; for (var i = 0; i < 3000; i++) t += global.FA_meteorRoll(mRand, danger, mPool).tier; return t / 3000 }

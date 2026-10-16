@@ -1032,6 +1032,8 @@ def main():
     fx_art.main()             # smoke puffs for the effects
     import operator_art
     operator_art.main()       # the armed operators' skins, their kit, the bleeding icon
+    import v25_art
+    v25_art.main()            # flashbang, NODs, plate carrier, drugs and crops, raid blocks, effect icons
     import shutil
     if shutil.which("ffmpeg"):
         import sound_gen

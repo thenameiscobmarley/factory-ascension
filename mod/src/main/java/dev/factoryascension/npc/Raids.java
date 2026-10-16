@@ -95,6 +95,9 @@ public final class Raids {
         return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).requiresCorrectToolForDrops().strength(25f, 1200f).sound(SoundType.STONE);
     }
 
+    /** The block items (for the creative tab). Declared before the blocks: they add to it as they're made. */
+    public static final List<RegistryObject<Item>> ITEMS = new ArrayList<>();
+
     public static final RegistryObject<Block> CONCRETE = block("ballistic_concrete", () -> new BallisticBlock(armored()));
     public static final RegistryObject<Block> GLASS = block("ballistic_glass", () -> new BallisticGlass(BlockBehaviour.Properties.of()
         .mapColor(MapColor.NONE).requiresCorrectToolForDrops().strength(12f, 1200f).sound(SoundType.GLASS).noOcclusion()
@@ -107,7 +110,6 @@ public final class Raids {
     public static final RegistryObject<Block> STEEL_TRAPDOOR = block("steel_trapdoor", () -> new SteelTrapdoor(BlockBehaviour.Properties.of()
         .mapColor(MapColor.METAL).requiresCorrectToolForDrops().strength(20f, 1200f).noOcclusion().isValidSpawn((s, l, p, e) -> false), STEEL));
 
-    public static final List<RegistryObject<Item>> ITEMS = new ArrayList<>();
 
     static RegistryObject<Block> block(String name, java.util.function.Supplier<Block> make) {
         RegistryObject<Block> b = FactoryAscension.BLOCKS.register(name, make);

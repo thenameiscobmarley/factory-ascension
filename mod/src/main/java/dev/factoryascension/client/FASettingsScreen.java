@@ -56,7 +56,9 @@ public class FASettingsScreen extends Screen {
         }));
         items.add((x, y) -> slider(x, y, w, "Light strength", FAClientConfig.LIGHT_STRENGTH, 0.1, 2.0, v -> String.format("%.0f%%", v * 100)));
         items.add((x, y) -> toggle(x, y, w, "Sun rays", FAClientConfig.SUN_RAYS));
-        items.add((x, y) -> toggle(x, y, w, "Shiny Reflections", FAClientConfig.REFLECTIONS));
+        items.add((x, y) -> toggle(x, y, w, "Reflections (traced)", FAClientConfig.SCREEN_REFLECTIONS));
+        items.add((x, y) -> toggle(x, y, w, "Sun shadows", FAClientConfig.SUN_SHADOWS));
+        items.add((x, y) -> toggle(x, y, w, "Glints (old)", FAClientConfig.REFLECTIONS));
         items.add((x, y) -> toggle(x, y, w, "Smoke", FAClientConfig.SMOKE));
         items.add((x, y) -> slider(x, y, w, "Smoke amount", FAClientConfig.SMOKE_AMOUNT, 0.1, 3.0, v -> String.format("x%.1f", v)));
         items.add((x, y) -> toggle(x, y, w, "Voxel debris", FAClientConfig.DEBRIS));
@@ -76,6 +78,8 @@ public class FASettingsScreen extends Screen {
             status = Component.literal("Reloading the game's resources...");
             DepthShaders.set(!DepthShaders.enabled());
         }));
+        items.add((x, y) -> slider(x, y, w, "Depth smoothing", FAClientConfig.DEPTH_SMOOTH, 0.0, 1.0, v -> String.format("%.0f%%", v * 100)));
+        items.add((x, y) -> slider(x, y, w, "Depth strength", FAClientConfig.DEPTH_STRENGTH, 0.0, 2.0, v -> String.format("%.0f%%", v * 100)));
         int rows = (items.size() + cols - 1) / cols;
         int step = Math.min(24, Math.max(21, (height - 70) / Math.max(1, rows)));
         int y0 = Math.max(26, Math.min(40, height - 36 - rows * step));
@@ -154,5 +158,7 @@ public class FASettingsScreen extends Screen {
     @Override
     public void onClose() {
         Minecraft.getInstance().setScreen(parent);
+        // The depth sliders are baked into the depth pack's shaders: reload them if they changed
+        if (DepthShaders.enabled() && DepthShaders.settingsChanged()) Minecraft.getInstance().reloadResourcePacks();
     }
 }

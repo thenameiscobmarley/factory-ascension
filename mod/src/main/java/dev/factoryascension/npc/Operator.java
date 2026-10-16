@@ -105,6 +105,9 @@ public class Operator extends Monster {
     }
     int ammo = -1, reload = 0, fireCooldown = 0, burstLeft = 0, grenades = 0, bandages = 0, grenadeCooldown = 0, healing = 0;
     int seenTicks = 0, unseenTicks = 0, healCooldown = 0, dazzled = 0;
+    /** Shots at its current target so far: the first few walk onto you (whiffs), then it's on. */
+    int shotsAtTarget = 0;
+    @Nullable LivingEntity lastShotAt;
 
     /** Blinded (a 20,000 lumen light, a flashbang): it can barely see and can't aim. */
     public void dazzle(int ticks) {
@@ -370,6 +373,28 @@ public class Operator extends Monster {
     }
 
     // ---- Shooting ----
+    /** A round going past someone (not hitting them): the snap of a supersonic round or the whiz of a slow one, from where it passed. */
+    void passBy(ServerLevel level, Vec3 from, Vec3 to, @Nullable LivingEntity hit, GunSpec spec) {
+        Vec3 d = to.subtract(from);
+        double len2 = d.lengthSqr();
+        if (len2 < 1) return;
+        String cal = spec.caliber.name();
+        boolean slow = cal.startsWith("P") || cal.equals("R9X39") || cal.equals("G12") || spec.sound < 0.5f;
+        for (ServerPlayer sp : level.players()) {
+            if (sp == hit || sp.distanceToSqr(from) < 25) continue;
+            Vec3 e = sp.getEyePosition();
+            double t = Mth.clamp(e.subtract(from).dot(d) / len2, 0, 1);
+            Vec3 c = from.add(d.scale(t));
+            double miss = c.distanceTo(e);
+            if (miss > 3.0 || t >= 0.999) continue;
+            float vol = (float) (1.2 - miss * 0.3);
+            sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
+                net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.wrapAsHolder((slow ? dev.factoryascension.FASounds.WHIZ : dev.factoryascension.FASounds.CRACK).get()),
+                net.minecraft.sounds.SoundSource.HOSTILE, c.x, c.y, c.z, vol, 0.9f + getRandom().nextFloat() * 0.25f, getRandom().nextLong()));
+            dev.factoryascension.gun.Stress.add(sp, 0.04f);
+        }
+    }
+
     /** One shot (or one shotgun blast) at a point, with this operator's aim. */
     void fireAt(Vec3 aim, LivingEntity intended, float extraSpread) {
         GunSpec spec = gun();
@@ -381,7 +406,18 @@ public class Operator extends Monster {
         float moving = getDeltaMovement().horizontalDistanceSqr() > 0.002 ? 1.4f : 1;
         float settle = 1 + Math.max(0, 16 - seenTicks) / 10f;
         float targetMove = intended != null ? (float) Math.min(3, intended.getDeltaMovement().horizontalDistance() * 12) : 0;
-        double spreadDeg = (st.spreadHip * 0.45 + 0.6) * type.spread * moving * settle * FAConfig.npcSpread + targetMove + extraSpread + (dazzled > 0 ? 12 : 0);
+        // Whiffs: the first rounds at someone new go wide and walk onto them; getting hit makes it flinch; a crouched
+        // target far off is harder to hit
+        if (intended != lastShotAt) {
+            lastShotAt = intended;
+            shotsAtTarget = 0;
+        }
+        shotsAtTarget++;
+        float walkIn = Math.max(0, 4 - shotsAtTarget) * 1.1f;
+        float flinch = hurtTime > 0 ? 1.6f : 1;
+        float small = intended != null && intended.isCrouching() && intended.distanceToSqr(this) > 20 * 20 ? 1.3f : 1;
+        double spreadDeg = ((st.spreadHip * 0.45 + 0.6) * type.spread * moving * settle * FAConfig.npcSpread + targetMove + extraSpread + walkIn) * flinch * small
+            + (dazzled > 0 ? 12 : 0);
         double spread = Math.toRadians(spreadDeg);
         Vec3 right = look.cross(new Vec3(0, 1, 0));
         if (right.lengthSqr() < 1e-4) right = new Vec3(1, 0, 0);
@@ -406,6 +442,7 @@ public class Operator extends Monster {
                 if (clip.isPresent() && clip.get().distanceToSqr(eye) < best) { best = clip.get().distanceToSqr(eye); hit = e; }
             }
             Vec3 tracerEnd = hit != null ? eye.add(dir.scale(Math.sqrt(best))) : stop;
+            if (i < 2) passBy(level, eye, tracerEnd, hit, spec);
             for (double d = 2; d < eye.distanceTo(tracerEnd); d += 3) {
                 Vec3 p = eye.add(dir.scale(d));
                 level.sendParticles(ParticleTypes.CRIT, p.x, p.y, p.z, 1, 0, 0, 0, 0);

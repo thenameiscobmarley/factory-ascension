@@ -6,7 +6,7 @@ public final class GunGeometry {
     private GunGeometry() {
     }
 
-    public static final String[] SHAPES = {"comp", "brake", "flash", "supp_short", "supp_long", "supp_fat", "choke", "bayonet", "cap", "barrel_short", "barrel_long", "barrel_heavy", "barrel_fluted", "hg_rail", "hg_slim", "hg_wood", "fg_vertical", "fg_angled", "fg_stubby", "fg_stop", "opt_dot", "opt_holo", "opt_prism", "opt_acog", "opt_scope", "opt_scope_big", "opt_irons", "stock_pad", "stock_cheek", "mag_ext", "mag_drum", "mag_coupled", "mag_short", "under_bipod", "under_launcher", "under_shotgun", "under_cover", "tac_laser", "tac_light", "tac_combo", "grip_wrap", "charm", "none"};
+    public static final String[] SHAPES = {"comp", "brake", "flash", "supp_short", "supp_long", "supp_fat", "choke", "bayonet", "cap", "barrel_short", "barrel_long", "barrel_heavy", "barrel_fluted", "hg_rail", "hg_slim", "hg_wood", "fg_vertical", "fg_angled", "fg_stubby", "fg_stop", "opt_dot", "opt_holo", "opt_prism", "opt_acog", "opt_scope", "opt_scope_big", "opt_irons", "stock_pad", "stock_cheek", "mag_ext", "mag_drum", "mag_coupled", "mag_short", "under_bipod", "under_launcher", "under_shotgun", "under_cover", "tac_laser", "tac_light", "tac_combo", "grip_wrap", "charm", "cursed_box", "cursed_drum", "cursed_scope", "cursed_barrel", "cursed_barrel_wide", "cursed_light", "cursed_coil", "cursed_jet", "cursed_saw", "cursed_stack", "cursed_duck", "cursed_toaster", "cursed_bipod", "none"};
 
     public static void apply() {
         set("aa12", -0.2983f, -0.7545f, 0.56f, new float[] {25.95f, 11.45f, 8f, 22.95f, 11.45f, 8f, 18.0f, 11.45f, 8f, 18.0f, 7.14f, 8f, 5.0f, 12.58f, 8f, -10.7f, 10.45f, 8f, 9.5f, 1.0f, 8f, 19.5f, 8.4f, 8f, 17.0f, 11.45f, 9.1f, 4.0f, 5.5f, 8f, 5.0f, 6.0f, 8f, 2.0f, 10.74f, 9.1f});

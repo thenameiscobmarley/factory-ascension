@@ -56,7 +56,7 @@ public final class Drugs {
     }
 
     static MobEffectInstance fx(MobEffect e, int sec, int amp) {
-        return new MobEffectInstance(e, sec * 20, amp, false, true, true);
+        return new MobEffectInstance(e, sec * 20, amp, false, false, true);   // no swirls in your face; the icon shows
     }
 
     public static final RegistryObject<Item> JOINT = item("joint", 50, UseAnim.TOOT_HORN, SoundEvents.FIRE_EXTINGUISH, "Smoke it (hold right-click): calm, slow, hungry, hazy",

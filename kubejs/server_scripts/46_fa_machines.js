@@ -40,6 +40,20 @@ if (Platform.isLoaded(FA_MOD)) {
     event.shaped(Item.of(FA_MOD + ':frag_grenade', G.fragGrenadesPerCraft), G.fragGrenade[0], G.fragGrenade[1]).id('kubejs:factory_ascension/frag_grenade')
     event.shaped(Item.of(FA_MOD + ':bandage', G.bandagesPerCraft), G.bandage[0], G.bandage[1]).id('kubejs:factory_ascension/bandage')
     event.shaped(FA_MOD + ':medkit', G.medkit[0], G.medkit[1]).id('kubejs:factory_ascension/medkit')
+    event.shaped(Item.of(FA_MOD + ':flashbang', G.flashbangsPerCraft), G.flashbang[0], G.flashbang[1]).id('kubejs:factory_ascension/flashbang')
+    event.shaped(FA_MOD + ':plate_carrier', G.plateCarrier[0], G.plateCarrier[1]).id('kubejs:factory_ascension/plate_carrier')
+    Object.keys(G.plates).forEach(p => event.shaped(FA_MOD + ':' + p, G.plates[p][0], G.plates[p][1]).id('kubejs:factory_ascension/' + p))
+    event.shaped(FA_MOD + ':nods_green', G.nodsGreen[0], G.nodsGreen[1]).id('kubejs:factory_ascension/nods_green')
+    event.shaped(FA_MOD + ':nods_white', G.nodsWhite[0], G.nodsWhite[1]).id('kubejs:factory_ascension/nods_white')
+    let RD = global.FA.raids
+    event.shaped(Item.of(FA_MOD + ':ballistic_concrete', RD.ballisticConcretePerCraft), RD.ballisticConcrete[0], RD.ballisticConcrete[1]).id('kubejs:factory_ascension/ballistic_concrete')
+    event.shaped(Item.of(FA_MOD + ':ballistic_glass', RD.ballisticGlassPerCraft), RD.ballisticGlass[0], RD.ballisticGlass[1]).id('kubejs:factory_ascension/ballistic_glass')
+    event.shaped(Item.of(FA_MOD + ':ballistic_glass_pane', 16), ['GGG', 'GGG'], { G: FA_MOD + ':ballistic_glass' }).id('kubejs:factory_ascension/ballistic_glass_pane')
+    event.shaped(FA_MOD + ':steel_door', RD.steelDoor[0], RD.steelDoor[1]).id('kubejs:factory_ascension/steel_door')
+    event.shaped(FA_MOD + ':steel_trapdoor', RD.steelTrapdoor[0], RD.steelTrapdoor[1]).id('kubejs:factory_ascension/steel_trapdoor')
+    let DR = global.FA.drugs
+    event.shaped(FA_MOD + ':joint', DR.jointRecipe[0], DR.jointRecipe[1]).id('kubejs:factory_ascension/joint')
+    event.shaped(FA_MOD + ':chem_lab', DR.chemLab[0], DR.chemLab[1]).id('kubejs:factory_ascension/chem_lab')
     // Plain rounds of every caliber: a nugget bullet, gunpowder, a copper case
     Object.keys(G.ammo.perCraft).forEach(cal => {
       let round = Item.of(FA_MOD + ':cartridge', G.ammo.perCraft[cal],

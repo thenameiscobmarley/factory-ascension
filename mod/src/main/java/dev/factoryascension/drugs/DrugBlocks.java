@@ -144,6 +144,20 @@ public final class DrugBlocks {
         .mapColor(MapColor.METAL).strength(2.5f).sound(net.minecraft.world.level.block.SoundType.GLASS).noOcclusion()));
     public static final RegistryObject<Item> CHEM_LAB_ITEM = FactoryAscension.ITEMS.register("chem_lab", () -> new net.minecraft.world.item.BlockItem(CHEM_LAB.get(), new Item.Properties()));
 
+    /** Breaking grass, now and then: a seed (cannabis or coca). */
+    static void grassBroken(net.minecraftforge.event.level.BlockEvent.BreakEvent event) {
+        if (event.getLevel().isClientSide() || event.getPlayer().isCreative() || FAConfig.drugSeedChance <= 0) return;
+        BlockState s = event.getState();
+        if (!(s.is(net.minecraft.world.level.block.Blocks.GRASS) || s.is(net.minecraft.world.level.block.Blocks.TALL_GRASS)
+            || s.is(net.minecraft.world.level.block.Blocks.FERN) || s.is(net.minecraft.world.level.block.Blocks.LARGE_FERN))) return;
+        var r = event.getPlayer().getRandom();
+        if (r.nextFloat() >= FAConfig.drugSeedChance) return;
+        BlockPos p = event.getPos();
+        Level level = (Level) event.getLevel();
+        net.minecraft.world.level.block.Block.popResource(level, p, new ItemStack(r.nextBoolean() ? CANNABIS_SEEDS.get() : COCA_SEEDS.get()));
+    }
+
     public static void init() {
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(DrugBlocks::grassBroken);
     }
 }

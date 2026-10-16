@@ -354,5 +354,39 @@
    }
   ],
   "subtitle": "subtitles.factoryascension.grenade.explode"
+ },
+ "gun.crack": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/crack_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/crack_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/crack_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.crack"
+ },
+ "gun.whiz": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/whiz_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/whiz_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/whiz_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.whiz"
  }
 }

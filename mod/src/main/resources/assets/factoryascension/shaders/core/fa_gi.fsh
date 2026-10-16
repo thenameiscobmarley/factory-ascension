@@ -10,6 +10,10 @@ uniform vec2 OutSize;
 uniform float Radius;               // in blocks
 uniform int Samples;
 uniform float Strength;
+uniform mat4 ProjMat;
+uniform vec3 SunDir;                // towards the sun (or moon), in view space
+uniform float SunLight;             // how strong its shadows are (0 at night, in rain, underground)
+uniform int ShadowSteps;
 in vec2 texCoord;
 out vec4 fragColor;
 
@@ -17,6 +21,11 @@ vec3 viewPos(vec2 uv) {
     float d = texture(DepthSampler, uv).r;
     vec4 p = InvProjMat * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
     return p.xyz / p.w;
+}
+
+vec2 toScreen(vec3 v) {
+    vec4 c = ProjMat * vec4(v, 1.0);
+    return c.xy / c.w * 0.5 + 0.5;
 }
 
 float ign(vec2 px) {   // interleaved gradient noise: cheap, even per-pixel rotation
@@ -60,5 +69,23 @@ void main() {
     // Bounce: the average colour of what blocks the sky, lighting this surface, tinted by its own colour
     vec3 albedo = texture(DiffuseSampler, texCoord).rgb;
     vec3 gi = (occl > 0.0 ? bounce / occl : vec3(0.0)) * albedo * blocked * 1.4 * Strength;
-    fragColor = vec4(gi, ao);
+    // Sun shadows: march toward the sun through the depth buffer; anything on screen in the way shadows this pixel
+    float sun = 1.0;
+    if (SunLight > 0.0 && dot(n, SunDir) > 0.02 && dist < 64.0) {
+        vec3 q = p + n * (0.03 + dist * 0.003);
+        float stepLen = 0.08 + dist * 0.004;
+        float j = ign(gl_FragCoord.xy + 17.0);
+        q += SunDir * stepLen * j;
+        for (int i = 0; i < 48; i++) {
+            if (i >= ShadowSteps) break;
+            q += SunDir * stepLen;
+            stepLen *= 1.16;
+            vec2 uv = toScreen(q);
+            if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || q.z > -0.05) break;
+            if (texture(DepthSampler, uv).r >= 0.99999) continue;
+            float diff = viewPos(uv).z - q.z;
+            if (diff > 0.03 && diff < 1.2 + stepLen) { sun = 1.0 - 0.45 * SunLight * (1.0 - smoothstep(40.0, 64.0, dist)); break; }
+        }
+    }
+    fragColor = vec4(gi, ao * sun);
 }

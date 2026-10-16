@@ -131,6 +131,7 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.skins")) step = 500;   // only the smooth guns, skins, akimbo and gangster shots
                     if (Boolean.getBoolean("fa.npc")) step = 600;     // only the operators, structures, realism camera and new bench tabs
                     if (Boolean.getBoolean("fa.lens")) step = 650;    // only the realism camera
+                    if (Boolean.getBoolean("fa.v25")) step = 700;     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -359,6 +360,49 @@ public final class DevShots {
                 case 652 -> { shot(mc, "lens_hurt"); cmd(mc, "effect give @a instant_health 1 3"); dev.factoryascension.client.gun.GunAnim.stress = 0; wait = 30; }
                 case 653 -> { FAClientConfig.REALISM.set(false); wait = 40; }
                 case 654 -> { shot(mc, "lens_off"); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                // ---- v25: depth pack (with Embeddium in -PfaGfx runs), mobs, drugs, NODs, flashbang, raid blocks, crops ----
+                case 700 -> { cmd(mc, "gamemode creative @a"); cmd(mc, "time set noon"); cmd(mc, "weather clear"); FAClientConfig.REALISM.set(false);
+                    cmd(mc, "fill -9 -61 -4 5 -56 6 air"); cmd(mc, "fill -9 -61 0 5 -61 6 grass_block");
+                    String[] wall = {"stone_bricks", "cobblestone", "oak_planks", "bricks", "factoryascension:ballistic_concrete", "mossy_cobblestone", "deepslate_tiles", "spruce_log"};
+                    for (int i = 0; i < wall.length; i++) cmd(mc, "fill " + (-8 + i * 2) + " -60 4 " + (-7 + i * 2) + " -57 4 " + wall[i]);
+                    cmd(mc, "fill -8 -61 1 5 -61 3 cobblestone");
+                    cmd(mc, "setblock -3 -60 3 factoryascension:chem_lab"); cmd(mc, "setblock 0 -60 3 factoryascension:steel_door[half=lower]");
+                    cmd(mc, "setblock 0 -59 3 factoryascension:steel_door[half=upper]"); cmd(mc, "setblock 1 -59 3 factoryascension:ballistic_glass");
+                    cmd(mc, "setblock 2 -59 3 factoryascension:ballistic_glass_pane"); cmd(mc, "setblock 3 -60 3 factoryascension:steel_trapdoor[half=top]");
+                    cmd(mc, "fill -8 -61 2 -6 -61 2 farmland"); cmd(mc, "setblock -8 -60 2 factoryascension:cannabis[age=7]");
+                    cmd(mc, "setblock -7 -60 2 factoryascension:coca[age=7]"); cmd(mc, "setblock -6 -60 2 factoryascension:cannabis[age=3]");
+                    cmd(mc, "tp @a -1.5 -59.4 -1.5 0 12"); DepthShaders.set(true); wait = 260; }
+                case 701 -> { log("depth on: pack " + DepthShaders.enabled() + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")); shot(mc, "v25_depth_on"); 
+                    cmd(mc, "tp @a -6.5 -59 1.2 -50 18"); wait = 60; }
+                case 702 -> { shot(mc, "v25_depth_close"); FAClientConfig.DEPTH_SMOOTH.set(1.0); FAClientConfig.DEPTH_STRENGTH.set(2.0); mc.reloadResourcePacks(); wait = 600; }
+                case 703 -> { shot(mc, "v25_depth_smooth_deep"); FAClientConfig.DEPTH_SMOOTH.set(0.0); FAClientConfig.DEPTH_STRENGTH.set(1.0); mc.reloadResourcePacks(); wait = 600; }
+                case 704 -> { shot(mc, "v25_depth_sharp"); FAClientConfig.DEPTH_SMOOTH.set(0.5); DepthShaders.set(false); wait = 260; }
+                case 705 -> { shot(mc, "v25_depth_off"); DepthShaders.set(true); wait = 260; }
+                case 706 -> { cmd(mc, "tp @a -1.5 -59.4 -1.5 0 12"); cmd(mc, "summon zombie -2.5 -60 1.5 {NoAI:1b,Rotation:[180f,0f]}");
+                    cmd(mc, "summon factoryascension:raider -0.5 -60 1.5 {NoAI:1b,Rotation:[180f,0f]}"); wait = 60; }
+                case 707 -> { shot(mc, "v25_mobs_depth"); cmd(mc, "kill @e[type=!player]"); cmd(mc, "gamemode survival @a");
+                    cmd(mc, "effect give @a factoryascension:stoned 60 0"); wait = 200; }
+                case 708 -> { shot(mc, "v25_stoned"); cmd(mc, "effect clear @a"); cmd(mc, "effect give @a factoryascension:tripping 60 1"); wait = 200; }
+                case 709 -> { shot(mc, "v25_tripping"); cmd(mc, "effect clear @a"); cmd(mc, "effect give @a factoryascension:psychosis 60 1"); wait = 200; }
+                case 710 -> { cmd(mc, "tp @a -1.5 -59.4 -1.5 180 4"); wait = 20; }
+                case 711 -> { Hallucinations.devFigure(); wait = 30; }
+                case 712 -> { shot(mc, "v25_psychosis"); cmd(mc, "effect clear @a"); cmd(mc, "effect give @a factoryascension:tweaking 60 0"); wait = 200; }
+                case 713 -> { shot(mc, "v25_tweaking"); cmd(mc, "effect clear @a"); cmd(mc, "tp @a -1.5 -59.4 -1.5 0 12"); wait = 120; }
+                case 714 -> { cmd(mc, "time set midnight"); cmd(mc, "item replace entity @a armor.head with factoryascension:nods_green{Down:1b}"); wait = 80; }
+                case 715 -> { shot(mc, "v25_nods_green"); cmd(mc, "item replace entity @a armor.head with factoryascension:nods_white{Down:1b}"); wait = 60; }
+                case 716 -> { shot(mc, "v25_nods_white"); cmd(mc, "item replace entity @a armor.head with air"); cmd(mc, "time set noon");
+                    cmd(mc, "effect give @a factoryascension:flashed 4 0"); wait = 14; }
+                case 717 -> { shot(mc, "v25_flashed"); cmd(mc, "item replace entity @a armor.chest with factoryascension:plate_carrier");
+                    cmd(mc, "item replace entity @a armor.head with factoryascension:nods_green"); mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT); wait = 120; }
+                case 718 -> { shot(mc, "v25_carrier_worn"); mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+                    cmd(mc, "item replace entity @a armor.chest with air"); cmd(mc, "item replace entity @a armor.head with air");
+                    cmd(mc, "tp @a -1.5 -58.4 0.3 0 25"); wait = 40; }
+                case 719 -> { shot(mc, "v25_blocks"); cmd(mc, "give @a factoryascension:ak12"); cmd(mc, "give @a factoryascension:plate_carrier");
+                    cmd(mc, "give @a factoryascension:hybrid_plate 2"); cmd(mc, "give @a factoryascension:joint 4"); cmd(mc, "give @a factoryascension:flashbang 3");
+                    mc.gui.getChat().clearMessages(false); mc.getToasts().clear(); dev.factoryascension.client.tarkov.TarkovClient.debugTime = 3f;
+                    mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); wait = 60; }
+                case 720 -> { shot(mc, "v25_inventory"); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
+                    FAClientConfig.REALISM.set(true); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }

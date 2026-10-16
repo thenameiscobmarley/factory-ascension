@@ -297,4 +297,21 @@ public final class Hallucinations {
         }
         pose.popPose();
     }
+
+    /** Dev screenshots: a figure and a peeker right now. */
+    public static void devFigure() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || mc.player == null) return;
+        var p = mc.player;
+        float a = p.getYRot() + 14;
+        double x = p.getX() - Mth.sin(a * Mth.DEG_TO_RAD) * 18, z = p.getZ() + Mth.cos(a * Mth.DEG_TO_RAD) * 18;
+        int y = mc.level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, (int) Math.floor(x), (int) Math.floor(z));
+        GHOSTS.add(new Ghost(false, new Vec3(x, y, z), 0, 2000));
+        Ghost h = peeker(mc.level, mc.player);
+        if (h != null) {
+            h.out = 1;
+            GHOSTS.add(h);
+        }
+        nextGhost = 100000;
+    }
 }
