@@ -1,0 +1,176 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2,
+        "max": 4
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:candle",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bone",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:rotten_flesh",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 8
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ender_pearl",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:experience_bottle",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:crying_obsidian",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "kubejs:mythic_fragment",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "kubejs:chaos_tome",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 18
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r9x39\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 12
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r9x39\",Type:\"SUBSONIC\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:vss",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:as_val",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:medkit",
+          "weight": 3
+        }
+      ]
+    }
+  ]
+}

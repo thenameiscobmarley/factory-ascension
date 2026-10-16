@@ -105,6 +105,7 @@ public class FlareGunItem extends ShotgunItem {
         dev.factoryascension.FxEvents.smoke(level, eye.add(look.scale(1.2)), 0.3f);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.FIREWORK_ROCKET_LAUNCH, SoundSource.PLAYERS, 1.4f, 0.8f);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 0.4f, 1.9f);
+        if (colour == RED) dev.factoryascension.gun.Rescue.call(player);
         if (colour == GREEN) {
             Vec3 ahead = new Vec3(look.x, 0, look.z);
             ahead = ahead.lengthSqr() < 1e-4 ? Vec3.ZERO : ahead.normalize().scale(8);

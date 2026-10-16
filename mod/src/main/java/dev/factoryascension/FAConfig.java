@@ -252,4 +252,54 @@ public final class FAConfig {
         benchPartItem = partItem;
         benchTierItem = tierItem;
     }
+
+    // Gunsmith (the bench's GUNSMITH tab): what each gun costs to build, [item id, count] pairs; guns with none listed
+    // use a cost by kind (gun/Bench.defaultCost). Skins: what putting one on costs.
+    public static final java.util.Map<String, java.util.List<String[]>> gunCost = new java.util.HashMap<>();
+    public static String skinItem = "minecraft:amethyst_shard";
+    public static int skinCost = 2;
+
+    public static void clearGunCost(String id) {
+        gunCost.remove(id);
+    }
+
+    public static void addGunCost(String id, String item, int count) {
+        gunCost.computeIfAbsent(id, k -> new java.util.ArrayList<>()).add(new String[] {item, String.valueOf(Math.max(1, Math.min(999, count)))});
+    }
+
+    public static void setSkins(String item, int cost) {
+        skinItem = item;
+        skinCost = Math.max(0, Math.min(64, cost));
+    }
+
+    // Rescue: a red flare may bring a helicopter (gun/Rescue)
+    public static boolean rescueEnabled = true;
+    public static float rescueChance = 0.7f;
+    public static int rescueDelay = 1200;
+    public static double rescueRadius = 12;
+
+    public static void setRescue(boolean enabled, double chance, int delayTicks, double radius) {
+        rescueEnabled = enabled;
+        rescueChance = (float) Math.max(0, Math.min(1, chance));
+        rescueDelay = Math.max(20, delayTicks);
+        rescueRadius = Math.max(2, radius);
+    }
+
+    // The armed operators (npc/): how tough and deadly, where and how often they turn up
+    public static float npcHealth = 1, npcDamage = 0.45f, npcSpread = 1, npcBleedChance = 0.2f, npcGunDrop = 0.85f, npcPatrolChance = 0.06f;
+    public static boolean npcPatrols = true, npcHunters = true;
+    public static int npcPatrolMinDanger = 1, npcMaxNearby = 14;
+
+    public static void setNpcs(double health, double damage, double spread, double bleed, double gunDrop, boolean patrols, double patrolChance, int minDanger, int maxNearby, boolean hunters) {
+        npcHealth = (float) Math.max(0.1, health);
+        npcDamage = (float) Math.max(0, damage);
+        npcSpread = (float) Math.max(0.05, spread);
+        npcBleedChance = (float) Math.max(0, Math.min(1, bleed));
+        npcGunDrop = (float) Math.max(0, Math.min(1, gunDrop));
+        npcPatrols = patrols;
+        npcPatrolChance = (float) Math.max(0, Math.min(1, patrolChance));
+        npcPatrolMinDanger = Math.max(0, minDanger);
+        npcMaxNearby = Math.max(0, maxNearby);
+        npcHunters = hunters;
+    }
 }

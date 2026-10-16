@@ -961,6 +961,8 @@ function faDangerNotice(player) {
   let last = faLastDanger[uuid]
   faLastDanger[uuid] = danger
   if (danger > 0) faStat(player, 'max_danger', danger, 'max')
+  // The mod's Dread ambience (distant gunfire, the realism camera) gets darker the deeper you go
+  if (global.FA_MOD_DANGER) global.FA_MOD_DANGER(player, danger)
   // First check after logging in: only worth a title if you're somewhere dangerous
   if (last === undefined ? danger <= 0 : last == danger) return ''
 

@@ -127,6 +127,71 @@ public final class Bench {
         return out;
     }
 
+    // ---- Gunsmith: build any gun from its cost ----
+    /** What a gun costs to build: the pack's config (guns.list[].cost), else by its kind. */
+    public static java.util.List<String[]> buildCost(GunSpec g) {
+        var c = FAConfig.gunCost.get(g.id);
+        return c != null && !c.isEmpty() ? c : defaultCost(g);
+    }
+
+    static java.util.List<String[]> defaultCost(GunSpec g) {
+        java.util.List<String[]> out = new ArrayList<>();
+        int iron, core = 0, asc;
+        switch (g.kind) {
+            case PISTOL, REVOLVER -> { iron = 6; asc = 1; }
+            case SMG -> { iron = 10; asc = 2; }
+            case RIFLE -> { iron = 14; asc = 3; }
+            case DMR, SHOTGUN -> { iron = 14; asc = 3; core = g.kind == GunSpec.Kind.DMR ? 1 : 0; }
+            case SNIPER -> { iron = 16; asc = 4; core = 1; }
+            default -> { iron = 22; asc = 5; core = 1; }
+        }
+        out.add(new String[] {"minecraft:iron_ingot", String.valueOf(iron)});
+        out.add(new String[] {"kubejs:ascendite_ingot", String.valueOf(asc)});
+        if (core > 0) out.add(new String[] {"kubejs:ascension_core", String.valueOf(core)});
+        return out;
+    }
+
+    public static void build(ServerPlayer p, String gunId) {
+        GunSpec g = Guns.BY_ID.get(gunId);
+        var reg = FactoryAscension.GUNS.get(gunId);
+        if (g == null || reg == null) return;
+        if (!p.isCreative()) {
+            for (String[] c : buildCost(g)) {
+                Item it = item(c[0]);
+                int n = Integer.parseInt(c[1]);
+                if (it == null || count(p, it) < n) {
+                    p.displayClientMessage(Component.literal("Needs " + n + " " + new ItemStack(it).getHoverName().getString()).withStyle(ChatFormatting.RED), true);
+                    return;
+                }
+            }
+            for (String[] c : buildCost(g)) take(p, item(c[0]), Integer.parseInt(c[1]));
+        }
+        give(p, new ItemStack(reg.get()));
+        p.level().playSound(null, p.blockPosition(), SoundEvents.SMITHING_TABLE_USE, SoundSource.PLAYERS, 0.8f, 0.9f);
+        p.level().playSound(null, p.blockPosition(), SoundEvents.CROSSBOW_LOADING_END, SoundSource.PLAYERS, 0.6f, 1.2f);
+    }
+
+    // ---- Skins ----
+    public static void skin(ServerPlayer p, ItemStack gun, String skinId) {
+        if (gun.isEmpty() || GunItem.spec(gun) == null) { p.displayClientMessage(Component.literal("Put a gun in the GUN slot").withStyle(ChatFormatting.RED), true); return; }
+        if (skinId.isEmpty()) {
+            Skins.set(gun, "");
+            p.level().playSound(null, p.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER, SoundSource.PLAYERS, 0.7f, 1.2f);
+            return;
+        }
+        if (!Skins.ALL.containsKey(skinId)) return;
+        if (!p.isCreative() && FAConfig.skinCost > 0) {
+            Item it = item(FAConfig.skinItem);
+            if (it == null || count(p, it) < FAConfig.skinCost) {
+                p.displayClientMessage(Component.literal("Needs " + FAConfig.skinCost + " " + new ItemStack(it).getHoverName().getString()).withStyle(ChatFormatting.RED), true);
+                return;
+            }
+            take(p, it, FAConfig.skinCost);
+        }
+        Skins.set(gun, skinId);
+        p.level().playSound(null, p.blockPosition(), SoundEvents.BREWING_STAND_BREW, SoundSource.PLAYERS, 0.6f, 1.4f);
+    }
+
     /** An attachment's effects, as short lines for tooltips and the bench. */
     public static List<String> describe(Attachments.Att a) {
         List<String> out = new ArrayList<>();
@@ -145,6 +210,8 @@ public final class Bench {
         if (m.auto) out.add("Full auto");
         if (m.noBolt) out.add("No bolt to work");
         if (m.laser) out.add("Laser");
+        if (m.akimbo) out.add("Akimbo: a second gun in your other hand");
+        if (m.gangster) out.add("Held flat on its side");
         if (m.light) out.add("Light (see in the dark)");
         if (m.weight != 0) out.add(String.format("%+.1f kg", m.weight));
         return out;

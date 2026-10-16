@@ -1,0 +1,145 @@
+{
+ "parent": "builtin/entity",
+ "textures": {
+  "particle": "factoryascension:item/gun2/steel"
+ },
+ "gui_light": "front",
+ "display": {
+  "gui": {
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "translation": [
+    0.25,
+    0.74,
+    0
+   ],
+   "scale": [
+    0.379,
+    0.379,
+    0.379
+   ]
+  },
+  "fixed": {
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "translation": [
+    0.25,
+    0.74,
+    0
+   ],
+   "scale": [
+    0.379,
+    0.379,
+    0.379
+   ]
+  },
+  "ground": {
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "translation": [
+    0,
+    2,
+    0
+   ],
+   "scale": [
+    0.303,
+    0.303,
+    0.303
+   ]
+  },
+  "firstperson_righthand": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "translation": [
+    0,
+    2.0,
+    0
+   ],
+   "scale": [
+    0.6,
+    0.6,
+    0.6
+   ]
+  },
+  "firstperson_lefthand": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "translation": [
+    0,
+    2.0,
+    0
+   ],
+   "scale": [
+    0.6,
+    0.6,
+    0.6
+   ]
+  },
+  "thirdperson_righthand": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "translation": [
+    0,
+    2.5,
+    1.0
+   ],
+   "scale": [
+    0.51,
+    0.51,
+    0.51
+   ]
+  },
+  "thirdperson_lefthand": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "translation": [
+    0,
+    2.5,
+    1.0
+   ],
+   "scale": [
+    0.51,
+    0.51,
+    0.51
+   ]
+  },
+  "head": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "translation": [
+    0,
+    8,
+    0
+   ],
+   "scale": [
+    0.5,
+    0.5,
+    0.5
+   ]
+  }
+ }
+}

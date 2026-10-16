@@ -230,11 +230,30 @@ x 5 damage, 6 shells, up to 40 blocks, less damage past 10. The pellets are your
 any weapon and your gear counts. It shatters glass. Shotgun Shells: 8 from paper, gunpowder, iron nuggets and a gold
 nugget. Every number is in `guns`.
 
-**22 more guns**, each a detailed 3D model (100 to 190 parts): pistols (P17, M1911, Hawk .50), the R357 revolver, SMGs
-(MP5, MP7, UZ-9, KV .45), rifles (AK-74M, AKM, M4A1, MK17, AUG with its built-in optic), marksman rifles (SVD, SR-25),
-bolt-action rifles (M700, Mosin-Nagant, AX .338), shotguns (Saiga-12, Double Barrel) and machine guns (PKM, M249). Same
-controls as the shotgun; automatics fire while you hold the button. Aiming puts the sights right on the crosshair; scoped
-rifles show the scope's view.
+**73 more guns**, built at the Weapons Workbench. Up close (in your hands, and in the workbench) each is a smooth,
+high-detail mesh: rounded machined edges, round barrels and suppressors, curved magazines and stocks, real ports cut
+through muzzle brakes, fine rail teeth, scopes with glass, worn edges where the finish has rubbed off. The rest of the
+time (inventory icons, on the ground, other people's guns far away) it's a lighter model. All of them:
+
+- **Pistols**: P17, M1911, Hawk .50, G18 Auto (full auto), M9, USP .45, Five-seveN, P226, CZ 75, PM Makarov, TT-33,
+  P08 Luger, C96 Broomhandle (stripper clips). **Revolvers**: R357, Python .357, Model 29 .44, Judge (shotgun shells).
+- **SMGs**: MP5, MP7, UZ-9, KV .45, Vector .45, P90, UMP-45, Thompson (drum), PPSh-41 (drum), MAC-10 (suppressed),
+  PP-19 Bizon (helical mag), MP40.
+- **Rifles**: AK-74M, AKM, AK-12, AKS-74U, Galil ACE, M4A1, HK416, MCX .300 (suppressed), SCAR-L, MK17, G36, FAMAS,
+  L85A2 (4x SUSAT), Tavor X95, AUG A3, FN FAL, M1 Garand, AS VAL (silent), Winchester 1873 (lever action).
+- **Marksman and sniper**: SVD, SR-25, Mk 14 EBR, VSS Vintorez (silent, scoped, full auto), M700, Mosin-Nagant, Kar98k,
+  AX .338, AWM, M82 Barrett (.50 BMG, semi-auto).
+- **Shotguns**: Saiga-12, Double Barrel, Sawn-Off, M870 and SPAS-12 (pump), M1014, KSG (two tubes, 14 shells), AA-12
+  (full auto, 20-shell drum). **Machine guns**: PKM, M249, RPK (drum), MG 42, M60, DP-28 (pan), M134 Minigun (spin it up
+  first, then 2,400 rounds a minute).
+
+Same controls as the shotgun; automatics fire while you hold the button. Aiming puts the sights right on the crosshair;
+scoped rifles show the scope's view. Pump, lever and bolt guns are worked after every shot. 18 calibers.
+
+**Sound**: every gun has its own report (pistol, magnum, SMG, rifle, battle rifle, sniper, .50, shotgun, machine gun,
+suppressed): a crack, the blast, the echo rolling off the hills, and spent brass bouncing at your feet. Past about 100
+blocks you only hear the distant boom, from the right direction. Magazines, bolts, pumps and shells each sound like
+themselves.
 
 - **Reloading** is real: magazines come out (their rounds go back to you) and go in, belts are fed, revolvers are loaded
   chamber by chamber, bolt rifles round by round, and from empty you rack the first round in.
@@ -251,7 +270,20 @@ rifles show the scope's view.
   marker. Types: Regular, Hollow Point, Armor Piercing, RIP (bleeding), Snakeshot (a cloud of pellets from any gun), Slug,
   Buckshot, Incendiary, Tracer, Explosive, Subsonic, Rubber, Flechette, Dragon's Breath, Frangible and Ender.
 
-**Weapons Workbench**: in the same style as the Tarkov inventory. Put a gun in it and:
+**Weapons Workbench**: in the same style as the Tarkov inventory.
+
+- **Gunsmith**: every gun, filtered by kind or searched, shown big with its numbers and its cost; **BUILD** makes it from
+  the parts in your inventory (each gun's cost is in `guns.list`).
+- **Skins**: 28 animated finishes, live on the gun while you pick: **Obsidian** (magma creeping through black glass),
+  **Snow** (packed snow on every ledge, flakes drifting off), **Black Water** (dark waves rolling down the gun, the
+  surface moving), **Torn** (shredded camo wrap, strips swinging as you move), Gold Leaf, Lava, Frost (ice crystals
+  growing out of it), Neon Grid, Digital Woodland, Arctic, Tiger Stripe, Carbon Fibre, Damascus, Rust (flaking up),
+  Overgrown (moss and swaying grass), Bone, Galaxy, Toxic (dripping glowing slime), Blood Moon, Chrome, Circuit (pulses
+  running along the traces), Cherry Blossom (falling petals), Inferno (flames licking off the top), Glitch, Hazard,
+  Ghillie (shaggy strands), Ember (coals that glow brighter when you fire) and Aurora. Each costs `guns.workbench.skinCost`
+  x `skinItem`; taking one off is free.
+
+Put a gun in it and:
 
 - **Modding**: twelve slots (muzzle, barrel, handguard, foregrip, optic, stock, magazine, underbarrel, tactical, grip,
   trigger, charm) and a catalog of over 3,000 attachments: suppressors, compensators, brakes, chokes, bayonets, barrels,
@@ -260,6 +292,9 @@ rifles show the scope's view.
   makers in several finishes and grades. Each changes the gun's numbers (shown with its cost) and shows on the gun.
   Search the list, click INSTALL; right-click a slot to take its attachment off (you get it back as an item). A laser
   puts a red dot where you aim, a light lets you see in the dark, a 4x or stronger optic gives a scope view.
+  **Akimbo kit** (in the stock slot, for pistols, revolvers, SMGs and shotguns): a second gun in your other hand, twice
+  the rounds and the fire rate, no aiming down the sights. **Gangster grip**: the gun held flat on its side; quick to
+  raise, wild to control.
 - **Ammo Press**: any item as the case and any item as the powder (gunpowder is the standard; TNT is a lot, sugar is
   barely anything, a nether star is absurd; weak cases misfire), any caliber, any of the 16 types, any colour.
 
@@ -267,12 +302,51 @@ rifles show the scope's view.
 workbench, whatever it was made for, up to four in every slot. A sniper scope on a revolver, three suppressors, a drum
 on a double barrel, an auto sear in a bolt rifle.
 
-Every gun's numbers and recipe are in `guns.list`; fumble odds in `guns.fumbles`; the workbench in `guns.workbench`.
+Every gun's numbers and cost are in `guns.list`; fumble odds in `guns.fumbles`; the workbench in `guns.workbench`.
 
 **Flare Gun**: the same controls, one flare at a time. **R** loads a flare (R again swaps red for green). A **Red Flare**
-is a signal: a bright red star high in the sky. A **Green Flare** calls an **airdrop**: green smoke rises 8 blocks ahead
+calls for rescue (hopefully): red smoke marks the spot, and a minute later, 70% of the time, you hear rotors; a helicopter
+circles the flare, and if you're still within 12 blocks of it you're **extracted**, home with everything you carry. Wander
+off and it leaves without you. Or no one answers. Either way everyone armed out there saw it, and hunters come for
+whoever sent it. A **Green Flare** calls an **airdrop**: green smoke rises 8 blocks ahead
 of you, and 20 seconds later a supply crate falls from the sky and lands as a chest of loot (shells, flares, Ascendite,
 cores, diamonds, golden apples, sometimes a gun). Numbers and the loot table are in `guns.flareGun`.
+
+## Out there: armed operators, their places, and dread (Full download)
+
+**Armed operators**: people with guns who fight like players, in 20 kinds and five factions: Scavs (scavs, riflemen,
+snipers, looters, deserters), Raiders (raiders, medics, breachers, grenadiers, marksmen, machine gunners), Rogues
+(rogues, rogue snipers, ghosts, juggernauts, hunters), Cultists, and Bandits (a warlord, his bodyguards, smugglers).
+They look like players (helmets, plate carriers, balaclavas, masks) with names to match, and:
+
+- hear gunshots and come to look; call their squad onto you; spot you less in the dark (unless they have night vision)
+  and less when you crouch;
+- strafe and crouch while they shoot, in bursts, keep to the range they like (rushers close in, snipers stay back),
+  flank, throw grenades at the cover you're behind, keep firing where you were last seen;
+- run out of ammo like you do, reload behind cover with the gun's real reload times (and fumble it when they're hurt),
+  patch themselves up behind cover; medics heal their squad; bodyguards stay by their warlord;
+- fight each other: scavs and raiders shoot on sight, cultists shoot everyone.
+
+Kill one and its gun drops (with what was left in it), its spare rounds, some of its kit, and its **Dog Tag** (its
+name, what it was, who killed it). Their hits can leave you **Bleeding** (half a heart every few seconds) until you use
+a **Bandage** (2 seconds) or a **Medkit** (4 seconds, heals more). **Frag Grenades**: hold right-click to cook, let go
+to throw; they bounce.
+
+**Patrols** roam the danger zones: more of them, and worse, the further out you go (scavs near home; raiders, rogues
+and juggernauts deep), more at night, cultists only at night. **Their places**: twelve kinds, every one built fresh from
+its own random roll (size, layout, materials, how wrecked it is, where the loot is, who holds it): scav camps, ruined
+houses and gas stations near home; checkpoints, trench lines and sniper towers further out; military outposts,
+underground bunkers, helicopter crash sites and radio towers beyond; warlords' forts and cult shrines far out. Their
+chests hold guns, rounds of every type, meds, grenades and flares. All in `npcs`.
+
+**Dread** (Pause > Factory Ascension... > Dread sounds): out in the zones you hear gunfire far off, now and then (more
+at night, more the deeper you go): someone else is out there. Under stress or badly hurt you hear your heart, faster the
+worse it is, and your breathing. A blast or a big gun right beside you leaves your ears ringing for a few seconds;
+everything else goes muffled.
+
+**Realism camera** (**F8** toggles it; Pause > Factory Ascension... sets each part): the picture through a real lens: a
+slight fisheye, colour fringes at the edges, less colour and a cold grade, moving film grain, and a vignette that
+tightens and pulses with your heart under stress, goes red when you're hurt, and blurs after a blast.
 
 ## Tarkov inventory (Full download)
 

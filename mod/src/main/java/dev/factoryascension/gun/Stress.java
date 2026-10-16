@@ -23,13 +23,13 @@ import java.util.WeakHashMap;
  */
 @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class Stress {
-    private static final Map<ServerPlayer, float[]> STATE = new WeakHashMap<>();   // {stress, last sent, ticks since hurt}
+    private static final Map<ServerPlayer, float[]> STATE = new WeakHashMap<>();   // {stress, last sent, ticks since hurt, danger, danger sent}
 
     private Stress() {
     }
 
     private static float[] of(ServerPlayer p) {
-        return STATE.computeIfAbsent(p, k -> new float[] {0, -1, 1000});
+        return STATE.computeIfAbsent(p, k -> new float[] {0, -1, 1000, 0, -1});
     }
 
     public static float get(ServerPlayer p) {
@@ -42,6 +42,15 @@ public final class Stress {
 
     public static void add(ServerPlayer p, float v) {
         set(p, get(p) + v);
+    }
+
+    /** The danger level where the player is (the pack's scripts say, as they show zone titles). */
+    public static void setDanger(ServerPlayer p, int danger) {
+        of(p)[3] = Math.max(0, Math.min(99, danger));
+    }
+
+    public static int danger(ServerPlayer p) {
+        return (int) of(p)[3];
     }
 
     /** Chance that a step of a reload goes wrong. */
@@ -77,9 +86,10 @@ public final class Stress {
             else if (near == 0) delta -= 0.015f;
             add(p, delta);
         }
-        if (Math.abs(st[0] - st[1]) > 0.02f || (st[0] == 0 && st[1] != 0)) {
+        if (Math.abs(st[0] - st[1]) > 0.02f || (st[0] == 0 && st[1] != 0) || st[3] != st[4]) {
             st[1] = st[0];
-            FANetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> p), new FANetwork.StressSync(st[0]));
+            st[4] = st[3];
+            FANetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> p), new FANetwork.StressSync(st[0], (int) st[3]));
         }
     }
 }

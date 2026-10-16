@@ -45,34 +45,45 @@ public class FASettingsScreen extends Screen {
 
     @Override
     protected void init() {
-        int w = 150, gap = 4, left = width / 2 - w - gap / 2, right = width / 2 + gap / 2;
-        int y = 40;
-        addRenderableWidget(cycle(left, y, w, "Lighting", () -> QUALITY[FAClientConfig.LIGHTING.get()], () -> {
+        // Laid out in as many columns as fit (three on a small window, so nothing runs off the bottom)
+        int cols = width >= 420 ? 3 : 2;
+        int w = cols == 3 ? Math.min(150, (width - 24) / 3) : 150, gap = 4;
+        int x0 = width / 2 - (cols * w + (cols - 1) * gap) / 2;
+        java.util.List<java.util.function.BiFunction<Integer, Integer, net.minecraft.client.gui.components.AbstractWidget>> items = new java.util.ArrayList<>();
+        items.add((x, y) -> cycle(x, y, w, "Lighting", () -> QUALITY[FAClientConfig.LIGHTING.get()], () -> {
             FAClientConfig.LIGHTING.set((FAClientConfig.LIGHTING.get() + 1) % 4);
             FAClientConfig.LIGHTING.save();
         }));
-        addRenderableWidget(slider(right, y, w, "Light strength", FAClientConfig.LIGHT_STRENGTH, 0.1, 2.0, v -> String.format("%.0f%%", v * 100)));
-        y += 24;
-        addRenderableWidget(toggle(left, y, w, "Sun rays", FAClientConfig.SUN_RAYS));
-        addRenderableWidget(toggle(right, y, w, "Shiny Reflections", FAClientConfig.REFLECTIONS));
-        y += 24;
-        addRenderableWidget(toggle(left, y, w, "Smoke", FAClientConfig.SMOKE));
-        addRenderableWidget(slider(right, y, w, "Smoke amount", FAClientConfig.SMOKE_AMOUNT, 0.1, 3.0, v -> String.format("x%.1f", v)));
-        y += 24;
-        addRenderableWidget(toggle(left, y, w, "Voxel debris", FAClientConfig.DEBRIS));
-        addRenderableWidget(intSlider(right, y, w, "Most debris", FAClientConfig.MAX_DEBRIS, 50, 5000));
-        y += 24;
-        addRenderableWidget(toggle(left, y, w, "Water effects", FAClientConfig.WATER));
-        addRenderableWidget(slider(right, y, w, "Foam amount", FAClientConfig.WATER_AMOUNT, 0.1, 3.0, v -> String.format("x%.1f", v)));
-        y += 32;
-        addRenderableWidget(toggle(left, y, w, "Safe mode (all off)", FAClientConfig.SAFE_MODE));
-        addRenderableWidget(cycle(right, y, w, "Parallax depth", () -> DepthShaders.enabled() ? "On" : "Off", () -> {
+        items.add((x, y) -> slider(x, y, w, "Light strength", FAClientConfig.LIGHT_STRENGTH, 0.1, 2.0, v -> String.format("%.0f%%", v * 100)));
+        items.add((x, y) -> toggle(x, y, w, "Sun rays", FAClientConfig.SUN_RAYS));
+        items.add((x, y) -> toggle(x, y, w, "Shiny Reflections", FAClientConfig.REFLECTIONS));
+        items.add((x, y) -> toggle(x, y, w, "Smoke", FAClientConfig.SMOKE));
+        items.add((x, y) -> slider(x, y, w, "Smoke amount", FAClientConfig.SMOKE_AMOUNT, 0.1, 3.0, v -> String.format("x%.1f", v)));
+        items.add((x, y) -> toggle(x, y, w, "Voxel debris", FAClientConfig.DEBRIS));
+        items.add((x, y) -> intSlider(x, y, w, "Most debris", FAClientConfig.MAX_DEBRIS, 50, 5000));
+        items.add((x, y) -> toggle(x, y, w, "Water effects", FAClientConfig.WATER));
+        items.add((x, y) -> slider(x, y, w, "Foam amount", FAClientConfig.WATER_AMOUNT, 0.1, 3.0, v -> String.format("x%.1f", v)));
+        items.add((x, y) -> toggle(x, y, w, "Realism camera (F8)", FAClientConfig.REALISM));
+        items.add((x, y) -> slider(x, y, w, "Fisheye", FAClientConfig.FISHEYE, 0.0, 2.5, v -> String.format("%.0f%%", v * 100)));
+        items.add((x, y) -> slider(x, y, w, "Film grain", FAClientConfig.GRAIN, 0.0, 3.0, v -> String.format("%.0f%%", v * 100)));
+        items.add((x, y) -> slider(x, y, w, "Desaturate", FAClientConfig.DESATURATE, 0.0, 1.0, v -> String.format("%.0f%%", v * 100)));
+        items.add((x, y) -> slider(x, y, w, "Vignette", FAClientConfig.VIGNETTE, 0.0, 2.5, v -> String.format("%.0f%%", v * 100)));
+        items.add((x, y) -> toggle(x, y, w, "Dread sounds", FAClientConfig.DREAD));
+        items.add((x, y) -> toggle(x, y, w, "Smooth guns", FAClientConfig.GUN_MESHES));
+        items.add((x, y) -> toggle(x, y, w, "Inventory animation", FAClientConfig.TARKOV_ANIMATION));
+        items.add((x, y) -> toggle(x, y, w, "Safe mode (all off)", FAClientConfig.SAFE_MODE));
+        items.add((x, y) -> cycle(x, y, w, "Parallax depth", () -> DepthShaders.enabled() ? "On" : "Off", () -> {
             status = Component.literal("Reloading the game's resources...");
             DepthShaders.set(!DepthShaders.enabled());
         }));
-        y += 24;
-        addRenderableWidget(toggle(left, y, w, "Inventory animation", FAClientConfig.TARKOV_ANIMATION));
-        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(width / 2 - 100, height - 30, 200, 20).build());
+        int rows = (items.size() + cols - 1) / cols;
+        int step = Math.min(24, Math.max(21, (height - 70) / Math.max(1, rows)));
+        int y0 = Math.max(26, Math.min(40, height - 36 - rows * step));
+        for (int i = 0; i < items.size(); i++) {
+            int c = i % cols, r = i / cols;
+            addRenderableWidget(items.get(i).apply(x0 + c * (w + gap), y0 + r * step));
+        }
+        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(width / 2 - 100, height - 28, 200, 20).build());
     }
 
     private Button toggle(int x, int y, int w, String name, ForgeConfigSpec.BooleanValue value) {

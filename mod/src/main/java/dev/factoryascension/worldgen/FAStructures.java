@@ -42,6 +42,7 @@ public final class FAStructures {
     private FAStructures() {}
 
     public static void register(IEventBus bus) {
+        Outposts.init();   // the armed operators' places register their features too
         FEATURES.register(bus);
     }
 

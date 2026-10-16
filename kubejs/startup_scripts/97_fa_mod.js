@@ -15,7 +15,17 @@ if (Platform.isLoaded('factoryascension')) {
   let SG = global.FA.guns.shotgun
   $FAModConfig.setShotgun(SG.pellets, SG.pelletDamage, SG.spreadHip, SG.spreadAim, SG.range, SG.fullDamageRange, SG.falloff,
     SG.cooldownTicks, SG.capacity, SG.reloadTicks, SG.kickback, SG.breaksGlass)
-  global.FA.guns.list.forEach(g => $FAModConfig.setGun(g.id, g.damage, g.rpmScale, g.magBonus, g.spreadScale, g.rangeScale, g.recoilScale))
+  global.FA.guns.list.forEach(g => {
+    $FAModConfig.setGun(g.id, g.damage, g.rpmScale, g.magBonus, g.spreadScale, g.rangeScale, g.recoilScale)
+    $FAModConfig.clearGunCost(g.id)
+    ;(g.cost || []).forEach(c => $FAModConfig.addGunCost(g.id, c[0], c[1]))
+  })
+  $FAModConfig.setSkins(global.FA.guns.workbench.skinItem, global.FA.guns.workbench.skinCost)
+  let NP = global.FA.npcs
+  $FAModConfig.setNpcs(NP.healthScale, NP.damageScale, NP.spreadScale, NP.bleedChance, NP.gunDropChance, NP.patrols, NP.patrolChance, NP.patrolMinDanger,
+    NP.maxNearby, NP.flareHunters)
+  let $FAStress = Java.loadClass('dev.factoryascension.gun.Stress')
+  global.FA_MOD_DANGER = (player, danger) => $FAStress.setDanger(player, danger)
   Object.keys(global.FA.guns.ammo.perCraft).forEach(c => $FAModConfig.setAmmoPerCraft(c, global.FA.guns.ammo.perCraft[c]))
   $FAModConfig.setBench(global.FA.guns.workbench.partItem, global.FA.guns.workbench.tierItem)
   let FU = global.FA.guns.fumbles
@@ -23,6 +33,7 @@ if (Platform.isLoaded('factoryascension')) {
   $FAModConfig.explosiveBreaksBlocks = global.FA.guns.explosiveRoundsBreakBlocks
   let FG = global.FA.guns.flareGun
   $FAModConfig.setFlareGun(FG.cooldownTicks, FG.speed, Math.round(FG.airdropSeconds * 20), FG.airdropHeight, FG.airdropLoot)
+  $FAModConfig.setRescue(FG.rescue, FG.rescueChance, Math.round(FG.rescueSeconds * 20), FG.rescueRadius)
   let INV = global.FA.inventory
   $FAModConfig.setTarkov(INV.enabled, INV.width, INV.height, INV.blockPickup)
   INV.sizes.forEach(s => $FAModConfig.setTarkovSize(s[0], s[1], s[2]))

@@ -17,6 +17,7 @@ const $STArmorStand = Java.loadClass('net.minecraft.world.entity.decoration.Armo
 const $STHand = Java.loadClass('net.minecraft.world.InteractionHand')
 const $STEffects = Java.loadClass('net.minecraft.world.effect.MobEffects')
 const $STAttributes = Java.loadClass('net.minecraft.world.entity.ai.attributes.Attributes')
+const $STEffectInstance = Java.loadClass('net.minecraft.world.effect.MobEffectInstance')
 const $STArrayList = Java.loadClass('java.util.ArrayList')
 const $STHit = Java.loadClass('net.minecraft.world.phys.BlockHitResult')
 const $STCompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
@@ -1475,8 +1476,114 @@ function faSelftestRun(server, report, done, level, X, Y, Z, player, spawned, pl
       check('Ammo Press: sugar in a slime ball case makes ' + made.getCount() + ' pink RIP 5.56 rounds (power ' + mnbt.getFloat('Power').toFixed(2) + ', reliability ' + mnbt.getFloat('Rel').toFixed(2) + ')',
         made.getCount() == global.FA.guns.ammo.perCraft.r556 && String(mnbt.getString('Type')) == 'RIP' && mnbt.getInt('Color') == 0xE060A0 && mnbt.getFloat('Power') < 0.5 && mnbt.getFloat('Rel') < 0.7,
         String(mnbt))
+      // Gunsmith: every gun is built at the bench from its cost; without the parts it's refused
+      clearInv()
+      $Bench.build(player, 'minigun')
+      let noMini = inv.contains(Item.of('factoryascension:minigun'))
+      inv.setItem(20, Item.of('minecraft:iron_ingot', 64))
+      inv.setItem(21, Item.of('kubejs:ascendite_ingot', 64))
+      inv.setItem(22, Item.of('create:fluid_pipe', 64))
+      inv.setItem(23, Item.of('kubejs:ascension_core', 64))
+      $Bench.build(player, 'minigun')
+      let built = false
+      for (let i = 0; i < 36; i++) if (String(inv.getItem(i).id) == 'factoryascension:minigun') built = true
+      check('Gunsmith: the M134 Minigun is built from its cost (' + (64 - inv.getItem(20).getCount()) + ' iron used), and refused without the parts',
+        built && !noMini && inv.getItem(20).getCount() < 64, built + ' ' + noMini)
+      // Skins: Black Water goes on a gun for its cost; taking it off is free
+      clearInv()
+      inv.setItem(20, Item.of(global.FA.guns.workbench.skinItem, 16))
+      let skinned = Item.of('factoryascension:ak12')
+      $Bench.skin(player, skinned, 'black_water')
+      let skinOn = String(skinned.nbt ? skinned.nbt.getString('Skin') : '')
+      let paid = 16 - inv.getItem(20).getCount()
+      $Bench.skin(player, skinned, '')
+      check('Skins: Black Water goes on an AK-12 (cost ' + paid + ') and comes off again', skinOn == 'black_water' && paid == global.FA.guns.workbench.skinCost
+        && String(skinned.nbt.getString('Skin')) == '', skinOn + ' ' + paid)
+      // Akimbo and Gangster: a second gun (twice the rounds and fire rate), and held on its side
+      let duo = Item.of('factoryascension:glock18')
+      clearInv()
+      inv.setItem(20, Item.of('minecraft:iron_ingot', 64))
+      inv.setItem(21, Item.of('kubejs:ascendite_ingot', 64))
+      $Bench.install(player, duo, pick('akimbo').id)
+      $Bench.install(player, duo, pick('gangster_grip').id)
+      let ds = $Stats.of(duo)
+      check('Akimbo kit and Gangster grip on a G18: akimbo ' + ds.akimbo + ', gangster ' + ds.gangster + ', ' + ds.mag + ' rounds (19 base), ' + ds.rpm + ' rpm',
+        ds.akimbo && ds.gangster && ds.mag == 38 && ds.rpm > 1100, ds.akimbo + ' ' + ds.gangster + ' ' + ds.mag + ' ' + ds.rpm)
+      // New calibers: an M82 loads .50 BMG and hits; a pump shotgun needs pumping after every shot
+      let fifty = shootAt('m82', 'B50', 'REGULAR')
+      check('M82 Barrett: .50 BMG loads and hits hard (' + fifty.hits + ' hit, ' + (400 - fifty.hp).toFixed(0) + ' damage)', fifty.hits >= 1 && 400 - fifty.hp > 30, JSON.stringify(fifty))
+      clearInv()
+      player.setItemInHand('main_hand', Item.of('factoryascension:m870'))
+      let pumpGun = player.getMainHandItem()
+      inv.setItem(20, $Cart.standard($Cal.G12, $Type.REGULAR, 16))
+      reloadFully(pumpGun)
+      player.getCooldowns().removeCooldown(pumpGun.getItem())
+      $Gun.fire(player, true)
+      check('M870: pump action, it has to be pumped after a shot (' + pumpGun.nbt.getInt('Bolt') + ' ticks)', pumpGun.nbt.getInt('Bolt') > 0, pumpGun.nbt.getInt('Bolt'))
       clearInv()
       player.setItemInHand('main_hand', Item.of('minecraft:air'))
+    })
+    // Armed operators: a raider squad and scavs meet and fight each other; a dead one drops its gun, rounds and dog tag
+    if (Platform.isLoaded('factoryascension')) attempt('operators', () => {
+      let $Ops = Java.loadClass('dev.factoryascension.npc.Operators')
+      let $OpT = Java.loadClass('dev.factoryascension.npc.OpType')
+      let $Spawn = Java.loadClass('net.minecraft.world.entity.MobSpawnType')
+      let $BP = Java.loadClass('net.minecraft.core.BlockPos')
+      let ox = X + 40, oz = Z + 40
+      for (let dx = -14; dx <= 14; dx++) for (let dz = -3; dz <= 3; dz++) {
+        place(ox + dx, Y - 1, oz + dz, 'minecraft:stone')
+        for (let h = 0; h < 4; h++) level.getBlock(ox + dx, Y + h, oz + dz).set('minecraft:air')
+      }
+      let raider = $Ops.spawn(level, $OpT.RAIDER, new $BP(ox - 10, Y, oz), $Spawn.COMMAND, false)
+      let scav = $Ops.spawn(level, $OpT.SCAV, new $BP(ox + 10, Y, oz), $Spawn.COMMAND, false)
+      let kit = raider && !raider.getMainHandItem().isEmpty() && scav && !scav.getMainHandItem().isEmpty()
+      after(160, () => attempt('operators fight', () => {
+        let fought = raider.getTarget() == scav || scav.getTarget() == raider || raider.getHealth() < raider.getMaxHealth() || scav.getHealth() < scav.getMaxHealth() || !scav.isAlive() || !raider.isAlive()
+        check('Operators: a raider and a scav, both armed (' + String(raider.getMainHandItem().id) + ', ' + String(scav.getMainHandItem().id) + '), find and fight each other (raider ' +
+          raider.getHealth().toFixed(0) + '/' + raider.getMaxHealth().toFixed(0) + ', scav ' + scav.getHealth().toFixed(0) + '/' + scav.getMaxHealth().toFixed(0) + ')', kit && fought,
+          raider.getHealth() + ' ' + scav.getHealth())
+        let dead = raider.isAlive() ? raider : scav
+        let at = dead.position()
+        dead.kill()
+        after(2, () => attempt('operator loot', () => {
+          let items = level.getEntitiesOfClass(Java.loadClass('net.minecraft.world.entity.item.ItemEntity'), dead.getBoundingBox().inflate(4))
+          let tag = false, rounds = false
+          items.forEach(e => { let id = String(e.getItem().id); if (id == 'factoryascension:dog_tag') tag = true; if (id == 'factoryascension:cartridge') rounds = true })
+          check('A dead operator drops its dog tag and spare rounds (' + items.size() + ' items)', tag && rounds, items.size())
+          items.forEach(e => e.discard())
+          if (raider.isAlive()) raider.discard()
+          if (scav.isAlive()) scav.discard()
+        }))
+      }))
+      // A structure: a scav camp placed by command is built and garrisoned
+      let sx = X + 40, sz = Z - 60
+      server.runCommandSilent('place feature factoryascension:scav_camp ' + sx + ' ' + Y + ' ' + sz)
+      let camp = level.getEntitiesOfClass(Java.loadClass('dev.factoryascension.npc.Operator'), new (Java.loadClass('net.minecraft.world.phys.AABB'))(sx - 24, Y - 10, sz - 24, sx + 24, Y + 20, sz + 24))
+      let fire = false
+      for (let dx = -16; dx <= 16 && !fire; dx++) for (let dz = -16; dz <= 16 && !fire; dz++) for (let dy = -4; dy <= 4 && !fire; dy++)
+        if (String(level.getBlock(sx + dx, Y + dy, sz + dz).id) == 'minecraft:campfire') fire = true
+      check('Structures: a scav camp builds itself (campfire ' + fire + ') with ' + camp.size() + ' scavs in it', fire && camp.size() >= 3, camp.size())
+      camp.forEach(o => o.discard())
+      // A grenade goes off by a zombie; bleeding hurts until it's bandaged
+      let gz = spawn('minecraft:zombie', ox, Y, oz + 2)
+      ;['fa_danger', 'fa_elite', 'fa_boss'].forEach(k => gz.getPersistentData().remove(k))
+      gz.setNoAi(true)
+      gz.addEffect(new $STEffectInstance(Java.loadClass('dev.factoryascension.FactoryAscension').BLEEDING.get(), 200, 1))
+      let g = new (Java.loadClass('dev.factoryascension.npc.Grenade'))(level, gz)
+      g.setPos(ox, Y + 0.2, oz + 2)
+      g.setFuse(3)
+      level.addFreshEntity(g)
+      let hp0 = gz.getHealth()
+      after(30, () => attempt('grenade', () => {
+        check('A frag grenade goes off by a zombie, and Bleeding hurts it (' + hp0.toFixed(0) + ' -> ' + gz.getHealth().toFixed(0) + ')', !gz.isAlive() || gz.getHealth() < hp0 - 4, gz.getHealth())
+        if (gz.isAlive()) gz.discard()
+      }))
+      // A red flare with no one answering: it says so when the time comes
+      let $Rescue = Java.loadClass('dev.factoryascension.gun.Rescue')
+      $Rescue.last = ''
+      $Rescue.call(player)
+      $Rescue.arriveNow(player, false)
+      after(3, () => attempt('rescue', () => check('A red flare no one answers says so (' + $Rescue.last + ')', String($Rescue.last) == 'nobody', $Rescue.last)))
     })
     // Safety net: an item flung at 200 blocks a tick is slowed before it can stall the server
     attempt('speed cap', () => {

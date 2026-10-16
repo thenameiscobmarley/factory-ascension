@@ -200,7 +200,7 @@ public class GunItem extends Item {
             return;
         }
         if (ammo(gun) <= 0 && !player.isCreative()) {
-            sound(level, player, SoundEvents.DISPENSER_FAIL, 0.7f, 1.6f);
+            sound(level, player, dev.factoryascension.FASounds.DRY.get(), 0.8f, 1.0f);
             startReload(player, gun);
             lastResult = "empty";
             return;
@@ -209,7 +209,7 @@ public class GunItem extends Item {
         AmmoType type = load.isEmpty() ? AmmoType.REGULAR : AmmoType.byName(load.getString("Type"));
         float power = load.contains("Power") ? load.getFloat("Power") : 1, rel = load.contains("Rel") ? load.getFloat("Rel") : 1;
         RandomSource r = player.getRandom();
-        boolean bolt = spec.kind == Kind.SNIPER && !st.noBolt;
+        boolean bolt = spec.manual && !st.noBolt;
         player.getCooldowns().addCooldown(gun.getItem(), Math.max(st.cooldown(), bolt ? spec.chamber + 6 : 0));
         if (!player.isCreative()) t.putInt("Ammo", ammo(gun) - 1);
         // A bad round: the primer clicks and nothing happens (cheap cases, weird propellant)
@@ -349,30 +349,9 @@ public class GunItem extends Item {
     }
 
     private static void bang(ServerLevel level, ServerPlayer p, GunSpec spec, AmmoType type, RandomSource r, float soundMult) {
-        float vol = (type == AmmoType.SUBSONIC ? 0.25f : 1) * Math.max(0.05f, soundMult);
-        float jitter = r.nextFloat() * 0.08f;
-        switch (spec.kind) {
-            case PISTOL, REVOLVER -> {
-                sound(level, p, SoundEvents.GENERIC_EXPLODE, 0.45f * vol, 1.95f + jitter);
-                sound(level, p, SoundEvents.FIREWORK_ROCKET_BLAST, 1.0f * vol, 1.1f + jitter);
-            }
-            case SMG -> {
-                sound(level, p, SoundEvents.FIREWORK_ROCKET_BLAST, 1.0f * vol, 1.35f + jitter);
-                sound(level, p, SoundEvents.GENERIC_EXPLODE, 0.25f * vol, 2.0f);
-            }
-            case SNIPER, DMR -> {
-                sound(level, p, SoundEvents.GENERIC_EXPLODE, 0.9f * vol, 1.25f + jitter);
-                sound(level, p, SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 1.6f * vol, 0.45f + jitter);
-            }
-            case SHOTGUN -> {
-                sound(level, p, SoundEvents.GENERIC_EXPLODE, 0.8f * vol, 1.7f + jitter);
-                sound(level, p, SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 1.2f * vol, 0.55f);
-            }
-            default -> {
-                sound(level, p, SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 1.2f * vol, 0.75f + jitter);
-                sound(level, p, SoundEvents.GENERIC_EXPLODE, 0.35f * vol, 1.9f + jitter);
-            }
-        }
+        float loud = (type == AmmoType.SUBSONIC ? 0.3f : 1) * Math.max(0.05f, soundMult);
+        GunSounds.shot(level, p, spec, loud, r);
+        GunSounds.casing(level, p, spec, r);
     }
 
     static void sound(ServerLevel level, Player p, SoundEvent s, float vol, float pitch) {
@@ -487,7 +466,8 @@ public class GunItem extends Item {
         int bolt = t.getInt("Bolt");
         if (bolt > 0) {
             t.putInt("Bolt", bolt - 1);
-            if (bolt == Math.max(2, spec.chamber / 2) && spec.kind == Kind.SNIPER) sound(player.serverLevel(), player, SoundEvents.PISTON_CONTRACT, 0.5f, 1.6f);
+            if (bolt == Math.max(2, spec.chamber - 2) && spec.manual)
+                sound(player.serverLevel(), player, spec.kind == Kind.SHOTGUN ? dev.factoryascension.FASounds.PUMP.get() : spec.reload == Reload.TUBE ? dev.factoryascension.FASounds.RACK.get() : dev.factoryascension.FASounds.BOLT.get(), 0.8f, 1.0f);
         }
         int ph = phase(gun);
         if (ph == NONE) return;
@@ -587,10 +567,18 @@ public class GunItem extends Item {
     private static void phaseSound(ServerPlayer p, GunSpec spec, int phase) {
         ServerLevel l = p.serverLevel();
         switch (phase) {
-            case OUT -> sound(l, p, SoundEvents.ARMOR_EQUIP_IRON, 0.6f, 1.6f);
-            case IN -> sound(l, p, SoundEvents.CROSSBOW_LOADING_MIDDLE, 0.7f, 1.1f);
-            case CHAMBER -> sound(l, p, SoundEvents.PISTON_CONTRACT, 0.55f, 1.8f);
-            case ROUND -> sound(l, p, SoundEvents.CROSSBOW_LOADING_MIDDLE, 0.6f, 1.5f);
+            case OUT -> {
+                if (spec.reload == Reload.BOLT_CLIP) sound(l, p, dev.factoryascension.FASounds.BOLT.get(), 0.7f, 1.1f);
+                else if (spec.reload == Reload.CYLINDER || spec.reload == Reload.BREAK) sound(l, p, SoundEvents.IRON_TRAPDOOR_OPEN, 0.5f, 1.6f);
+                else sound(l, p, dev.factoryascension.FASounds.MAG_OUT.get(), 0.8f, 1.0f);
+            }
+            case IN -> {
+                if (spec.reload == Reload.CYLINDER || spec.reload == Reload.BREAK) sound(l, p, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.5f, 1.7f);
+                else sound(l, p, dev.factoryascension.FASounds.MAG_IN.get(), 0.8f, 1.0f);
+            }
+            case CHAMBER -> sound(l, p, spec.kind == Kind.SHOTGUN && spec.manual ? dev.factoryascension.FASounds.PUMP.get()
+                : spec.reload == Reload.BOLT_CLIP || spec.manual ? dev.factoryascension.FASounds.BOLT.get() : dev.factoryascension.FASounds.RACK.get(), 0.8f, 1.0f);
+            case ROUND -> sound(l, p, dev.factoryascension.FASounds.SHELL_IN.get(), 0.7f, 0.95f + p.getRandom().nextFloat() * 0.1f);
             default -> { }
         }
     }
@@ -656,7 +644,8 @@ public class GunItem extends Item {
         GunStats st = GunStats.of(stack);
         tip.add(Component.literal(ammo(stack) + " / " + st.mag + " " + spec.caliber.label + (ammo(stack) > 0 ? " (" + loadedType(stack).label + ")" : "")).withStyle(ChatFormatting.GOLD));
         float dmg = Guns.BASE_DAMAGE * spec.caliber.damage * st.damage;
-        tip.add(Component.literal((st.auto ? "Full auto, " : spec.kind == Kind.SNIPER && !st.noBolt ? "Bolt action, " : "Semi-auto, ") + st.rpm + " rpm, "
+        String action = spec.kind == Kind.SHOTGUN ? "Pump action, " : spec.reload == Reload.TUBE ? "Lever action, " : "Bolt action, ";
+        tip.add(Component.literal((st.auto ? (spec.spinup > 0 ? "Spins up, then full auto, " : "Full auto, ") : spec.manual && !st.noBolt ? action : "Semi-auto, ") + st.rpm + " rpm, "
             + (st.pellets > 1 ? st.pellets + " pellets x " + String.format("%.1f", dmg) : String.format("%.1f", dmg)) + " damage, " + Math.round(st.range) + " blocks").withStyle(ChatFormatting.GRAY));
         for (Attachments.Att a : st.atts) tip.add(Component.literal(" + " + a.name).withStyle(ChatFormatting.DARK_AQUA));
         if (net.minecraft.world.item.enchantment.EnchantmentHelper.getTagEnchantmentLevel(dev.factoryascension.FactoryAscension.JURY_RIGGED.get(), stack) > 0)

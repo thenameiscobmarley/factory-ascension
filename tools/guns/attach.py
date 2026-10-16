@@ -2,7 +2,7 @@
 (8, 8, 8): muzzle parts reach forward (+x) from it, optics sit on top of it, underbarrel and magazine parts hang below,
 tactical units stick out to the right (+z), stocks reach back (-x). Faces on the "tint" texture take the attachment's
 finish colour in game (tintindex 0); lenses, bores and rubber keep their own colours."""
-from core import Model
+from mesh import MeshModel as Model
 
 C = 8.0
 
@@ -122,7 +122,7 @@ SHAPES = {
 
 
 def build(name):
-    m = Model("attach_" + name, seed=hash(name) & 0xFFFF)
+    m = Model("attach_" + name, seed=sum(map(ord, name)) * 131 & 0xFFFF)
     SHAPES[name](m)
     tinted(m)
     m.check()

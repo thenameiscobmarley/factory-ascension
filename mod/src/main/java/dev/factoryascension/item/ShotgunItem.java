@@ -98,12 +98,16 @@ public class ShotgunItem extends Item {
     }
 
     // ---- Firing (server; the client sends a message on left-click) ----
+    /** What the gun sounds like (gun/GunSounds picks the report by kind). */
+    static final dev.factoryascension.gun.GunSpec SOUND_SPEC = new dev.factoryascension.gun.GunSpec("shotgun", "Ascension Shotgun",
+        dev.factoryascension.gun.GunSpec.Kind.SHOTGUN, dev.factoryascension.gun.Caliber.G12);
+
     public static void fire(ServerPlayer player, boolean aimingNow) {
         ItemStack stack = player.getMainHandItem();
         if (!(stack.getItem() instanceof ShotgunItem) || player.getCooldowns().isOnCooldown(stack.getItem())) return;
         ServerLevel level = player.serverLevel();
         if (shells(stack) <= 0) {
-            level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.DISPENSER_FAIL, SoundSource.PLAYERS, 0.7f, 1.6f);
+            level.playSound(null, player.getX(), player.getY(), player.getZ(), dev.factoryascension.FASounds.DRY.get(), SoundSource.PLAYERS, 0.8f, 1.0f);
             startReload(player, stack);
             return;
         }
@@ -167,8 +171,7 @@ public class ShotgunItem extends Item {
         level.sendParticles(ParticleTypes.LARGE_SMOKE, muzzle.x, muzzle.y, muzzle.z, 3, 0.05, 0.05, 0.05, 0.02);
         level.sendParticles(ParticleTypes.FLASH, muzzle.x, muzzle.y, muzzle.z, 1, 0, 0, 0, 0);
         dev.factoryascension.FxEvents.smoke(level, muzzle, 0.45f);
-        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 0.8f, 1.7f + r.nextFloat() * 0.1f);
-        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, SoundSource.PLAYERS, 1.2f, 0.55f);
+        dev.factoryascension.gun.GunSounds.shot(level, player, SOUND_SPEC, 1, r);
         // A kick back when firing from the hip
         if (!aim) player.push(-look.x * FAConfig.gunKnockback, 0.05, -look.z * FAConfig.gunKnockback);
         player.hurtMarked = true;
@@ -198,8 +201,7 @@ public class ShotgunItem extends Item {
         if (pump > 0) {
             tag.putInt("Pump", pump - 1);
             if (pump == 1) {
-                level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PISTON_CONTRACT, SoundSource.PLAYERS, 0.5f, 1.9f);
-                level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CROSSBOW_LOADING_END, SoundSource.PLAYERS, 0.6f, 1.4f);
+                level.playSound(null, player.getX(), player.getY(), player.getZ(), dev.factoryascension.FASounds.PUMP.get(), SoundSource.PLAYERS, 0.8f, 1.0f);
             }
         }
         int reload = tag.getInt("Reload");
@@ -233,10 +235,10 @@ public class ShotgunItem extends Item {
         }
         if (!took) { stack.getOrCreateTag().putInt("Reload", 0); return false; }
         setShells(stack, shells(stack) + 1);
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CROSSBOW_LOADING_MIDDLE, SoundSource.PLAYERS, 0.7f, 1.3f);
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), dev.factoryascension.FASounds.SHELL_IN.get(), SoundSource.PLAYERS, 0.8f, 1.0f);
         boolean more = shells(stack) < FAConfig.gunCapacity && (player.isCreative() || player.getInventory().items.stream().anyMatch(ShotgunItem::isShell));
         stack.getOrCreateTag().putInt("Reload", more ? FAConfig.gunReloadTicks : 0);
-        if (!more) player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PISTON_CONTRACT, SoundSource.PLAYERS, 0.5f, 1.9f);
+        if (!more) player.level().playSound(null, player.getX(), player.getY(), player.getZ(), dev.factoryascension.FASounds.PUMP.get(), SoundSource.PLAYERS, 0.8f, 1.0f);
         return true;
     }
 

@@ -57,6 +57,73 @@ LOOT = {
 }
 
 
+# The armed operators' places (mod/.../worldgen/Outposts.java): each builds itself from a random roll, and only so far
+# from world spawn (Outposts.Kind.minDistance), so near home most of these tries come to nothing on purpose.
+OUTPOSTS = {
+    "scav_camp": 220, "ruins": 260, "gas_station": 340, "checkpoint": 300, "trench": 360, "sniper_tower": 320,
+    "military_outpost": 520, "bunker": 420, "crash_site": 480, "radio_tower": 460, "warlord_fort": 900, "cult_shrine": 700,
+}
+
+M = NS + ":"
+GUNS_BY_TIER = [
+    ["makarov", "tt33", "m9", "p17", "m1911", "mp40", "sawnoff", "double_barrel", "m870", "uz9", "aks74u", "mosin"],
+    ["glock18", "usp45", "p226", "cz75", "python", "mp5", "ump45", "bizon", "ppsh", "thompson", "ak74", "akm", "galil", "fal", "m1_garand", "kar98k",
+     "saiga12", "m1014", "spas12", "svd", "winchester", "rpk", "dp28"],
+    ["five7", "hawk50", "m29", "judge", "vector", "p90", "mp7", "kv45", "mac10", "hk416", "m4a1", "scar_l", "ak12", "mcx", "g36", "famas", "l85",
+     "tavor", "aug", "mk17", "as_val", "vss", "sr25", "mk14", "m700", "ksg", "aa12", "pkm", "m249", "m60", "mg42"],
+    ["awm", "ax338", "m82", "minigun"],
+]
+CALIBERS = ["P9", "P45", "R545", "R556", "R762S", "R762N", "R762R", "G12", "P57", "P762T", "R44", "R9X39", "R300", "R357", "P46", "P50", "R338", "B50"]
+
+
+def rounds(cal, weight, lo, hi, kind="REGULAR"):
+    e = entry(M + "cartridge", weight, lo, hi)
+    e.setdefault("functions", []).append({"function": "minecraft:set_nbt", "tag": '{Cal:"%s",Type:"%s",Prop:"minecraft:gunpowder",Case:"minecraft:copper_ingot",Color:13140028,Power:1.0f,Rel:1.0f}' % (cal.lower(), kind)})
+    return e
+
+
+def guns(tier, weight):
+    return [entry(M + g, weight) for g in GUNS_BY_TIER[tier]]
+
+
+def outpost_loot():
+    out = {}
+    meds = lambda w: [entry(M + "bandage", w, 1, 3), entry(M + "medkit", max(1, w // 3))]
+    for t in range(3):
+        cals = CALIBERS[:8 + t * 5]
+        out["scav_%d" % t] = [
+            pool(2, 4, [entry("minecraft:bread", 10, 1, 4), entry("minecraft:cooked_beef", 6, 1, 3), entry("minecraft:potato", 8, 2, 6), entry("minecraft:gunpowder", 8, 2, 6),
+                        entry("minecraft:iron_nugget", 10, 3, 12), entry("minecraft:copper_ingot", 8, 2, 6), entry("minecraft:string", 6, 2, 5), entry("minecraft:paper", 6, 2, 6),
+                        entry(M + "flare_red", 3), entry(M + "flare_green", 1)] + meds(6)),
+            pool(1, 2, [rounds(c, 6, 4, 14) for c in cals[:8]]),
+            pool(0, 1, guns(0, 4) + (guns(1, 1) if t > 0 else []) + [{"type": "minecraft:empty", "weight": 30 - t * 8}]),
+        ]
+        out["military_%d" % t] = [
+            pool(2, 4, [rounds(c, 6, 6, 20) for c in cals] + [rounds(c, 1, 4, 10, k) for c in cals[:6] for k in ("HOLLOW_POINT", "ARMOR_PIERCING", "TRACER")]),
+            pool(1, 3, meds(8) + [entry(M + "frag_grenade", 6, 1, 2), entry(M + "flare_red", 3), entry(M + "flare_green", 2), entry("minecraft:iron_ingot", 6, 2, 6),
+                                  entry("kubejs:ascendite_ingot", 3, 1, 3), entry("minecraft:spyglass", 2)]),
+            pool(0, 1, guns(min(1 + t, 2), 3) + guns(t, 2) + [{"type": "minecraft:empty", "weight": 22 - t * 6}]),
+        ]
+        out["bunker_%d" % t] = [
+            pool(3, 5, [rounds(c, 6, 8, 24) for c in cals] + [rounds(c, 2, 6, 14, k) for c in cals[:8] for k in ("ARMOR_PIERCING", "RIP", "INCENDIARY", "EXPLOSIVE")]),
+            pool(2, 3, meds(10) + [entry(M + "frag_grenade", 8, 1, 3), entry("minecraft:golden_apple", 2), entry("kubejs:ascendite_ingot", 5, 1, 4),
+                                  entry("kubejs:ascension_core", 3, 1, 2), entry("minecraft:diamond", 2, 1, 2), entry(M + "flare_green", 3)]),
+            pool(1, 1, guns(2, 3) + guns(min(3, t + 1), 1) + [{"type": "minecraft:empty", "weight": 10 - t * 3}]),
+        ]
+    out["fort_treasure"] = [
+        pool(3, 6, [entry("minecraft:gold_ingot", 12, 3, 10), entry("minecraft:emerald", 8, 2, 8), entry("minecraft:diamond", 6, 1, 4), entry("minecraft:netherite_scrap", 2),
+                    entry("kubejs:ascension_core", 6, 1, 4), entry("kubejs:dense_ascension_core", 2), entry("minecraft:enchanted_golden_apple", 1), entry(M + "medkit", 6, 1, 2)]),
+        pool(1, 2, guns(2, 3) + guns(3, 2)),
+        pool(2, 3, [rounds(c, 4, 8, 24) for c in CALIBERS]),
+    ]
+    out["cult"] = [
+        pool(2, 4, [entry("minecraft:candle", 8, 1, 4), entry("minecraft:bone", 10, 2, 6), entry("minecraft:rotten_flesh", 6, 2, 8), entry("minecraft:ender_pearl", 5, 1, 3),
+                    entry("minecraft:experience_bottle", 6, 2, 6), entry("minecraft:crying_obsidian", 3, 1, 2), entry("kubejs:mythic_fragment", 2), entry("kubejs:chaos_tome", 2)]),
+        pool(1, 2, [rounds("R9X39", 8, 6, 18), rounds("R9X39", 3, 6, 12, "SUBSONIC"), entry(M + "vss", 2), entry(M + "as_val", 2), entry(M + "medkit", 3)]),
+    ]
+    return out
+
+
 def placed_id(s):
     return NS + ":" + s
 
@@ -76,7 +143,16 @@ def main():
             "type": "forge:add_features", "biomes": "#minecraft:is_overworld" if where == "overworld" else "#factoryascension:is_realm",
             "features": placed_id(s), "step": "surface_structures" if how == "surface" else "underground_structures"})
         A.write_json(os.path.join(DATA, "loot_tables", "chests", s + ".json"), {"type": "minecraft:chest", "pools": LOOT[s]})
-    print("wrote %d structures" % len(STRUCTURES))
+    for s, rarity in OUTPOSTS.items():
+        A.write_json(os.path.join(DATA, "worldgen", "configured_feature", s + ".json"), {"type": NS + ":" + s, "config": {}})
+        place = [{"type": "minecraft:rarity_filter", "chance": rarity}, {"type": "minecraft:in_square"},
+                 {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]
+        A.write_json(os.path.join(DATA, "worldgen", "placed_feature", s + ".json"), {"feature": NS + ":" + s, "placement": place})
+        A.write_json(os.path.join(DATA, "forge", "biome_modifier", "structure_" + s + ".json"), {
+            "type": "forge:add_features", "biomes": "#minecraft:is_overworld", "features": placed_id(s), "step": "surface_structures"})
+    for name, pools in outpost_loot().items():
+        A.write_json(os.path.join(DATA, "loot_tables", "chests", name + ".json"), {"type": "minecraft:chest", "pools": pools})
+    print("wrote %d structures and %d outposts" % (len(STRUCTURES), len(OUTPOSTS)))
 
 
 if __name__ == "__main__":

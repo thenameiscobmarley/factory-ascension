@@ -737,12 +737,31 @@ ItemEvents.tooltip(event => {
     // The other guns and their rounds
     FA.guns.list.forEach(g => details('factoryascension:' + g.id, g.lore, () => [
       use('hold right-click to aim, left-click to fire, R to reload (stressed hands fumble reloads)'),
-      made(shapedList(g.recipe) + ' (crafting grid)')]))
+      tip('Skins, attachments, Akimbo and Gangster grips: the Weapons Workbench'),
+      made((g.cost || []).map(c => c[1] + ' ' + faItemName(c[0])).join(', ') + ' (Weapons Workbench, GUNSMITH tab)')]))
     details('factoryascension:weapons_workbench', 'Tape, tools and a very steady hand.', () => [
-      use('putting attachments on guns: over a thousand, in twelve slots (muzzle, barrel, handguard, foregrip, optic, stock, magazine, underbarrel, tactical, grip, trigger, charm)'),
+      use('building guns (GUNSMITH: all ' + FA.guns.list.length + ' of them) and putting attachments on them: thousands, in twelve slots (muzzle, barrel, handguard, foregrip, optic, stock, magazine, underbarrel, tactical, grip, trigger, charm), Akimbo kits and Gangster grips included'),
+      tip('Skins (SKINS tab): animated finishes like Obsidian, Snow, Black Water and Torn, some with 3D parts'),
       tip('Ammo Press: any item as the case and any item as the powder, any caliber, type and colour'),
       tip('A Jury-Rigged gun (enchanted book, at an anvil) takes any attachment anywhere, up to four a slot'),
       made(shapedList(FA.guns.workbench.recipe) + ' (crafting grid)')])
+    details('factoryascension:frag_grenade', 'Pull pin. Count. Throw.', () => [
+      use('hold right-click to pull the pin (it cooks while you hold it), let go to throw'),
+      tip('Bounces and rolls; goes off about 3 seconds after the pin. Hold it too long and it goes off in your hand.'),
+      made(FA.guns.fragGrenadesPerCraft + ' from ' + shapedList(FA.guns.fragGrenade) + ' (crafting grid)')])
+    details('factoryascension:bandage', 'Press hard. Wrap tight.', () => [
+      use('hold right-click for 2 seconds: stops Bleeding, heals a heart'),
+      made(FA.guns.bandagesPerCraft + ' from ' + shapedList(FA.guns.bandage) + ' (crafting grid)')])
+    details('factoryascension:medkit', 'Everything you need, if you have time.', () => [
+      use('hold right-click for 4 seconds: stops Bleeding and poison, heals 3 hearts and more over time'),
+      made(shapedList(FA.guns.medkit) + ' (crafting grid)')])
+    details('factoryascension:dog_tag', 'Someone, once.', () => [
+      tip('Dropped by every armed operator you put down: their name, what they were, who killed them and when')])
+    // The armed operators' spawn eggs
+    Object.keys(FA.npcs.kinds).forEach(id => details('factoryascension:' + id + '_spawn_egg', FA.npcs.kinds[id], () => [
+      from('patrols out in the danger zones, the structures out there, or (hunters) a red flare'),
+      tip('Hears gunshots and comes to look; takes cover to reload; drops its gun, rounds, kit and dog tag'),
+      tip('Right-click a block to spawn one (Creative)')]))
     details('factoryascension:attachment', 'Bolts on. Probably.', () => [
       use('a gun, at the Weapons Workbench (take it off again with a right-click on its slot)')])
     details('factoryascension:cartridge', 'One round. Any caliber, any type, any making.', () => [
@@ -754,10 +773,11 @@ ItemEvents.tooltip(event => {
     let FG = FA.guns.flareGun
     details('factoryascension:flare_gun', 'Somebody, somewhere, is watching the sky.', () => [
       use('left-click fires the loaded flare, R loads one (R again swaps red for green)'),
-      tip('Red: a signal high in the sky. Green: calls an airdrop, a supply crate that falls ' + FG.airdropSeconds + 's later, 8 blocks ahead, under green smoke'),
+      tip('Red: calls for rescue. ' + Math.round(FG.rescueChance * 100) + '% of the time a helicopter comes ' + FG.rescueSeconds + 's later and takes you home with everything you carry, if you stay within ' + FG.rescueRadius + ' blocks. Everyone armed out there sees it too.'),
+      tip('Green: calls an airdrop, a supply crate that falls ' + FG.airdropSeconds + 's later, 8 blocks ahead, under green smoke'),
       made(shapedList(FG.recipe) + ' (crafting grid)')])
-    details('factoryascension:flare_red', 'Look up.', () => [
-      use('the Flare Gun: a bright red signal'),
+    details('factoryascension:flare_red', 'Hopefully someone sees it.', () => [
+      use('the Flare Gun: a call for rescue (a helicopter, maybe)'),
       made(FA.guns.flares.perCraft + ' from ' + shapedList(FA.guns.flares.red) + ' (crafting grid)')])
     details('factoryascension:flare_green', 'Supplies inbound.', () => [
       use('the Flare Gun: calls an airdrop crate full of loot'),

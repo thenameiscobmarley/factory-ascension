@@ -90,6 +90,18 @@ public final class GunAnim {
     static int reloadSeen = 0;
     static float rlRoll = -35, rlYaw = 20, rlDrop = 0.08f, rlSpeedWobble = 1;
     static float last = 0;
+    // For skins: heat from firing (embers, flames) and how fast the gun is swinging (cloth strips, grass)
+    static float heatV = 0, swingX = 0, swingY = 0, lastYaw = Float.NaN, lastPitch = 0;
+
+    /** 0..1, up while firing, cooling after. */
+    public static float heat() {
+        return heatV;
+    }
+
+    /** How fast the gun is being swung, roughly -1..1 (0: sideways, 1: up/down), for things hanging off it. */
+    public static float swayVelocity(int axis) {
+        return axis == 0 ? swingX : swingY;
+    }
 
     private GunAnim() {
     }
@@ -101,6 +113,7 @@ public final class GunAnim {
     /** A shot: kick the gun back and up, with a random sideways twitch. */
     public static void kick(float recoilUp, float recoilSide, boolean aimed) {
         float s = aimed ? 0.6f : 1;
+        heatV = Math.min(1, heatV + 0.12f);
         kickBack.v += (2.5f + recoilUp * 0.45f) * s * (0.85f + RNG.nextFloat() * 0.3f);
         kickPitch.v += recoilUp * 9 * s * (0.8f + RNG.nextFloat() * 0.4f);
         kickSide.v += (RNG.nextFloat() - 0.5f) * recoilSide * 14 * s;
@@ -117,6 +130,16 @@ public final class GunAnim {
         for (Spring s : new Spring[] {kickBack, kickPitch, kickSide, land}) {
             for (int i = 0; i < 4; i++) s.step(dt / 4);
         }
+        heatV = Math.max(0, heatV - dt * 0.35f);
+        float yaw = p.getViewYRot(partial), pitch = p.getViewXRot(partial);
+        if (!Float.isNaN(lastYaw) && dt > 0) {
+            float vy = Mth.clamp(Mth.wrapDegrees(yaw - lastYaw) / Math.max(dt, 1e-3f) / 400f, -1, 1);
+            float vp = Mth.clamp((pitch - lastPitch) / Math.max(dt, 1e-3f) / 400f, -1, 1);
+            swingX += (vy - swingX) * Math.min(1, dt * 6);
+            swingY += (vp - swingY) * Math.min(1, dt * 6);
+        }
+        lastYaw = yaw;
+        lastPitch = pitch;
         boolean aiming = p.isUsingItem() && p.getUseItem() == stack;
         aim += ((aiming ? 1 : 0) - aim) * Math.min(1, dt * 12);
         float hip = 1 - aim;
@@ -179,7 +202,14 @@ public final class GunAnim {
             float opticY = spec.mount(dev.factoryascension.gun.Attachments.Slot.OPTIC)[1] + stats.sightRaise;
             adsY = -(2f / 16 + (opticY - 8) * spec.fpScale / 16);
         }
-        float x = side * spec.hipX * hip, y = spec.hipY * hip + adsY * aim, z = spec.hipZ * hip + spec.adsZ * aim;
+        // Akimbo: two guns can't both be on the sight line, so aiming only brings them up a little (both stay out wide).
+        // Gangster grip: the sights are on their side, so aiming points it in front of you rather than at your eye.
+        float aimK = 1;
+        if (stats != null && stats.akimbo) aimK = 0.3f;
+        else if (stats != null && stats.gangster) aimK = 0.55f;
+        float am = aim * aimK, hp = 1 - am;
+        float x = side * spec.hipX * hp, y = spec.hipY * hp + adsY * am, z = spec.hipZ * hp + spec.adsZ * am;
+        if (stats != null && stats.gangster) x += side * 0.06f * aim;
         float moveK = hip + aim * 0.15f;
         x += (bobX + sway * 0.02f * speed) * moveK + driftX * (hip + aim * 0.2f) + trX;
         y += (bobY + breath) * moveK + driftY * (hip + aim * 0.2f) + trY + land.x * 0.03f * moveK;
@@ -196,6 +226,11 @@ public final class GunAnim {
         pose.translate(x + fidgetPose[0] + rl[0], y + fidgetPose[1] + rl[1], z + fidgetPose[2] + rl[2]);
         pose.mulPose(Axis.YP.rotationDegrees(side * (-sprint * sprintCantY * (sprintStyle == 2 ? 1.3f : 1)) + twist * speed * moveK + fidgetPose[4] + rl[4] + kickSide.x * 0.4f));
         pose.mulPose(Axis.XP.rotationDegrees(kickPitch.x * 0.35f - forwardLean * moveK * 0.4f + fidgetPose[3] + rl[3] + sprint * (sprintStyle == 0 ? 12 : 4)));
+        // Gangster grip: the gun turned flat on its side, held up and in
+        if (stats != null && stats.gangster) {
+            pose.translate(-side * 0.05f, 0.1f, 0);
+            pose.mulPose(Axis.ZP.rotationDegrees(side * 82));
+        }
         pose.mulPose(Axis.ZP.rotationDegrees(side * (bobRoll * moveK + strafeRoll * (hip + aim * 0.35f) + driftRoll * hip + sprint * sprintCantZ) + fidgetPose[5] + rl[5]));
     }
 

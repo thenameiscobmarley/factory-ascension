@@ -16,8 +16,11 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, ".."))
 import make_textures as T  # noqa: E402
 from core import Model, NS  # noqa: E402
+from mesh import MeshModel  # noqa: E402
+import mesh_tex  # noqa: E402
 import tex  # noqa: E402
 import designs  # noqa: E402
+import designs2  # noqa: E402
 import attach  # noqa: E402
 
 SLOTS = ["MUZZLE", "BARREL", "HANDGUARD", "FOREGRIP", "OPTIC", "STOCK", "MAGAZINE", "UNDERBARREL", "TACTICAL", "GRIP", "TRIGGER", "CHARM"]
@@ -151,10 +154,17 @@ def main(only):
     geo_path = os.path.join(HERE, "geometry.json")
     if os.path.exists(geo_path):
         geo = json.load(open(geo_path))
-    for gid, (fn, scale_fp, relief) in designs.ALL.items():
+    meshdir = os.path.join(ASSETS, "gunmesh")
+    os.makedirs(os.path.join(meshdir, "attach"), exist_ok=True)
+    mtex = os.path.join(ASSETS, "textures", "gunmesh")
+    os.makedirs(mtex, exist_ok=True)
+    for name, fn in mesh_tex.TEXTURES.items():
+        if not only or not os.path.exists(os.path.join(mtex, name + ".png")):
+            T.png(os.path.join(mtex, name + ".png"), fn())
+    for gid, (fn, scale_fp, relief) in dict(designs.ALL, **designs2.ALL).items():
         if only and gid not in only:
             continue
-        m = Model(gid, seed=hash(gid) & 0xFFFF)
+        m = MeshModel(gid, seed=sum(map(ord, gid)) * 131 & 0xFFFF)
         fn(m)
         m.check()
         assert m.sight, gid + ": no sight line"
@@ -165,7 +175,8 @@ def main(only):
         model = {"parent": "builtin/entity", "textures": {"particle": t + "steel"}, "gui_light": "front", "display": display(m, scale_fp)}
         write_json(os.path.join(ASSETS, "models", "item", gid + ".json"), model)
         geo[gid] = list(geometry(m, scale_fp, relief)) + [scale_fp] + mounts(m, gid)
-        print("%-14s %4d parts  sight %s  ads %s" % (gid, len(m.els), tuple(round(v, 2) for v in m.sight), geo[gid]))
+        size = m.mesh.write(os.path.join(meshdir, gid + ".fam"))
+        print("%-14s %4d parts %6d quads %4d KB  sight %s  ads %s" % (gid, len(m.els), len(m.mesh.quads), size // 1024, tuple(round(v, 2) for v in m.sight), geo[gid][:3]))
     write_json(geo_path, geo)
     # The Weapons Workbench block, the attachment item
     bm = bench_model()
@@ -204,6 +215,8 @@ def main(only):
     # Attachment shapes
     for name in attach.SHAPES:
         am = attach.build(name)
+        if am.mesh.quads:
+            am.mesh.write(os.path.join(meshdir, "attach", name + ".fam"))
         write_json(os.path.join(ASSETS, "models", "item", "attach", name + ".json"),
                    {"textures": dict({k: t + k for k in sorted(am.used)}, particle=t + "tint"), "elements": am.els})
     lines = ["package dev.factoryascension.gun;", "",

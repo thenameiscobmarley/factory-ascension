@@ -2,14 +2,20 @@
 // each chapter are built from this (site.js), so new things never get mixed in with old ones.
 // area: home, luck, gear, enchants, machines, world. icon: a path under fa/. Newest release first.
 window.FA_NEWS = [
-  // ---- v24.0.0 ----
-  { v: "24.0.0", area: "machines", icon: "items/attachment.png", title: "Weapons Workbench", text: "Over 3,000 attachments in twelve slots, each changing the gun and showing on it, plus an Ammo Press that makes rounds from any items." },
-  { v: "24.0.0", area: "enchants", icon: "items/cartridge_tip.png", title: "Jury-Rigged", text: "An enchanted book that lets a gun take any attachment anywhere, up to four a slot. Cursed builds welcome." },
+  // ---- v25.0.0 ----
+  { v: "25.0.0", area: "gear", icon: "items/cartridge_case.png", title: "73 guns, smooth up close", text: "51 more guns (Vector, P90, HK416, AWM, M82, KSG, MG 42, a minigun...) and every gun is now a smooth, high-detail mesh in your hands." },
+  { v: "25.0.0", area: "world", icon: "items/dog_tag.png", title: "Armed operators", text: "20 kinds of people with guns who fight like players: they hear shots, flank, take cover, reload, heal and throw grenades. Kill one for its gun and dog tag." },
+  { v: "25.0.0", area: "world", icon: "items/frag_grenade.png", title: "Randomized outposts", text: "Twelve kinds of place, each built fresh: scav camps, bunkers, sniper towers, crash sites, military outposts, warlords' forts and cult shrines." },
+  { v: "25.0.0", area: "gear", icon: "items/attachment.png", title: "Animated gun skins", text: "28 skins that move: Obsidian, Snow, Black Water, Torn, Lava, Galaxy, Inferno... Plus Akimbo kits and Gangster grips." },
+  { v: "25.0.0", area: "home", icon: "items/flare_red.png", title: "Dread and the realism camera", text: "Distant gunfire, your heartbeat, ringing ears, a fisheye lens with grain (F8). A red flare calls a rescue helicopter, hopefully." },
+  { v: "25.0.0", area: "gear", icon: "items/medkit.png", title: "Bleeding, bandages and medkits", text: "Gunshots can make you bleed until you bandage it. Real sounds for every gun, with echoes and distant booms." },
+  { v: "25.0.0", area: "machines", icon: "items/attachment.png", title: "Weapons Workbench", text: "Over 3,000 attachments in twelve slots, each changing the gun and showing on it, plus an Ammo Press that makes rounds from any items." },
+  { v: "25.0.0", area: "enchants", icon: "items/cartridge_tip.png", title: "Jury-Rigged", text: "An enchanted book that lets a gun take any attachment anywhere, up to four a slot. Cursed builds welcome." },
 
-  // ---- v24.0.0 (guns) ----
-  { v: "24.0.0", area: "gear", icon: "items/cartridge_case.png", title: "22 new guns", text: "Pistols, a revolver, SMGs, rifles, marksman and sniper rifles, shotguns and machine guns, each a detailed 3D model with real sights." },
-  { v: "24.0.0", area: "gear", icon: "items/shotgun_shell.png", title: "Stress and fumbled reloads", text: "Get stressed and reloads go wrong in over 20 ways: stuck mags, double feeds, dropped rounds, shaking hands." },
-  { v: "24.0.0", area: "gear", icon: "items/flare_red.png", title: "Rounds of every kind", text: "Regular, hollow point, AP, RIP, snakeshot, slug, incendiary, tracer, explosive and more, for every caliber." },
+  // ---- v25.0.0 (guns) ----
+  { v: "25.0.0", area: "gear", icon: "items/cartridge_case.png", title: "The first 22 guns", text: "Pistols, a revolver, SMGs, rifles, marksman and sniper rifles, shotguns and machine guns, with real sights and reloads." },
+  { v: "25.0.0", area: "gear", icon: "items/shotgun_shell.png", title: "Stress and fumbled reloads", text: "Get stressed and reloads go wrong in over 20 ways: stuck mags, double feeds, dropped rounds, shaking hands." },
+  { v: "25.0.0", area: "gear", icon: "items/flare_red.png", title: "Rounds of every kind", text: "Regular, hollow point, AP, RIP, snakeshot, slug, incendiary, tracer, explosive and more, for every caliber." },
 
   // ---- v22.0.0 ----
   { v: "22.0.0", area: "home", icon: "items/flare_green.png", title: "Tarkov-style gear screen", text: "The inventory now looks like Tarkov's: gear frames around your silhouette, a backpack panel with filters, quick use slots and your stats along the bottom." },

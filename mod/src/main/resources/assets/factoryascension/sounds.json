@@ -1,0 +1,358 @@
+{
+ "gun.pistol": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/pistol_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/pistol_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/pistol_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.pistol"
+ },
+ "gun.magnum": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/magnum_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/magnum_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.magnum"
+ },
+ "gun.smg": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/smg_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/smg_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/smg_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.smg"
+ },
+ "gun.rifle": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/rifle_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/rifle_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/rifle_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.rifle"
+ },
+ "gun.battle": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/battle_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/battle_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.battle"
+ },
+ "gun.sniper": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/sniper_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/sniper_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.sniper"
+ },
+ "gun.fifty": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/fifty_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/fifty_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.fifty"
+ },
+ "gun.shotgun": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/shotgun_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/shotgun_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.shotgun"
+ },
+ "gun.lmg": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/lmg_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/lmg_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.lmg"
+ },
+ "gun.suppressed": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/suppressed_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/suppressed_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/suppressed_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.suppressed"
+ },
+ "gun.distant": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/distant_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/distant_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/distant_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/distant_4",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.distant"
+ },
+ "gun.distant_burst": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/distant_burst_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/distant_burst_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/distant_burst_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.distant_burst"
+ },
+ "gun.dry": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/dry_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/dry_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.dry"
+ },
+ "gun.mag_out": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/mag_out_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/mag_out_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.mag_out"
+ },
+ "gun.mag_in": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/mag_in_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/mag_in_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.mag_in"
+ },
+ "gun.rack": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/rack_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/rack_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.rack"
+ },
+ "gun.bolt": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/bolt_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/bolt_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.bolt"
+ },
+ "gun.pump": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/pump_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/pump_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.pump"
+ },
+ "gun.shell_in": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/shell_in_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/shell_in_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/shell_in_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.shell_in"
+ },
+ "gun.casing": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/casing_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/casing_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/casing_3",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/casing_4",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.casing"
+ },
+ "dread.heartbeat": {
+  "sounds": [
+   {
+    "name": "factoryascension:dread/heartbeat",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.dread.heartbeat"
+ },
+ "dread.breath": {
+  "sounds": [
+   {
+    "name": "factoryascension:dread/breath_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:dread/breath_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:dread/breath_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.dread.breath"
+ },
+ "dread.ringing": {
+  "sounds": [
+   {
+    "name": "factoryascension:dread/ringing",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.dread.ringing"
+ },
+ "dread.helicopter": {
+  "sounds": [
+   {
+    "name": "factoryascension:dread/helicopter"
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.dread.helicopter"
+ },
+ "grenade.explode": {
+  "sounds": [
+   {
+    "name": "factoryascension:grenade/explode_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:grenade/explode_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.grenade.explode"
+ }
+}

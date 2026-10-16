@@ -1030,6 +1030,12 @@ def main():
     gun_models.main(set())    # every other gun (tools/guns/)
     import fx_art
     fx_art.main()             # smoke puffs for the effects
+    import operator_art
+    operator_art.main()       # the armed operators' skins, their kit, the bleeding icon
+    import shutil
+    if shutil.which("ffmpeg"):
+        import sound_gen
+        sound_gen.main()      # gunshots, reloads, dread (needs ffmpeg; the .ogg files are kept in the repo otherwise)
     mod_id_list()
     print("wrote textures, models, block states, loot tables, tags and lang for %d blocks" % len(BLOCKS))
 

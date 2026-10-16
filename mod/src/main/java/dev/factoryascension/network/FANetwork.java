@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 /** The mod's custom messages: the Ascension Vault's search box, the guns' fire and reload, effects, and the Tarkov inventory grid. */
 public final class FANetwork {
-    private static final String VERSION = "6";
+    private static final String VERSION = "7";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(FactoryAscension.MODID, "main"),
         () -> VERSION, VERSION::equals, VERSION::equals);
 
@@ -30,9 +30,10 @@ public final class FANetwork {
         CHANNEL.registerMessage(6, BenchAction.class, BenchAction::encode, BenchAction::decode, BenchAction::handle);
     }
 
-    /** Client -> server, at the Weapons Workbench: 0 install an attachment, 1 take one off (by index), 2 press rounds. */
+    /** Client -> server, at the Weapons Workbench: 0 install an attachment, 1 take one off (by index), 2 press rounds,
+     *  3 build a gun (att = its id), 4 put a skin on the gun (att = the skin, "" takes it off). */
     public record BenchAction(int kind, String att, int index, int caliber, int type, int colour) {
-        public static final int INSTALL = 0, REMOVE = 1, PRESS = 2;
+        public static final int INSTALL = 0, REMOVE = 1, PRESS = 2, BUILD = 3, SKIN = 4;
 
         static void encode(BenchAction m, FriendlyByteBuf b) {
             b.writeByte(m.kind);
@@ -54,6 +55,8 @@ public final class FANetwork {
                 switch (m.kind) {
                     case INSTALL -> dev.factoryascension.gun.Bench.install(p, bench.gun(), m.att);
                     case REMOVE -> dev.factoryascension.gun.Bench.remove(p, bench.gun(), m.index);
+                    case BUILD -> dev.factoryascension.gun.Bench.build(p, m.att);
+                    case SKIN -> dev.factoryascension.gun.Bench.skin(p, bench.gun(), m.att);
                     case PRESS -> {
                         var cals = dev.factoryascension.gun.Caliber.values();
                         var types = dev.factoryascension.gun.AmmoType.values();
@@ -69,19 +72,20 @@ public final class FANetwork {
         }
     }
 
-    /** Server -> client: how stressed you are (0..1), for shaking hands and the stats row. */
-    public record StressSync(float stress) {
+    /** Server -> client: how stressed you are (0..1), for shaking hands and the stats row, and the danger level where you are. */
+    public record StressSync(float stress, int danger) {
         static void encode(StressSync msg, FriendlyByteBuf buf) {
             buf.writeFloat(msg.stress);
+            buf.writeVarInt(msg.danger);
         }
 
         static StressSync decode(FriendlyByteBuf buf) {
-            return new StressSync(buf.readFloat());
+            return new StressSync(buf.readFloat(), buf.readVarInt());
         }
 
         static void handle(StressSync msg, Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
-                () -> () -> dev.factoryascension.client.gun.GunAnim.stress = msg.stress));
+                () -> () -> { dev.factoryascension.client.gun.GunAnim.stress = msg.stress; dev.factoryascension.client.Dread.danger = msg.danger; }));
             ctx.get().setPacketHandled(true);
         }
     }

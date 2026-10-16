@@ -11,12 +11,19 @@ public final class FAClientConfig {
     public static final ForgeConfigSpec.DoubleValue STRENGTH;
     public static final ForgeConfigSpec.BooleanValue CONFLICT_MESSAGES;
     public static final ForgeConfigSpec.BooleanValue SAFE_MODE, SUN_RAYS, SMOKE, DEBRIS, WATER, OCULUS_KEY_MOVED, DEPTH_ADDED, TARKOV_ANIMATION;
+    public static final ForgeConfigSpec.BooleanValue GUN_MESHES, REALISM, DREAD;
+    public static final ForgeConfigSpec.DoubleValue FISHEYE, GRAIN, DESATURATE, VIGNETTE;
     public static final ForgeConfigSpec.IntValue LIGHTING, MAX_DEBRIS;
     public static final ForgeConfigSpec.DoubleValue LIGHT_STRENGTH, SMOKE_AMOUNT, WATER_AMOUNT;
 
     /** An effect is on: its own switch, and not in safe mode. */
     public static boolean on(ForgeConfigSpec.BooleanValue v) {
         return v.get() && !SAFE_MODE.get();
+    }
+
+    /** Smooth gun meshes up close (off: the cuboid models everywhere). */
+    public static boolean gunMeshes() {
+        return GUN_MESHES.get() && !SAFE_MODE.get();
     }
 
     public static int lighting() {
@@ -56,7 +63,17 @@ public final class FAClientConfig {
         MAX_DEBRIS = b.comment("Most voxel pieces at once").defineInRange("maxDebris", 800, 50, 5000);
         WATER = b.comment("Water foams where it flows and falls, bubbles, and splashes").define("water", true);
         WATER_AMOUNT = b.comment("How much foam and bubbles").defineInRange("waterAmount", 1.0, 0.1, 3.0);
+        GUN_MESHES = b.comment("Guns up close are smooth, high-detail meshes (off: the blocky models, for very slow computers)").define("gunMeshes", true);
         b.pop();
+        b.comment("Realism camera: a lens look. Slight fisheye, less colour, film grain, a dark vignette. Toggle in game with F8").push("realism");
+        REALISM = b.comment("Turn it on or off").define("enabled", true);
+        FISHEYE = b.comment("How much the lens bends the edges of the picture").defineInRange("fisheye", 1.0, 0.0, 2.5);
+        GRAIN = b.comment("How much film grain").defineInRange("grain", 1.0, 0.0, 3.0);
+        DESATURATE = b.comment("How much colour is taken out (0 none, 1 grey)").defineInRange("desaturate", 0.35, 0.0, 1.0);
+        VIGNETTE = b.comment("How dark the corners get").defineInRange("vignette", 1.0, 0.0, 2.5);
+        b.pop();
+        DREAD = b.comment("Dread: the world out past your base is frightening. Distant gunfire, footsteps, your heartbeat and breathing under stress, ringing ears after loud shots")
+            .define("dread", true);
         TARKOV_ANIMATION = b.comment("Tarkov inventory: look down, a duffel bag comes up in your hands and the inventory opens out of it (off: it just opens)")
             .define("inventoryAnimation", true);
         DEPTH_ADDED = b.comment("Set after the Factory Ascension Depth pack was switched on the first time (your choice stands after that)").define("depthPackAdded", false);

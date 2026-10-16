@@ -116,6 +116,7 @@ public final class GunClient {
     @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static final class Events {
         private static float kick = 0;   // camera recoil still to recover
+        private static int spin = 0;      // a minigun's spin-up, ticks
 
         /** Before vanilla reads the keys: left-clicks fire (vanilla ignores attack clicks while aiming, so take them here). */
         @SubscribeEvent
@@ -140,6 +141,17 @@ public final class GunClient {
             dev.factoryascension.gun.GunStats stats = dev.factoryascension.gun.GunStats.of(held);
             boolean auto = spec == null || stats.auto;   // the original shotgun pumps as fast as you hold it
             boolean want = clicked || (auto && mc.options.keyAttack.isDown());
+            // A minigun: holding the trigger spins the barrels up first (with a rising whine); let go and they wind down
+            if (spec != null && spec.spinup > 0) {
+                if (mc.options.keyAttack.isDown()) {
+                    if (spin < spec.spinup && p.tickCount % 3 == 0)
+                        p.playSound(net.minecraft.sounds.SoundEvents.MINECART_RIDING, 0.25f, 0.6f + spin / (float) spec.spinup);
+                    spin = Math.min(spec.spinup, spin + 1);
+                } else {
+                    spin = Math.max(0, spin - 2);
+                }
+                want = want && spin >= spec.spinup;
+            }
             if (want && !p.getCooldowns().isOnCooldown(held.getItem())) {
                 boolean aim = aimingAny(p);
                 boolean blocked = spec != null && (held.hasTag() && held.getTag().getInt("Bolt") > 0
@@ -174,7 +186,7 @@ public final class GunClient {
 
         static float zoomOf(Player p) {
             dev.factoryascension.gun.GunStats g = dev.factoryascension.gun.GunStats.of(p.getMainHandItem());
-            return g != null ? g.zoom : 0.25f;
+            return g != null ? g.zoom * (g.akimbo ? 0.3f : g.gangster ? 0.5f : 1) : 0.25f;
         }
 
         /** Zoom while aiming. */

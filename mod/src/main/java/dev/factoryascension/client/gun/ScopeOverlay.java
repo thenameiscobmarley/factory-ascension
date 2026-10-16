@@ -28,7 +28,7 @@ public final class ScopeOverlay {
         GunSpec g = GunItem.spec(p.getMainHandItem());
         if (g == null) return false;
         dev.factoryascension.gun.GunStats st = dev.factoryascension.gun.GunStats.of(p.getMainHandItem());
-        boolean built = (g.kind == GunSpec.Kind.SNIPER || g.kind == GunSpec.Kind.DMR || g.id.equals("aug")) && !g.id.equals("mosin");
+        boolean built = (g.kind == GunSpec.Kind.SNIPER || g.kind == GunSpec.Kind.DMR || g.id.equals("aug")) && !g.id.equals("mosin") && !g.id.equals("kar98k");
         if (!built && st.zoom < 0.45f) return false;   // a 4x or stronger optic attachment counts too
         return p.isUsingItem() && p.getUseItem() == p.getMainHandItem() && p.getTicksUsingItem() >= 5 && !GunItem.reloading(p.getMainHandItem());
     }

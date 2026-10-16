@@ -22,6 +22,9 @@ public final class GunSpec {
     // First-person: where it's held at the hip, and aimed (sight line on the screen's centre, stock clear of the eye)
     public float hipX = 0.42f, hipY = -0.44f, hipZ = -0.70f, adsY = -0.30f, adsZ = -0.62f;
     public String desc = "";
+    public boolean manual;                       // a bolt, pump or lever to work after every shot
+    public float sound = 1;                      // how loud (an integral suppressor makes it quieter)
+    public int spinup = 0;                       // ticks of holding the trigger before it fires (a minigun's barrels spinning up)
     public float fpScale = 0.6f;                 // its first-person model size (GunGeometry)
     public float[] mounts = new float[36];       // x, y, z per attachment slot, model units (GunGeometry)
 
@@ -35,6 +38,7 @@ public final class GunSpec {
         this.name = name;
         this.kind = kind;
         this.caliber = caliber;
+        this.manual = kind == Kind.SNIPER;
         switch (kind) {
             case PISTOL, REVOLVER -> { gridW = 2; gridH = 1; weight = 1; hipX = 0.36f; hipY = -0.40f; hipZ = -0.66f; adsY = -0.205f; adsZ = -0.52f; spreadHip = 3f; spreadAim = 0.8f; range = 60; recoilUp = 3.5f; zoom = 0.1f; }
             case SMG -> { gridW = 3; gridH = 2; weight = 2.5f; range = 80; spreadHip = 3.2f; spreadAim = 0.9f; recoilUp = 1.6f; zoom = 0.15f; }
@@ -84,4 +88,7 @@ public final class GunSpec {
     public GunSpec hip(float x, float y, float z) { this.hipX = x; this.hipY = y; this.hipZ = z; return this; }
     public GunSpec ads(float y, float z) { this.adsY = y; this.adsZ = z; return this; }
     public GunSpec desc(String d) { this.desc = d; return this; }
+    public GunSpec manual(boolean m) { this.manual = m; return this; }
+    public GunSpec quiet(float s) { this.sound = s; return this; }
+    public GunSpec spinup(int t) { this.spinup = t; return this; }
 }

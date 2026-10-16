@@ -13,7 +13,13 @@ public enum Caliber {
     R762N("7.62x51mm", 2.4f, 1.8f, 48),
     R762R("7.62x54mmR", 2.5f, 1.8f, 48),
     R338(".338 Lapua", 4.0f, 2.2f, 32),
-    G12("12 gauge", 1.0f, 0.8f, 32);
+    G12("12 gauge", 1.0f, 0.8f, 32),
+    P57("5.7x28mm", 1.0f, 1.5f, 64),
+    P762T("7.62x25mm", 1.05f, 1.35f, 64),
+    R44(".44 Magnum", 1.9f, 1.15f, 48),
+    R9X39("9x39mm", 1.9f, 0.9f, 48),
+    R300(".300 Blackout", 1.7f, 1.2f, 64),
+    B50(".50 BMG", 5.5f, 2.4f, 16);
 
     public final String label;
     public final float damage, velocity;

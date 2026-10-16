@@ -147,6 +147,13 @@ public class FactoryAscension {
     public static final RegistryObject<Item> FLARE_GUN = ITEMS.register("flare_gun", () -> new dev.factoryascension.item.FlareGunItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> FLARE_RED = ITEMS.register("flare_red", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final RegistryObject<Item> FLARE_GREEN = ITEMS.register("flare_green", () -> new Item(new Item.Properties().stacksTo(16)));
+    // Out there: grenades, medicine, the dog tags of people you put down, and bleeding
+    public static final DeferredRegister<net.minecraft.world.effect.MobEffect> EFFECTS = DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, MODID);
+    public static final RegistryObject<net.minecraft.world.effect.MobEffect> BLEEDING = EFFECTS.register("bleeding", dev.factoryascension.npc.Bleeding::new);
+    public static final RegistryObject<Item> FRAG_GRENADE = ITEMS.register("frag_grenade", () -> new dev.factoryascension.npc.GrenadeItem(new Item.Properties().stacksTo(8)));
+    public static final RegistryObject<Item> BANDAGE = ITEMS.register("bandage", () -> new dev.factoryascension.npc.MedItem(new Item.Properties().stacksTo(16), false));
+    public static final RegistryObject<Item> MEDKIT = ITEMS.register("medkit", () -> new dev.factoryascension.npc.MedItem(new Item.Properties().stacksTo(4), true));
+    public static final RegistryObject<Item> DOG_TAG = ITEMS.register("dog_tag", () -> new dev.factoryascension.npc.DogTagItem(new Item.Properties().stacksTo(1)));
     // Guns (gun/): one item per GunSpec, and one cartridge item for every caliber, type and making
     public static final RegistryObject<Item> CARTRIDGE = ITEMS.register("cartridge", () -> new dev.factoryascension.gun.CartridgeItem(new Item.Properties().stacksTo(64)));
     public static final java.util.Map<String, RegistryObject<Item>> GUNS = new java.util.LinkedHashMap<>();
@@ -242,6 +249,10 @@ public class FactoryAscension {
             out.accept(FLARE_RED.get());
             out.accept(FLARE_GREEN.get());
             out.accept(WEAPONS_BENCH.get());
+            out.accept(FRAG_GRENADE.get());
+            out.accept(BANDAGE.get());
+            out.accept(MEDKIT.get());
+            dev.factoryascension.npc.Operators.EGGS.values().forEach(e -> out.accept(e.get()));
             GUNS.values().forEach(g -> out.accept(g.get()));
             for (dev.factoryascension.gun.Caliber c : dev.factoryascension.gun.Caliber.values())
                 out.accept(dev.factoryascension.gun.CartridgeItem.standard(c, dev.factoryascension.gun.AmmoType.REGULAR, 1));
@@ -270,10 +281,13 @@ public class FactoryAscension {
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, FACommonConfig.SPEC);
         dev.factoryascension.gun.GunGeometry.apply();   // where each gun is held when aimed (from its model)
         FAMobs.register(bus);   // first: its spawn eggs go into ITEMS before ITEMS is registered
+        dev.factoryascension.npc.Operators.register(bus);   // the same for the operators' eggs
+        EFFECTS.register(bus);
         if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks"))
             dev.factoryascension.compat.SophisticatedBackpacks.register(BLOCKS, ITEMS, BACKPACKS);
         MinecraftForge.EVENT_BUS.addListener(FAMobs::onDetonate);
         dev.factoryascension.worldgen.FAStructures.register(bus);
+        FASounds.register(bus);
         BLOCKS.register(bus);
         ITEMS.register(bus);
         ENCHANTMENTS.register(bus);

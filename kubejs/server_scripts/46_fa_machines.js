@@ -36,7 +36,10 @@ if (Platform.isLoaded(FA_MOD)) {
     event.shaped(FA_MOD + ':weapons_workbench', G.workbench.recipe[0], G.workbench.recipe[1]).id('kubejs:factory_ascension/weapons_workbench')
     event.shaped(Item.of('minecraft:enchanted_book').enchant(FA_MOD + ':jury_rigged', 1), G.workbench.juryRiggedBook[0], G.workbench.juryRiggedBook[1])
       .id('kubejs:factory_ascension/jury_rigged_book')
-    G.list.forEach(g => event.shaped(FA_MOD + ':' + g.id, g.recipe[0], g.recipe[1]).id('kubejs:factory_ascension/gun_' + g.id))
+    // The guns themselves are built at the Weapons Workbench (GUNSMITH tab), from each one's `cost`
+    event.shaped(Item.of(FA_MOD + ':frag_grenade', G.fragGrenadesPerCraft), G.fragGrenade[0], G.fragGrenade[1]).id('kubejs:factory_ascension/frag_grenade')
+    event.shaped(Item.of(FA_MOD + ':bandage', G.bandagesPerCraft), G.bandage[0], G.bandage[1]).id('kubejs:factory_ascension/bandage')
+    event.shaped(FA_MOD + ':medkit', G.medkit[0], G.medkit[1]).id('kubejs:factory_ascension/medkit')
     // Plain rounds of every caliber: a nugget bullet, gunpowder, a copper case
     Object.keys(G.ammo.perCraft).forEach(cal => {
       let round = Item.of(FA_MOD + ':cartridge', G.ammo.perCraft[cal],

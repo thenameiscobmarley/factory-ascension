@@ -1,0 +1,785 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2,
+        "max": 4
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 20
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"p9\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 20
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"p45\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 20
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r545\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 20
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r556\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 20
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762s\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 20
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762n\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 20
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762r\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6,
+                "max": 20
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"g12\",Type:\"REGULAR\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"p9\",Type:\"HOLLOW_POINT\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"p9\",Type:\"ARMOR_PIERCING\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"p9\",Type:\"TRACER\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"p45\",Type:\"HOLLOW_POINT\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"p45\",Type:\"ARMOR_PIERCING\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"p45\",Type:\"TRACER\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r545\",Type:\"HOLLOW_POINT\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r545\",Type:\"ARMOR_PIERCING\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r545\",Type:\"TRACER\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r556\",Type:\"HOLLOW_POINT\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r556\",Type:\"ARMOR_PIERCING\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r556\",Type:\"TRACER\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762s\",Type:\"HOLLOW_POINT\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762s\",Type:\"ARMOR_PIERCING\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762s\",Type:\"TRACER\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762n\",Type:\"HOLLOW_POINT\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762n\",Type:\"ARMOR_PIERCING\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cartridge",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            },
+            {
+              "function": "minecraft:set_nbt",
+              "tag": "{Cal:\"r762n\",Type:\"TRACER\",Prop:\"minecraft:gunpowder\",Case:\"minecraft:copper_ingot\",Color:13140028,Power:1.0f,Rel:1.0f}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 3
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:bandage",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:medkit",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:frag_grenade",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:flare_red",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:flare_green",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_ingot",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "kubejs:ascendite_ingot",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:spyglass",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0,
+        "max": 1
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:glock18",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:usp45",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:p226",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:cz75",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:python",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:mp5",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:ump45",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:bizon",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:ppsh",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:thompson",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:ak74",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:akm",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:galil",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:fal",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:m1_garand",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:kar98k",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:saiga12",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:m1014",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:spas12",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:svd",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:winchester",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:rpk",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:dp28",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:makarov",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:tt33",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:m9",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:p17",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:m1911",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:mp40",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:sawnoff",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:double_barrel",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:m870",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:uz9",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:aks74u",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "factoryascension:mosin",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 22
+        }
+      ]
+    }
+  ]
+}

@@ -46,5 +46,7 @@ public final class ClientSetup {
     public static void renderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(FactoryAscension.BINDER_BE.get(), BinderRenderer::new);
         MobRenderers.register(event);
+        for (var t : dev.factoryascension.npc.Operators.TYPES.values()) event.registerEntityRenderer(t.get(), dev.factoryascension.client.npc.OperatorRenderer::new);
+        event.registerEntityRenderer(dev.factoryascension.npc.Operators.GRENADE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
     }
 }

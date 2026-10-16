@@ -38,7 +38,7 @@ public final class Attachments {
         public int magAdd = 0;
         public float zoom = 0;          // added zoom (an optic's magnification); the highest optic counts
         public float sightRaise = 0;    // how much higher the sight line is (model units) with this optic
-        public boolean auto = false, laser = false, light = false, noBolt = false;
+        public boolean auto = false, laser = false, light = false, noBolt = false, akimbo = false, gangster = false;
         public int pelletsAdd = 0;
     }
 
@@ -145,6 +145,9 @@ public final class Attachments {
         fam("stock_collapsible", "Collapsible Stock", Slot.STOCK, "stock_pad", LONG, 2, (m, q) -> { m.recoil = 1 - 0.08f * q; m.ads = 1 - 0.03f * q; });
         fam("stock_precision", "Precision Stock", Slot.STOCK, "stock_cheek", RIFLES, 4, (m, q) -> { m.spread = 1 - 0.1f * q; m.recoil = 1 - 0.1f * q; m.ads = 1.08f; });
         fam("stock_skeleton", "Skeleton Stock", Slot.STOCK, "stock_pad", LONG, 3, (m, q) -> { m.ads = 1 - 0.08f * q; m.recoil = 1 - 0.04f * q; m.weight = -0.4f; });
+        // Akimbo: no stock, a second gun in the other hand. Both fire (twice the rate, twice the rounds), neither aims well
+        fam("akimbo", "Akimbo Kit", Slot.STOCK, "none", EnumSet.of(Kind.PISTOL, Kind.REVOLVER, Kind.SMG, Kind.SHOTGUN), 6,
+            (m, q) -> { m.akimbo = true; m.rpm = 1.6f + 0.1f * q; m.magMult = 2; m.spread = 1.55f - 0.1f * q; m.recoil = 1.2f; m.ads = 0.85f; m.reload = 1.35f; m.weight = 1.2f; });
         fam("stock_pistol", "Pistol Stock", Slot.STOCK, "stock_pad", EnumSet.of(Kind.PISTOL, Kind.REVOLVER), 3, (m, q) -> { m.recoil = 1 - 0.2f * q; m.spread = 1 - 0.1f * q; });
         // ---- Magazines ----
         fam("mag_extended", "Extended Magazine", Slot.MAGAZINE, "mag_ext", MAGFED, 3, (m, q) -> { m.magMult = 1.5f; m.reload = 1.1f; m.weight = 0.3f; });
@@ -165,6 +168,9 @@ public final class Attachments {
         // ---- Grips ----
         fam("grip_rubber", "Rubber Grip", Slot.GRIP, "grip_wrap", ALL_KINDS, 1, (m, q) -> m.recoil = 1 - 0.05f * q);
         fam("grip_stippled", "Stippled Grip", Slot.GRIP, "grip_wrap", ALL_KINDS, 2, (m, q) -> { m.recoil = 1 - 0.04f * q; m.ads = 1 - 0.03f * q; });
+        // Gangster: held flat on its side. Quick to raise, wild to control
+        fam("gangster_grip", "Gangster Grip", Slot.GRIP, "grip_wrap", ALL_KINDS, 2,
+            (m, q) -> { m.gangster = true; m.ads = 0.7f - 0.05f * q; m.spread = 1.3f; m.recoil = 1.1f; m.damage = 1 + 0.02f * q; });
         fam("grip_ergo", "Ergonomic Grip", Slot.GRIP, "grip_wrap", ALL_KINDS, 2, (m, q) -> { m.ads = 1 - 0.06f * q; m.reload = 1 - 0.05f * q; });
         // ---- Triggers ----
         fam("trigger_match", "Match Trigger", Slot.TRIGGER, "none", ALL_KINDS, 3, (m, q) -> m.spread = 1 - 0.08f * q);

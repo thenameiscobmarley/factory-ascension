@@ -25,6 +25,19 @@ import java.util.List;
  */
 @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public final class DevShots {
+    static java.util.List<String> skinShots = new java.util.ArrayList<>();
+
+    /** For the logs: every operator near the player, what it's doing. */
+    static String npcReport(net.minecraft.client.Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        StringBuilder b = new StringBuilder();
+        var sp = server.getPlayerList().getPlayers().get(0);
+        for (var o : sp.serverLevel().getEntitiesOfClass(dev.factoryascension.npc.Operator.class, sp.getBoundingBox().inflate(80)))
+            b.append(o.type.id).append(o.isAlive() ? "" : "(dead)").append(" hp=").append(Math.round(o.getHealth()))
+                .append(" target=").append(o.getTarget() == null ? "-" : o.getTarget().getType().getDescriptionId().replace("entity.", "")).append("; ");
+        b.append(" player hp=").append(Math.round(sp.getHealth()));
+        return b.toString();
+    }
     private static final Logger LOG = LoggerFactory.getLogger("Factory Ascension");
     private static final boolean ON = "true".equals(System.getProperty("fa.devshots"));
     /** -Dfa.devshots=pack: the shader-pack check (Oculus + a parallax shader + the depth pack) */
@@ -115,6 +128,8 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.quick")) step = 200;   // only the inventory shots
                     if (Boolean.getBoolean("fa.guns")) step = 300;    // only the gun shots
                     if (Boolean.getBoolean("fa.bench")) step = 400;   // only the workbench and attachment shots
+                    if (Boolean.getBoolean("fa.skins")) step = 500;   // only the smooth guns, skins, akimbo and gangster shots
+                    if (Boolean.getBoolean("fa.npc")) step = 600;     // only the operators, structures, realism camera and new bench tabs
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -240,6 +255,102 @@ public final class DevShots {
                 case 404 -> { shot(mc, "bench_modding");
                     if (mc.screen instanceof dev.factoryascension.client.gun.WeaponsBenchScreen b) b.devTab(1, null); wait = 30; }
                 case 405 -> { shot(mc, "bench_press"); mc.setScreen(null); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                // Smooth gun meshes with skins; akimbo; gangster grip (fa.shot = "gun:skin:atts,..." list, or the default set)
+                case 500 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "tp @a -2 -60 -6 0 0"); cmd(mc, "clear @a"); cmd(mc, "time set noon");
+                    String list = System.getProperty("fa.shot", "m4a1::,m4a1:obsidian:,ak74:snow:,mk17:black_water:,m4a1:torn:,akm:lava:,m4a1:moss:,p17::akimbo,m1911::gangster_grip,svd:toxic:,saiga12:inferno:");
+                    skinShots = new java.util.ArrayList<>(java.util.List.of(list.split(",")));
+                    mc.gui.getChat().clearMessages(false); mc.getToasts().clear(); wait = 40; }
+                case 501 -> {
+                    if (skinShots.isEmpty()) { cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; break; }
+                    String[] parts = (skinShots.get(0) + "::").split(":", -1);
+                    String gid = parts[0], skin = parts[1], atts = parts[2];
+                    var server = mc.getSingleplayerServer();
+                    server.execute(() -> {
+                        var sp = server.getPlayerList().getPlayers().get(0);
+                        var reg = dev.factoryascension.FactoryAscension.GUNS.get(gid);
+                        net.minecraft.world.item.ItemStack gun = reg != null ? new net.minecraft.world.item.ItemStack(reg.get()) : net.minecraft.world.item.ItemStack.EMPTY;
+                        dev.factoryascension.gun.Skins.set(gun, skin);
+                        java.util.List<String> ids = new java.util.ArrayList<>();
+                        for (String fam : atts.split("\\+")) if (!fam.isEmpty())
+                            for (var a : dev.factoryascension.gun.Attachments.ALL) if (a.family.equals(fam)) { ids.add(a.id); break; }
+                        dev.factoryascension.gun.GunStats.setIds(gun, ids);
+                        sp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, gun);
+                    });
+                    wait = 45; step = 502; }
+                case 502 -> {
+                    String name = skinShots.remove(0).replace(':', '_').replace('+', '_');
+                    shot(mc, "skin_" + name); step = 501; wait = 2; }
+                // Operators, structures, the realism camera, the bench's GUNSMITH and SKINS tabs
+                case 600 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "tp @a -2 -60 -6 0 0"); cmd(mc, "clear @a"); cmd(mc, "time set noon");
+                    cmd(mc, "effect give @a resistance 99999 4 true"); cmd(mc, "effect give @a regeneration 99999 2 true");
+                    FAClientConfig.REALISM.set(false);
+                    var server = mc.getSingleplayerServer();
+                    server.execute(() -> {
+                        var sp = server.getPlayerList().getPlayers().get(0);
+                        var lvl = sp.serverLevel();
+                        // A lineup of every kind, standing still, facing you
+                        int i = 0;
+                        for (var t : dev.factoryascension.npc.OpType.values()) {
+                            var pos = net.minecraft.core.BlockPos.containing(sp.getX() - 9.5 + i, sp.getY(), sp.getZ() + 7);
+                            var o = dev.factoryascension.npc.Operators.spawn(lvl, t, pos, net.minecraft.world.entity.MobSpawnType.COMMAND, false);
+                            if (o != null) { o.setNoAi(true); o.setYRot(180); o.setYHeadRot(180); o.yBodyRot = 180; o.setCustomNameVisible(true); }
+                            i++;
+                        }
+                    });
+                    mc.gui.getChat().clearMessages(false); mc.getToasts().clear(); wait = 80; }
+                case 601 -> { shot(mc, "npc_lineup"); mc.player.setYRot(0); mc.player.setXRot(0); cmd(mc, "tp @a ~ ~ ~-3 0 0"); wait = 50; }
+                case 602 -> { shot(mc, "npc_lineup_near"); FAClientConfig.REALISM.set(true); wait = 40; }
+                case 603 -> { shot(mc, "npc_lineup_realism"); FAClientConfig.REALISM.set(false);
+                    cmd(mc, "kill @e[type=!player]");
+                    var server = mc.getSingleplayerServer();
+                    server.execute(() -> {
+                        var sp = server.getPlayerList().getPlayers().get(0);
+                        var lvl = sp.serverLevel();
+                        // A fight: two raiders ahead, a scav squad off to the side that hates them
+                        dev.factoryascension.npc.Operators.squad(lvl, sp.getX() + 2, sp.getZ() + 16, dev.factoryascension.npc.OpType.RAIDER, 2, null);
+                        dev.factoryascension.npc.Operators.squad(lvl, sp.getX() - 14, sp.getZ() + 20, dev.factoryascension.npc.OpType.SCAV, 3, null);
+                        sp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new net.minecraft.world.item.ItemStack(dev.factoryascension.FactoryAscension.GUNS.get("hk416").get()));
+                    });
+                    wait = 120; }
+                case 604 -> { log("npc fight: " + npcReport(mc)); shot(mc, "npc_fight"); mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK); wait = 60; }
+                case 605 -> { log("npc fight later: " + npcReport(mc)); shot(mc, "npc_fight_third"); mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+                    cmd(mc, "kill @e[type=!player]"); cmd(mc, "gamemode creative @a");
+                    cmd(mc, "tp @a -2 -60 -6 0 0"); cmd(mc, "place feature factoryascension:military_outpost -2 -60 22"); wait = 80; }
+                case 606 -> { cmd(mc, "tp @a -2 -38 0 0 40"); wait = 120; }
+                case 607 -> { log("operators after the outpost: " + npcReport(mc)); shot(mc, "struct_outpost");
+                    cmd(mc, "kill @e[type=!player]");
+                    cmd(mc, "place feature factoryascension:scav_camp -40 -60 -6"); cmd(mc, "place feature factoryascension:sniper_tower 36 -60 -6");
+                    cmd(mc, "place feature factoryascension:warlord_fort -2 -60 -50"); wait = 80; }
+                case 608 -> { cmd(mc, "tp @a -2 -30 -14 180 50"); wait = 120; }
+                case 609 -> { shot(mc, "struct_fort"); cmd(mc, "tp @a -14 -40 -6 90 40"); wait = 80; }
+                case 610 -> { shot(mc, "struct_camp"); cmd(mc, "tp @a 14 -40 -6 -90 30"); wait = 80; }
+                case 611 -> { shot(mc, "struct_tower"); cmd(mc, "kill @e[type=!player]");
+                    cmd(mc, "place feature factoryascension:bunker -2 -60 60"); cmd(mc, "place feature factoryascension:crash_site -40 -60 60");
+                    cmd(mc, "place feature factoryascension:gas_station 36 -60 60"); wait = 80; }
+                case 612 -> { cmd(mc, "tp @a -2 -32 30 0 45"); wait = 120; }
+                case 613 -> { shot(mc, "struct_bunker_crash_gas"); cmd(mc, "kill @e[type=!player]");
+                    cmd(mc, "place feature factoryascension:radio_tower -40 -60 -100"); cmd(mc, "place feature factoryascension:checkpoint -2 -60 -100");
+                    cmd(mc, "place feature factoryascension:trench 36 -60 -100"); cmd(mc, "place feature factoryascension:cult_shrine -2 -60 -140");
+                    cmd(mc, "place feature factoryascension:ruins 70 -60 -6"); wait = 80; }
+                case 614 -> { cmd(mc, "tp @a -2 -30 -70 180 40"); wait = 120; }
+                case 615 -> { shot(mc, "struct_more"); cmd(mc, "kill @e[type=!player]"); cmd(mc, "tp @a -2 -60 -6 0 0"); cmd(mc, "gamemode survival @a");
+                    // The bench: GUNSMITH and SKINS
+                    var server = mc.getSingleplayerServer();
+                    server.execute(() -> {
+                        var sp = server.getPlayerList().getPlayers().get(0);
+                        var pos = sp.blockPosition().north(2);
+                        sp.level().setBlockAndUpdate(pos, dev.factoryascension.FactoryAscension.WEAPONS_BENCH.get().defaultBlockState());
+                        net.minecraft.world.item.ItemStack gun = new net.minecraft.world.item.ItemStack(dev.factoryascension.FactoryAscension.GUNS.get("ak12").get());
+                        sp.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_INGOT, 64));
+                        net.minecraftforge.network.NetworkHooks.openScreen(sp, new net.minecraft.world.SimpleMenuProvider(
+                            (id, inv, pl) -> { var m = new dev.factoryascension.gun.WeaponsBenchMenu(id, inv, pos); m.bench.setItem(0, gun); return m; },
+                            net.minecraft.network.chat.Component.literal("Weapons Workbench")), pos);
+                    });
+                    wait = 40; }
+                case 616 -> { if (mc.screen instanceof dev.factoryascension.client.gun.WeaponsBenchScreen b) { b.devTab(2, null); b.devPick("minigun"); } wait = 40; }
+                case 617 -> { shot(mc, "bench_gunsmith"); if (mc.screen instanceof dev.factoryascension.client.gun.WeaponsBenchScreen b) { b.devTab(3, null); b.devPick("black_water"); } wait = 40; }
+                case 618 -> { shot(mc, "bench_skins"); if (mc.screen instanceof dev.factoryascension.client.gun.WeaponsBenchScreen b) { b.devTab(1, null); } wait = 30; }
+                case 619 -> { shot(mc, "bench_press18"); mc.setScreen(null); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 208 -> { log("after resize: " + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()) + " " + mc.getWindow().getGuiScaledWidth() + "x" + mc.getWindow().getGuiScaledHeight());
                     shot(mc, "inv_scale2"); mc.options.guiScale().set(0); mc.resizeDisplay(); mc.setScreen(null); dev.factoryascension.client.tarkov.TarkovClient.debugTime = null;
                     cmd(mc, "gamemode spectator @a"); step = Boolean.getBoolean("fa.quick") ? 16 : 14; wait = 10; }

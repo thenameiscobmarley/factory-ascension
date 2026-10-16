@@ -32,6 +32,8 @@ import java.util.Locale;
  * slots under it (click one to browse what goes there, right-click to take the last one off), and the catalog on the
  * right with a search box, each attachment's numbers and cost, and INSTALL. A Jury-Rigged gun is offered everything.
  * AMMO PRESS: pick a caliber, a type and a colour; the case and powder slots take any item; PRESS makes the rounds.
+ * GUNSMITH: every gun, filtered by kind or searched, shown large (its smooth mesh) with its numbers and what it costs;
+ * BUILD makes it. SKINS: the gun in the GUN slot shown wearing the picked skin, live; APPLY puts it on.
  */
 public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu> {
     static final int BG = 0xF00E0E0E, PANEL = 0xC0161616, EDGE = 0xFF3A3A38, CELL = 0xFF121212, CELL_LINE = 0xFF262626;
@@ -41,7 +43,14 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         0x3060C0, 0x8040C0, 0xE060A0, 0x60E0E8, 0x40C8B8};
     static final int ROW = 12, LIST_X = 242, LIST_Y = 34, LIST_ROWS = 11;
 
-    private int tab = 0;                         // 0 modding, 1 ammo press
+    static final String[] TABS = {"MODDING", "AMMO PRESS", "GUNSMITH", "SKINS"};
+    static final String[] KINDS = {"ALL", "PISTOL", "REVOLVER", "SMG", "RIFLE", "DMR", "SNIPER", "SHOTGUN", "LMG"};
+    private int tab = 0;                         // 0 modding, 1 ammo press, 2 gunsmith, 3 skins
+    private int kindFilter = 0, gunPick = 0, gunScroll = 0, skinPick = 0, skinScroll = 0;
+    private final List<GunSpec> guns = new ArrayList<>();
+    private final List<String> skins = new ArrayList<>(dev.factoryascension.gun.Skins.ALL.keySet());
+    private String lastGunQuery = null;
+    private int lastKind = -1;
     private Attachments.Slot slot = Attachments.Slot.MUZZLE;
     private final List<Attachments.Att> shown = new ArrayList<>();
     private int scroll = 0, picked = -1;
@@ -89,12 +98,43 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         picked = shown.isEmpty() ? -1 : 0;
     }
 
+    private void refreshGuns() {
+        String q = search == null ? "" : search.getValue().toLowerCase(Locale.ROOT).trim();
+        if (q.equals(lastGunQuery) && kindFilter == lastKind) return;
+        lastGunQuery = q;
+        lastKind = kindFilter;
+        guns.clear();
+        for (GunSpec g : dev.factoryascension.gun.Guns.ALL) {
+            if (kindFilter > 0 && !g.kind.name().equals(KINDS[kindFilter])) continue;
+            if (!q.isEmpty() && !g.name.toLowerCase(Locale.ROOT).contains(q) && !g.caliber.label.toLowerCase(Locale.ROOT).contains(q)) continue;
+            guns.add(g);
+        }
+        gunScroll = 0;
+        gunPick = guns.isEmpty() ? -1 : 0;
+    }
+
+    /** Draws an item big; guns as their smooth mesh. */
+    private void bigItem(GuiGraphics g, ItemStack s, int cx, int cy, float scale) {
+        g.pose().pushPose();
+        g.pose().translate(cx, cy, 100);
+        g.pose().scale(scale, scale, scale);
+        GunRenderer.preview = true;
+        try {
+            g.renderItem(s, -8, -8);
+        } finally {
+            GunRenderer.preview = false;
+        }
+        g.pose().popPose();
+    }
+
     // ---- Drawing ----
     @Override
     public void render(GuiGraphics g, int mx, int my, float partial) {
         renderBackground(g);
-        search.visible = tab == 0;
+        search.visible = tab == 0 || tab == 2;
+        search.setHint(Component.literal(tab == 2 ? "Search guns..." : "Search attachments..."));
         if (tab == 0) refresh();
+        if (tab == 2) refreshGuns();
         super.render(g, mx, my, partial);
         renderTooltip(g, mx, my);
         if (tab == 0) {
@@ -134,9 +174,9 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         g.fill(x0 - 1, y0 - 1, x0 + imageWidth + 1, y0 + imageHeight + 1, EDGE);
         g.fill(x0, y0, x0 + imageWidth, y0 + imageHeight, BG);
         // Tabs
-        String[] tabs = {"MODDING", "AMMO PRESS"};
+        String[] tabs = TABS;
         int tx = x0 + 4;
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < tabs.length; i++) {
             int w = font.width(tabs[i]) + 12;
             if (tab == i) { g.fill(tx, y0 + 1, tx + w, y0 + 14, 0xFF2A2A28); g.fill(tx, y0 + 13, tx + w, y0 + 14, TEXT); }
             g.drawString(font, tabs[i], tx + 6, y0 + 4, tab == i ? TEXT : FAINT, false);
@@ -157,7 +197,9 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         for (int r = 0; r < 3; r++) for (int c = 0; c < 9; c++) cell(g, x0 + 8 + c * 18, y0 + 154 + r * 18);
         for (int c = 0; c < 9; c++) cell(g, x0 + 8 + c * 18, y0 + 212);
         if (tab == 0) drawModding(g, mx, my);
-        else drawPress(g, mx, my);
+        else if (tab == 1) drawPress(g, mx, my);
+        else if (tab == 2) drawGunsmith(g, mx, my);
+        else drawSkins(g, mx, my);
     }
 
     private void drawModding(GuiGraphics g, int mx, int my) {
@@ -167,11 +209,7 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         if (gun.isEmpty()) {
             g.drawCenteredString(font, "Put a gun in the GUN slot", x0 + 136, y0 + 55, FAINT);
         } else {
-            g.pose().pushPose();
-            g.pose().translate(x0 + 136, y0 + 58, 100);
-            g.pose().scale(9, 9, 9);
-            g.renderItem(gun, -8, -8);
-            g.pose().popPose();
+            bigItem(g, gun, x0 + 136, y0 + 58, 9);
             GunStats st = GunStats.of(gun);
             small(g, gun.getHoverName().getString().toUpperCase(Locale.ROOT), x0 + 38, y0 + 21, TEXT);
             if (Bench.juryRigged(gun)) small(g, "JURY-RIGGED", x0 + 234 - font.width("JURY-RIGGED") * 2 / 3, y0 + 21, 0xFFD070F0);
@@ -279,9 +317,9 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         // Pickers on the right: caliber, type, colour
         int px = x0 + LIST_X - 2;
         small(g, "CALIBER", px, y0 + 18, DIM);
-        for (int i = 0; i < Caliber.values().length; i++) chip(g, px + i % 3 * 52, y0 + 25 + i / 3 * 13, 50, Caliber.values()[i].label, i == cal, mx, my);
-        small(g, "TYPE", px, y0 + 80, DIM);
-        for (int i = 0; i < AmmoType.values().length; i++) chip(g, px + i % 3 * 52, y0 + 87 + i / 3 * 13, 50, AmmoType.values()[i].label, i == type, mx, my);
+        for (int i = 0; i < Caliber.values().length; i++) chip(g, px + i % 4 * 39, y0 + 25 + i / 4 * 13, 37, Caliber.values()[i].label, i == cal, mx, my);
+        small(g, "TYPE", px, y0 + 92, DIM);
+        for (int i = 0; i < AmmoType.values().length; i++) chip(g, px + i % 4 * 39, y0 + 99 + i / 4 * 13, 37, AmmoType.values()[i].label, i == type, mx, my);
         small(g, "COLOUR", px, y0 + 167, DIM);
         for (int i = 0; i < SWATCH.length; i++) {
             int sx = px + i % 8 * 19, sy = y0 + 174 + i / 8 * 14;
@@ -298,6 +336,150 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         String s = text;
         while (font.width(s) * 2 / 3 > w - 4 && s.length() > 2) s = s.substring(0, s.length() - 1);
         small(g, s, x + 2, y + 4, on ? TEXT : DIM);
+    }
+
+    // ---- GUNSMITH ----
+    static final int GROWS = 11, GLIST_Y = 62;
+
+    private void drawGunsmith(GuiGraphics g, int mx, int my) {
+        int x0 = leftPos, y0 = topPos;
+        // Kind filter chips over the list
+        int px = x0 + LIST_X - 2;
+        for (int i = 0; i < KINDS.length; i++) chip(g, px + i % 5 * 31, y0 + 34 + i / 5 * 13, 29, KINDS[i], i == kindFilter, mx, my);
+        panel(g, px, y0 + GLIST_Y - 1, 156, GROWS * ROW + 2);
+        for (int r = 0; r < GROWS; r++) {
+            int i = gunScroll + r;
+            if (i >= guns.size()) break;
+            GunSpec gs = guns.get(i);
+            int ry = y0 + GLIST_Y + r * ROW;
+            if (i == gunPick) g.fill(px + 1, ry, px + 155, ry + ROW, 0xFF2E2E2A);
+            small(g, gs.name, px + 4, ry + 3, i == gunPick ? TEXT : DIM);
+            small(g, gs.caliber.label, px + 152 - font.width(gs.caliber.label) * 2 / 3, ry + 3, FAINT);
+        }
+        small(g, guns.size() + " guns", px, y0 + GLIST_Y + GROWS * ROW + 3, FAINT);
+        // The picked gun, big, with its numbers and cost
+        panel(g, x0 + 34, y0 + 18, 204, 124);
+        if (gunPick < 0 || gunPick >= guns.size()) return;
+        GunSpec gs = guns.get(gunPick);
+        var reg = dev.factoryascension.FactoryAscension.GUNS.get(gs.id);
+        if (reg != null) bigItem(g, new ItemStack(reg.get()), x0 + 136, y0 + 60, 8);
+        g.drawString(font, gs.name.toUpperCase(Locale.ROOT), x0 + 38, y0 + 21, TEXT, false);
+        small(g, gs.kind.name() + "  " + gs.caliber.label, x0 + 38, y0 + 31, DIM);
+        small(g, String.format("%s %d rpm   %.1f dmg%s   %d rds   %.0f m   %.1f kg", gs.auto ? "Auto" : gs.manual ? "Manual" : "Semi", gs.rpm,
+            dev.factoryascension.gun.Guns.BASE_DAMAGE * gs.caliber.damage * gs.damage, gs.pellets > 1 ? " x" + gs.pellets : "", gs.mag, gs.range, gs.weight), x0 + 38, y0 + 106, DIM);
+        String d = gs.desc;
+        if (font.width(d) * 2 / 3 > 196) d = d.substring(0, Math.min(d.length(), 52)) + "...";
+        small(g, d, x0 + 38, y0 + 114, FAINT);
+        // Cost and BUILD
+        int cy = y0 + 124;
+        int cx = x0 + 38;
+        boolean afford = true;
+        var inv = Minecraft.getInstance().player.getInventory();
+        for (String[] c : Bench.buildCost(gs)) {
+            var it = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.tryParse(c[0]));
+            int need = Integer.parseInt(c[1]), have = 0;
+            for (ItemStack st : inv.items) if (st.is(it)) have += st.getCount();
+            boolean ok = have >= need || Minecraft.getInstance().player.isCreative();
+            afford &= ok;
+            g.renderItem(new ItemStack(it), cx, cy - 2);
+            small(g, have + "/" + need, cx + 17, cy + 4, ok ? OK : BAD);
+            cx += 44;
+        }
+        int bx = x0 + 186, by = y0 + 124, bw = 48;
+        boolean hb = mx >= bx && mx < bx + bw && my >= by && my < by + 14;
+        g.fill(bx, by, bx + bw, by + 14, afford ? (hb ? 0xFF3C5A30 : 0xFF2C4424) : 0xFF2A2020);
+        g.renderOutline(bx, by, bw, 14, afford ? OK : BAD);
+        g.drawCenteredString(font, "BUILD", bx + bw / 2, by + 3, afford ? TEXT : FAINT);
+    }
+
+    private boolean clickGunsmith(double mx, double my) {
+        int x0 = leftPos, y0 = topPos, px = x0 + LIST_X - 2;
+        for (int i = 0; i < KINDS.length; i++) {
+            int cx = px + i % 5 * 31, cy = y0 + 34 + i / 5 * 13;
+            if (mx >= cx && mx < cx + 29 && my >= cy && my < cy + 12) { kindFilter = i; click(); return true; }
+        }
+        if (mx >= px && mx < px + 156 && my >= y0 + GLIST_Y && my < y0 + GLIST_Y + GROWS * ROW) {
+            int i = gunScroll + (int) ((my - y0 - GLIST_Y) / ROW);
+            if (i < guns.size()) { gunPick = i; click(); }
+            return true;
+        }
+        int bx = x0 + 186, by = y0 + 124;
+        if (gunPick >= 0 && gunPick < guns.size() && mx >= bx && mx < bx + 48 && my >= by && my < by + 14) {
+            FANetwork.CHANNEL.sendToServer(new FANetwork.BenchAction(FANetwork.BenchAction.BUILD, guns.get(gunPick).id, 0, 0, 0, 0));
+            click();
+            return true;
+        }
+        return false;
+    }
+
+    // ---- SKINS ----
+    private void drawSkins(GuiGraphics g, int mx, int my) {
+        int x0 = leftPos, y0 = topPos, px = x0 + LIST_X - 2;
+        small(g, skins.size() + " SKINS", px, y0 + 20, DIM);
+        panel(g, px, y0 + 29, 156, GROWS * ROW + 2);
+        for (int r = 0; r < GROWS + 1; r++) {
+            int i = skinScroll + r;
+            if (i >= skins.size()) break;
+            var info = dev.factoryascension.gun.Skins.ALL.get(skins.get(i));
+            int ry = y0 + 30 + r * ROW;
+            if (ry + ROW > y0 + 29 + GROWS * ROW + 2) break;
+            if (i == skinPick) g.fill(px + 1, ry, px + 155, ry + ROW, 0xFF2E2E2A);
+            GunSkins.Skin sk = GunSkins.byId(info.id());
+            g.fill(px + 4, ry + 3, px + 9, ry + 8, 0xFF000000 | (sk != null ? sk.iconTint : 0x808080));
+            small(g, info.name(), px + 12, ry + 3, i == skinPick ? TEXT : DIM);
+        }
+        panel(g, x0 + 34, y0 + 18, 204, 124);
+        ItemStack gun = menu.gun();
+        if (gun.isEmpty()) {
+            g.drawCenteredString(font, "Put a gun in the GUN slot", x0 + 136, y0 + 70, FAINT);
+        } else if (skinPick >= 0 && skinPick < skins.size()) {
+            ItemStack shown = gun.copy();
+            dev.factoryascension.gun.Skins.set(shown, skins.get(skinPick));
+            bigItem(g, shown, x0 + 136, y0 + 62, 8);
+        }
+        if (skinPick >= 0 && skinPick < skins.size()) {
+            var info = dev.factoryascension.gun.Skins.ALL.get(skins.get(skinPick));
+            g.drawString(font, info.name().toUpperCase(Locale.ROOT), x0 + 38, y0 + 21, TEXT, false);
+            small(g, info.blurb(), x0 + 38, y0 + 31, DIM);
+            String cur = gun.isEmpty() ? "" : dev.factoryascension.gun.Skins.of(gun);
+            small(g, cur.isEmpty() ? "No skin on it now" : "Wearing: " + dev.factoryascension.gun.Skins.ALL.get(cur).name(), x0 + 38, y0 + 112, FAINT);
+            var it = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.tryParse(dev.factoryascension.FAConfig.skinItem));
+            if (dev.factoryascension.FAConfig.skinCost > 0) {
+                g.renderItem(new ItemStack(it), x0 + 38, y0 + 122);
+                small(g, "x" + dev.factoryascension.FAConfig.skinCost, x0 + 55, y0 + 128, GOLD);
+            }
+            button(g, x0 + 132, y0 + 124, 50, "APPLY", !gun.isEmpty(), mx, my);
+            button(g, x0 + 186, y0 + 124, 48, "REMOVE", !gun.isEmpty() && !cur.isEmpty(), mx, my);
+        }
+    }
+
+    private void button(GuiGraphics g, int bx, int by, int bw, String text, boolean ok, int mx, int my) {
+        boolean hb = mx >= bx && mx < bx + bw && my >= by && my < by + 14;
+        g.fill(bx, by, bx + bw, by + 14, ok ? (hb ? 0xFF3C5A30 : 0xFF2C4424) : 0xFF2A2020);
+        g.renderOutline(bx, by, bw, 14, ok ? OK : EDGE);
+        g.drawCenteredString(font, text, bx + bw / 2, by + 3, ok ? TEXT : FAINT);
+    }
+
+    private boolean clickSkins(double mx, double my) {
+        int x0 = leftPos, y0 = topPos, px = x0 + LIST_X - 2;
+        if (mx >= px && mx < px + 156 && my >= y0 + 30 && my < y0 + 30 + GROWS * ROW) {
+            int i = skinScroll + (int) ((my - y0 - 30) / ROW);
+            if (i < skins.size()) { skinPick = i; click(); }
+            return true;
+        }
+        if (skinPick >= 0 && skinPick < skins.size() && my >= y0 + 124 && my < y0 + 138) {
+            if (mx >= x0 + 132 && mx < x0 + 182) {
+                FANetwork.CHANNEL.sendToServer(new FANetwork.BenchAction(FANetwork.BenchAction.SKIN, skins.get(skinPick), 0, 0, 0, 0));
+                click();
+                return true;
+            }
+            if (mx >= x0 + 186 && mx < x0 + 234) {
+                FANetwork.CHANNEL.sendToServer(new FANetwork.BenchAction(FANetwork.BenchAction.SKIN, "", 0, 0, 0, 0));
+                click();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -322,8 +504,8 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         // Tabs
         if (my >= y0 && my < y0 + 14) {
             int tx = x0 + 4;
-            String[] tabs = {"MODDING", "AMMO PRESS"};
-            for (int i = 0; i < 2; i++) {
+            String[] tabs = TABS;
+            for (int i = 0; i < tabs.length; i++) {
                 int w = font.width(tabs[i]) + 12;
                 if (mx >= tx && mx < tx + w) { tab = i; click(); return true; }
                 tx += w + 2;
@@ -357,15 +539,19 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
                 click();
                 return true;
             }
+        } else if (tab == 2) {
+            if (clickGunsmith(mx, my)) return true;
+        } else if (tab == 3) {
+            if (clickSkins(mx, my)) return true;
         } else {
             int px = x0 + LIST_X - 2;
             for (int i = 0; i < Caliber.values().length; i++) {
-                int cx = px + i % 3 * 52, cy = y0 + 25 + i / 3 * 13;
-                if (mx >= cx && mx < cx + 50 && my >= cy && my < cy + 12) { cal = i; click(); return true; }
+                int cx = px + i % 4 * 39, cy = y0 + 25 + i / 4 * 13;
+                if (mx >= cx && mx < cx + 37 && my >= cy && my < cy + 12) { cal = i; click(); return true; }
             }
             for (int i = 0; i < AmmoType.values().length; i++) {
-                int cx = px + i % 3 * 52, cy = y0 + 87 + i / 3 * 13;
-                if (mx >= cx && mx < cx + 50 && my >= cy && my < cy + 12) { type = i; click(); return true; }
+                int cx = px + i % 4 * 39, cy = y0 + 99 + i / 4 * 13;
+                if (mx >= cx && mx < cx + 37 && my >= cy && my < cy + 12) { type = i; click(); return true; }
             }
             for (int i = 0; i < SWATCH.length; i++) {
                 int sx = px + i % 8 * 19, sy = y0 + 174 + i / 8 * 14;
@@ -383,6 +569,11 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
 
     @Override
     public boolean mouseScrolled(double mx, double my, double delta) {
+        if ((tab == 2 || tab == 3) && mx >= leftPos + LIST_X && mx < leftPos + LIST_X + 156) {
+            if (tab == 2) gunScroll = Math.max(0, Math.min(Math.max(0, guns.size() - GROWS), gunScroll - (int) Math.signum(delta) * 2));
+            else skinScroll = Math.max(0, Math.min(Math.max(0, skins.size() - GROWS), skinScroll - (int) Math.signum(delta) * 2));
+            return true;
+        }
         if (tab == 0 && listRow(mx, my) >= -1 && mx >= leftPos + LIST_X && mx < leftPos + LIST_X + 156) {
             scroll = Math.max(0, Math.min(Math.max(0, shown.size() - LIST_ROWS), scroll - (int) Math.signum(delta) * 3));
             return true;
@@ -403,5 +594,13 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
     public void devTab(int t, Attachments.Slot s) {
         tab = t;
         if (s != null) slot = s;
+    }
+
+    /** For the dev screenshots: pick a gun (gunsmith) or a skin by id. */
+    public void devPick(String id) {
+        refreshGuns();
+        for (int i = 0; i < guns.size(); i++) if (guns.get(i).id.equals(id)) { gunPick = i; gunScroll = Math.max(0, i - 3); }
+        int k = skins.indexOf(id);
+        if (k >= 0) { skinPick = k; skinScroll = Math.max(0, k - 3); }
     }
 }
