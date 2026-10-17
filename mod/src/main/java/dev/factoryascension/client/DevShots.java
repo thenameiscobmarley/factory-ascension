@@ -806,9 +806,18 @@ public final class DevShots {
                 case 975 -> { cmd(mc, "setblock 0 -60 -2 air");
                     cmd(mc, "summon villager 0.5 -60 -2.5 {NoAI:1b,VillagerData:{profession:\"minecraft:armorer\",level:3,type:\"minecraft:plains\"}}"); step = 977; wait = 10; }
                 case 977 -> { var v = mc.level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, mc.player.getBoundingBox().inflate(6));
-                    if (!v.isEmpty()) mc.gameMode.interact(mc.player, v.get(0), net.minecraft.world.InteractionHand.MAIN_HAND); wait = 15; }
-                case 978 -> { log("villager: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); shot(mc, "ui_dark_villager"); step = 1099; wait = 12; }
-                case 1099 -> { log("villager after shot: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); mc.setScreen(null); step = 1100; wait = 5; }
+                    if (!v.isEmpty()) mc.gameMode.interact(mc.player, v.get(0), net.minecraft.world.InteractionHand.MAIN_HAND); wait = 45; }
+                case 978 -> { log("villager: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName() + " " + mc.screen.width + "x" + mc.screen.height));
+                    if (mc.screen != null) try {
+                        var gg = new net.minecraft.client.gui.GuiGraphics(mc, mc.renderBuffers().bufferSource());
+                        mc.screen.render(gg, 0, 0, 0);
+                        gg.flush();
+                        log("villager screen drew without errors");
+                    } catch (Throwable t) { log("villager screen render threw: " + t); LOG.error("[FA devshots] merchant render", t); } shot(mc, "ui_dark_villager"); step = 1099; wait = 12; }
+                case 1099 -> { log("villager after shot: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName()));
+                    FAClientConfig.DARK_CONTAINERS.set(false); step = 1098; wait = 10; }
+                case 1098 -> { shot(mc, "ui_villager_dark_off"); FAClientConfig.DARK_CONTAINERS.set(true); step = 1097; wait = 5; }
+                case 1097 -> { mc.setScreen(null); step = 1100; wait = 5; }
                 case 1100 -> { if (!net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks")) { step = 981; return; }
                     cmd(mc, "item replace entity @a weapon.mainhand with sophisticatedbackpacks:backpack"); wait = 15; }
                 case 1101 -> { mc.gameMode.useItem(mc.player, net.minecraft.world.InteractionHand.MAIN_HAND); wait = 25; }
@@ -822,7 +831,10 @@ public final class DevShots {
                 case 984 -> { mc.setScreen(null); cmd(mc, "gamemode survival @a"); wait = 10; }
                 case 985 -> { cmd(mc, "give @a minecraft:rotten_flesh 7"); cmd(mc, "give @a minecraft:bone 3"); cmd(mc, "give @a minecraft:gold_ingot 12"); wait = 60; }
                 case 986 -> { cmd(mc, "give @a minecraft:gold_ingot 1"); step = 988; wait = 25; }
-                case 988 -> { log("pickup feed rows: " + dev.factoryascension.client.ui.PickupFeed.devRows()); shot(mc, "ui_pickup_feed"); cmd(mc, "gamemode creative @a"); wait = 10; step = 16; }
+                case 988 -> { log("pickup feed rows: " + dev.factoryascension.client.ui.PickupFeed.devRows()); shot(mc, "ui_pickup_feed"); cmd(mc, "gamemode creative @a"); wait = 10; step = 1096; }
+                case 1096 -> { mc.setScreen(new net.minecraft.client.gui.screens.OptionsScreen(null, mc.options)); step = 1095; wait = 15; }
+                case 1095 -> { shot(mc, "ui_dark_buttons_options"); step = 1094; wait = 5; }
+                case 1094 -> { mc.setScreen(null); step = 16; wait = 5; }
                 case 990 -> { cmd(mc, "gamemode spectator @a"); cmd(mc, "time set 2000"); cmd(mc, "fill -20 -62 -40 20 -61 -6 water"); cmd(mc, "fill -20 -60 -40 20 -55 -6 air");
                     cmd(mc, "summon boat 0.5 -61 -12 {Type:\"oak\"}"); cmd(mc, "tp @a 0.5 -58.5 -4 180 18"); wait = 60; }
                 case 991 -> { shot(mc, "water_waves_a"); wait = 25; }
