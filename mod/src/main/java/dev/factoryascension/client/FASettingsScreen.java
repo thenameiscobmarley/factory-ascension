@@ -39,7 +39,7 @@ public class FASettingsScreen extends Screen {
         @SubscribeEvent
         public static void init(ScreenEvent.Init.Post event) {
             if (event.getScreen() instanceof PauseScreen pause)
-                event.addListener(Button.builder(Component.literal("Factory Ascension..."), b -> Minecraft.getInstance().setScreen(new FASettingsScreen(pause)))
+                event.addListener(Button.builder(Component.literal("Factory Ascension"), b -> Minecraft.getInstance().setScreen(new FASettingsScreen(pause)))
                     .bounds(6, 6, 130, 20).build());
         }
     }
@@ -59,6 +59,7 @@ public class FASettingsScreen extends Screen {
         items.add((x, y) -> toggle(x, y, w, "Sun rays", FAClientConfig.SUN_RAYS));
         items.add((x, y) -> toggle(x, y, w, "Reflections (traced)", FAClientConfig.SCREEN_REFLECTIONS));
         items.add((x, y) -> toggle(x, y, w, "Sun shadows", FAClientConfig.SUN_SHADOWS));
+        items.add((x, y) -> toggle(x, y, w, "Breaking chunks", FAClientConfig.BREAK_CHUNKS));
         items.add((x, y) -> toggle(x, y, w, "Cinematic grade + bloom", FAClientConfig.CINEMATIC));
         items.add((x, y) -> toggle(x, y, w, "Distance haze", FAClientConfig.HAZE));
         items.add((x, y) -> toggle(x, y, w, "Aim depth of field", FAClientConfig.AIM_DOF));
@@ -111,6 +112,22 @@ public class FASettingsScreen extends Screen {
         return self[0];
     }
 
+    /** A slider being dragged: committed when the mouse is let go anywhere (not only over it), and when the screen closes. */
+    @org.jetbrains.annotations.Nullable static Runnable pendingCommit;
+
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        boolean r = super.mouseReleased(mx, my, button);
+        if (pendingCommit != null) pendingCommit.run();
+        return r;
+    }
+
+    @Override
+    public void removed() {
+        if (pendingCommit != null) pendingCommit.run();
+        super.removed();
+    }
+
     private static AbstractSliderButton slider(int x, int y, int w, String name, ForgeConfigSpec.DoubleValue cfg, double min, double max, DoubleFunction<String> fmt) {
         return new AbstractSliderButton(x, y, w, 20, Component.empty(), (cfg.get() - min) / (max - min)) {
             {
@@ -134,6 +151,7 @@ public class FASettingsScreen extends Screen {
             @Override
             public void onClick(double mx, double my) {
                 dragging = true;   // a click or a drag: written when the button's let go
+                pendingCommit = () -> { dragging = false; commit(); };
                 super.onClick(mx, my);
             }
 
@@ -152,7 +170,11 @@ public class FASettingsScreen extends Screen {
 
             void commit() {
                 double v = Mth.clamp(min + this.value * (max - min), min, max);
-                if (Math.abs(v - cfg.get()) > 1e-9) cfg.set(v);
+                if (Math.abs(v - cfg.get()) > 1e-9) {
+                    cfg.set(v);
+                    cfg.save();
+                }
+                pendingCommit = null;
             }
         };
     }
@@ -178,6 +200,7 @@ public class FASettingsScreen extends Screen {
             @Override
             public void onClick(double mx, double my) {
                 dragging = true;   // a click or a drag: written when the button's let go
+                pendingCommit = () -> { dragging = false; commit(); };
                 super.onClick(mx, my);
             }
 
@@ -196,7 +219,11 @@ public class FASettingsScreen extends Screen {
 
             void commit() {
                 int v = (int) Math.round(min + this.value * (max - min));
-                if (v != cfg.get()) cfg.set(v);
+                if (v != cfg.get()) {
+                    cfg.set(v);
+                    cfg.save();
+                }
+                pendingCommit = null;
             }
         };
     }

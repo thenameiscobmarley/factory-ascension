@@ -29,6 +29,17 @@ public final class FANetwork {
         CHANNEL.registerMessage(5, StressSync.class, StressSync::encode, StressSync::decode, StressSync::handle);
         CHANNEL.registerMessage(7, NodsToggle.class, NodsToggle::encode, NodsToggle::decode, NodsToggle::handle);
         CHANNEL.registerMessage(6, BenchAction.class, BenchAction::encode, BenchAction::decode, BenchAction::handle);
+        CHANNEL.registerMessage(8, BodySync.class, BodySync::encode, BodySync::decode, BodySync::handle);
+        CHANNEL.registerMessage(9, Suppress.class, Suppress::encode, Suppress::decode, Suppress::handle);
+        CHANNEL.registerMessage(10, FogSync.class, FogSync::encode, FogSync::decode, FogSync::handle);
+        CHANNEL.registerMessage(11, RaidSync.class, RaidSync::encode, RaidSync::decode, RaidSync::handle);
+        CHANNEL.registerMessage(12, TraderView.class, TraderView::encode, TraderView::decode, TraderView::handle);
+        CHANNEL.registerMessage(13, TraderAction.class, TraderAction::encode, TraderAction::decode, TraderAction::handle);
+        CHANNEL.registerMessage(14, VehicleAction.class, VehicleAction::encode, VehicleAction::decode, VehicleAction::handle);
+        CHANNEL.registerMessage(15, TurretFire.class, TurretFire::encode, TurretFire::decode, TurretFire::handle);
+        CHANNEL.registerMessage(16, ChemMix.class, ChemMix::encode, ChemMix::decode, ChemMix::handle);
+        CHANNEL.registerMessage(17, MachineInfo.class, MachineInfo::encode, MachineInfo::decode, MachineInfo::handle);
+        CHANNEL.registerMessage(18, MachineAsk.class, MachineAsk::encode, MachineAsk::decode, MachineAsk::handle);
     }
 
     /** Client -> server, at the Weapons Workbench: 0 install an attachment, 1 take one off (by index), 2 press rounds,
@@ -87,6 +98,226 @@ public final class FANetwork {
         static void handle(StressSync msg, Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
                 () -> () -> { dev.factoryascension.client.gun.GunAnim.stress = msg.stress; dev.factoryascension.client.Dread.danger = msg.danger; }));
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Server -> client: your body (each part's health, which are broken, your water): body/Body. */
+    public record BodySync(float[] v) {
+        static void encode(BodySync msg, FriendlyByteBuf buf) {
+            buf.writeVarInt(msg.v.length);
+            for (float f : msg.v) buf.writeFloat(f);
+        }
+
+        static BodySync decode(FriendlyByteBuf buf) {
+            float[] v = new float[Math.min(64, buf.readVarInt())];
+            for (int i = 0; i < v.length; i++) v[i] = buf.readFloat();
+            return new BodySync(v);
+        }
+
+        static void handle(BodySync msg, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> dev.factoryascension.client.BodyHud.state = msg.v));
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Server -> client: the raid you're on (raid/Extraction): extraction points, ticks left, seconds held; or how it ended. */
+    public record RaidSync(int[] xz, String[] names, int left, int hold, String ended) {
+        static void encode(RaidSync m, FriendlyByteBuf b) {
+            b.writeVarIntArray(m.xz);
+            b.writeVarInt(m.names.length);
+            for (String n : m.names) b.writeUtf(n);
+            b.writeVarInt(m.left);
+            b.writeVarInt(m.hold);
+            b.writeUtf(m.ended);
+        }
+
+        static RaidSync decode(FriendlyByteBuf b) {
+            int[] xz = b.readVarIntArray(16);
+            String[] n = new String[Math.min(8, b.readVarInt())];
+            for (int i = 0; i < n.length; i++) n[i] = b.readUtf(64);
+            return new RaidSync(xz, n, b.readVarInt(), b.readVarInt(), b.readUtf(16));
+        }
+
+        static void handle(RaidSync m, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> dev.factoryascension.client.RaidHud.update(m.xz, m.names, m.left, m.hold, m.ended)));
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Server -> client: open a trader (raid/Traders): everything the screen shows, as one compound. */
+    public record TraderView(net.minecraft.nbt.CompoundTag data) {
+        static void encode(TraderView m, FriendlyByteBuf b) {
+            b.writeNbt(m.data);
+        }
+
+        static TraderView decode(FriendlyByteBuf b) {
+            return new TraderView(b.readNbt());
+        }
+
+        static void handle(TraderView m, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> dev.factoryascension.client.TraderScreen.show(m.data)));
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Client -> server: at a trader: buy offer `index`, sell inventory slot `index`, take or hand in task `index`. */
+    public record TraderAction(int trader, int kind, int index) {
+        public static final int BUY = 0, SELL = 1, TAKE = 2, HAND_IN = 3;
+
+        static void encode(TraderAction m, FriendlyByteBuf b) {
+            b.writeVarInt(m.trader);
+            b.writeVarInt(m.kind);
+            b.writeVarInt(m.index);
+        }
+
+        static TraderAction decode(FriendlyByteBuf b) {
+            return new TraderAction(b.readVarInt(), b.readVarInt(), b.readVarInt());
+        }
+
+        static void handle(TraderAction m, Supplier<NetworkEvent.Context> ctx) {
+            var p = ctx.get().getSender();
+            ctx.get().enqueueWork(() -> { if (p != null) dev.factoryascension.raid.Traders.action(p, m.trader, m.kind, m.index); });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Client -> server: in the vehicle workshop, fit the part from inventory slot `slot` to vehicle `vehicle`. */
+    public record VehicleAction(int vehicle, int slot) {
+        static void encode(VehicleAction m, FriendlyByteBuf b) {
+            b.writeVarInt(m.vehicle);
+            b.writeVarInt(m.slot);
+        }
+
+        static VehicleAction decode(FriendlyByteBuf b) {
+            return new VehicleAction(b.readVarInt(), b.readVarInt());
+        }
+
+        static void handle(VehicleAction m, Supplier<NetworkEvent.Context> ctx) {
+            var p = ctx.get().getSender();
+            ctx.get().enqueueWork(() -> { if (p != null) dev.factoryascension.vehicle.Workshop.fit(p, m.vehicle, m.slot); });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Client -> server: at a Chem Lab, make recipe `index` (`times` over). */
+    public record ChemMix(net.minecraft.core.BlockPos pos, int index, int times) {
+        static void encode(ChemMix m, FriendlyByteBuf b) {
+            b.writeBlockPos(m.pos);
+            b.writeVarInt(m.index);
+            b.writeVarInt(m.times);
+        }
+
+        static ChemMix decode(FriendlyByteBuf b) {
+            return new ChemMix(b.readBlockPos(), b.readVarInt(), b.readVarInt());
+        }
+
+        static void handle(ChemMix m, Supplier<NetworkEvent.Context> ctx) {
+            var p = ctx.get().getSender();
+            ctx.get().enqueueWork(() -> { if (p != null) dev.factoryascension.drugs.DrugBlocks.ChemLab.mix(p, m.pos, m.index, m.times); });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Server -> client: a machine's panel (client/MachineScreen): its name, rows {label, value, mood}. */
+    public record MachineInfo(net.minecraft.core.BlockPos pos, String title, String[] rows) {
+        public static void send(net.minecraft.server.level.ServerPlayer p, net.minecraft.core.BlockPos pos) {
+            if (p.distanceToSqr(pos.getCenter()) > 100) return;
+            if (!(p.level().getBlockEntity(pos) instanceof dev.factoryascension.machine.KineticMachineBlock.Status st)) return;
+            java.util.List<String> flat = new java.util.ArrayList<>();
+            var info = st.info();
+            if (info.isEmpty()) info = java.util.List.<String[]>of(new String[] {"Status", st.status().getString(), ""});
+            for (String[] r : info) for (int i = 0; i < 3; i++) flat.add(i < r.length ? r[i] : "");
+            CHANNEL.send(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> p), new MachineInfo(pos, p.level().getBlockState(pos).getBlock().getName().getString(), flat.toArray(new String[0])));
+        }
+
+        static void encode(MachineInfo m, FriendlyByteBuf b) {
+            b.writeBlockPos(m.pos);
+            b.writeUtf(m.title);
+            b.writeVarInt(m.rows.length);
+            for (String r : m.rows) b.writeUtf(r);
+        }
+
+        static MachineInfo decode(FriendlyByteBuf b) {
+            var pos = b.readBlockPos();
+            String t = b.readUtf();
+            String[] r = new String[Math.min(96, b.readVarInt())];
+            for (int i = 0; i < r.length; i++) r[i] = b.readUtf();
+            return new MachineInfo(pos, t, r);
+        }
+
+        static void handle(MachineInfo m, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> dev.factoryascension.client.MachineScreen.show(m.pos, m.title, m.rows)));
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Client -> server: refresh the machine panel that's open. */
+    public record MachineAsk(net.minecraft.core.BlockPos pos) {
+        static void encode(MachineAsk m, FriendlyByteBuf b) {
+            b.writeBlockPos(m.pos);
+        }
+
+        static MachineAsk decode(FriendlyByteBuf b) {
+            return new MachineAsk(b.readBlockPos());
+        }
+
+        static void handle(MachineAsk m, Supplier<NetworkEvent.Context> ctx) {
+            var p = ctx.get().getSender();
+            ctx.get().enqueueWork(() -> { if (p != null) MachineInfo.send(p, m.pos); });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Client -> server: the truck's gunner is holding the trigger. */
+    public record TurretFire() {
+        static void encode(TurretFire m, FriendlyByteBuf b) {
+        }
+
+        static TurretFire decode(FriendlyByteBuf b) {
+            return new TurretFire();
+        }
+
+        static void handle(TurretFire m, Supplier<NetworkEvent.Context> ctx) {
+            var p = ctx.get().getSender();
+            ctx.get().enqueueWork(() -> { if (p != null && p.getVehicle() instanceof dev.factoryascension.vehicle.Car c) c.fire(p); });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Server -> client: how thick the fog is (world/Weather). */
+    public record FogSync(float fog) {
+        static void encode(FogSync msg, FriendlyByteBuf buf) {
+            buf.writeFloat(msg.fog);
+        }
+
+        static FogSync decode(FriendlyByteBuf buf) {
+            return new FogSync(buf.readFloat());
+        }
+
+        static void handle(FogSync msg, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> dev.factoryascension.world.Weather.fog = msg.fog);
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Server -> client: a round just went past you (how close: 0..1): the view flinches and blurs. */
+    public record Suppress(float amount) {
+        static void encode(Suppress msg, FriendlyByteBuf buf) {
+            buf.writeFloat(msg.amount);
+        }
+
+        static Suppress decode(FriendlyByteBuf buf) {
+            return new Suppress(buf.readFloat());
+        }
+
+        static void handle(Suppress msg, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> dev.factoryascension.client.Suppression.hit(msg.amount)));
             ctx.get().setPacketHandled(true);
         }
     }

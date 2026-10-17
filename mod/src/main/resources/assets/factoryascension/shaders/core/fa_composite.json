@@ -154,6 +154,14 @@
    "values": [
     1.7778
    ]
+  },
+  {
+   "name": "Night",
+   "type": "float",
+   "count": 1,
+   "values": [
+    0
+   ]
   }
  ]
 }

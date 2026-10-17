@@ -27,6 +27,8 @@ import java.util.List;
  */
 public class NodsItem extends ArmorItem {
     public final boolean white;
+    /** Thermal goggles: the same goggles, a different tube (client/ThermalClient draws heat instead of light). */
+    public boolean thermal = false;
 
     public static final ArmorMaterial MATERIAL = new ArmorMaterial() {
         @Override public int getDurabilityForType(Type t) { return 400; }
@@ -61,7 +63,7 @@ public class NodsItem extends ArmorItem {
 
     @Override
     public void onArmorTick(ItemStack stack, Level level, Player player) {
-        if (!level.isClientSide && down(stack) && player.tickCount % 20 == 0) {
+        if (!level.isClientSide && !thermal && down(stack) && player.tickCount % 20 == 0) {
             var nv = player.getEffect(MobEffects.NIGHT_VISION);
             if (nv == null || nv.getDuration() < 260) player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 320, 0, true, false, false));
         }
@@ -69,7 +71,7 @@ public class NodsItem extends ArmorItem {
 
     @Override
     public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        return FactoryAscension.MODID + ":textures/models/armor/nods_" + (down(stack) ? "down" : "up") + ".png";
+        return FactoryAscension.MODID + ":textures/models/armor/" + (thermal ? "thermal_" : "nods_") + (down(stack) ? "down" : "up") + ".png";
     }
 
     @Override

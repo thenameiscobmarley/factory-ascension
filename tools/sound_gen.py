@@ -502,6 +502,10 @@ SOUNDS = {
     "footstep.sand": (6, lambda r, k: R.footstep(r, "sand"), "Footsteps"),
     "footstep.snow": (6, lambda r, k: R.footstep(r, "snow"), "Footsteps"),
     "footstep.metal": (4, lambda r, k: R.footstep(r, "metal"), "Footsteps"),
+    "hunter.click": (3, lambda r, k: R.hunter_click(r), "Something clicks in the dark"),
+    "hunter.whisper": (3, lambda r, k: R.hunter_whisper(r), "Whispering"),
+    "hunter.shriek": (2, lambda r, k: R.hunter_shriek(r), "A shriek"),
+    "gun.ricochet": (3, lambda r, k: R.ricochet(r), "A round glances off"),
     "vehicle.engine": (1, lambda r, k: engine_loop(r, 1), "Dirt bike engine"),
     "vehicle.engine_v12": (1, lambda r, k: engine_loop(r, 12), "V12 engine"),
 }

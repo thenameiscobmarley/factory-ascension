@@ -103,6 +103,9 @@ minecraft {
                 if (project.hasProperty('faEnemies')) property 'fa.enemies', 'true'
                 if (project.hasProperty('faAaa')) property 'fa.aaa', 'true'
                 if (project.hasProperty('faInv')) property 'fa.inv', 'true'
+                if (project.hasProperty('faV26')) property 'fa.v26', 'true'
+                if (project.hasProperty('faFixes')) property 'fa.fixes', 'true'
+                if (project.hasProperty('faChunks')) property 'fa.chunks', 'true'
                 if (project.hasProperty('faShot')) property 'fa.shot', project.property('faShot')
                 jvmArgs '-Xmx1500m'
                 args '--quickPlaySingleplayer', 'devworld', '--width', '1280', '--height', '720'

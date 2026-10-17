@@ -673,6 +673,70 @@
   ],
   "subtitle": "subtitles.factoryascension.footstep.metal"
  },
+ "hunter.click": {
+  "sounds": [
+   {
+    "name": "factoryascension:hunter/click_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:hunter/click_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:hunter/click_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.hunter.click"
+ },
+ "hunter.whisper": {
+  "sounds": [
+   {
+    "name": "factoryascension:hunter/whisper_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:hunter/whisper_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:hunter/whisper_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.hunter.whisper"
+ },
+ "hunter.shriek": {
+  "sounds": [
+   {
+    "name": "factoryascension:hunter/shriek_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:hunter/shriek_2",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.hunter.shriek"
+ },
+ "gun.ricochet": {
+  "sounds": [
+   {
+    "name": "factoryascension:gun/ricochet_1",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/ricochet_2",
+    "stream": false
+   },
+   {
+    "name": "factoryascension:gun/ricochet_3",
+    "stream": false
+   }
+  ],
+  "subtitle": "subtitles.factoryascension.gun.ricochet"
+ },
  "vehicle.engine": {
   "sounds": [
    {

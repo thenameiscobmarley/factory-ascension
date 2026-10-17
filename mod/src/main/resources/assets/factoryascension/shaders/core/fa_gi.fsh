@@ -14,6 +14,11 @@ uniform mat4 ProjMat;
 uniform vec3 SunDir;                // towards the sun (or moon), in view space
 uniform float SunLight;             // how strong its shadows are (0 at night, in rain, underground)
 uniform int ShadowSteps;
+uniform sampler2D VoxelSampler;     // the blocks around you (client/render/VoxelShadow): 96 slices of 96 x 64, 12 x 8
+uniform mat4 ViewToWorld;           // view space -> world directions (rotation only)
+uniform vec3 CamMod;                // the camera's world position, modulo the grid size
+uniform vec3 SunWorld;              // towards the sun, world space
+uniform float VoxReady;
 in vec2 texCoord;
 out vec4 fragColor;
 
@@ -30,6 +35,13 @@ vec2 toScreen(vec3 v) {
 
 float ign(vec2 px) {   // interleaved gradient noise: cheap, even per-pixel rotation
     return fract(52.9829189 * fract(dot(px, vec2(0.06711056, 0.00583715))));
+}
+
+// How much the block at grid cell c (world position modulo the size) stops the sun
+float vox(ivec3 c) {
+    c = ivec3(mod(vec3(c), vec3(96.0, 64.0, 96.0)));
+    ivec2 t = ivec2((c.z % 12) * 96 + c.x, (c.z / 12) * 64 + c.y);
+    return texelFetch(VoxelSampler, t, 0).r;
 }
 
 void main() {
@@ -69,32 +81,50 @@ void main() {
     // Bounce: the average colour of what blocks the sky, lighting this surface, tinted by its own colour
     vec3 albedo = texture(DiffuseSampler, texCoord).rgb;
     vec3 gi = (occl > 0.0 ? bounce / occl : vec3(0.0)) * albedo * blocked * 1.4 * Strength;
-    // Sun shadows: march toward the sun through the depth buffer; anything on screen in the way shadows this pixel.
-    // The ray is a fixed length in the world (8 blocks, even steps) and the occluder thickness is fixed, so a tree's
-    // shadow is the same however near or far you stand; far away it fades out rather than swimming.
+    // Sun shadows, in the world: from this pixel's spot toward the sun through the grid of blocks around you, so a tree
+    // casts the same shadow wherever you look from (screen-space marching lost whatever went off screen). Leaves let a
+    // little through; a jittered start softens the edge. Close up, a short screen-space march adds contact shadows
+    // (mobs, players, things the grid doesn't hold).
     float sun = 1.0;
-    float reachFade = 1.0 - smoothstep(24.0, 44.0, dist);
+    float reachFade = 1.0 - smoothstep(30.0, 44.0, dist);
     if (SunLight > 0.0 && reachFade > 0.0 && dot(n, SunDir) > 0.02) {
-        const float REACH = 8.0;
-        float stepLen = REACH / float(max(ShadowSteps, 1));
-        vec3 q = p + n * 0.05 + SunDir * stepLen * ign(gl_FragCoord.xy + 17.0);
-        float hit = 0.0;
-        for (int i = 0; i < 48; i++) {
-            if (i >= ShadowSteps) break;
-            q += SunDir * stepLen;
-            if (q.z > -0.05) break;
-            vec2 uv = toScreen(q);
+        float shade = 0.0;
+        if (VoxReady > 0.5) {
+            vec3 off = (ViewToWorld * vec4(p, 0.0)).xyz;
+            vec3 nw = normalize((ViewToWorld * vec4(n, 0.0)).xyz);
+            vec3 sd = normalize(SunWorld);
+            vec3 q = CamMod + off + nw * 0.06;
+            ivec3 start = ivec3(floor(q));
+            float stepLen = 0.3;
+            q += sd * stepLen * ign(gl_FragCoord.xy + 17.0);
+            float light = 1.0;
+            int steps = ShadowSteps * 2;
+            for (int i = 0; i < 96; i++) {
+                if (i >= steps || light < 0.05) break;
+                q += sd * stepLen;
+                vec3 rel = q - CamMod;
+                if (abs(rel.x) > 46.0 || abs(rel.z) > 46.0 || rel.y < -22.0 || rel.y > 38.0) break;   // out of the grid
+                ivec3 c = ivec3(floor(q));
+                if (c == start) continue;
+                float o = vox(c);
+                if (o > 0.0) light *= 1.0 - (o > 0.99 ? 1.0 : o * 0.55);
+            }
+            shade = 1.0 - light;
+        }
+        // Contact: a short march through the depth buffer (a block and a half), for what the grid doesn't hold
+        const float REACH = 1.5;
+        float stepS = REACH / 8.0;
+        vec3 qs = p + n * 0.05 + SunDir * stepS * ign(gl_FragCoord.xy + 31.0);
+        for (int i = 0; i < 8; i++) {
+            qs += SunDir * stepS;
+            if (qs.z > -0.05) break;
+            vec2 uv = toScreen(qs);
             if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) break;
             if (texture(DepthSampler, uv).r >= 0.99999) continue;
-            float diff = viewPos(uv).z - q.z;
-            if (diff > 0.05 && diff < 0.9) {
-                // Softer the further along the ray the blocker is (a penumbra), and gone toward the screen's edges
-                vec2 e = min(uv, 1.0 - uv);
-                hit = (1.0 - float(i) / float(ShadowSteps) * 0.5) * smoothstep(0.0, 0.06, min(e.x, e.y));
-                break;
-            }
+            float diff = viewPos(uv).z - qs.z;
+            if (diff > 0.05 && diff < 0.5) { shade = max(shade, 0.8 - float(i) / 8.0 * 0.4); break; }
         }
-        sun = 1.0 - 0.42 * SunLight * hit * reachFade;
+        sun = 1.0 - 0.45 * SunLight * shade * reachFade;
     }
     fragColor = vec4(gi, ao * sun);
 }

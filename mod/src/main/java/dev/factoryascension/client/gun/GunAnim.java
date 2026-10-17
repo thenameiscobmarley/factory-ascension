@@ -193,8 +193,10 @@ public final class GunAnim {
 
         // ---- Idle: breathing, drift, and now and then a fidget ----
         float still = Mth.clamp(1 - speed * 2, 0, 1) * hip * (1 - sprint);
-        float breath = Mth.sin(t * breathRate.at(t) * 6.2832f) * 0.006f * breathDepth.at(t);
-        float driftX = swayX.at(t) * 0.006f, driftY = swayY.at(t) * 0.005f, driftRoll = swayRoll.at(t) * 1.2f;
+        // Holding your breath steadies the sights; out of breath, everything wobbles more
+        float steady = dev.factoryascension.client.Stamina.holdingBreath ? 0.15f : dev.factoryascension.client.Stamina.value < 20 ? 1.8f : 1f;
+        float breath = Mth.sin(t * breathRate.at(t) * 6.2832f) * 0.006f * breathDepth.at(t) * steady;
+        float driftX = swayX.at(t) * 0.006f * steady, driftY = swayY.at(t) * 0.005f * steady, driftRoll = swayRoll.at(t) * 1.2f;
         float fidgetPose[] = fidget(t, still, GunItem.reloading(stack));
         // Stress: shaking hands (worse when stressed, a little even when aiming)
         float shake = stress * stress;

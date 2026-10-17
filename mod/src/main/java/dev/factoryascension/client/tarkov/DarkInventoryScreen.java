@@ -149,7 +149,6 @@ public class DarkInventoryScreen extends InventoryScreen {
 
     @Override
     protected void renderLabels(GuiGraphics g, int mx, int my) {
-        g.drawString(font, TarkovScreen.uiBold("CRAFTING"), 97, 6, TarkovScreen.TEXT, false);
-        g.drawString(font, TarkovScreen.uiBold("INVENTORY"), 8, 73, TarkovScreen.DIM, false);
+        // No titles: the slots speak for themselves
     }
 }

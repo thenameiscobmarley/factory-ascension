@@ -480,7 +480,7 @@ public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
     // Middle: crafting and the overflow
     private void drawMiddle(GuiGraphics g) {
         int x = geo.m0;
-        label(g, "CRAFTING", x, geo.craftY - 10);
+
         panel(g, x, geo.craftY - 1, Math.min(geo.mw, 4 + 36 + 12 + 18 + 4), 40);
         for (int i = 0; i < 4; i++) cell(g, x + 4 + i % 2 * 18, geo.craftY + i / 2 * 18, 18);
         text(g, "→", x + 4 + 36 + 2, geo.craftY + 13, DIM, false);

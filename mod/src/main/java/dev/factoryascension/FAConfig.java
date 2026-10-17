@@ -346,6 +346,21 @@ public final class FAConfig {
         pending = new java.util.ArrayList<>();
     }
 
+    // The Chem Lab's recipes without the pack (the pack's config, drugs.lab, replaces these)
+    static {
+        chemInput("factoryascension:coca_leaf", 4); chemInput("minecraft:gunpowder", 1); chemOutput("factoryascension:cocaine", 2);
+        chemInput("minecraft:redstone", 2); chemInput("minecraft:gunpowder", 2); chemInput("minecraft:sugar", 1); chemInput("minecraft:glowstone_dust", 1); chemOutput("factoryascension:methamphetamine", 2);
+        chemInput("minecraft:poppy", 3); chemInput("minecraft:glass_bottle", 1); chemOutput("factoryascension:morphine", 2);
+        chemInput("minecraft:glass_bottle", 1); chemInput("minecraft:sugar", 2); chemInput("minecraft:redstone", 1); chemOutput("factoryascension:adrenaline_shot", 2);
+        chemInput("minecraft:red_mushroom", 2); chemInput("minecraft:brown_mushroom", 2); chemInput("minecraft:fermented_spider_eye", 1); chemOutput("factoryascension:magic_mushrooms", 3);
+        chemInput("minecraft:wheat", 3); chemInput("minecraft:brown_mushroom", 1); chemInput("minecraft:paper", 1); chemInput("minecraft:glass_bottle", 1); chemOutput("factoryascension:lsd_tab", 4);
+        chemInput("minecraft:sugar", 2); chemInput("minecraft:glowstone_dust", 1); chemInput("minecraft:pink_dye", 1); chemOutput("factoryascension:ecstasy", 3);
+        chemInput("minecraft:bone_meal", 2); chemInput("minecraft:sugar", 1); chemInput("minecraft:white_dye", 1); chemOutput("factoryascension:xanax", 4);
+        chemInput("minecraft:sugar", 1); chemInput("minecraft:quartz", 2); chemInput("minecraft:glass_bottle", 1); chemOutput("factoryascension:ketamine", 2);
+        chemInput("minecraft:potato", 6); chemInput("minecraft:sugar", 1); chemInput("minecraft:glass_bottle", 2); chemOutput("factoryascension:vodka", 2);
+        chemInput("minecraft:sugar", 2); chemInput("minecraft:cocoa_beans", 1); chemInput("minecraft:iron_nugget", 3); chemOutput("factoryascension:energy_drink", 3);
+    }
+
     // Raids (npc/Raids): killing a structure's operators marks you; marked, raid parties come
     public static boolean raids = true, raidBreaksDoors = true;
     public static int raidMarkTicks = 72000, raidKillsPerLevel = 8, raidFirstDelay = 3600, raidInterval = 9600, raidSize = 3;
@@ -371,5 +386,123 @@ public final class FAConfig {
     public static void setStructureSpacing(int spacing, double cellChance) {
         structureSpacing = Math.max(64, spacing);
         structureCellChance = (float) Math.max(0, Math.min(1, cellChance));
+    }
+
+    // Gun wear and malfunctions (gun/GunItem): wear per shot (x caliber damage), barrel heat per shot and cooling per
+    // tick, and jam chances (base, at full wear, and with a very hot barrel)
+    public static boolean gunWear = true;
+    public static float wearPerShot = 0.035f, heatPerShot = 2.2f, heatCooling = 0.35f, jamBase = 0.0005f, jamWorn = 0.08f, jamHot = 0.03f;
+    public static int cleaningKitRestore = 35, cleaningKitUses = 6;
+
+    public static void setGunWear(boolean on, double perShot, double heat, double cooling, double base, double worn, double hot, int restore, int uses) {
+        gunWear = on;
+        wearPerShot = (float) perShot;
+        heatPerShot = (float) heat;
+        heatCooling = (float) cooling;
+        jamBase = (float) base;
+        jamWorn = (float) worn;
+        jamHot = (float) hot;
+        cleaningKitRestore = restore;
+        cleaningKitUses = Math.max(1, uses);
+    }
+
+    // The body (body/Body): limb damage scale (vanilla damage -> part damage), fractures, heavy bleeding, water, mending
+    public static boolean bodyEnabled = true;
+    public static float bodyDamageScale = 4.5f, fractureFall = 6f, fractureHit = 18f, heavyBleedHit = 6f, heavyBleedChance = 0.25f;
+    public static float waterPerTick = 0.0014f, mendPerSecond = 0.15f;
+
+    public static void setBody(boolean on, double scale, double fall, double hit, double bleedHit, double bleedChance, double waterHours, double mend) {
+        bodyEnabled = on;
+        bodyDamageScale = (float) scale;
+        fractureFall = (float) fall;
+        fractureHit = (float) hit;
+        heavyBleedHit = (float) bleedHit;
+        heavyBleedChance = (float) bleedChance;
+        waterPerTick = (float) (100.0 / Math.max(0.05, waterHours) / 72000.0);
+        mendPerSecond = (float) mend;
+    }
+
+    // Weather (world/Weather): fog banks (chance per minute, minutes they last), darker nights (how much darker)
+    public static boolean fogBanks = true;
+    public static float fogChancePerMinute = 0.015f, fogMinutes = 5f, nightDarkness = 0.45f;
+
+    public static void setWeather(boolean fog, double chance, double minutes, double night) {
+        fogBanks = fog;
+        fogChancePerMinute = (float) chance;
+        fogMinutes = (float) minutes;
+        nightDarkness = (float) Math.max(0, Math.min(0.9, night));
+    }
+
+    // The night hunter (npc/NightHunters): chance per minute per player at night, out at this danger level or deeper
+    public static boolean nightHunter = true;
+    public static float nightHunterChance = 0.08f;
+    public static int nightHunterMinDanger = 2;
+
+    public static void setNightHunter(boolean on, double chance, int minDanger) {
+        nightHunter = on;
+        nightHunterChance = (float) chance;
+        nightHunterMinDanger = minDanger;
+    }
+
+    // Extraction raids (raid/Extraction): length, how far out the extraction points are, how close and how long to extract,
+    // XP for getting out, body bags for the fallen
+    public static int raidMinutes = 45, raidMinDist = 250, raidMaxDist = 700, raidExtractRadius = 5, raidExtractSeconds = 10, raidExtractXp = 250;
+    public static boolean raidBodyBags = true;
+
+    public static void setExtraction(int minutes, int minDist, int maxDist, int radius, int seconds, int xp, boolean bags) {
+        raidMinutes = Math.max(1, minutes);
+        raidMinDist = minDist;
+        raidMaxDist = Math.max(minDist + 10, maxDist);
+        raidExtractRadius = Math.max(1, radius);
+        raidExtractSeconds = Math.max(1, seconds);
+        raidExtractXp = xp;
+        raidBodyBags = bags;
+    }
+
+    // Traders (raid/Traders): what a cash bundle puts in your wallet
+    public static int cashBundleValue = 1000;
+    public static float npcCashChance = 0.55f;
+
+    public static void setCash(int value, double npcChance) {
+        cashBundleValue = Math.max(1, value);
+        npcCashChance = (float) npcChance;
+    }
+
+    // Cars (vehicle/Car): the truck's mounted gun (ticks between rounds, spread in degrees, damage multiplier), what a
+    // wrench repairs; the quad's and truck's driving is setCar
+    public static int turretCooldown = 2;
+    public static float turretSpread = 0.8f, turretDamage = 0.85f, wrenchRepair = 12f;
+
+    public static void setTurret(int cooldown, double spread, double damage, double repair) {
+        turretCooldown = Math.max(1, cooldown);
+        turretSpread = (float) spread;
+        turretDamage = (float) damage;
+        wrenchRepair = (float) repair;
+    }
+
+    public static void setCar(String model, double accel, double top, double turn, double mass, double health, double fuelUse) {
+        dev.factoryascension.vehicle.Car.Model.valueOf(model).set((float) accel, (float) top, (float) turn, (float) mass, (float) health, (float) fuelUse);
+    }
+
+    // Light in your hands (world/HeldLight): on/off, and how much dimmer than the placed block (0 = as bright)
+    public static boolean heldLights = true;
+    public static int heldLightDim = 1;
+
+    public static void setHeldLights(boolean on, int dim) {
+        heldLights = on;
+        heldLightDim = Math.max(0, dim);
+    }
+
+    // Movement (client/Movement): air strafing (air cap and acceleration, blocks/tick), bunny hopping (speed kept), top speed
+    public static boolean airStrafe = true, bhop = true;
+    public static double airCap = 0.035, airAccel = 0.035, strafeMax = 0.75, bhopKeep = 0.98;
+
+    public static void setMovement(boolean strafe, boolean hop, double cap, double accel, double max, double keep) {
+        airStrafe = strafe;
+        bhop = hop;
+        airCap = cap;
+        airAccel = accel;
+        strafeMax = max;
+        bhopKeep = Math.min(1, keep);
     }
 }

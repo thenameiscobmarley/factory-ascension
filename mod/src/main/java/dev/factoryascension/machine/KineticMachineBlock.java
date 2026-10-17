@@ -23,6 +23,11 @@ public class KineticMachineBlock<T extends KineticBlockEntity & KineticMachineBl
     /** Block entities that can say what they're doing. */
     public interface Status {
         Component status();
+
+        /** Rows for the machine's panel (client/MachineScreen): {label, value, "ok" | "bad" | ""}. */
+        default java.util.List<String[]> info() {
+            return java.util.List.of();
+        }
     }
 
     private final Class<T> cls;
@@ -52,8 +57,8 @@ public class KineticMachineBlock<T extends KineticBlockEntity & KineticMachineBl
     @Override
     @SuppressWarnings("deprecation")
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!level.isClientSide && hand == InteractionHand.MAIN_HAND && cls.isInstance(level.getBlockEntity(pos)))
-            player.displayClientMessage(cls.cast(level.getBlockEntity(pos)).status(), true);
+        if (!level.isClientSide && hand == InteractionHand.MAIN_HAND && player instanceof net.minecraft.server.level.ServerPlayer sp)
+            dev.factoryascension.network.FANetwork.MachineInfo.send(sp, pos);
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 

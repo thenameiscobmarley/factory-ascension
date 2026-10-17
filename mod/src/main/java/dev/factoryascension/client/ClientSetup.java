@@ -17,6 +17,7 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent event) {
         dev.factoryascension.client.vehicle.BikeClient.init();
+        dev.factoryascension.vehicle.Workshop.openClient = dev.factoryascension.client.vehicle.WorkshopScreen::open;
         ClientConflicts.check();
         event.enqueueWork(() -> {
             try { GunClient.fixOculusReloadKey(); } catch (Throwable ignored) { }
@@ -51,5 +52,10 @@ public final class ClientSetup {
         event.registerEntityRenderer(dev.factoryascension.npc.Operators.GRENADE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         event.registerEntityRenderer(dev.factoryascension.npc.Operators.CORPSE.get(), dev.factoryascension.client.npc.CorpseRenderer::new);
         event.registerEntityRenderer(dev.factoryascension.vehicle.Vehicles.DIRT_BIKE.get(), dev.factoryascension.client.vehicle.DirtBikeRenderer::new);
+        event.registerEntityRenderer(dev.factoryascension.npc.NightHunters.TYPE.get(), dev.factoryascension.client.npc.NightHunterRenderer::new);
+        event.registerEntityRenderer(dev.factoryascension.vehicle.Vehicles.QUAD.get(), dev.factoryascension.client.vehicle.CarRenderer::new);
+        event.registerEntityRenderer(dev.factoryascension.vehicle.Vehicles.PICKUP.get(), dev.factoryascension.client.vehicle.CarRenderer::new);
+        event.registerEntityRenderer(dev.factoryascension.raid.RaidEntities.BODY_BAG.get(), dev.factoryascension.client.npc.BodyBagRenderer::new);
+        event.registerEntityRenderer(dev.factoryascension.raid.RaidEntities.TRADER.get(), dev.factoryascension.client.npc.TraderRenderer::new);
     }
 }

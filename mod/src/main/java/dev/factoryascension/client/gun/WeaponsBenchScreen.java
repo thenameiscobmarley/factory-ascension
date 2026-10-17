@@ -136,18 +136,57 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         if (tab == 0) refresh();
         if (tab == 2) refreshGuns();
         super.render(g, mx, my, partial);
+        // Tooltips over everything: the gun preview is a big 3D model whose depth reaches past the tooltip layer
+        g.flush();
+        com.mojang.blaze3d.systems.RenderSystem.clear(org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT, net.minecraft.client.Minecraft.ON_OSX);
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 500);
         renderTooltip(g, mx, my);
         if (tab == 0) {
             int row = listRow(mx, my);
             if (row >= 0) g.renderComponentTooltip(font, tooltipFor(shown.get(row)), mx, my);
         }
+        g.pose().popPose();
     }
 
     private List<Component> tooltipFor(Attachments.Att a) {
         List<Component> out = new ArrayList<>();
         out.add(Component.literal(a.name));
         for (String line : Bench.describe(a)) out.add(Component.literal(line).withStyle(net.minecraft.ChatFormatting.GRAY));
+        Need n = need(a);
+        out.add(n.owned ? Component.literal("Installs the one you carry").withStyle(net.minecraft.ChatFormatting.GREEN)
+            : Component.literal("Costs " + n.text()).withStyle(n.affordable() ? net.minecraft.ChatFormatting.GREEN : net.minecraft.ChatFormatting.RED));
         return out;
+    }
+
+    /** What installing it takes from you: the attachment item if you carry one, else its parts (FAConfig.benchPartItem, benchTierItem). */
+    record Need(boolean owned, ItemStack[] items, int[] counts, int[] have) {
+        boolean affordable() {
+            for (int k = 0; k < items.length; k++) if (have[k] < counts[k]) return false;
+            return true;
+        }
+
+        String text() {
+            StringBuilder b = new StringBuilder();
+            for (int k = 0; k < items.length; k++) {
+                if (counts[k] <= 0) continue;
+                if (b.length() > 0) b.append(" + ");
+                b.append(counts[k]).append(' ').append(items[k].getHoverName().getString());
+            }
+            return b.toString();
+        }
+    }
+
+    private Need need(Attachments.Att a) {
+        var inv = minecraft.player.getInventory().items;
+        for (ItemStack s : inv)
+            if (s.getItem() instanceof dev.factoryascension.gun.AttachmentItem && s.hasTag() && a.id.equals(s.getTag().getString("Att"))) return new Need(true, new ItemStack[0], new int[0], new int[0]);
+        int[] c = Bench.cost(a);
+        ItemStack[] items = {new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.tryParse(dev.factoryascension.FAConfig.benchPartItem))),
+            new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.tryParse(dev.factoryascension.FAConfig.benchTierItem)))};
+        int[] have = new int[2];
+        for (ItemStack s : inv) for (int k = 0; k < 2; k++) if (!items[k].isEmpty() && s.is(items[k].getItem())) have[k] += s.getCount();
+        return new Need(false, items, c, have);
     }
 
     private void panel(GuiGraphics g, int x, int y, int w, int h) {
@@ -262,10 +301,25 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
             Attachments.Att a = shown.get(picked);
             List<String> lines = Bench.describe(a);
             for (int k = 0; k < Math.min(4, lines.size()); k++) small(g, lines.get(k), x0 + LIST_X, iy + k * 7, DIM);
-            int[] c = Bench.cost(a);
-            String cost = c[0] + " parts" + (c[1] > 0 ? " + " + c[1] + " tier" : "");
-            small(g, cost, x0 + LIST_X, iy + 30, GOLD);
+            // What it takes, by name, with what you have: the attachment itself if you carry one, else the parts
+            Need need = need(a);
             String why = gun.isEmpty() ? "No gun" : Bench.canInstall(gun, a);
+            if (need.owned) small(g, "Uses the one you carry", x0 + LIST_X, iy + 30, OK);
+            else {
+                int nx = x0 + LIST_X;
+                for (int k = 0; k < need.items.length; k++) {
+                    if (need.counts[k] <= 0) continue;
+                    g.pose().pushPose();
+                    g.pose().translate(nx, iy + 27, 0);
+                    g.pose().scale(0.6f, 0.6f, 1);
+                    g.renderItem(need.items[k], 0, 0);
+                    g.pose().popPose();
+                    String t = need.have[k] + "/" + need.counts[k];
+                    small(g, t, nx + 11, iy + 30, need.have[k] >= need.counts[k] ? OK : BAD);
+                    nx += 13 + font.width(t) * 2 / 3 + 6;
+                }
+                if (why == null && !need.affordable() && !minecraft.player.isCreative()) why = "Needs " + need.text();
+            }
             boolean ok = why == null;
             int bx = x0 + LIST_X + 92, by = iy + 26, bw = 60;
             boolean hb = mx >= bx && mx < bx + bw && my >= by && my < by + 14;

@@ -17,7 +17,7 @@ public final class GunStats {
     public final List<Attachments.Att> atts;
     public float damage, spreadHip, spreadAim, range, recoilUp, recoilSide, zoom, reload, sound, ads, weight, sightRaise;
     public int rpm, mag, pellets;
-    public boolean auto, laser, light, noBolt, akimbo, gangster, blinding;
+    public boolean auto, laser, light, noBolt, akimbo, gangster, blinding, thermal;
 
     private GunStats(GunSpec s, List<Attachments.Att> atts) {
         this.spec = s;
@@ -63,6 +63,7 @@ public final class GunStats {
             akimbo |= m.akimbo;
             gangster |= m.gangster;
             blinding |= m.blinding;
+            thermal |= m.thermal;
         }
         if (bestZoom > 0) zoom = Math.max(zoom, bestZoom);
         mag = Math.max(1, Math.min(2000, Math.round(s.mag * magMult) + magAdd));

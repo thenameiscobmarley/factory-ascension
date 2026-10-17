@@ -19,6 +19,7 @@ uniform float SkyOpen;
 uniform float Aim;                  // 0..1 while aiming down sights: depth of field
 uniform vec3 SunScreen;             // the sun on screen (x, y) and how visible it is (0 = behind you or hidden)
 uniform float Aspect;
+uniform float Night;                // 0 day .. how much darker the night is out under the sky
 
 vec3 viewPos(vec2 uv) {
     float d = texture(DepthSampler, uv).r;
@@ -62,6 +63,11 @@ void main() {
             float f = (1.0 - exp(-max(0.0, dist - 20.0) * Haze)) * SkyOpen;
             vec3 hc = mix(HazeColor, SunColor, pow(max(dot(v, SunDir), 0.0), 6.0) * 0.55);
             lit = mix(lit, hc, clamp(f, 0.0, 0.85));
+        }
+        // Darker nights: dim things sink into the dark, lamps and fires keep their glow
+        if (Night > 0.0) {
+            float l = dot(lit, vec3(0.299, 0.587, 0.114));
+            lit *= mix(1.0 - Night, 1.0, smoothstep(0.25, 0.65, l));
         }
         if (Grade > 0.5) {
             // Bloom, then a film-like tone curve: highlights roll off instead of clipping, shadows keep detail

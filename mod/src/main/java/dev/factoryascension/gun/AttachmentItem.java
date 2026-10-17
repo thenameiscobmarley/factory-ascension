@@ -33,6 +33,16 @@ public class AttachmentItem extends Item {
     }
 
     @Override
+    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
+        consumer.accept(new net.minecraftforge.client.extensions.common.IClientItemExtensions() {
+            @Override
+            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                return dev.factoryascension.client.gun.AttachmentRenderer.INSTANCE;
+            }
+        });
+    }
+
+    @Override
     public Component getName(ItemStack stack) {
         Attachments.Att a = att(stack);
         return Component.literal(a == null ? "Attachment" : a.name);

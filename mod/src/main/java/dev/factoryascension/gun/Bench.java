@@ -213,6 +213,7 @@ public final class Bench {
         if (m.akimbo) out.add("Akimbo: a second gun in your other hand");
         if (m.gangster) out.add("Held flat on its side");
         if (m.blinding) out.add("Blinds anything in front of it");
+        if (m.thermal) out.add("Thermal: living things glow white-hot through it");
         if (m.magAdd != 0) out.add(String.format("%+d rounds", m.magAdd));
         if (m.light) out.add("Light (see in the dark)");
         if (m.weight != 0) out.add(String.format("%+.1f kg", m.weight));

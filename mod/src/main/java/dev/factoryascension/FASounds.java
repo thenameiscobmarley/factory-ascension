@@ -22,7 +22,8 @@ public final class FASounds {
         SHELL_IN = s("gun.shell_in"), CASING = s("gun.casing"), HEARTBEAT = s("dread.heartbeat"), BREATH = s("dread.breath"),
         RINGING = s("dread.ringing"), HELICOPTER = s("dread.helicopter"), GRENADE = s("grenade.explode"),
         CRACK = s("gun.crack"), WHIZ = s("gun.whiz"), ENGINE = s("vehicle.engine"), ENGINE_V12 = s("vehicle.engine_v12"),
-        WIND = s("ambient.wind"), BIRD = s("ambient.bird"), CRICKETS = s("ambient.crickets"), DRIP = s("ambient.drip"), RUMBLE = s("ambient.rumble");
+        WIND = s("ambient.wind"), BIRD = s("ambient.bird"), CRICKETS = s("ambient.crickets"), DRIP = s("ambient.drip"), RUMBLE = s("ambient.rumble"),
+        HUNTER_CLICK = s("hunter.click"), HUNTER_WHISPER = s("hunter.whisper"), HUNTER_SHRIEK = s("hunter.shriek"), RICOCHET = s("gun.ricochet");
 
     private FASounds() {
     }

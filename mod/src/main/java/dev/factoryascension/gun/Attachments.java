@@ -38,7 +38,7 @@ public final class Attachments {
         public int magAdd = 0;
         public float zoom = 0;          // added zoom (an optic's magnification); the highest optic counts
         public float sightRaise = 0;    // how much higher the sight line is (model units) with this optic
-        public boolean auto = false, laser = false, light = false, noBolt = false, akimbo = false, gangster = false, blinding = false;
+        public boolean auto = false, laser = false, light = false, noBolt = false, akimbo = false, gangster = false, blinding = false, thermal = false;
         public int pelletsAdd = 0;
     }
 
@@ -136,6 +136,7 @@ public final class Attachments {
         fam("acog", "4x ACOG", Slot.OPTIC, "opt_acog", ALL_KINDS, 5, (m, q) -> { m.zoom = 0.5f; m.sightRaise = 2.2f; m.spread = 1 - 0.08f * q; m.ads = 1.06f; });
         fam("lpvo", "1-6x Variable Scope", Slot.OPTIC, "opt_scope", ALL_KINDS, 6, (m, q) -> { m.zoom = 0.6f; m.sightRaise = 2.4f; m.spread = 1 - 0.1f * q; m.ads = 1.1f; });
         fam("sniper_scope", "8x Sniper Scope", Slot.OPTIC, "opt_scope_big", ALL_KINDS, 7, (m, q) -> { m.zoom = 0.78f; m.sightRaise = 2.8f; m.spread = 1 - 0.15f * q; m.ads = 1.2f; });
+        fam("thermal_scope", "Thermal Scope", Slot.OPTIC, "opt_scope", ALL_KINDS, 9, (m, q) -> { m.zoom = 0.5f; m.sightRaise = 2.4f; m.spread = 1 - 0.06f * q; m.ads = 1.12f; m.thermal = true; });
         fam("long_scope", "12x Long-Range Scope", Slot.OPTIC, "opt_scope_big", ALL_KINDS, 8, (m, q) -> { m.zoom = 0.86f; m.sightRaise = 3.0f; m.spread = 1 - 0.2f * q; m.ads = 1.3f; });
         fam("magnifier", "3x Magnifier", Slot.OPTIC, "opt_prism", ALL_KINDS, 3, (m, q) -> { m.zoom = 0.4f; m.sightRaise = 1.9f; });
         fam("canted_irons", "Canted Iron Sights", Slot.OPTIC, "opt_irons", ALL_KINDS, 1, (m, q) -> { m.ads = 1 - 0.06f * q; });

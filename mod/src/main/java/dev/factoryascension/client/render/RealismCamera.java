@@ -105,7 +105,7 @@ public final class RealismCamera {
         set.accept("Desat", FAClientConfig.DESATURATE.get().floatValue());
         set.accept("Vignette", FAClientConfig.VIGNETTE.get().floatValue());
         set.accept("Stress", Math.max(GunAnim.stress, hp < 0.4f ? (0.4f - hp) * 2 : 0));
-        set.accept("Ring", Dread.ring());
+        set.accept("Ring", Math.max(Dread.ring(), dev.factoryascension.client.Suppression.level * 0.6f));
         set.accept("Hurt", Math.min(1.5f, Math.max(0, (0.45f - hp) * 2.2f) + mc.player.hurtTime / 10f * 0.5f));
         set.accept("Dread", Dread.dreadAmount());
         set.accept("Clock", (net.minecraft.Util.getMillis() % 1_000_000L) / 1000f);

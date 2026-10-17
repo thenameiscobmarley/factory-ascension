@@ -22,13 +22,14 @@ void main() {
     vec2 duv1 = dFdx(texCoord0), duv2 = dFdy(texCoord0);
     vec4 tex = texture(Sampler0, texCoord0);
     float shade = 1.0, spec = 0.0;
-    if (tex.a > 0.99) {
+    if (tex.a > 0.74) {
         vec2 uv;
         faBlock(Sampler0, texCoord0, faPos, dp1, dp2, duv1, duv2, 0.14, uv, shade, spec);
         // Sampled with the original derivatives, so the mip level doesn't jump
         vec4 shifted = textureGrad(Sampler0, uv, duv1, duv2);
-        if (shifted.a > 0.99) tex = shifted; else { shade = 1.0; spec = 0.0; }
+        if (shifted.a > 0.74) tex = shifted; else { shade = 1.0; spec = 0.0; }
     }
+    if (tex.a > 0.74) tex.a = 1.0;   // the alpha above 0.75 is a height, not see-through
     vec4 color = tex * vertexColor * ColorModulator;
     color.rgb = color.rgb * shade + spec * vertexColor.rgb;
     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);

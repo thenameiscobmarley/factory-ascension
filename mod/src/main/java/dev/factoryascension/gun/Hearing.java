@@ -23,6 +23,7 @@ public final class Hearing {
     }
 
     public static void gunshot(ServerLevel level, Entity shooter, double range) {
+        range *= dev.factoryascension.world.Weather.soundScale(level, shooter.position());   // storms and fog swallow sound
         for (Listener l : LISTENERS) {
             try {
                 l.heard(level, shooter, range);

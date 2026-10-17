@@ -47,7 +47,10 @@ public final class Ballistics {
         ItemStack plate = null, carrier = null;
         boolean front = shooter.position().subtract(victim.position()).normalize().dot(Vec3.directionFromRotation(0, victim.getYRot())) > 0;
         RandomSource r = victim.getRandom();
-        if (r.nextFloat() > 0.66f) return damage;                    // not the torso
+        // The head, about one hit in eight: a helmet may stop it or make it glance off
+        float where = r.nextFloat();
+        if (where < 0.12f) return helmet(victim, damage, penetration(cal, type), r);
+        if (where > 0.70f) return damage;                    // arms or legs: no plate
         ItemStack chest = victim.getItemBySlot(EquipmentSlot.CHEST);
         if (chest.getItem() instanceof PlateCarrierItem) {
             carrier = chest;
@@ -68,5 +71,34 @@ public final class Ballistics {
                 SoundSource.PLAYERS, stopped ? 0.35f : 0.6f, stopped ? 1.8f : 1.2f);
         }
         return stopped ? damage * pi.plate.blunt : damage * 0.7f;
+    }
+
+    /** A round meeting the head: through it if no helmet or it beats the class; else a glance (nothing) or a stop (a bruise). */
+    static float helmet(LivingEntity victim, float damage, float pen, RandomSource r) {
+        ItemStack head = victim.getItemBySlot(EquipmentSlot.HEAD);
+        if (!(head.getItem() instanceof HelmetItem hi)) return damage * 1.25f;          // a bare head hurts more
+        float health = 1 - head.getDamageValue() / (float) Math.max(1, head.getMaxDamage());
+        float effective = hi.kind.protection * (0.55f + 0.45f * health);
+        ServerLevel sl = victim.level() instanceof ServerLevel l ? l : null;
+        double y = victim.getEyeY();
+        if (pen < effective + 0.8f && r.nextFloat() < hi.kind.ricochet * (0.5f + 0.5f * health)) {
+            if (sl != null) sl.playSound(null, victim.getX(), y, victim.getZ(), dev.factoryascension.FASounds.RICOCHET.get(), SoundSource.PLAYERS, 1.0f, 1.0f);
+            jolt(victim, 0.6f);
+            head.setDamageValue(head.getDamageValue() + 2);
+            return 0;
+        }
+        boolean stopped = pen < effective;
+        head.setDamageValue(head.getDamageValue() + Math.max(1, Math.round(damage * (stopped ? 1.2f : 0.7f))));
+        if (head.getDamageValue() >= head.getMaxDamage()) {
+            victim.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
+            if (sl != null) sl.playSound(null, victim.getX(), y, victim.getZ(), SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 0.8f, 0.8f);
+        } else if (sl != null) sl.playSound(null, victim.getX(), y, victim.getZ(), SoundEvents.ARMOR_EQUIP_IRON, SoundSource.PLAYERS, 0.8f, 0.7f);
+        jolt(victim, stopped ? 1.0f : 0.5f);
+        return stopped ? damage * 0.18f : damage * 0.85f;
+    }
+
+    static void jolt(LivingEntity victim, float k) {
+        if (victim instanceof net.minecraft.server.level.ServerPlayer sp)
+            dev.factoryascension.network.FANetwork.CHANNEL.send(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> sp), new dev.factoryascension.network.FANetwork.Suppress(k));
     }
 }

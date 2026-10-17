@@ -20,7 +20,7 @@ import net.minecraftforge.fml.common.Mod;
  *  - Birdsong by day where there are leaves near (a bird somewhere in the trees, now this side, now that).
  *  - Crickets on warm nights.
  *  - Underground: water dripping somewhere off in the dark, and now and then a deep rumble from the stone.
- * Pause > Factory Ascension... > Ambience turns it off.
+ * Pause > Factory Ascension > Ambience turns it off.
  */
 @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public final class Ambience {

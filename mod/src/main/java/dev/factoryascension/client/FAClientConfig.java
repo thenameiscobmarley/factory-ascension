@@ -10,7 +10,7 @@ public final class FAClientConfig {
     public static final ForgeConfigSpec.IntValue MAX_GLINTS;
     public static final ForgeConfigSpec.DoubleValue STRENGTH;
     public static final ForgeConfigSpec.BooleanValue CONFLICT_MESSAGES;
-    public static final ForgeConfigSpec.BooleanValue SCREEN_REFLECTIONS, SUN_SHADOWS, CINEMATIC, HAZE, AIM_DOF, AMBIENCE;
+    public static final ForgeConfigSpec.BooleanValue SCREEN_REFLECTIONS, SUN_SHADOWS, CINEMATIC, HAZE, AIM_DOF, AMBIENCE, BREAK_CHUNKS;
     public static final ForgeConfigSpec.BooleanValue SAFE_MODE, SUN_RAYS, SMOKE, DEBRIS, WATER, OCULUS_KEY_MOVED, DEPTH_ADDED, PACK_DEFAULTS, TARKOV_ANIMATION;
     public static final ForgeConfigSpec.BooleanValue GUN_MESHES, REALISM, DREAD;
     public static final ForgeConfigSpec.DoubleValue FISHEYE, GRAIN, DESATURATE, VIGNETTE, DEPTH_SMOOTH, DEPTH_STRENGTH;
@@ -69,7 +69,8 @@ public final class FAClientConfig {
         CINEMATIC = b.comment("Ascension Lighting: a filmic tone curve (highlights roll off like film) and bloom round bright lights and sky").define("cinematic", true);
         HAZE = b.comment("Ascension Lighting: aerial perspective, distant land fading into a sunlit haze").define("haze", true);
         AIM_DOF = b.comment("Ascension Lighting: depth of field while aiming down sights (what's far behind your target softens)").define("aimDepthOfField", true);
-        SUN_SHADOWS = b.comment("Ascension Lighting: shadows cast by the sun (and moon) from whatever's on screen").define("sunShadows", true);
+        SUN_SHADOWS = b.comment("Ascension Lighting: shadows cast by the sun (and moon), traced through the blocks around you").define("sunShadows", true);
+        BREAK_CHUNKS = b.comment("Breaking a block takes 3D chunks out of it (they grow back if you stop)").define("breakChunks", true);
         SUN_RAYS = b.comment("Light shafts from the sun and moon").define("sunRays", true);
         SMOKE = b.comment("Real smoke from explosions, gunfire and fires").define("smoke", true);
         SMOKE_AMOUNT = b.comment("How much smoke").defineInRange("smokeAmount", 3.0, 0.1, 3.0);

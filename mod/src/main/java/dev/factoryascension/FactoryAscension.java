@@ -156,12 +156,23 @@ public class FactoryAscension {
     // Plate carriers and their plates (armor/)
     public static final RegistryObject<Item> PLATE_CARRIER = ITEMS.register("plate_carrier", () -> new dev.factoryascension.armor.PlateCarrierItem(new Item.Properties()));
     public static final java.util.Map<dev.factoryascension.armor.Plate, RegistryObject<Item>> PLATES = new java.util.EnumMap<>(dev.factoryascension.armor.Plate.class);
+    public static final java.util.Map<dev.factoryascension.armor.HelmetItem.Kind, RegistryObject<Item>> HELMETS = new java.util.EnumMap<>(dev.factoryascension.armor.HelmetItem.Kind.class);
+
+    static {
+        for (var k : dev.factoryascension.armor.HelmetItem.Kind.values())
+            HELMETS.put(k, ITEMS.register(k.id, () -> new dev.factoryascension.armor.HelmetItem(k, new Item.Properties())));
+    }
     static {
         for (dev.factoryascension.armor.Plate p : dev.factoryascension.armor.Plate.values())
             PLATES.put(p, ITEMS.register(p.id, () -> new dev.factoryascension.armor.PlateItem(p, new Item.Properties())));
     }
     public static final RegistryObject<Item> NODS_GREEN = ITEMS.register("nods_green", () -> new dev.factoryascension.armor.NodsItem(false, new Item.Properties()));
     public static final RegistryObject<Item> NODS_WHITE = ITEMS.register("nods_white", () -> new dev.factoryascension.armor.NodsItem(true, new Item.Properties()));
+    public static final RegistryObject<Item> THERMAL_GOGGLES = ITEMS.register("thermal_goggles", () -> {
+        var n = new dev.factoryascension.armor.NodsItem(false, new Item.Properties());
+        n.thermal = true;
+        return n;
+    });
     public static final RegistryObject<Item> BANDAGE = ITEMS.register("bandage", () -> new dev.factoryascension.npc.MedItem(new Item.Properties().stacksTo(16), false));
     public static final RegistryObject<Item> MEDKIT = ITEMS.register("medkit", () -> new dev.factoryascension.npc.MedItem(new Item.Properties().stacksTo(4), true));
     public static final RegistryObject<Item> DOG_TAG = ITEMS.register("dog_tag", () -> new dev.factoryascension.npc.DogTagItem(new Item.Properties().stacksTo(1)));
@@ -331,6 +342,8 @@ public class FactoryAscension {
         dev.factoryascension.drugs.DrugBlocks.init();       // crops and the chem lab
         dev.factoryascension.drugs.VillagerHighs.init();    // villagers take them too
         dev.factoryascension.vehicle.Vehicles.register(bus); // the dirt bike (its items go into ITEMS first)
+        dev.factoryascension.body.Body.init();              // limbs, fractures, heavy bleeding, water
+        dev.factoryascension.raid.RaidEntities.register(bus); // extraction raids, body bags, traders
         dev.factoryascension.npc.Raids.init();              // being marked, raid parties, ballistic blocks
         EFFECTS.register(bus);
         if (net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks"))

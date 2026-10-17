@@ -192,6 +192,13 @@ public class GunItem extends Item {
             clearReload(t);
         }
         if (t.getInt("Bolt") > 0) return;
+        if (t.getBoolean("Jam")) {
+            sound(level, player, SoundEvents.DISPENSER_FAIL, 0.7f, 1.5f);
+            player.displayClientMessage(Component.literal("Jammed! Press R to clear it").withStyle(ChatFormatting.RED), true);
+            player.getCooldowns().addCooldown(gun.getItem(), 6);
+            lastResult = "jammed";
+            return;
+        }
         if (t.getBoolean("NoCh") && ammo(gun) > 0) {
             // A reload that forgot to chamber: the trigger clicks, then you rack it
             t.putBoolean("NoCh", false);
@@ -224,6 +231,22 @@ public class GunItem extends Item {
             lastResult = "misfire";
             return;
         }
+        // Wear and heat: every shot wears the gun a little (big calibers more) and heats the barrel; a worn or hot gun jams
+        if (FAConfig.gunWear) {
+            float wear = t.getFloat("Wear") + FAConfig.wearPerShot * spec.caliber.damage * (player.isCreative() ? 0 : 1);
+            t.putFloat("Wear", Math.min(100, wear));
+            float heat = Math.min(100, t.getFloat("Heat") + FAConfig.heatPerShot * (spec.kind == Kind.PISTOL || spec.kind == Kind.REVOLVER ? 1.4f : 1f));
+            t.putFloat("Heat", heat);
+            float jam = FAConfig.jamBase + (float) Math.pow(wear / 100f, 2.2) * FAConfig.jamWorn + (heat > 85 ? FAConfig.jamHot : 0);
+            if (!player.isCreative() && r.nextFloat() < jam) {
+                t.putBoolean("Jam", true);
+                sound(level, player, SoundEvents.DISPENSER_FAIL, 0.9f, 1.2f);
+                player.displayClientMessage(Component.literal(wear > 60 ? "Jammed: this gun needs cleaning. Press R to clear it" : "Jammed! Press R to clear it")
+                    .withStyle(ChatFormatting.RED), true);
+                lastResult = "jam";
+                return;
+            }
+        }
         if (bolt) t.putInt("Bolt", spec.chamber + 4);   // work the bolt after every shot (unless an auto sear says otherwise)
         t.putInt("Shots", t.getInt("Shots") + 1);
         Stress.add(player, 0.004f);
@@ -251,7 +274,9 @@ public class GunItem extends Item {
         else if (type.pellets > 1) { pellets = type.pellets + Math.max(0, gunPellets - spec.pellets); perPellet = base; }
         else if (spec.pellets > 1) { pellets = 1; perPellet = base * spec.pellets * 0.6f; }
         else { pellets = Math.max(1, gunPellets); perPellet = gunPellets > 1 ? base * 0.5f : base; }
-        double spread = Math.toRadians(((aim ? st.spreadAim : st.spreadHip) + (pellets > 1 && spec.pellets == 1 ? 4 : 0)) * dev.factoryascension.drugs.Drugs.spread(player));
+        float hot = 1 + Math.max(0, t.getFloat("Heat") - 50) / 100f;           // a hot barrel walks the rounds
+        double spread = Math.toRadians(((aim ? st.spreadAim : st.spreadHip) + (pellets > 1 && spec.pellets == 1 ? 4 : 0)) * dev.factoryascension.drugs.Drugs.spread(player)
+            * hot * dev.factoryascension.body.Body.aimShake(player));
         double range = st.range * type.range * Math.min(1.5, Math.max(0.3, power));
         Vec3 right = look.cross(new Vec3(0, 1, 0));
         if (right.lengthSqr() < 1e-4) right = new Vec3(1, 0, 0);
@@ -260,32 +285,45 @@ public class GunItem extends Item {
         Map<Entity, Float> hits = new HashMap<>();
         int impacts = 0;
         int pierce = type.penetration >= 2 ? 3 : 1;
+        // Rounds fly: their caliber's muzzle velocity, slowed by the air, pulled down by gravity, so long shots drop and
+        // take time to arrive (and a moving target has to be led: they're tested where they'll be when it gets there)
+        double vb = muzzleVelocity(spec.caliber, type) / 20.0;            // blocks per tick
+        double drag = pellets > 1 ? 0.94 : 0.985;
+        Map<Entity, Integer> arrive = new HashMap<>();
         for (int i = 0; i < pellets; i++) {
             double a = spread * Math.sqrt(r.nextDouble()), b = r.nextDouble() * Math.PI * 2;
             Vec3 dir = look.add(right.scale(Math.tan(a) * Math.cos(b))).add(up.scale(Math.tan(a) * Math.sin(b))).normalize();
-            Vec3 end = eye.add(dir.scale(range));
-            // Through thin things (wood, glass, leaves): each one it goes through takes some of it
+            Vec3 vel = dir.scale(vb);
             Vec3 from = eye;
             float left = 1;
-            for (int seg = 0; seg < 3 && left > 0.1f; seg++) {
-                BlockHitResult block = level.clip(new ClipContext(from, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
-                Vec3 stop = block.getType() == HitResult.Type.MISS ? end : block.getLocation();
-                List<EntityHitResult> along = entitiesAlong(player, from, stop);
-                int n = 0;
-                Vec3 lastHit = null;
-                for (EntityHitResult eh : along) {
-                    if (n >= pierce) break;
-                    if (hits.containsKey(eh.getEntity()) && seg > 0) continue;
-                    double dist = eye.distanceTo(eh.getLocation());
+            double travelled = 0;
+            int tick = 0, entityHits = 0;
+            List<Vec3> path = new java.util.ArrayList<>();
+            path.add(eye);
+            flight:
+            while (travelled < range && tick < 200 && left > 0.1f) {
+                Vec3 to = from.add(vel);
+                BlockHitResult block = level.clip(new ClipContext(from, to, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+                Vec3 stop = block.getType() == HitResult.Type.MISS ? to : block.getLocation();
+                for (EntityHitResult eh : entitiesAlong(player, from, stop, tick)) {
+                    if (entityHits >= pierce) break flight;
+                    double dist = travelled + from.distanceTo(eh.getLocation());
                     float falloff = (float) Mth.clampedLerp(1.0, 0.45, (dist - range * 0.3) / Math.max(1, range * 0.7));
                     hits.merge(eh.getEntity(), perPellet * falloff * left, Float::sum);
-                    lastHit = eh.getLocation();
-                    n++;
+                    arrive.merge(eh.getEntity(), tick, Math::max);
+                    entityHits++;
+                    path.add(eh.getLocation());
+                    if (pierce == 1) break flight;
                 }
-                Vec3 tracerEnd = lastHit != null && pierce == 1 ? lastHit : stop;
-                if (seg == 0) tracer(level, eye, dir, eye.distanceTo(tracerEnd), type);
-                if (lastHit != null && pierce == 1) break;
-                if (block.getType() != HitResult.Type.BLOCK) break;
+                if (block.getType() != HitResult.Type.BLOCK) {
+                    travelled += vel.length();
+                    from = to;
+                    path.add(to);
+                    vel = vel.scale(drag).add(0, -0.0245, 0);
+                    tick++;
+                    continue;
+                }
+                path.add(stop);
                 BlockPos pos = block.getBlockPos();
                 BlockState state = level.getBlockState(pos);
                 impacts++;
@@ -301,10 +339,24 @@ public class GunItem extends Item {
                 float cost = FAConfig.bulletsPenetrate ? penetrationCost(level, pos, state, type) : 2;
                 if (cost >= 1) break;
                 left -= cost;
-                // Out the other side of that block
+                // Out the other side of that block, a little slower
                 Vec3 p = stop;
-                for (int k = 0; k < 20 && BlockPos.containing(p).equals(pos); k++) p = p.add(dir.scale(0.1));
+                Vec3 step = vel.normalize().scale(0.1);
+                for (int k = 0; k < 20 && BlockPos.containing(p).equals(pos); k++) p = p.add(step);
+                travelled += from.distanceTo(p);
                 from = p;
+                vel = vel.scale(1 - cost * 0.5);
+            }
+            if (type == AmmoType.TRACER) tracerPath(level, path);
+            // Rounds going past people pin them down (operators shoot worse while suppressed)
+            if (path.size() > 1) {
+                Vec3 p0 = path.get(0), p1 = path.get(path.size() - 1);
+                for (var o : level.getEntitiesOfClass(dev.factoryascension.npc.Operator.class, new net.minecraft.world.phys.AABB(p0, p1).inflate(3))) {
+                    if (hits.containsKey(o)) continue;
+                    Vec3 d = p1.subtract(p0);
+                    double tt = Mth.clamp(o.getEyePosition().subtract(p0).dot(d) / Math.max(1e-6, d.lengthSqr()), 0, 1);
+                    if (p0.add(d.scale(tt)).distanceTo(o.getEyePosition()) < 2.5) o.suppress();
+                }
             }
         }
         // All of a target's pellets land as one hit
@@ -313,7 +365,8 @@ public class GunItem extends Item {
         lastDamage = 0;
         final AmmoType ft = type;
         final Vec3 shotDir = look;
-        hits.forEach((e, dmg) -> {
+        hits.forEach((e, dmg) -> Delayed.after(Math.max(0, arrive.getOrDefault(e, 0) - 1), () -> {
+            if (!e.isAlive()) return;
             float d = dmg;
             if (e instanceof LivingEntity le) {
                 int armor = le.getArmorValue();
@@ -332,7 +385,7 @@ public class GunItem extends Item {
             }
             if (e instanceof LivingEntity le && le.isAlive()) effects(level, player, le, ft, shotDir, d, spec);
             if (ft == AmmoType.EXPLOSIVE) pop(level, player, e.position().add(0, e.getBbHeight() / 2, 0));
-        });
+        }));
         // Muzzle flash, smoke and the bang
         Vec3 muzzle = eye.add(look.scale(1.3)).add(right.scale(aim ? 0 : 0.3)).add(up.scale(aim ? -0.08 : -0.22));
         if (type == AmmoType.DRAGONS_BREATH) level.sendParticles(ParticleTypes.FLAME, muzzle.x, muzzle.y, muzzle.z, 30, 0.2, 0.2, 0.2, 0.15);
@@ -340,6 +393,43 @@ public class GunItem extends Item {
         if (r.nextInt(3) == 0) dev.factoryascension.FxEvents.smoke(level, muzzle, 0.25f);
         bang(level, player, spec, type, r, st.sound);
         lastResult = "fired";
+    }
+
+    /** Muzzle velocity, m/s: the caliber's (subsonic rounds slower, armour-piercing a little faster). */
+    public static double muzzleVelocity(Caliber c, AmmoType t) {
+        double v = switch (c) {
+            case P9 -> 360; case P45 -> 260; case P50 -> 470; case R357 -> 440; case P46 -> 720; case R545 -> 880; case R556 -> 920;
+            case R762S -> 715; case R762N -> 850; case R762R -> 830; case R338 -> 900; case G12 -> 400; case P57 -> 715;
+            case P762T -> 450; case R44 -> 410; case R9X39 -> 290; case R300 -> 670; case B50 -> 880;
+        };
+        if (t == AmmoType.SUBSONIC) v = Math.min(v, 300);
+        if (t.penetration >= 2) v *= 1.05;
+        return v;
+    }
+
+    /** A tracer round's streak, along the path it actually flew. */
+    private static void tracerPath(ServerLevel level, List<Vec3> path) {
+        for (int k = 1; k < path.size(); k++) {
+            Vec3 a = path.get(k - 1), b = path.get(k);
+            double len = a.distanceTo(b);
+            for (double d = (k == 1 ? 1.5 : 0); d < len; d += 1.2) {
+                Vec3 p = a.add(b.subtract(a).scale(d / Math.max(len, 1e-6)));
+                level.sendParticles(ParticleTypes.END_ROD, p.x, p.y, p.z, 1, 0, 0, 0, 0);
+            }
+        }
+    }
+
+    /** What a segment of the round's flight passes through: living things where they'll be `tick` ticks from now. */
+    private static List<EntityHitResult> entitiesAlong(ServerPlayer player, Vec3 from, Vec3 to, int tick) {
+        List<EntityHitResult> out = new java.util.ArrayList<>();
+        var box = new net.minecraft.world.phys.AABB(from, to).inflate(1.5 + tick * 0.5);
+        for (Entity e : player.level().getEntities(player, box, e -> e instanceof LivingEntity && e.isAlive() && !e.isSpectator() && e.isPickable())) {
+            var bb = e.getBoundingBox().inflate(0.1).move(e.getDeltaMovement().scale(tick));
+            var hit = bb.clip(from, to);
+            hit.ifPresent(h -> out.add(new EntityHitResult(e, h)));
+        }
+        out.sort(java.util.Comparator.comparingDouble(h -> h.getLocation().distanceToSqr(from)));
+        return out;
     }
 
     private static List<EntityHitResult> entitiesAlong(ServerPlayer player, Vec3 from, Vec3 to) {
@@ -404,6 +494,16 @@ public class GunItem extends Item {
     public static float forceFumbleChance = -1;
 
     public static void startReload(ServerPlayer player, ItemStack gun) {
+        CompoundTag jt = gun.getTag();
+        if (jt != null && jt.getBoolean("Jam")) {
+            // Clearing a malfunction: tap, rack, and it's running again (a moment you can't shoot)
+            GunSpec js = spec(gun);
+            jt.putBoolean("Jam", false);
+            jt.putInt("Bolt", (js != null ? js.chamber : 10) + 14);
+            sound(player.serverLevel(), player, dev.factoryascension.FASounds.RACK.get(), 1.0f, 0.95f);
+            player.displayClientMessage(Component.literal("Clearing the malfunction...").withStyle(ChatFormatting.YELLOW), true);
+            return;
+        }
         GunSpec spec = spec(gun);
         if (spec == null || reloading(gun)) return;
         CompoundTag t = tag(gun);
@@ -475,7 +575,7 @@ public class GunItem extends Item {
             }
         }
         GunStats st = GunStats.of(gun);
-        int len = Math.max(1, Math.round(length(spec, phase) * shake * (st != null ? st.reload : 1) * dev.factoryascension.drugs.Drugs.reloadTime(player)));
+        int len = Math.max(1, Math.round(length(spec, phase) * shake * (st != null ? st.reload : 1) * dev.factoryascension.drugs.Drugs.reloadTime(player) * dev.factoryascension.body.Body.handSpeed(player)));
         t.putInt("RPh", phase);
         t.putInt("RF", -1);
         t.putInt("RT", len);
@@ -635,6 +735,14 @@ public class GunItem extends Item {
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
         if (level.isClientSide || !(entity instanceof ServerPlayer player) || !stack.hasTag()) return;
+        float heat = stack.getTag().getFloat("Heat");
+        if (heat > 0) {
+            stack.getTag().putFloat("Heat", Math.max(0, heat - FAConfig.heatCooling * (entity.isInWaterOrRain() ? 3 : 1)));
+            if (selected && heat > 60 && level.getGameTime() % 6 == 0 && level instanceof ServerLevel sl) {
+                Vec3 m = player.getEyePosition().add(player.getViewVector(1).scale(1.2)).add(0, -0.25, 0);
+                sl.sendParticles(ParticleTypes.SMOKE, m.x, m.y, m.z, 1, 0.02, 0.05, 0.02, 0.005);   // heat haze off the barrel
+            }
+        }
         int cap = magOf(stack);
         if (ammo(stack) > cap) {   // a smaller magazine went on: the extra rounds come back to you
             giveBack(player, stack.getTag().getCompound("Load"), ammo(stack) - cap);
@@ -700,6 +808,10 @@ public class GunItem extends Item {
         tip.add(Component.literal((st.auto ? (spec.spinup > 0 ? "Spins up, then full auto, " : "Full auto, ") : spec.manual && !st.noBolt ? action : "Semi-auto, ") + st.rpm + " rpm, "
             + (st.pellets > 1 ? st.pellets + " pellets x " + String.format("%.1f", dmg) : String.format("%.1f", dmg)) + " damage, " + Math.round(st.range) + " blocks").withStyle(ChatFormatting.GRAY));
         for (Attachments.Att a : st.atts) tip.add(Component.literal(" + " + a.name).withStyle(ChatFormatting.DARK_AQUA));
+        float wear = stack.hasTag() ? stack.getTag().getFloat("Wear") : 0;
+        int cond = Math.round(100 - wear);
+        tip.add(Component.literal("Condition " + cond + "%" + (stack.hasTag() && stack.getTag().getBoolean("Jam") ? "  JAMMED" : "") + (cond < 50 ? "  (clean it: Weapon Cleaning Kit)" : ""))
+            .withStyle(cond > 75 ? ChatFormatting.GREEN : cond > 40 ? ChatFormatting.YELLOW : ChatFormatting.RED));
         if (net.minecraft.world.item.enchantment.EnchantmentHelper.getTagEnchantmentLevel(dev.factoryascension.FactoryAscension.JURY_RIGGED.get(), stack) > 0)
             tip.add(Component.literal("Jury-Rigged: takes any attachment, anywhere").withStyle(ChatFormatting.LIGHT_PURPLE));
         tip.add(Component.literal("Hold right-click: aim. Left-click: fire. R: reload.").withStyle(ChatFormatting.DARK_GRAY));

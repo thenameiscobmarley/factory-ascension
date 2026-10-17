@@ -57,6 +57,8 @@ if (Platform.isLoaded(FA_MOD)) {
       let n = id == 'fuel_can' ? VR.fuelCansPerCraft : 1
       event.shaped(Item.of(FA_MOD + ':' + id, n), VR[id][0], VR[id][1]).id('kubejs:factory_ascension/' + id)
     })
+    let RR = global.FA.realismRecipes
+    Object.keys(RR).forEach(id => event.shaped(FA_MOD + ':' + id, RR[id][0], RR[id][1]).id('kubejs:factory_ascension/' + id))
     let DR = global.FA.drugs
     event.shaped(FA_MOD + ':joint', DR.jointRecipe[0], DR.jointRecipe[1]).id('kubejs:factory_ascension/joint')
     event.shaped(FA_MOD + ':chem_lab', DR.chemLab[0], DR.chemLab[1]).id('kubejs:factory_ascension/chem_lab')

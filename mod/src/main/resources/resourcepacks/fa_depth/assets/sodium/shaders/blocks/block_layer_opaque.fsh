@@ -26,13 +26,13 @@ void main() {
     vec2 duv1 = dFdx(v_TexCoord), duv2 = dFdy(v_TexCoord);
     vec4 diffuseColor = texture(u_BlockTex, v_TexCoord, v_MaterialMipBias);
     float shade = 1.0, spec = 0.0;
-    if (diffuseColor.a > 0.99) {
+    if (diffuseColor.a > 0.74) {
         vec2 uv;
         faBlock(u_BlockTex, v_TexCoord, v_FaPos, dp1, dp2, duv1, duv2, 0.14, uv, shade, spec);
         // The original derivatives (and Embeddium's mip bias: no mips on cut-out blocks) so the mip level doesn't jump
         float bias = exp2(v_MaterialMipBias);
         vec4 shifted = textureGrad(u_BlockTex, uv, duv1 * bias, duv2 * bias);
-        if (shifted.a > 0.99) diffuseColor = shifted; else { shade = 1.0; spec = 0.0; }
+        if (shifted.a > 0.74) diffuseColor = shifted; else { shade = 1.0; spec = 0.0; }
     }
 
 #ifdef USE_FRAGMENT_DISCARD

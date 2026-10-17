@@ -131,10 +131,11 @@ public final class LeanClient {
         var p = mc.player;
         if (p == null || !mc.options.getCameraType().isFirstPerson() || mc.options.hideGui) return;
         var stack = p.getMainHandItem();
-        if (GunItem.spec(stack) == null || aimingGun(p)) return;
+        if (GunItem.spec(stack) == null) return;
         GunStats st = GunStats.of(stack);
-        if (st == null) return;
+        if (st == null || ScopeOverlay.scoped(p)) return;   // a scope draws its own reticle
         event.setCanceled(true);
+        if (aimingGun(p) || GunAnim.devAim) return;   // down the sights: no crosshair, the sights are the aim
         GuiGraphics g = event.getGuiGraphics();
         int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
         double fov = mc.options.fov().get() * p.getFieldOfViewModifier();
@@ -144,12 +145,17 @@ public final class LeanClient {
         float spread = (float) (Math.tan(Math.toRadians(st.spreadHip)) * focal);
         int col = 0xC8E8E8E8;
         RenderSystem.enableBlend();
-        // A dot where it points, four ticks out at the spread
-        g.fill(Math.round(cx) - 1, Math.round(cy) - 1, Math.round(cx) + 1, Math.round(cy) + 1, col);
-        int r = Math.max(3, Math.round(spread)), len = 3;
-        g.fill(Math.round(cx) - r - len, Math.round(cy), Math.round(cx) - r, Math.round(cy) + 1, col);
-        g.fill(Math.round(cx) + r, Math.round(cy), Math.round(cx) + r + len, Math.round(cy) + 1, col);
-        g.fill(Math.round(cx), Math.round(cy) - r - len, Math.round(cx) + 1, Math.round(cy) - r, col);
-        g.fill(Math.round(cx), Math.round(cy) + r, Math.round(cx) + 1, Math.round(cy) + r + len, col);
+        // A one-pixel dot where it points and four ticks out at the spread, all centred on that pixel (mirror images)
+        int x = (int) Math.floor(cx), y = (int) Math.floor(cy);
+        int r = Math.max(3, Math.round(spread)), len = 4;
+        int shadow = 0x60000000;
+        for (int pass = 0; pass < 2; pass++) {
+            int o = pass == 0 ? 1 : 0, c = pass == 0 ? shadow : col;
+            g.fill(x + o, y + o, x + 1 + o, y + 1 + o, c);
+            g.fill(x - r - len + o, y + o, x - r + o, y + 1 + o, c);
+            g.fill(x + 1 + r + o, y + o, x + 1 + r + len + o, y + 1 + o, c);
+            g.fill(x + o, y - r - len + o, x + 1 + o, y - r + o, c);
+            g.fill(x + o, y + 1 + r + o, x + 1 + o, y + 1 + r + len + o, c);
+        }
     }
 }

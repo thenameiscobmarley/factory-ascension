@@ -339,12 +339,12 @@ houses and gas stations near home; checkpoints, trench lines and sniper towers f
 underground bunkers, helicopter crash sites and radio towers beyond; warlords' forts and cult shrines far out. Their
 chests hold guns, rounds of every type, meds, grenades and flares. All in `npcs`.
 
-**Dread** (Pause > Factory Ascension... > Dread sounds): out in the zones you hear gunfire far off, now and then (more
+**Dread** (Pause > Factory Ascension > Dread sounds): out in the zones you hear gunfire far off, now and then (more
 at night, more the deeper you go): someone else is out there. Under stress or badly hurt you hear your heart, faster the
 worse it is, and your breathing. A blast or a big gun right beside you leaves your ears ringing for a few seconds;
 everything else goes muffled.
 
-**Realism camera** (**F8** toggles it; Pause > Factory Ascension... sets each part): the picture through a real lens: a
+**Realism camera** (**F8** toggles it; Pause > Factory Ascension sets each part): the picture through a real lens: a
 slight fisheye, colour fringes at the edges, less colour and a cold grade, moving film grain, and a vignette that
 tightens and pulses with your heart under stress, goes red when you're hurt, and blurs after a blast.
 
@@ -380,7 +380,7 @@ they **mix**: Speedball, Overamped (a heart attack waiting to happen), Candyflip
 Blackout, Deep hole, Wake and bake. **Villagers** take them too: right-click one with a drug and it pays you, likes you
 better (cheaper trades), smokes it, and then it's high: tweaking (twitching, head snapping, darting about, chattering),
 stoned, drunk, or staring at the sky. **Cannabis** and **coca** seeds drop from grass (plant them on farmland); the rest
-is made at the **Chem Lab** (right-click it with the inputs on you). All in `drugs`.
+is made at the **Chem Lab** (right-click it: every recipe, how much of each input you have, and MIX; shift-click mixes as many as you can). All in `drugs`.
 
 **Dirt bike**: built from parts, and it rides like what's fitted to it: an engine (125cc and 250cc two-strokes, a 450cc
 four-stroke, or a **V12**, which only fits the **Long Frame**), a frame, and a gearbox (4-speed, 6-speed, or a
@@ -388,6 +388,54 @@ close-ratio race box); you see every part on it. W throttle, S brake and reverse
 wheelie; it climbs a block, leans into turns, and its engine note climbs through the gears. It runs on fuel (Fuel Cans,
 Racing Fuel, TFMG gasoline or diesel, blaze rods), takes a dye, and hurts whatever it hits at speed. Sneak +
 right-click with a part to swap it, with an empty hand to pack it up. All in `vehicles`.
+A **Wrench** opens the bike's **workshop**: the bike turning on a stand, what's fitted and how it rides, and every part
+you carry, with what it would change (green better, red worse); click one to fit it.
+
+**Quad bike** (two seats, quick and twitchy) and **pickup truck** (driver, passenger, and a **gunner** on the bed
+behind a mounted **.50 BMG**: right-click the bed to take the gun, aim with the mouse, hold attack to fire; right-click
+the truck with .50 BMG rounds to load its 400-round belt, every fifth a tracer). Both run on the bike's fuels, take a
+dye, plough through what they hit, smoke when badly damaged and burn out when wrecked; a wrench repairs them. All in
+`vehicles.cars` and `vehicles.turret`.
+
+## Realism (Full download)
+
+- **Your body**: head, thorax, stomach, arms and legs each have their own health (bottom left, a figure coloured by
+  how hurt each part is). Falls break legs (you limp; **Splint** it), big hits break arms (shaky aim, slow reloads),
+  some hits open an artery (**Heavy Bleeding**: a **Tourniquet** stops it), and a **Surgical Kit** brings back a
+  destroyed limb. **Thirst**: you dry out over an hour of play; drink from a **Canteen** (refill it at water), water,
+  milk, melon or energy drinks, or get slow, weak and then hurt. **Stamina**: sprinting, jumping and holding your breath
+  (sprint while aiming) use it; out of it, you can't sprint until you get your breath back.
+- **Helmets** (steel, PASGT, FAST, Altyn), with armor classes: a stopped round can still glance off (a ricochet's
+  ping), a head hit without one does more, and they wear out. Operators wear them too.
+- **Guns wear and heat**: every shot wears the gun and heats the barrel; worn or hot guns **jam** (R clears it), a hot
+  barrel throws rounds wider and smokes. A **Weapon Cleaning Kit** takes the wear off.
+- **Bullets fly**: every round has its caliber's muzzle velocity, slows in the air and drops, so long shots take time and
+  need lead and holdover. Rounds going past operators pin them down (**suppression**: they shoot worse); rounds
+  cracking past you shake your view.
+- **Thermal**: **Thermal Goggles** (N flips them down) and the **Thermal Scope** attachment: living things glow
+  white-hot against a cold world, through smoke, fog, darkness and leaves.
+- **Weather that matters**: **fog banks** roll in now and then (you see a few dozen blocks, and so do they); rain and
+  thunder swallow the sound of gunfire both ways; **nights are darker** out under the sky (lamps keep their glow).
+- **The night hunter**: out in the danger zones after dark, something tall and thin stalks you. It clicks to itself
+  in the dark, freezes when you look right at it, closes in when you don't, and shrieks when it strikes; light (lamps,
+  a weapon light on it) drives it off, and at dawn it's gone.
+- **Light in your hands**: a torch, lantern, glowstone (anything that glows) in either hand lights up the area round you.
+- **Movement**: **air strafing** (in the air, hold A or D and turn the mouse that way to curve and pick up speed) and
+  **bunny hopping** (jump right as you land to keep your speed), up to a top speed (`movement`).
+
+## Extraction raids and traders (Full download)
+
+A **Raid Map** starts a raid: a clock (45 minutes) and three **extraction points** a few hundred blocks out (green smoke
+rising; the top of your screen shows the nearest, its distance and an arrow). Stand in one for 10 seconds and you're
+**extracted**: home, with XP and your nerves back. Out of time: **missing in action**, marked and hunted until you make
+it home. Die on a raid and everything you carried stays where you fell in a **body bag** (a day) for anyone to search.
+
+**Traders**: a **Trader Contract** brings one to your base: **Volkov, the Quartermaster** (guns, ammo, armor),
+**Doc Halloran, the Medic** (medicine, and the other stuff) and **the Fence** (anything, cheap). Money is **rubles** in
+your wallet: armed operators carry **cash bundles** (right-click to bank them). Buy, sell (each buys their own kind of
+thing; the Fence takes anything for less), barter (some things they want in kind), and take **tasks** (kill scavs,
+bring dog tags, extract from raids, hunt the night hunter) for rubles and **loyalty**; higher loyalty opens better stock.
+Every offer, task, price and value is in `traders`.
 
 ## Tarkov inventory (Full download)
 
@@ -414,7 +462,7 @@ inventory is a **grid** where items take their real size: a block 1x1, a pickaxe
   work as before. Creative mode keeps the normal inventory.
 
 Grid size, item sizes, the pickup rule and the weight are all in `inventory`. The opening animation can be turned off
-in **Pause > Factory Ascension... > Inventory animation**.
+in **Pause > Factory Ascension > Inventory animation**.
 
 ## Pets and charms
 
@@ -433,10 +481,11 @@ and the **Void Behemoth**, each with a boss bar, minions and Ascended Souls (som
 
 - **Ascension Quarry**: turn the shaft in its back and it mines out the 17 x 17 square under it (`machines.quarry.radius`),
   layer by layer, to the bottom of the world, like a diamond pickaxe. It skips bedrock, fluids, chests and machines.
-  Faster spins dig faster. Put a chest on top for what it digs. Right-click it to see which layer it's on.
+  Faster spins dig faster. Put a chest on top for what it digs. Right-click it for its panel (state, speed, stress,
+  layer, how much it's mined, whether the chest has room), live, red where something needs fixing.
 - **Mob Grinder**: turn its shaft and it hits every mob in the 5 x 5 x 3 box in front of it for 0.5 damage per RPM.
   Kills count as a player's, so you get rare drops and loot rolls. It never hits players, villagers, pets or named mobs.
-  Put a chest under it for the drops.
+  Put a chest under it for the drops. Right-click it for its panel.
 - **Warp Hopper**: right-click it with any item to key it to that item. Items fed into it come out in the chest under every
   other Warp Hopper with the same key, at any distance and in any dimension.
 - **Super Smelter**: two new tiers, 64 items at once (4 Singularities) and 128 at once (2 Ascended Souls).
@@ -467,12 +516,13 @@ About once every 20 minutes something happens to the whole server:
 
 ## Graphics (Full download)
 
-**Pause > Factory Ascension...** has every graphics option, and each one switches off by itself if it ever fails (safe mode),
+**Pause > Factory Ascension** has every graphics option, and each one switches off by itself if it ever fails (safe mode),
 so the game keeps running:
 
-- **Ascension Lighting**: screen-space traced lighting: rays marched through the depth of the frame give soft contact
-  shadows in corners and under overhangs, light bounced off nearby surfaces in their colour, **sun shadows** (whatever's
-  on screen between a spot and the sun shades it), **traced reflections** (water is a near mirror, flat ground shines
+- **Ascension Lighting**: traced lighting: rays marched through the depth of the frame give soft contact shadows in
+  corners and under overhangs and light bounced off nearby surfaces in their colour; **sun shadows** are traced in the
+  world, through the blocks around you (a 96-block grid kept up to date as you move and build), so a tree's shadow
+  stays where it is however you turn the camera; **traced reflections** (water is a near mirror, flat ground shines
   with the sky, and everything flat gets wet and reflective in the rain), and light shafts from the sun and moon.
   Off / Low / Medium / High plus a strength slider, and a switch each for the reflections and sun shadows. Standard
   OpenGL only (AMD and NVIDIA alike). It steps aside by itself when an Oculus shader pack is on. (The old "Shiny
@@ -483,8 +533,13 @@ so the game keeps running:
 - **Smoke**: soft, drifting smoke from explosions and gunfire.
 - **Voxel debris**: broken and blown-up blocks shatter into small 3D pieces of their texture that tumble, bounce and settle.
 - **Water**: foam where waterfalls land and where water flows, bubbles underwater, and a splash ring when something drops in.
+- **Breaking chunks**: digging a block takes pieces out of it, real holes with walls and a floor; stop and they grow back.
 - **Factory Ascension Depth** (a texture pack, built into the mod and on by default): real, lit relief on every block
-  and mob, no shader pack needed. Each texture's light and dark detail becomes a smooth height field (read between
+  and mob, no shader pack needed. Every solid block texture gets a height map made for what it is: planks are boards
+  with deep seams, bricks and tiles stand out of sunk mortar with bevelled edges, cobble and gravel are domed stones,
+  ores have their gems standing out of the stone, grass is a mat of blades, logs have deep bark, and the crafting table
+  is a table (a raised rim round a sunk grid, tools standing off its sides). Anything else: its light and dark detail
+  becomes a smooth height field (read between
   pixels, so it's slopes and lumps, not stacked layers), flush at every block's edge (no seams or outlines), and lit by a
   light from above with a highlight that moves as you do, so mortar sinks between bricks, cobblestone is lumpy and bark
   has grooves even face-on. The texture's average sits at the surface and only darker detail sinks, so faces stay flat

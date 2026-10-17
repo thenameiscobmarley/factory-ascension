@@ -56,6 +56,7 @@ public final class NodsClient {
             Minecraft mc = Minecraft.getInstance();
             if (broken || mc.player == null || mc.level == null || !mc.options.getCameraType().isFirstPerson()) return;
             NodsItem n = NodsItem.active(mc.player);
+            if (n != null && n.thermal) n = null;   // thermal goggles: client/ThermalClient
             if (n == null) {
                 if (chain != null) free();
                 return;

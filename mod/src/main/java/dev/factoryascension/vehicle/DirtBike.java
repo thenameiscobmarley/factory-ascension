@@ -180,35 +180,47 @@ public class DirtBike extends Entity {
         return true;
     }
 
+    /** Fits the part in `held` (taking the old one out, into your inventory). False if it can't. */
+    public boolean fitPart(Player p, ItemStack held) {
+        if (!(held.getItem() instanceof BikePartItem part)) return false;
+        String old = switch (part.kind) {
+            case "engine" -> engine();
+            case "frame" -> frame();
+            default -> gearbox();
+        };
+        if (old.equals(part.id)) return false;
+        if (part.kind.equals("engine") && BikeParts.engine(part.id).size() > BikeParts.frame(frame()).maxEngine()) {
+            p.displayClientMessage(Component.literal("That engine doesn't fit this frame. Fit a Long Frame first.").withStyle(ChatFormatting.RED), true);
+            return false;
+        }
+        if (part.kind.equals("frame") && BikeParts.engine(engine()).size() > BikeParts.frame(part.id).maxEngine()) {
+            p.displayClientMessage(Component.literal("The engine wouldn't fit in that frame. Take it out first (fit a smaller one).").withStyle(ChatFormatting.RED), true);
+            return false;
+        }
+        switch (part.kind) {
+            case "engine" -> entityData.set(ENGINE, part.id);
+            case "frame" -> entityData.set(FRAME, part.id);
+            default -> entityData.set(GEARBOX, part.id);
+        }
+        var oldItem = Vehicles.PARTS.get(old);
+        if (!p.isCreative()) held.shrink(1);
+        if (oldItem != null && !p.getInventory().add(new ItemStack(oldItem.get()))) spawnAtLocation(new ItemStack(oldItem.get()));
+        level().playSound(null, blockPosition(), SoundEvents.ANVIL_USE, SoundSource.NEUTRAL, 0.6f, 1.4f);
+        return true;
+    }
+
     @Override
     public InteractionResult interact(Player p, InteractionHand hand) {
         ItemStack held = p.getItemInHand(hand);
-        if (level().isClientSide) return InteractionResult.SUCCESS;
+        if (level().isClientSide) {
+            if (held.getItem() instanceof Workshop.Wrench) Workshop.openClient.accept(this);
+            return InteractionResult.SUCCESS;
+        }
+        // The wrench: the workshop screen (client/vehicle/WorkshopScreen)
+        if (held.getItem() instanceof Workshop.Wrench) return InteractionResult.CONSUME;
         // Fitting a part
-        if (p.isSecondaryUseActive() && held.getItem() instanceof BikePartItem part) {
-            String old = switch (part.kind) {
-                case "engine" -> engine();
-                case "frame" -> frame();
-                default -> gearbox();
-            };
-            if (old.equals(part.id)) return InteractionResult.CONSUME;
-            if (part.kind.equals("engine") && BikeParts.engine(part.id).size() > BikeParts.frame(frame()).maxEngine()) {
-                p.displayClientMessage(Component.literal("That engine doesn't fit this frame. Fit a Long Frame first.").withStyle(ChatFormatting.RED), true);
-                return InteractionResult.CONSUME;
-            }
-            if (part.kind.equals("frame") && BikeParts.engine(engine()).size() > BikeParts.frame(part.id).maxEngine()) {
-                p.displayClientMessage(Component.literal("The engine wouldn't fit in that frame. Take it out first (fit a smaller one).").withStyle(ChatFormatting.RED), true);
-                return InteractionResult.CONSUME;
-            }
-            switch (part.kind) {
-                case "engine" -> entityData.set(ENGINE, part.id);
-                case "frame" -> entityData.set(FRAME, part.id);
-                default -> entityData.set(GEARBOX, part.id);
-            }
-            var oldItem = Vehicles.PARTS.get(old);
-            if (!p.isCreative()) held.shrink(1);
-            if (oldItem != null && !p.getInventory().add(new ItemStack(oldItem.get()))) spawnAtLocation(new ItemStack(oldItem.get()));
-            level().playSound(null, blockPosition(), SoundEvents.ANVIL_USE, SoundSource.NEUTRAL, 0.6f, 1.4f);
+        if (p.isSecondaryUseActive() && held.getItem() instanceof BikePartItem) {
+            fitPart(p, held);
             return InteractionResult.CONSUME;
         }
         // Packing it up

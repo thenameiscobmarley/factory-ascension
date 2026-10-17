@@ -71,6 +71,8 @@ public final class GunRenderer extends BlockEntityWithoutLevelRenderer {
         public static void reload(RegisterClientReloadListenersEvent event) {
             event.registerReloadListener((ResourceManagerReloadListener) rm -> {
                 GunMesh.clear();
+                AttachmentRenderer.clear();
+                dev.factoryascension.client.render.DepthHeights.reloaded();
                 dev.factoryascension.client.render.RealismCamera.free();   // its shaders come from the resources too
             });
         }

@@ -585,3 +585,76 @@ def footstep(rnd, surface):
             add(x, metal_hit(rnd, 1.6, 0.7, 0.15), at, 0.5 * k)
     y = convolve(norm(x), ir_room(rnd, 0.15, 0.05, 0.15))
     return trim_tail(norm(y, 0.6))
+
+
+# ---- The night hunter ----
+def hunter_click(rnd):
+    """Rapid, resonant clicking: a run of hard little ticks through a hollow body, then a pause, then a few more."""
+    x = zeros(1.3)
+    t = 0.0
+    for burst in range(rnd.randint(2, 3)):
+        for k in range(rnd.randint(6, 14)):
+            tick = decay_env(hp(white(0.01, rnd), 1200), 0.0001, 0.0012)
+            body = modes(rnd, 0.03, [(rnd.uniform(700, 900), 0.008, 1.0), (rnd.uniform(1700, 2100), 0.005, 0.5)], 0.0003)
+            add(x, tick, t, 1.0)
+            add(x, body, t, 0.6)
+            t += rnd.uniform(0.018, 0.034)
+        t += rnd.uniform(0.15, 0.3)
+    y = convolve(norm(x), ir_outdoor(rnd, 1.0, 0.8, 0.3, 0.004, 6, 0.2, 0.4))
+    return trim_tail(norm(y, 0.7))
+
+
+def hunter_whisper(rnd):
+    """Something breathing words that aren't words: noise through shifting mouth shapes (formants), very close."""
+    sec = 1.6
+    n = int(sec * SR)
+    out = [0.0] * n
+    base = white(sec, rnd)
+    sylls = rnd.randint(3, 6)
+    for s in range(sylls):
+        t0 = s * sec / sylls + rnd.uniform(0, 0.05)
+        dur = sec / sylls * rnd.uniform(0.5, 0.85)
+        f1, f2 = rnd.uniform(400, 900), rnd.uniform(1100, 2600)
+        seg = base[int(t0 * SR):int((t0 + dur) * SR)]
+        if not seg:
+            continue
+        v = [a + b for a, b in zip(bp(seg, f1, 4), bp(seg, f2, 5))]
+        v = [x * math.sin(math.pi * i / len(v)) ** 1.5 for i, x in enumerate(v)]
+        add(out, v, t0, 1.0)
+    return trim_tail(norm(hp(out, 300), 0.6))
+
+
+def hunter_shriek(rnd):
+    """A screech: a rasping cry falling in pitch, breaking up, with the dark answering."""
+    sec = 1.1
+    n = int(sec * SR)
+    out = []
+    ph = 0.0
+    f0 = rnd.uniform(1600, 2200)
+    for i in range(n):
+        t = i / n
+        f = f0 * (1 - 0.55 * t) * (1 + 0.04 * math.sin(2 * math.pi * 23 * i / SR))
+        ph += 2 * math.pi * f / SR
+        rasp = math.sin(ph) + 0.6 * math.sin(2.01 * ph) + 0.35 * math.sin(3.02 * ph)
+        out.append(math.tanh(rasp * 2.5) * math.sin(math.pi * min(1, t * 6)) * (1 - t) ** 0.6)
+    noise_part = decay_env(bp(white(sec, rnd), 2400, 1.2), 0.01, 0.35)
+    out = [a + b * 0.5 for a, b in zip(out, noise_part)]
+    y = convolve(norm(out), ir_outdoor(rnd, 2.0, 1.5, 0.4, 0.005, 10, 0.4, 0.6))
+    return trim_tail(norm(y, 0.9), fade=0.2)
+
+
+def ricochet(rnd):
+    """A round glancing off steel: a sharp ping, then the whine of it tumbling away."""
+    x = zeros(0.6)
+    add(x, metal_hit(rnd, 0.5, 1.5, 0.08), 0, 0.9)
+    n = int(0.45 * SR)
+    ph = 0.0
+    f0 = rnd.uniform(2600, 3600)
+    whine = []
+    for i in range(n):
+        u = i / n
+        ph += 2 * math.pi * f0 * (1 - 0.5 * u) / SR
+        whine.append(math.sin(ph) * math.sin(math.pi * min(1, u * 8)) * (1 - u) ** 1.2)
+    add(x, whine, 0.01, 0.5)
+    y = convolve(norm(x), ir_outdoor(rnd, 1.0, 0.7, 0.2, 0.003, 6, 0.2, 0.35))
+    return trim_tail(norm(y, 0.8))

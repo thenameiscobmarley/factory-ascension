@@ -234,7 +234,8 @@ def main(only):
     for x in range(3, 13, 2):
         att_px[7][x] = (110, 110, 110, 255)
     T.png(os.path.join(ASSETS, "textures", "item", "attachment.png"), [[att_px[y // 2][x // 2] for x in range(32)] for y in range(32)])
-    write_json(os.path.join(ASSETS, "models", "item", "attachment.json"), {"parent": "minecraft:item/generated", "textures": {"layer0": NS + ":item/attachment"}})
+    # Drawn by client/gun/AttachmentRenderer (the attachment's own 3D model, fitted to the slot)
+    write_json(os.path.join(ASSETS, "models", "item", "attachment.json"), {"parent": "builtin/entity", "textures": {"particle": "factoryascension:item/attachment"}, "gui_light": "front", "display": {"gui": {"rotation": [25, -135, 0], "translation": [0, 0, 0], "scale": [0.9, 0.9, 0.9]}, "fixed": {"rotation": [0, 90, 0], "translation": [0, 0, 0], "scale": [0.8, 0.8, 0.8]}, "ground": {"rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [0.5, 0.5, 0.5]}, "thirdperson_righthand": {"rotation": [0, 90, 0], "translation": [0, 2, 1], "scale": [0.55, 0.55, 0.55]}, "thirdperson_lefthand": {"rotation": [0, 90, 0], "translation": [0, 2, 1], "scale": [0.55, 0.55, 0.55]}, "firstperson_righthand": {"rotation": [0, -80, 0], "translation": [1, 3, 0], "scale": [0.7, 0.7, 0.7]}, "firstperson_lefthand": {"rotation": [0, -80, 0], "translation": [1, 3, 0], "scale": [0.7, 0.7, 0.7]}}})
     # Attachment shapes
     for name in attach.SHAPES:
         am = attach.build(name)

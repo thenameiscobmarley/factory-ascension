@@ -5,6 +5,9 @@
 // block's own sprite, so there are no outlines and no bowl: faces are as flat as the texture says, edge to edge. The relief is lit (a sun-like light from above, plus a highlight that moves with your
 // view), so you can see the depth even face-on. Mobs get the lit relief only (their textures are made of many small
 // islands; shifting them would bleed one into the next).
+// Real heights: client/render/DepthHeights writes each solid block texture's own height map into its alpha (1 = the
+// surface, 0.75 = the deepest), knowing what the block is (boards, bricks, stones, ore, grass, a table...). A texture
+// it hasn't done (still exactly opaque) falls back to the darkness guess above.
 // DepthShaders puts the settings in front of this file: FA_SMOOTH (0..1), FA_DEPTH (0..2), FA_MIPS (the atlas' mip levels).
 #ifndef FA_SMOOTH
 #define FA_SMOOTH 0.5
@@ -24,6 +27,7 @@ float faLum(vec3 c) {
 
 float faTexel(sampler2D tex, ivec2 p, ivec2 lo, ivec2 hi, int lod, float avg) {
     vec4 c = texelFetch(tex, clamp(p, lo, hi), lod);
+    if (avg < 0.0) return clamp((1.0 - c.a) * 4.0, 0.0, 1.0);   // a real height map (avg < 0 marks it)
     // The texture's average sits just under the surface; only what's darker than that sinks (mortar, cracks, gaps)
     return clamp(0.1 + (avg - faLum(c.rgb)) * 2.4, 0.0, 1.0);
 }
@@ -103,7 +107,8 @@ void faBlock(sampler2D tex, vec2 uv, vec3 p, vec3 dp1, vec3 dp2, vec2 duv1, vec2
     vec2 spr = exp2(floor(log2(vec2(length(gu), length(gv)) * size) + 0.5)) / size;
     vec2 org = floor(uv / spr) * spr;
     vec2 texel = 1.0 / size;
-    float avg = faLum(textureLod(tex, org + spr * 0.5, float(FA_MIPS)).rgb);
+    vec4 avgC = textureLod(tex, org + spr * 0.5, float(FA_MIPS));
+    float avg = avgC.a < 0.999 ? -1.0 : faLum(avgC.rgb);   // a height map in its alpha, or guess from darkness
     float cosT = max(0.2, -dot(v, n));
     vec3 lateral = v + n * cosT;
     float depthWorld = maxDepth * FA_DEPTH * fade;

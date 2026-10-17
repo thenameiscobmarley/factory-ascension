@@ -61,6 +61,7 @@ public final class Operators {
     }
 
     public static void register(IEventBus modBus) {
+        NightHunters.register(modBus);
         ENTITIES.register(modBus);
         modBus.addListener(Operators::attributes);
         Hearing.listen(Operators::heard);
@@ -112,6 +113,14 @@ public final class Operators {
             LivingEntity le = shooter instanceof LivingEntity l ? l : null;
             o.raiseAlert(!ally && le != null && d < 28 && o.hasLineOfSight(le) ? le : null, false);
         }
+    }
+
+    /** A squad of hunters sent after someone at `at` (`n` of them, from 64-94 blocks away). */
+    public static void hunters(ServerLevel level, Vec3 at, int n) {
+        RandomSource r = level.getRandom();
+        double a = r.nextDouble() * Math.PI * 2;
+        double dist = 64 + r.nextDouble() * 30;
+        squad(level, at.x + Math.cos(a) * dist, at.z + Math.sin(a) * dist, OpType.HUNTER, n, at);
     }
 
     // ---- A flare: everyone near comes to see, and out in the zones, hunters are sent ----

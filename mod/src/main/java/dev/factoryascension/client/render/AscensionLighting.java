@@ -82,6 +82,13 @@ public final class AscensionLighting {
             } catch (Throwable err) {
                 LOG.error("Ascension Lighting shaders failed to load; the effect stays off", err);
             }
+            // Breaking chunks' shader (its own failure only turns that off)
+            try {
+                event.registerShader(new ShaderInstance(event.getResourceProvider(), new ResourceLocation(FactoryAscension.MODID, "fa_break"),
+                    DefaultVertexFormat.BLOCK), BreakChunks::setShader);
+            } catch (Throwable err) {
+                LOG.error("Breaking chunks shader failed to load; that effect stays off", err);
+            }
         }
 
         private static ShaderInstance load(RegisterShadersEvent event, String name) throws java.io.IOException {
@@ -187,6 +194,27 @@ public final class AscensionLighting {
         gi.safeGetUniform("SunDir").set(sunView.x, sunView.y, sunView.z);
         gi.safeGetUniform("SunLight").set(shadows ? sunWorld[2] * skyOpen * (1 - rain * 0.8f) * Math.min(1.5f, strength) : 0f);
         gi.safeGetUniform("ShadowSteps").set(quality == 1 ? 10 : quality == 2 ? 18 : 32);
+        // World-space sun shadows: the grid of blocks around you (refilled a few slices a frame)
+        boolean vox = false;
+        if (shadows) {
+            try {
+                VoxelShadow.update(quality == 1 ? 2 : quality == 2 ? 3 : 4);
+                vox = VoxelShadow.texture() >= 0;
+            } catch (Throwable err) {
+                org.slf4j.LoggerFactory.getLogger("Factory Ascension").warn("Voxel shadows failed; screen-space only", err);
+            }
+        }
+        gi.safeGetUniform("VoxReady").set(vox ? 1f : 0f);
+        if (vox) {
+            gi.setSampler("VoxelSampler", VoxelShadow.texture());
+            Matrix4f toWorld = new Matrix4f(view).invert();
+            gi.safeGetUniform("ViewToWorld").set(toWorld);
+            var cp = cam.getPosition();
+            gi.safeGetUniform("CamMod").set((float) Math.floorMod((long) Math.floor(cp.x), VoxelShadow.SX) + (float) (cp.x - Math.floor(cp.x)),
+                (float) Math.floorMod((long) Math.floor(cp.y), VoxelShadow.SY) + (float) (cp.y - Math.floor(cp.y)),
+                (float) Math.floorMod((long) Math.floor(cp.z), VoxelShadow.SZ) + (float) (cp.z - Math.floor(cp.z)));
+            gi.safeGetUniform("SunWorld").set(sunWorld[0], sunWorld[1], 0f);
+        } else gi.setSampler("VoxelSampler", main.getDepthTextureId());
         gi.setSampler("DepthSampler", main.getDepthTextureId());
         gi.safeGetUniform("InvProjMat").set(invProj);
         gi.safeGetUniform("OutSize").set((float) hw, (float) hh);
@@ -296,6 +324,9 @@ public final class AscensionLighting {
         if (sunVis > 0 && main.getDepthTextureId() > 0) sunVis *= sunOpen(sun[0], sun[1]);
         composite.safeGetUniform("SunScreen").set(sun[0], sun[1], sunVis);
         composite.safeGetUniform("Aspect").set((float) main.width / Math.max(1, main.height));
+        // Darker nights, out under the sky (the moon's strength is small; the sun's is 0 at night)
+        float nightK = mc.level != null && mc.level.dimensionType().hasSkyLight() ? Mth.clamp(1 - mc.level.getSkyDarken(event.getPartialTick()) * 1.0f, 0, 1) : 0;
+        composite.safeGetUniform("Night").set(dev.factoryascension.FAConfig.nightDarkness * Mth.clamp((float) (1 - sunWorld[2]) * skyOpen * (mc.level != null && mc.level.isNight() ? 1 : 0), 0, 1));
         composite.safeGetUniform("RaysOn").set(raysOn ? 1f : 0f);
         composite.safeGetUniform("Mode").set(4);
         pass(composite, sceneTarget);

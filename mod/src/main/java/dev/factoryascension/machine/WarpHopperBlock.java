@@ -35,8 +35,8 @@ public class WarpHopperBlock extends Block implements EntityBlock {
             be.setKey(held.getItem());
             player.displayClientMessage(Component.literal("Warp Hopper keyed to ").append(held.getHoverName())
                 .append(": it sends to every Warp Hopper with the same key (" + be.peers() + " found)"), true);
-        } else {
-            player.displayClientMessage(be.status(), true);
+        } else if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            dev.factoryascension.network.FANetwork.MachineInfo.send(sp, pos);
         }
         return InteractionResult.SUCCESS;
     }

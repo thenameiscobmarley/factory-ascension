@@ -138,7 +138,10 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.tab")) step = 760;
                     if (Boolean.getBoolean("fa.enemies")) step = 780;
                     if (Boolean.getBoolean("fa.aaa")) step = 800;
-                    if (Boolean.getBoolean("fa.inv")) step = 820;      // only: drag and drop in the inventory      // only: the cinematic look, haze, sun, aim depth of field, structure spacing  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
+                    if (Boolean.getBoolean("fa.inv")) step = 820;
+                    if (Boolean.getBoolean("fa.v26")) step = 850;
+                    if (Boolean.getBoolean("fa.fixes")) step = 867;
+                    if (Boolean.getBoolean("fa.chunks")) step = 875;     // only: helmets, thermal, fog, darker nights, the night hunter, raids, traders, workshop, quad and truck      // only: drag and drop in the inventory      // only: the cinematic look, haze, sun, aim depth of field, structure spacing  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -543,6 +546,116 @@ public final class DevShots {
                 }
                 case 15 -> { log("after turning lighting off, targets held " + AscensionLighting.targetsHeld() + "; safe mode " + FAClientConfig.SAFE_MODE.get());
                     AscensionLighting.free(); log("freed: targets held " + AscensionLighting.targetsHeld()); wait = 10; }
+                // v26: vehicles, the truck's gun, helmets, body bag, thermal, fog, the night hunter, raids, traders, workshop
+                case 850 -> { cmd(mc, "gamemode creative @a"); cmd(mc, "time set 6000"); cmd(mc, "weather clear"); cmd(mc, "clear @a");
+                    FAClientConfig.LIGHTING.set(3); FAClientConfig.REALISM.set(false);
+                    cmd(mc, "fill -30 -61 -10 30 -50 25 air"); cmd(mc, "fill -30 -61 26 30 -50 60 air");
+                    cmd(mc, "fill -30 -61 -10 30 -61 60 grass_block");
+                    cmd(mc, "summon factoryascension:pickup_truck 0 -60 10 {Rotation:[150f,0f],Car:{Model:1,Fuel:80f,Ammo:200,Colour:7043407}}");
+                    cmd(mc, "summon factoryascension:quad_bike 6 -60 6 {Rotation:[200f,0f],Car:{Model:0,Fuel:80f,Colour:13145600}}");
+                    cmd(mc, "summon factoryascension:dirt_bike -5 -60 5 {Rotation:[120f,0f]}");
+                    cmd(mc, "summon factoryascension:body_bag -3 -60 2 {Owner:\"Dev\"}");
+                    cmd(mc, "summon armor_stand -2 -60 14 {ShowArms:1b,Rotation:[180f,0f],ArmorItems:[{},{},{},{id:\"factoryascension:steel_helmet\",Count:1b}]}");
+                    cmd(mc, "summon armor_stand -3.2 -60 14 {ShowArms:1b,Rotation:[180f,0f],ArmorItems:[{},{},{},{id:\"factoryascension:pasgt_helmet\",Count:1b}]}");
+                    cmd(mc, "summon armor_stand -4.4 -60 14 {ShowArms:1b,Rotation:[180f,0f],ArmorItems:[{},{},{},{id:\"factoryascension:fast_helmet\",Count:1b}]}");
+                    cmd(mc, "summon armor_stand -5.6 -60 14 {ShowArms:1b,Rotation:[180f,0f],ArmorItems:[{},{},{},{id:\"factoryascension:altyn_helmet\",Count:1b}]}");
+                    cmd(mc, "tp @a 7 -58.2 -1 30 14"); wait = 120; }
+                case 851 -> { shot(mc, "v26_vehicles"); cmd(mc, "tp @a -3.8 -58.4 11 0 15"); wait = 40; }
+                case 852 -> { shot(mc, "v26_helmets"); cmd(mc, "tp @a 0.5 -58 4 0 6"); wait = 30; }
+                case 853 -> {   // onto the truck's gun
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        var cars = p.serverLevel().getEntitiesOfClass(dev.factoryascension.vehicle.Car.class, p.getBoundingBox().inflate(20), c -> c.hasGun());
+                        if (!cars.isEmpty() && p.startRiding(cars.get(0), true)) cars.get(0).setGunner(p);
+                    });
+                    cmd(mc, "summon zombie -10 -60 30 {NoAI:1b,PersistenceRequired:1b}"); wait = 40; }
+                case 854 -> { mc.player.setYRot(160); mc.player.setXRot(4); wait = 10; }
+                case 855 -> {
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        if (p.getVehicle() instanceof dev.factoryascension.vehicle.Car c) { c.fire(p); log("truck gun: belt " + c.ammo() + ", gunner " + (c.gunner() == p)); }
+                    });
+                    wait = 3; }
+                case 856 -> { shot(mc, "v26_truck_gunner"); mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK); wait = 20; }
+                case 857 -> { shot(mc, "v26_truck_gunner_3rd"); mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); cmd(mc, "ride @a dismount");
+                    cmd(mc, "tp @a 0 -60 -8 0 0"); cmd(mc, "item replace entity @a armor.head with factoryascension:thermal_goggles{Down:1b}");
+                    cmd(mc, "summon pig 1 -60 -1 {NoAI:1b}"); cmd(mc, "summon factoryascension:raider -2 -60 2 {NoAI:1b}"); cmd(mc, "summon zombie 3 -60 3 {NoAI:1b}");
+                    cmd(mc, "setblock 5 -60 4 campfire"); wait = 60; }
+                case 858 -> { log("thermal mode " + ThermalClient.mode()); shot(mc, "v26_thermal_goggles"); cmd(mc, "item replace entity @a armor.head with air");
+                    dev.factoryascension.world.Weather.force(0.95f, 5); wait = 200; }
+                case 859 -> { log("fog " + dev.factoryascension.world.Weather.fog); shot(mc, "v26_fog_bank"); dev.factoryascension.world.Weather.force(0, 0);
+                    cmd(mc, "time set 18000"); cmd(mc, "kill @e[type=!player,type=!factoryascension:pickup_truck,type=!factoryascension:quad_bike,type=!factoryascension:dirt_bike]");
+                    cmd(mc, "summon factoryascension:night_hunter 1 -60 4 {NoAI:1b,Rotation:[180f,0f]}"); cmd(mc, "setblock -6 -60 6 lantern"); wait = 120; }
+                case 860 -> { shot(mc, "v26_night_hunter_dark_night"); cmd(mc, "time set 6000"); cmd(mc, "kill @e[type=factoryascension:night_hunter]");
+                    cmd(mc, "summon factoryascension:trader 0 -60 3 {Kind:0,Rotation:[180f,0f],CustomName:'\"Volkov, Quartermaster\"'}");
+                    cmd(mc, "give @a factoryascension:cash_bundle 20"); cmd(mc, "give @a factoryascension:dog_tag 3"); cmd(mc, "give @a factoryascension:mp5"); wait = 40; }
+                case 861 -> {
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        dev.factoryascension.raid.Traders.addRubles(p, 48500);
+                        var t = p.serverLevel().getEntitiesOfClass(dev.factoryascension.raid.Trader.class, p.getBoundingBox().inflate(20));
+                        if (!t.isEmpty()) dev.factoryascension.raid.Traders.open(p, t.get(0));
+                    });
+                    wait = 40; }
+                case 862 -> { shot(mc, "v26_trader_buy"); TraderScreen.devTab = 1; wait = 10; }
+                case 863 -> { shot(mc, "v26_trader_sell"); TraderScreen.devTab = 2; wait = 10; }
+                case 864 -> { shot(mc, "v26_trader_tasks"); mc.setScreen(null); cmd(mc, "give @a factoryascension:engine_450"); cmd(mc, "give @a factoryascension:frame_long");
+                    cmd(mc, "give @a factoryascension:gearbox_race"); cmd(mc, "give @a factoryascension:engine_v12"); wait = 20; }
+                case 865 -> { cmd(mc, "tp @a -3 -60 3 -60 30"); step = 885; wait = 10; }
+                case 885 -> { step = 866; var bikes = mc.level.getEntitiesOfClass(dev.factoryascension.vehicle.DirtBike.class, mc.player.getBoundingBox().inflate(30));
+                    if (!bikes.isEmpty()) mc.setScreen(new dev.factoryascension.client.vehicle.WorkshopScreen(bikes.get(0))); wait = 30; }
+                case 866 -> { shot(mc, "v26_workshop"); mc.setScreen(null); cmd(mc, "gamemode survival @a");
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> dev.factoryascension.raid.Extraction.start(sp.getPlayerList().getPlayers().get(0)));
+                    wait = 60; }
+                case 867 -> { shot(mc, "v26_raid_hud"); cmd(mc, "gamemode creative @a"); cmd(mc, "clear @a");
+                    cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:m4a1"); cmd(mc, "tp @a 0 -60 -4 0 0"); wait = 30; }
+                // Fixes: the crosshair (hip, and none down the sights), inventory, settings button, attachments, held light,
+                // depth, shadows from two sides, breaking chunks
+                case 868 -> { shot(mc, "fix_crosshair_hip"); dev.factoryascension.client.gun.GunAnim.devAim = true; mc.options.keyUse.setDown(true); wait = 30; }
+                case 869 -> { shot(mc, "fix_crosshair_ads"); mc.options.keyUse.setDown(false); dev.factoryascension.client.gun.GunAnim.devAim = false;
+                    cmd(mc, "give @a factoryascension:attachment{Att:\"red_dot\"}"); cmd(mc, "give @a factoryascension:attachment{Att:\"thermal_scope\"}");
+                    cmd(mc, "give @a factoryascension:attachment{Att:\"sniper_scope\"}"); cmd(mc, "give @a iron_ingot 7");
+                    mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); wait = 30; }
+                case 870 -> { shot(mc, "fix_inventory_attachments"); mc.setScreen(new net.minecraft.client.gui.screens.PauseScreen(true)); wait = 20; }
+                case 871 -> { shot(mc, "fix_pause_button"); mc.setScreen(null); cmd(mc, "setblock 2 -60 0 factoryascension:weapons_workbench");
+                    cmd(mc, "tp @a 2.5 -60 -1.5 0 40"); wait = 20; }
+                case 872 -> { var hit = new net.minecraft.world.phys.BlockHitResult(new net.minecraft.world.phys.Vec3(2.5, -59, 0.5), net.minecraft.core.Direction.UP, new net.minecraft.core.BlockPos(2, -60, 0), false);
+                    mc.gameMode.useItemOn(mc.player, net.minecraft.world.InteractionHand.MAIN_HAND, hit); wait = 30; }
+                case 873 -> { shot(mc, "fix_bench_cost"); mc.setScreen(null); cmd(mc, "setblock 2 -60 0 air"); cmd(mc, "time set 18000");
+                    cmd(mc, "item replace entity @a weapon.offhand with torch"); cmd(mc, "item replace entity @a weapon.mainhand with air"); cmd(mc, "tp @a -20 -60 45 0 35"); wait = 80; }
+                case 874 -> { shot(mc, "fix_held_torch_night"); cmd(mc, "item replace entity @a weapon.offhand with air"); wait = 40; }
+                case 875 -> { shot(mc, "fix_no_torch_night"); cmd(mc, "time set 6000");
+                    String[] blocks = {"crafting_table", "grass_block", "bricks", "oak_planks", "cobblestone", "diamond_ore", "stone_bricks", "oak_log"};
+                    for (int i = 0; i < blocks.length; i++) cmd(mc, "setblock " + (-4 + i) + " -60 -8 " + blocks[i]);
+                    cmd(mc, "tp @a 0 -59 -5.5 180 38"); log("depth heights: " + dev.factoryascension.client.render.DepthHeights.lastCount + " textures"); wait = 40; }
+                case 876 -> { shot(mc, "fix_depth_blocks"); cmd(mc, "tp @a -3.5 -59.2 -6.6 160 55"); wait = 30; }
+                case 877 -> { shot(mc, "fix_depth_closeup_table_grass");
+                    // The Chem Lab's screen and a machine panel
+                    cmd(mc, "give @a factoryascension:cannabis_leaf 5"); cmd(mc, "give @a minecraft:paper 3");
+                    cmd(mc, "setblock 3 -60 -8 factoryascension:chem_lab"); cmd(mc, "setblock 5 -60 -8 factoryascension:warp_hopper");
+                    dev.factoryascension.client.render.BreakChunks.devHold = true;
+                    dev.factoryascension.client.render.BreakChunks.devSet(new net.minecraft.core.BlockPos(-2, -60, -8), 0.35f);
+                    dev.factoryascension.client.render.BreakChunks.devSet(new net.minecraft.core.BlockPos(-1, -60, -8), 0.7f);
+                    dev.factoryascension.client.render.BreakChunks.devSet(new net.minecraft.core.BlockPos(0, -60, -8), 1.0f);
+                    cmd(mc, "tp @a -0.5 -59 -5.8 180 30"); wait = 20; }
+                case 886 -> { step = 878; wait = 20; }
+                case 878 -> { log("break chunks: " + dev.factoryascension.client.render.BreakChunks.drawn + " faces drawn (" + dev.factoryascension.client.render.BreakChunks.why + ")"); shot(mc, "fix_break_chunks"); dev.factoryascension.client.render.BreakChunks.devHold = false;
+                    dev.factoryascension.client.ChemLabScreen.open(new net.minecraft.core.BlockPos(3, -60, -8)); step = 887; wait = 20; }
+                case 887 -> { shot(mc, "ui_chem_lab"); mc.setScreen(null);
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> dev.factoryascension.network.FANetwork.MachineInfo.send(sp.getPlayerList().getPlayers().get(0), new net.minecraft.core.BlockPos(5, -60, -8)));
+                    wait = 20; }
+                case 888 -> { shot(mc, "ui_warp_hopper_panel"); mc.setScreen(null); step = 879; wait = 10; }
+                case 879 -> { shot(mc, "fix_break_chunks_regrowing"); cmd(mc, "time set 3500");
+                    cmd(mc, "fill -3 -56 30 3 -56 36 stone"); cmd(mc, "fill 0 -60 33 0 -57 33 oak_log"); cmd(mc, "fill 6 -60 38 6 -54 38 oak_log");
+                    cmd(mc, "fill 5 -54 37 7 -53 39 oak_leaves"); cmd(mc, "tp @a -8 -58 22 30 25"); wait = 140; }
+                case 880 -> { shot(mc, "fix_shadows_view_a"); cmd(mc, "tp @a -8 -58 22 60 30"); wait = 60; }
+                case 881 -> { shot(mc, "fix_shadows_view_b"); cmd(mc, "tp @a -8 -58 22 0 20"); wait = 60; }
+                case 882 -> { shot(mc, "fix_shadows_view_c"); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
                 case 16 -> { log("done"); mc.stop(); }
                 default -> { }
             }

@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * with the same key, at any distance and in any dimension (as long as that one is loaded). It takes the turn in order,
  * so several receivers share the load. If no receiver has room, it accepts nothing (the hopper feeding it just waits).
  */
-public class WarpHopperBlockEntity extends BlockEntity {
+public class WarpHopperBlockEntity extends BlockEntity implements KineticMachineBlock.Status {
     private static final Set<WarpHopperBlockEntity> LOADED = ConcurrentHashMap.newKeySet();
     private String key = "";
     private int turn = 0;
@@ -67,6 +67,18 @@ public class WarpHopperBlockEntity extends BlockEntity {
         return be == null || be instanceof WarpHopperBlockEntity ? null : be.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).orElse(null);
     }
 
+    @Override
+    public java.util.List<String[]> info() {
+        ResourceLocation id = ResourceLocation.tryParse(key);
+        Item item = key.isEmpty() || id == null ? null : BuiltInRegistries.ITEM.get(id);
+        return java.util.List.of(
+            new String[] {"Key", key.isEmpty() ? "None: right-click it with any item" : item == null ? key : new ItemStack(item).getHoverName().getString(), key.isEmpty() ? "bad" : "ok"},
+            new String[] {"Linked", peers() + " other Warp Hopper" + (peers() == 1 ? "" : "s") + " with this key", peers() > 0 ? "ok" : "bad"},
+            new String[] {"Sent", sent + " items", ""},
+            new String[] {"How", "Items put in go to the next linked hopper with room under it", ""});
+    }
+
+    @Override
     public Component status() {
         if (key.isEmpty()) return Component.literal("Warp Hopper: not keyed. Right-click it with any item to key it.");
         ResourceLocation id = ResourceLocation.tryParse(key);

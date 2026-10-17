@@ -97,6 +97,21 @@ public class QuarryBlockEntity extends KineticBlockEntity implements KineticMach
     }
 
     @Override
+    public java.util.List<String[]> info() {
+        float rpm = Math.abs(getSpeed());
+        boolean slow = rpm < FAConfig.quarryMinRpm;
+        return java.util.List.of(
+            new String[] {"State", done ? "Finished" : slow ? "Stopped: too slow" : isOverStressed() ? "Stopped: overstressed" : !out.hasRoom() ? "Stopped: output full" : "Mining",
+                done || slow || isOverStressed() || !out.hasRoom() ? "bad" : "ok"},
+            new String[] {"Speed", Math.round(rpm) + " RPM (needs " + (int) FAConfig.quarryMinRpm + ")", slow ? "bad" : "ok"},
+            new String[] {"Stress", (int) FAConfig.quarryStress + " SU" + (isOverStressed() ? ", the network can't carry it" : ""), isOverStressed() ? "bad" : ""},
+            new String[] {"Layer", "y = " + (layer == Integer.MIN_VALUE ? worldPosition.getY() - 1 : layer), ""},
+            new String[] {"Area", (FAConfig.quarryRadius * 2 + 1) + " x " + (FAConfig.quarryRadius * 2 + 1) + " blocks", ""},
+            new String[] {"Mined", String.valueOf(mined), ""},
+            new String[] {"Output", out.hasRoom() ? "Into the chest on top" : "Full: put a chest on top", out.hasRoom() ? "ok" : "bad"});
+    }
+
+    @Override
     public float calculateStressApplied() {
         lastStressApplied = FAConfig.quarryStress;
         return FAConfig.quarryStress;

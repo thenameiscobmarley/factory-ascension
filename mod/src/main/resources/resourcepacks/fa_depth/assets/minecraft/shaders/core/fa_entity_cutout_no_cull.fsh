@@ -24,6 +24,7 @@ void main() {
     vec2 duv1 = dFdx(texCoord0), duv2 = dFdy(texCoord0);
     vec4 color = texture(Sampler0, texCoord0);
     float shade = 1.0, spec = 0.0;
+    if (color.a > 0.74) color.a = 1.0;   // block textures carry their height in alpha
     if (faPerspective > 0.5 && color.a > 0.99) faEntity(Sampler0, texCoord0, faPos, dp1, dp2, duv1, duv2, shade, spec);
     if (color.a < 0.1) {
         discard;

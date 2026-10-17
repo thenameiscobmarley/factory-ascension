@@ -100,6 +100,20 @@ public class GrinderBlockEntity extends KineticBlockEntity implements KineticMac
     }
 
     @Override
+    public java.util.List<String[]> info() {
+        float rpm = Math.abs(getSpeed());
+        boolean slow = rpm < FAConfig.grinderMinRpm;
+        return java.util.List.of(
+            new String[] {"State", slow ? "Stopped: too slow" : isOverStressed() ? "Stopped: overstressed" : !out.hasRoom() ? "Stopped: output full" : "Grinding",
+                slow || isOverStressed() || !out.hasRoom() ? "bad" : "ok"},
+            new String[] {"Speed", Math.round(rpm) + " RPM (needs " + (int) FAConfig.grinderMinRpm + ")", slow ? "bad" : "ok"},
+            new String[] {"Damage", Math.round(FAConfig.grinderDamagePerRpm * rpm) + " a hit, every " + FAConfig.grinderInterval + " ticks", ""},
+            new String[] {"Reach", FAConfig.grinderReach + " blocks", ""},
+            new String[] {"Mobs ground", String.valueOf(kills), ""},
+            new String[] {"Output", out.hasRoom() ? "Into the chest under it" : "Full: put a chest under it", out.hasRoom() ? "ok" : "bad"});
+    }
+
+    @Override
     public float calculateStressApplied() {
         lastStressApplied = FAConfig.grinderStress;
         return FAConfig.grinderStress;

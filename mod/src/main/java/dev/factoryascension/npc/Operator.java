@@ -107,6 +107,13 @@ public class Operator extends Monster {
     int seenTicks = 0, unseenTicks = 0, healCooldown = 0, dazzled = 0;
     /** Shots at its current target so far: the first few walk onto you (whiffs), then it's on. */
     int shotsAtTarget = 0;
+    /** Under fire (rounds going past it): ticks left; it shoots worse meanwhile. */
+    public int suppressed = 0;
+
+    public void suppress() {
+        if (suppressed == 0 && getRandom().nextFloat() < 0.4f) bark(false);
+        suppressed = Math.min(120, suppressed + 30);
+    }
     @Nullable LivingEntity lastShotAt;
 
     /** Blinded (a 20,000 lumen light, a flashbang): it can barely see and can't aim. */
@@ -302,6 +309,7 @@ public class Operator extends Monster {
         GunStats ls = GunStats.of(e.getMainHandItem());
         if (ls != null && ls.light) light = 15;
         if (light < 6 && !type.has(OpType.Trait.NVG)) range = Math.min(range, (alertLevel() == 2 ? 22 : 14) + light * 2);
+        range = Math.min(range, dev.factoryascension.world.Weather.sight());     // fog: nobody sees far
         if (e.isCrouching()) range *= 0.6;
         if (e.hasEffect(net.minecraft.world.effect.MobEffects.INVISIBILITY)) range *= 0.25;
         return d <= range;
@@ -355,6 +363,14 @@ public class Operator extends Monster {
             plateFront = 1;
             plateBack = r.nextFloat() < 0.7f ? 1 : 0;
         }
+        // A helmet, by how well armored the kind is (it drops now and then)
+        var hk = dev.factoryascension.armor.HelmetItem.Kind.values();
+        dev.factoryascension.armor.HelmetItem.Kind helm = type == OpType.JUGGERNAUT ? hk[3] : type.armorTier >= 3 ? hk[2]
+            : type.armorTier >= 2 ? (r.nextBoolean() ? hk[1] : hk[2]) : type.armorTier >= 1 && r.nextFloat() < 0.6f ? hk[r.nextInt(2)] : r.nextFloat() < 0.25f ? hk[0] : null;
+        if (helm != null) {
+            setItemSlot(EquipmentSlot.HEAD, new ItemStack(FactoryAscension.HELMETS.get(helm).get()));
+            setDropChance(EquipmentSlot.HEAD, 0.25f);
+        }
         grenades = type.has(OpType.Trait.GRENADES) ? 1 + r.nextInt(type.has(OpType.Trait.LOBBER) ? 4 : 2) : 0;
         bandages = 1 + r.nextInt(type.has(OpType.Trait.MEDIC) ? 6 : 2);
         if (!hasCustomName()) setCustomName(Component.literal(Names.make(type, r)));
@@ -405,6 +421,8 @@ public class Operator extends Monster {
             double miss = c.distanceTo(e);
             if (miss > 3.0 || t >= 0.999) continue;
             float vol = (float) (1.2 - miss * 0.3);
+            dev.factoryascension.network.FANetwork.CHANNEL.send(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> sp),
+                new dev.factoryascension.network.FANetwork.Suppress((float) Math.max(0.2, 1 - miss / 3)));
             sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
                 net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.wrapAsHolder((slow ? dev.factoryascension.FASounds.WHIZ : dev.factoryascension.FASounds.CRACK).get()),
                 net.minecraft.sounds.SoundSource.HOSTILE, c.x, c.y, c.z, vol, 0.9f + getRandom().nextFloat() * 0.25f, getRandom().nextLong()));
@@ -431,7 +449,8 @@ public class Operator extends Monster {
         }
         shotsAtTarget++;
         float walkIn = Math.max(0, 4 - shotsAtTarget) * 1.1f;
-        float flinch = hurtTime > 0 ? 1.6f : 1;
+        float flinch = (hurtTime > 0 ? 1.6f : 1) * (1 + suppressed / 80f);
+        if (suppressed > 0) suppressed--;
         float small = intended != null && intended.isCrouching() && intended.distanceToSqr(this) > 20 * 20 ? 1.3f : 1;
         double spreadDeg = ((st.spreadHip * 0.45 + 0.6) * type.spread * moving * settle * FAConfig.npcSpread + targetMove + extraSpread + walkIn) * flinch * small
             + (dazzled > 0 ? 12 : 0);
@@ -660,6 +679,9 @@ public class Operator extends Monster {
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean hit) {
         super.dropCustomDeathLoot(source, looting, hit);
         RandomSource r = getRandom();
+        // Cash for the traders: the better kitted, the more they carried
+        if (r.nextFloat() < FAConfig.npcCashChance)
+            spawnAtLocation(new ItemStack(dev.factoryascension.raid.Traders.CASH.get(), 1 + r.nextInt(1 + type.armorTier)));
         ItemStack gun = getMainHandItem().copy();
         GunSpec spec = GunItem.spec(gun);
         if (spec != null && r.nextFloat() < FAConfig.npcGunDrop) {

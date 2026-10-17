@@ -84,35 +84,37 @@ public final class DrugBlocks {
         @Override
         public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
             if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
-            if (level.isClientSide) return InteractionResult.SUCCESS;
-            for (FAConfig.ChemRecipe r : FAConfig.chemRecipes) {
-                if (!has(player, r.inputs())) continue;
-                if (!player.isCreative()) for (var in : r.inputs()) take(player, item(in.getKey()), in.getValue());
-                Item out = item(r.output());
-                if (out == null) continue;
-                ItemStack s = new ItemStack(out, r.count());
-                if (!player.getInventory().add(s)) player.drop(s, false);
-                level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1, 1.2f);
-                ((ServerLevel) level).sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 12, 0.2, 0.2, 0.2, 0.02);
-                return InteractionResult.CONSUME;
-            }
-            StringBuilder b = new StringBuilder("Nothing to make. Recipes: ");
-            for (FAConfig.ChemRecipe r : FAConfig.chemRecipes) {
-                Item out = item(r.output());
-                b.append(out == null ? r.output() : new ItemStack(out).getHoverName().getString()).append(" (");
-                boolean first = true;
-                for (var in : r.inputs()) {
-                    Item it = item(in.getKey());
-                    b.append(first ? "" : ", ").append(in.getValue()).append(" ").append(it == null ? in.getKey() : new ItemStack(it).getHoverName().getString());
-                    first = false;
-                }
-                b.append(") ");
-            }
-            player.displayClientMessage(Component.literal(b.toString()).withStyle(ChatFormatting.GRAY), false);
-            return InteractionResult.CONSUME;
+            // Its screen (client/ChemLabScreen): every recipe, what you have of each input, MIX
+            if (level.isClientSide) net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> dev.factoryascension.client.ChemLabScreen.open(pos));
+            return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        static Item item(String id) {
+        /** From the screen: make recipe `index` up to `times` times (as many as you have the inputs for). */
+        public static void mix(net.minecraft.server.level.ServerPlayer player, BlockPos pos, int index, int times) {
+            if (index < 0 || index >= FAConfig.chemRecipes.size() || player.distanceToSqr(pos.getCenter()) > 64) return;
+            if (!(player.level().getBlockState(pos).getBlock() instanceof ChemLab)) return;
+            FAConfig.ChemRecipe r = FAConfig.chemRecipes.get(index);
+            Item out = item(r.output());
+            if (out == null) return;
+            int made = 0;
+            for (int k = 0; k < Math.max(1, Math.min(64, times)); k++) {
+                if (!has(player, r.inputs())) break;
+                if (!player.isCreative()) for (var in : r.inputs()) take(player, item(in.getKey()), in.getValue());
+                ItemStack st = new ItemStack(out, r.count());
+                if (!player.getInventory().add(st)) player.drop(st, false);
+                made++;
+            }
+            if (made == 0) {
+                player.displayClientMessage(Component.literal("You don't have everything for that").withStyle(ChatFormatting.RED), true);
+                return;
+            }
+            Level level = player.level();
+            level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1, 1.2f);
+            ((ServerLevel) level).sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 12, 0.2, 0.2, 0.2, 0.02);
+        }
+
+        public static Item item(String id) {
             ResourceLocation rl = ResourceLocation.tryParse(id);
             return rl == null ? null : BuiltInRegistries.ITEM.getOptional(rl).orElse(null);
         }

@@ -843,7 +843,7 @@ ItemEvents.tooltip(event => {
       use('filling up a dirt bike: more power and speed, burns much faster'), made(shapedList(VH.recipes.racing_fuel) + ' (crafting grid)')])
     details('factoryascension:chem_lab', 'Glassware, a burner, no questions.', () => [
       tip('Mixes: Speedball (cocaine + morphine), Overamped (cocaine + meth), Candyflip (ecstasy + LSD/mushrooms), Hippie flip (ecstasy + psychosis), Crossfade (joint + vodka), Blackout (xanax + vodka), Deep hole (ketamine + vodka), Wake and bake (joint + cocaine)'),
-      use('right-click it with the inputs in your inventory: it makes the first of its recipes you have everything for'),
+      use('right-click it: every recipe, what you have of each input, and MIX (shift-click: as many as you can)'),
       tip(DR.lab.map(labLine).join('; ')),
       made(shapedList(DR.chemLab) + ' (crafting grid)')])
     ;[['cannabis', 'Grows anywhere, given a chance.'], ['coca', 'Bitter leaves, sharp mind.']].forEach(c => {
@@ -855,6 +855,73 @@ ItemEvents.tooltip(event => {
         from('fully grown ' + c[0] + ' plants')])
       details('factoryascension:' + c[0], c[1], () => [from('planting ' + c[0] + ' seeds on farmland')])
     })
+    // Realism: bodies, kit, helmets, thermal
+    let RR = FA.realismRecipes, BD = FA.body, GW = FA.gunWear
+    let helmText = {
+      steel_helmet: ['Grandad\'s pot.', 'class 3: stops pistol rounds and fragments, rifle rounds go through; often glances them off (ricochet)'],
+      pasgt_helmet: ['Kevlar, and a cover.', 'class 3+: pistols and buckshot, glances some rifle rounds'],
+      fast_helmet: ['High cut, rails, ear cups.', 'class 4: stops most pistol and some rifle rounds, light, takes night vision'],
+      altyn_helmet: ['A face shield you can\'t see much through.', 'class 5: stops rifle rounds; heavy, glances off a lot']
+    }
+    Object.keys(helmText).forEach(id => details('factoryascension:' + id, helmText[id][0], () => [
+      use('the head slot: ' + helmText[id][1]),
+      tip('Without one, a head hit does 25% more. Every stopped round wears it; it breaks when it\'s worn out'),
+      made(shapedList(RR[id]) + ' (crafting grid), traders, operators\' heads')]))
+    details('factoryascension:thermal_goggles', 'Everything warm, everything white.', () => [
+      use('the head slot: press N to flip them down: living things glow white-hot through smoke, fog, darkness and leaves'),
+      tip('Undead show cooler (they\'re cold). Fire and lava burn bright too'),
+      made(shapedList(RR.thermal_goggles) + ' (crafting grid), the Quartermaster')])
+    details('factoryascension:splint', 'Two sticks and a lot of tape.', () => [
+      use('hold right-click: sets your worst broken limb (no more limping, steady hands again)'),
+      tip('Legs break in falls over ' + BD.fractureFall + ' damage, any limb from a hit over ' + BD.fractureHit),
+      made(shapedList(RR.splint) + ' (crafting grid), the Medic')])
+    details('factoryascension:tourniquet', 'Tighter. Tighter.', () => [
+      use('hold right-click: stops Heavy Bleeding (an artery: you lose a lot, fast, and bandages won\'t stop it)'),
+      made(shapedList(RR.tourniquet) + ' (crafting grid), the Medic')])
+    details('factoryascension:surgical_kit', 'Not pretty. It works.', () => [
+      use('hold right-click (slow): brings a destroyed limb back (to a little health), fixes a fracture; ' + 3 + ' uses'),
+      made(shapedList(RR.surgical_kit) + ' (crafting grid), the Medic')])
+    details('factoryascension:canteen', 'Warm, metallic, wet.', () => [
+      use('hold right-click to drink (a few sips when full); right-click water to fill it'),
+      tip('You get thirsty: empty in about ' + BD.waterHours + ' hour(s) of play. Dehydrated: slower, weaker, then hurting. Water bottles, milk, melon and energy drinks help too'),
+      made(shapedList(RR.canteen) + ' (crafting grid), the Medic')])
+    details('factoryascension:weapon_cleaning_kit', 'Rod, patches, oil.', () => [
+      use('hold right-click with it, the gun in your other hand: takes ' + GW.cleaningKitRestore + '% wear off and clears a jam; ' + GW.cleaningKitUses + ' uses'),
+      tip('Guns wear with every shot and heat up when fired fast: worn and hot guns jam (R clears it), hot barrels spread and smoke'),
+      made(shapedList(RR.weapon_cleaning_kit) + ' (crafting grid), the Quartermaster')])
+    // Extraction raids and traders
+    let EX = FA.extraction, TR = FA.traders
+    details('factoryascension:raid_map', 'Three ways out. Pick one.', () => [
+      use('right-click: starts a raid (' + EX.minutes + ' minutes). Three extraction points, ' + EX.minDist + '-' + EX.maxDist + ' blocks out, marked with green smoke and on your screen'),
+      tip('Stand in one for ' + EX.seconds + ' seconds: you\'re home, with ' + EX.xp + ' XP and your nerves back. Out of time: missing in action, marked and hunted'),
+      tip('Die on a raid and everything you carried stays where you fell, in a body bag (a day)'),
+      made(shapedList(RR.raid_map) + ' (crafting grid), the Quartermaster, the Fence')])
+    details('factoryascension:cash_bundle', 'Rubles. Mostly real.', () => [
+      use('right-click to put ' + TR.cashBundle + ' rubles in your wallet (sneak: the whole stack); traders take it'),
+      from('armed operators (' + Math.round(TR.operatorCashChance * 100) + '% carry some)')])
+    ;[['quartermaster', 'Volkov. Guns, ammo, armor.'], ['medic', 'Doc Halloran. Medicine, and the other stuff.'], ['fence', 'The Fence. Anything, cheap, no questions.']].forEach(t =>
+      details('factoryascension:trader_contract_' + t[0], t[1], () => [
+        use('right-click a block: the trader sets up there. Right-click them to buy, sell and take tasks'),
+        tip('Tasks (kill, bring, extract) pay rubles and trust; more trust (loyalty levels) opens better stock'),
+        made(shapedList(RR['trader_contract_' + t[0]]) + ' (crafting grid)')]))
+    // Quad, truck, wrench
+    let CR = VH.cars, TU = VH.turret
+    details('factoryascension:quad_bike', 'Four knobbly tyres and no sense.', () => [
+      use('right-click the ground to put it down, right-click to ride (two seats): W/S/A/D, Sneak gets off'),
+      tip('Top speed ' + kmh(CR.QUAD.top) + '. Fuel like the dirt bike; dye paints it; a wrench repairs it; sneak + empty hand packs it up'),
+      made(shapedList(VH.recipes.quad_bike) + ' (crafting grid), the Fence')])
+    details('factoryascension:pickup_truck', 'A truck with a .50 on the back.', () => [
+      use('right-click the cab to drive or ride (two seats), the bed to take the mounted gun: aim with the mouse, hold attack to fire'),
+      tip('Load the gun: right-click the truck with .50 BMG rounds (' + 400 + ' on the belt). Top speed ' + kmh(CR.PICKUP.top) + ', heavy: it ploughs through things'),
+      made(shapedList(VH.recipes.pickup_truck) + ' (crafting grid), the Fence')])
+    details('factoryascension:wrench', 'Righty tighty.', () => [
+      use('right-click a dirt bike: the workshop (see and swap its engine, frame and gearbox from what you carry)'),
+      tip('Right-click the quad or the truck: repairs ' + TU.wrenchRepair + ' damage'),
+      made(shapedList(VH.recipes.wrench) + ' (crafting grid)')])
+    details('factoryascension:night_hunter_spawn_egg', 'Something out there at night.', () => [
+      from('the danger zones after dark (' + Math.round(FA.nightHunter.chancePerMinute * 100) + '% a minute, one at a time); gone at dawn'),
+      tip('It stalks you while you\'re not looking and freezes when you are; light (lamps, a weapon light on it) drives it off'),
+      tip('Right-click a block to spawn one (Creative)')])
     details('factoryascension:dog_tag', 'Someone, once.', () => [
       tip('Dropped by every armed operator you put down: their name, what they were, who killed them and when')])
     // The armed operators' spawn eggs
