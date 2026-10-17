@@ -495,7 +495,7 @@ public final class FAConfig {
 
     // Movement (client/Movement): air strafing (air cap and acceleration, blocks/tick), bunny hopping (speed kept), top speed
     public static boolean airStrafe = true, bhop = true;
-    public static double airCap = 0.035, airAccel = 0.035, strafeMax = 0.75, bhopKeep = 0.98;
+    public static double airCap = 0.07, airAccel = 0.07, strafeMax = 1.1, bhopKeep = 1.0;
 
     public static void setMovement(boolean strafe, boolean hop, double cap, double accel, double max, double keep) {
         airStrafe = strafe;

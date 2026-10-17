@@ -390,8 +390,9 @@ def holo(m, x, y, tex="polymer_black"):
     """A holographic sight: a box body, the hood, the window glass. Returns the sight line's height."""
     m.box((x - 2.0, y, Z - 0.85), (x + 1.6, y + 0.9, Z + 0.85), tex, r=0.25)
     m.box((x - 2.0, y + 0.9, Z - 0.85), (x - 0.9, y + 1.25, Z + 0.85), tex, r=0.15)
-    m.plate([(x + 0.1, y + 0.8), (x + 1.6, y + 0.8), (x + 1.6, y + 2.35), (x + 0.1, y + 2.35), (x + 0.1, y + 2.1), (x + 1.35, y + 2.1),
-             (x + 1.35, y + 0.98), (x + 0.1, y + 0.98)], Z - 0.85, Z + 0.85, tex, bevel=0.1)
+    # The hood: a roof and a floor (with the side walls below), open front and back so you look straight through it
+    m.box((x + 0.1, y + 2.1, Z - 0.85), (x + 1.6, y + 2.35, Z + 0.85), tex, r=0.08)
+    m.box((x + 0.1, y + 0.8, Z - 0.85), (x + 1.6, y + 0.98, Z + 0.85), tex, r=0.05)
     m.box((x + 0.1, y + 0.8, Z - 0.85), (x + 1.6, y + 2.35, Z - 0.68), tex, r=0.06)
     m.box((x + 0.1, y + 0.8, Z + 0.68), (x + 1.6, y + 2.35, Z + 0.85), tex, r=0.06)
     m.box((x + 0.75, y + 1.0, Z - 0.66), (x + 0.79, y + 2.08, Z + 0.66), "lens", mesh_only=True)

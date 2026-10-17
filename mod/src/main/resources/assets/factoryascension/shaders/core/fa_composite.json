@@ -162,6 +162,15 @@
    "values": [
     0
    ]
+  },
+  {
+   "name": "HalfSize",
+   "type": "float",
+   "count": 2,
+   "values": [
+    1,
+    1
+   ]
   }
  ]
 }

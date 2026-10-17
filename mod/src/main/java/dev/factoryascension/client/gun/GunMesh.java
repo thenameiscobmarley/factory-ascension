@@ -254,7 +254,61 @@ public final class GunMesh {
      * Draw it. The pose is the item's (0..1 = one block, the model's units / 16). `tint` (RGB, or -1) colours the
      * attachment-finish parts; `shader` (or null) is a skin.
      */
+    /** A skin's colours, glow and moved corners for this mesh, worked out ahead (skins cost a lot per corner). */
+    static final class SkinCache {
+        int[] col;
+        float[] glow;
+        float[] moved;
+        float t = -1;
+        boolean still;         // the same at any time: worked out once
+        boolean checked;
+    }
+
+    private final java.util.IdentityHashMap<Shader, SkinCache> skinCache = new java.util.IdentityHashMap<>();
+    /** Animated skins are worked out this many times a second (smooth enough, and a fraction of the cost). */
+    static final float SKIN_RATE = 20f;
+
+    private SkinCache skin(Shader shader, float time) {
+        SkinCache c = skinCache.computeIfAbsent(shader, k -> new SkinCache());
+        int n = pos.length / 3;
+        boolean stale = c.col == null || (!c.still && (time - c.t >= 1 / SKIN_RATE || time < c.t));
+        if (!stale) return c;
+        if (c.col == null) {
+            c.col = new int[n];
+            c.glow = new float[n];
+        }
+        boolean moves = shader.moves();
+        if (moves && c.moved == null) c.moved = new float[n * 3];
+        float[] p = new float[3];
+        for (int i = 0; i < n; i++) {
+            int ci = cls[i];
+            if (ci != GLASS && ci != GLOW && ci != 4) {
+                c.col[i] = shader.colour(this, i, col[i], time);
+                c.glow[i] = shader.glow(this, i, time);
+            }
+            if (moves) {
+                p[0] = pos[i * 3]; p[1] = pos[i * 3 + 1]; p[2] = pos[i * 3 + 2];
+                shader.move(this, i, time, p);
+                c.moved[i * 3] = p[0]; c.moved[i * 3 + 1] = p[1]; c.moved[i * 3 + 2] = p[2];
+            }
+        }
+        // Once: is this skin the same at another time? Then it never needs working out again
+        if (!c.checked) {
+            c.checked = true;
+            boolean same = !moves && shader.scrollU() == 0;
+            for (int i = 0; same && i < n; i += Math.max(1, n / 400)) {
+                int ci = cls[i];
+                if (ci == GLASS || ci == GLOW || ci == 4) continue;
+                if (shader.colour(this, i, col[i], time + 1.7f) != c.col[i] || shader.glow(this, i, time + 1.7f) != c.glow[i]) same = false;
+            }
+            c.still = same;
+        }
+        c.t = time;
+        return c;
+    }
+
     public void draw(PoseStack pose, MultiBufferSource buffers, int light, int overlay, int tint, @Nullable Shader shader, float time) {
+        SkinCache sc = shader != null ? skin(shader, time) : null;
         Matrix4f m = pose.last().pose();
         Matrix3f n = pose.last().normal();
         float[] p = new float[3];
@@ -272,10 +326,8 @@ public final class GunMesh {
             VertexConsumer vc = buffers.getBuffer(type(c));
             for (int i = q0 * 4; i < q1 * 4; i++) {
                 float x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
-                if (moves) {
-                    p[0] = x; p[1] = y; p[2] = z;
-                    shader.move(this, i, time, p);
-                    x = p[0]; y = p[1]; z = p[2];
+                if (moves && sc.moved != null) {
+                    x = sc.moved[i * 3]; y = sc.moved[i * 3 + 1]; z = sc.moved[i * 3 + 2];
                 }
                 x /= 16f; y /= 16f; z /= 16f;
                 float wx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30();
@@ -287,10 +339,10 @@ public final class GunMesh {
                 float vz = n.m02() * nx + n.m12() * ny + n.m22() * nz;
                 int argb = col[i];
                 int li = light;
-                if (shader != null && c != GLASS && c != GLOW && c != 4) {
-                    int s = shader.colour(this, i, argb, time);
+                if (sc != null && c != GLASS && c != GLOW && c != 4) {
+                    int s = sc.col[i];
                     if ((s >>> 24) != 0) argb = s;
-                    float gl = shader.glow(this, i, time);
+                    float gl = sc.glow[i];
                     if (gl > 0) {
                         int block = Math.max(light & 0xFFFF, Math.round(gl * 15) << 4);
                         li = (light & 0xFFFF0000) | block;
@@ -302,7 +354,7 @@ public final class GunMesh {
                     g = Math.round(g * tg);
                     b = Math.round(b * tb);
                 }
-                int a = c == GLASS ? 150 : 255;
+                int a = c == GLASS ? 55 : 255;   // coated glass: you see through it
                 vc.vertex(wx, wy, wz).color(r, g, b, a).uv(uv[i * 2] + scroll, uv[i * 2 + 1]).overlayCoords(overlay)
                     .uv2(c == GLOW ? 0xF000F0 : li).normal(vx, vy, vz).endVertex();
             }

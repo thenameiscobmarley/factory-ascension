@@ -19,7 +19,31 @@ uniform float SkyOpen;
 uniform float Aim;                  // 0..1 while aiming down sights: depth of field
 uniform vec3 SunScreen;             // the sun on screen (x, y) and how visible it is (0 = behind you or hidden)
 uniform float Aspect;
-uniform float Night;                // 0 day .. how much darker the night is out under the sky
+uniform float Night;
+uniform vec2 HalfSize;              // the half-resolution passes' size
+
+float lin(float d) { return 1.0 / max(1e-5, 1.0 - d); }
+
+// Half resolution back up to full without smearing across edges: the four half-res texels round this pixel, each
+// weighted by how close its depth is to this pixel's (a joint bilateral upsample)
+vec4 upsample(sampler2D tex, vec2 uv, float d0) {
+    vec2 t = uv * HalfSize - 0.5;
+    vec2 f = fract(t);
+    vec2 base = (floor(t) + 0.5) / HalfSize;
+    vec4 sum = vec4(0.0);
+    float ws = 0.0;
+    for (int y = 0; y < 2; y++)
+        for (int x = 0; x < 2; x++) {
+            vec2 o = vec2(float(x), float(y));
+            vec2 suv = base + o / HalfSize;
+            float bw = (x == 0 ? 1.0 - f.x : f.x) * (y == 0 ? 1.0 - f.y : f.y);
+            float dd = abs(lin(texture(DepthSampler, suv).r) - d0) / (0.03 * d0);
+            float w = (bw + 1e-3) * exp(-dd * dd);
+            sum += texture(tex, suv) * w;
+            ws += w;
+        }
+    return sum / max(ws, 1e-5);
+}                // 0 day .. how much darker the night is out under the sky
 
 vec3 viewPos(vec2 uv) {
     float d = texture(DepthSampler, uv).r;
@@ -35,14 +59,15 @@ in vec2 texCoord;
 out vec4 fragColor;
 
 void main() {
-    vec4 l = texture(DiffuseSampler, texCoord);
+    float d0 = lin(texture(DepthSampler, texCoord).r);
+    vec4 l = upsample(DiffuseSampler, texCoord, d0);
     // The frame's own alpha is kept everywhere: the game reads it later, so writing 1 would change the picture
     vec4 sceneTex = texture(SceneSampler, texCoord);
     if (Mode == 4) { fragColor = sceneTex; return; }   // copy the frame
     if (Mode == 0) {
         // The frame, shadowed, plus the bounced light and the rays, in one opaque pass (no blending to go wrong)
         vec3 lit = sceneTex.rgb * l.a + l.rgb;
-        vec4 refl = texture(ReflSampler, texCoord);
+        vec4 refl = upsample(ReflSampler, texCoord, d0);
         lit = mix(lit, refl.rgb * mix(1.0, l.a, 0.5), refl.a);
         lit += texture(RaySampler, texCoord).rgb * RaysOn;
         float depth = texture(DepthSampler, texCoord).r;

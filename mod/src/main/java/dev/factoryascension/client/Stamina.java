@@ -22,6 +22,8 @@ public final class Stamina {
     }
 
     /** Exhausted legs don't carry speed (air strafing's cap). */
+    private static int groundTicks = 100;
+
     public static double speedScale() {
         return exhausted ? 0.6 : 1;
     }
@@ -42,7 +44,9 @@ public final class Stamina {
         float use = 0;
         if (p.isSprinting()) use += 0.55f;
         if (holdingBreath) use += 1.1f;
-        if (wasOnGround && !p.onGround() && p.getDeltaMovement().y > 0.2) use += 6;
+        // A jump costs 6; hopping on again the moment you land (a bunny hop) only 2
+        if (wasOnGround && !p.onGround() && p.getDeltaMovement().y > 0.2) use += groundTicks <= 3 ? 2 : 6;
+        groundTicks = p.onGround() ? groundTicks + 1 : 0;
         wasOnGround = p.onGround();
         float water = BodyHud.state != null && BodyHud.state.length >= 15 ? BodyHud.state[14] : 100;
         float regen = (p.isSprinting() || holdingBreath) ? 0 : (water < 20 ? 0.12f : 0.32f);

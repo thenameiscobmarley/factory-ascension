@@ -53,7 +53,9 @@ void main() {
     vec3 n = normalize(cross(viewPos(texCoord + vec2(texel.x, 0.0)) - p, viewPos(texCoord + vec2(0.0, texel.y)) - p));
     if (dot(n, p) > 0.0) n = -n;
     float dist = max(0.5, -p.z);
-    float screenRadius = Radius / dist * 0.9;          // a fixed size in the world, smaller far away
+    // A fixed size in the world, smaller far away; but never more than a small part of the screen (right up against a
+    // wall it would reach off the screen and leave smudges down its sides)
+    float screenRadius = min(Radius / dist * 0.9, 0.06);
     float rot = ign(gl_FragCoord.xy) * 6.2831853;
     float occl = 0.0;
     vec3 bounce = vec3(0.0);
@@ -77,6 +79,9 @@ void main() {
     if (total < 1.0) { fragColor = vec4(0.0, 0.0, 0.0, 1.0); return; }
     // Shadow: how much of the hemisphere nearby geometry blocks, curved so corners darken and open ground doesn't
     float blocked = clamp(occl / total * 4.5 * Strength, 0.0, 1.0);
+    // Near the screen's edges half the samples are missing: fade it out there rather than guess
+    vec2 edge = min(texCoord, 1.0 - texCoord);
+    blocked *= smoothstep(0.0, 0.05, min(edge.x, edge.y));
     float ao = clamp(1.0 - blocked * 0.75, 0.25, 1.0);
     // Bounce: the average colour of what blocks the sky, lighting this surface, tinted by its own colour
     vec3 albedo = texture(DiffuseSampler, texCoord).rgb;

@@ -1658,7 +1658,7 @@ global.FA = {
   // Movement (Source-style): air strafe (in the air, hold A or D and turn the mouse that way to curve and gain speed;
   // airCap / airAccel in blocks per tick) and bunny hop (jump right as you land to keep `bhopKeep` of your speed), up
   // to `maxSpeed` blocks per tick (1 = 72 km/h)
-  movement: { airStrafe: true, bhop: true, airCap: 0.035, airAccel: 0.035, maxSpeed: 0.75, bhopKeep: 0.98 },
+  movement: { airStrafe: true, bhop: true, airCap: 0.07, airAccel: 0.07, maxSpeed: 1.1, bhopKeep: 1.0 },
   // Recipes for the realism kit (shaped: rows, keys)
   realismRecipes: {
     splint: [['S S', 'PSP', 'S S'], { S: 'minecraft:stick', P: 'minecraft:paper' }],

@@ -149,11 +149,12 @@ def run(m, name, caliber, geo_mounts):
     h = px * 5
     for side in (1, -1):
         fm = flat_map(mesh, side)
-        spot = find_spot(fm, lo[0] + 1, hi[0] - 1, lo[1], oy + 0.5, width + px, h + px, (min(mx, ox), oy - 1.0), side)
+        # Below the rail first (above it sit the sights: a mark on an optic's side looks wrong), then anywhere
+        spot = find_spot(fm, lo[0] + 1, hi[0] - 1, lo[1], oy - 0.25, width + px, h + px, (min(mx, ox), oy - 1.0), side)
         if spot is None and len(text) > 8:
             text = name.split()[0].upper()
             width = len(text) * px * 4
-            spot = find_spot(fm, lo[0] + 1, hi[0] - 1, lo[1], oy + 0.5, width + px, h + px, (min(mx, ox), oy - 1.0), side)
+            spot = find_spot(fm, lo[0] + 1, hi[0] - 1, lo[1], oy - 0.25, width + px, h + px, (min(mx, ox), oy - 1.0), side)
         if spot is None:
             continue
         x0, ytop, z = spot

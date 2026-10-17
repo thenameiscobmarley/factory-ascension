@@ -324,6 +324,7 @@ public final class AscensionLighting {
         if (sunVis > 0 && main.getDepthTextureId() > 0) sunVis *= sunOpen(sun[0], sun[1]);
         composite.safeGetUniform("SunScreen").set(sun[0], sun[1], sunVis);
         composite.safeGetUniform("Aspect").set((float) main.width / Math.max(1, main.height));
+        composite.safeGetUniform("HalfSize").set((float) giTarget.width, (float) giTarget.height);
         // Darker nights, out under the sky (the moon's strength is small; the sun's is 0 at night)
         float nightK = mc.level != null && mc.level.dimensionType().hasSkyLight() ? Mth.clamp(1 - mc.level.getSkyDarken(event.getPartialTick()) * 1.0f, 0, 1) : 0;
         composite.safeGetUniform("Night").set(dev.factoryascension.FAConfig.nightDarkness * Mth.clamp((float) (1 - sunWorld[2]) * skyOpen * (mc.level != null && mc.level.isNight() ? 1 : 0), 0, 1));

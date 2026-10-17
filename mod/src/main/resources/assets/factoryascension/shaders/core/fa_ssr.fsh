@@ -51,7 +51,8 @@ void main() {
     float flatUp = smoothstep(0.82, 0.97, up);
     float water = smoothstep(0.03, 0.16, albedo.b - max(albedo.r, albedo.g) * 0.9) * flatUp;
     float wet = Rain * SkyOpen * flatUp * 0.6;
-    float gloss = max(water * 0.9, max(wet, 0.1 * flatUp));
+    // Dry ground doesn't mirror the scene (that read as a blurry film over every floor); water and wet ground do
+    float gloss = max(water * 0.9, wet);
     float fres = 0.04 + 0.96 * pow(1.0 - max(dot(-v, n), 0.0), 5.0);
     float w = gloss * mix(0.3, 1.0, fres) * Strength;
     if (w < 0.01) { fragColor = vec4(0.0); return; }

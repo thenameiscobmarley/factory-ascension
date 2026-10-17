@@ -69,6 +69,12 @@ public final class GunAnim {
     }
 
     // Idle
+    static float breathPhase = 0;
+    /** Guns with a reflex or holo sight built on (tools/guns/designs2.py), and how much closer aiming brings an optic. */
+    static final java.util.Set<String> OPTIC_GUNS = java.util.Set.of("mcx", "ksg", "galil", "as_val", "tavor", "mk14", "sr25_v2");
+    static final float OPTIC_CLOSE = 0.6f;
+    /** Held up higher at the hip than the specs' numbers (ready, not slung), and a touch in toward the middle. */
+    static final float HIP_LIFT = 0.125f, HIP_IN = 0.86f;
     static final Wander breathRate = new Wander(0.16f, 0.34f, 3, 9), breathDepth = new Wander(0.5f, 1.3f, 2, 7);
     static final Wander swayX = new Wander(-1, 1, 0.8f, 2.6f), swayY = new Wander(-1, 1, 0.8f, 2.6f), swayRoll = new Wander(-1, 1, 1.5f, 4f);
     static final Wander tremX = new Wander(-1, 1, 0.04f, 0.11f), tremY = new Wander(-1, 1, 0.04f, 0.11f);
@@ -195,7 +201,9 @@ public final class GunAnim {
         float still = Mth.clamp(1 - speed * 2, 0, 1) * hip * (1 - sprint);
         // Holding your breath steadies the sights; out of breath, everything wobbles more
         float steady = dev.factoryascension.client.Stamina.holdingBreath ? 0.15f : dev.factoryascension.client.Stamina.value < 20 ? 1.8f : 1f;
-        float breath = Mth.sin(t * breathRate.at(t) * 6.2832f) * 0.006f * breathDepth.at(t) * steady;
+        // The breath's phase is summed up frame by frame: sin(t * rate(t)) races ever faster the longer the game runs
+        breathPhase = (breathPhase + dt * breathRate.at(t) * 6.2832f) % 6.2832f;
+        float breath = Mth.sin(breathPhase) * 0.006f * breathDepth.at(t) * steady;
         float driftX = swayX.at(t) * 0.006f * steady, driftY = swayY.at(t) * 0.005f * steady, driftRoll = swayRoll.at(t) * 1.2f;
         float fidgetPose[] = fidget(t, still, GunItem.reloading(stack));
         // Stress: shaking hands (worse when stressed, a little even when aiming)
@@ -217,7 +225,11 @@ public final class GunAnim {
         if (stats != null && stats.akimbo) aimK = 0.3f;
         else if (stats != null && stats.gangster) aimK = 0.55f;
         float am = aim * aimK, hp = 1 - am;
-        float x = side * spec.hipX * hp, y = spec.hipY * hp + adsY * am, z = spec.hipZ * hp + spec.adsZ * am;
+        // Through a reflex sight or a low scope the eye sits close behind it (the window fills a good part of the view);
+        // iron sights keep their distance
+        boolean optic = (stats != null && stats.sightRaise > 0) || OPTIC_GUNS.contains(spec.id);
+        float adsZ = spec.adsZ * (optic ? OPTIC_CLOSE : 1);
+        float x = side * spec.hipX * HIP_IN * hp, y = (spec.hipY + HIP_LIFT) * hp + adsY * am, z = spec.hipZ * hp + adsZ * am;
         if (stats != null && stats.gangster) x += side * 0.06f * aim;
         float moveK = hip + aim * 0.15f;
         x += (bobX + sway * 0.02f * speed) * moveK + driftX * (hip + aim * 0.2f) + trX;

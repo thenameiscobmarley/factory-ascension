@@ -107,7 +107,15 @@ public final class DevShots {
         return frames == 0 ? "no frames" : String.format("%.1f ms/frame over %d frames (lighting CPU side %.2f ms)", frameNanos / 1e6 / frames, frames, lightNanos / 1e6 / Math.max(1, frames));
     }
 
-    private static int freeX = 0, freeY = 0;
+    private static int freeX = 0, freeY = 0, strafeT = 0;
+
+    /** The first real attachment of a family (ids carry a maker, finish and grade). */
+    static String attOf(String family) {
+        for (var a : dev.factoryascension.gun.Attachments.ALL) if (a.family.equals(family)) return a.id;
+        for (var a : dev.factoryascension.gun.Attachments.ALL) if (a.shape.equals(family)) return a.id;
+        return family;
+    }
+    private static double strafeMax = 0;
 
     private static final String[] SCENE = {
         "time set 6000", "gamerule doDaylightCycle false", "gamerule doWeatherCycle false", "weather clear", "gamerule doMobSpawning false",
@@ -141,7 +149,9 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.inv")) step = 820;
                     if (Boolean.getBoolean("fa.v26")) step = 850;
                     if (Boolean.getBoolean("fa.fixes")) step = 867;
-                    if (Boolean.getBoolean("fa.chunks")) step = 875;     // only: helmets, thermal, fog, darker nights, the night hunter, raids, traders, workshop, quad and truck      // only: drag and drop in the inventory      // only: the cinematic look, haze, sun, aim depth of field, structure spacing  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
+                    if (Boolean.getBoolean("fa.chunks")) step = 875;
+                    if (Boolean.getBoolean("fa.strafe")) step = 900;
+                    if (Boolean.getBoolean("fa.polish")) step = 920;     // only: helmets, thermal, fog, darker nights, the night hunter, raids, traders, workshop, quad and truck      // only: drag and drop in the inventory      // only: the cinematic look, haze, sun, aim depth of field, structure spacing  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
                 case 1 -> { FAClientConfig.LIGHTING.set(0); resetTiming(); wait = 60; }
@@ -656,6 +666,70 @@ public final class DevShots {
                 case 880 -> { shot(mc, "fix_shadows_view_a"); cmd(mc, "tp @a -8 -58 22 60 30"); wait = 60; }
                 case 881 -> { shot(mc, "fix_shadows_view_b"); cmd(mc, "tp @a -8 -58 22 0 20"); wait = 60; }
                 case 882 -> { shot(mc, "fix_shadows_view_c"); cmd(mc, "gamemode spectator @a"); step = 16; wait = 10; }
+                // Air strafing: hold A and jump, turn left a little every tick, and log the speed it builds up
+                case 900 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "fill -60 -61 -60 60 -61 60 stone"); cmd(mc, "fill -60 -60 -60 60 -50 60 air");
+                    cmd(mc, "tp @a 0 -60 0 0 0"); strafeT = 0; wait = 40; }
+                case 901 -> {
+                    var p = mc.player;
+                    mc.options.keyLeft.setDown(true);
+                    mc.options.keyJump.setDown(true);
+                    p.setYRot(p.getYRot() - 3.5f);
+                    double sp = p.getDeltaMovement().horizontalDistance();
+                    if (strafeT % 10 == 0) log(String.format("strafe t=%d speed=%.3f b/t (%.0f km/h) onGround=%s", strafeT, sp, sp * 72, p.onGround()));
+                    strafeMax = Math.max(strafeMax, sp);
+                    if (++strafeT < 200) step = 901;
+                    else { mc.options.keyLeft.setDown(false); mc.options.keyJump.setDown(false); log(String.format("strafe: top speed %.3f b/t (%.0f km/h); walking is 0.216, sprinting 0.28", strafeMax, strafeMax * 72)); step = 16; }
+                }
+                // Polish: lighting up against a wall, the MCX's holo and a red dot aimed, attachment icons, a skin's cost
+                case 920 -> { cmd(mc, "gamemode creative @a"); cmd(mc, "time set 5000"); cmd(mc, "weather clear"); cmd(mc, "clear @a");
+                    FAClientConfig.LIGHTING.set(3); FAClientConfig.REALISM.set(false);
+                    cmd(mc, "fill -20 -60 -20 20 -50 20 air"); cmd(mc, "fill -20 -61 -20 20 -61 20 stone");
+                    cmd(mc, "fill -6 -60 3 6 -56 3 stone_bricks"); cmd(mc, "fill 3 -60 -6 3 -56 2 cobblestone");
+                    cmd(mc, "tp @a 0 -60 2.2 0 5"); wait = 80; }
+                case 921 -> { shot(mc, "polish_wall_close"); cmd(mc, "tp @a 1.6 -60 1.4 35 10"); wait = 40; }
+                case 922 -> { shot(mc, "polish_wall_corner"); cmd(mc, "tp @a 0 -60 -8 0 0"); cmd(mc, "fill -20 -60 3 20 -56 3 air"); cmd(mc, "fill 3 -60 -6 3 -56 2 air");
+                    cmd(mc, "summon zombie 0 -60 6 {NoAI:1b}"); cmd(mc, "item replace entity @a weapon.mainhand with factoryascension:mcx"); wait = 40; }
+                case 923 -> { dev.factoryascension.client.gun.GunAnim.devAim = true; mc.options.keyUse.setDown(true); wait = 30; }
+                case 924 -> { shot(mc, "polish_mcx_holo_aimed"); mc.options.keyUse.setDown(false); dev.factoryascension.client.gun.GunAnim.devAim = false;
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        var g = new net.minecraft.world.item.ItemStack(dev.factoryascension.FactoryAscension.GUNS.get("m4a1").get());
+                        dev.factoryascension.gun.GunStats.setIds(g, new java.util.ArrayList<>(java.util.List.of(attOf("red_dot"))));
+                        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, g);
+                    });
+                    wait = 20; }
+                case 925 -> { shot(mc, "polish_m4_reddot_hip"); dev.factoryascension.client.gun.GunAnim.devAim = true; mc.options.keyUse.setDown(true); wait = 30; }
+                case 926 -> { shot(mc, "polish_m4_reddot_aimed"); mc.options.keyUse.setDown(false); dev.factoryascension.client.gun.GunAnim.devAim = false;
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        String[] atts = {"opt_dot", "opt_holo", "opt_prism", "opt_acog", "opt_scope", "opt_scope_big", "comp", "brake", "supp_long", "supp_fat",
+                            "fg_vertical", "fg_angled", "stock_cheek", "mag_ext", "mag_drum", "under_bipod", "under_launcher", "under_shotgun", "tac_combo",
+                            "tac_light", "hg_rail", "barrel_fluted", "bayonet", "cursed_toaster", "cursed_duck", "cursed_saw", "charm"};
+                        for (int i = 0; i < atts.length && i < 27; i++) p.getInventory().setItem(9 + i, dev.factoryascension.gun.AttachmentItem.of(attOf(atts[i])));
+                    });
+                    cmd(mc, "gamemode survival @a"); wait = 20; }
+                case 927 -> { mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); wait = 30; }
+                case 928 -> { shot(mc, "polish_attachment_icons"); mc.setScreen(null); cmd(mc, "gamemode creative @a");
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        var g = new net.minecraft.world.item.ItemStack(dev.factoryascension.FactoryAscension.GUNS.get("m4a1").get());
+                        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, g);
+                    });
+                    resetTiming(); wait = 120; }
+                case 929 -> { log("no skin: " + timing());
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        var g = new net.minecraft.world.item.ItemStack(dev.factoryascension.FactoryAscension.GUNS.get("m4a1").get());
+                        dev.factoryascension.gun.Skins.set(g, "obsidian");
+                        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, g);
+                    });
+                    wait = 20; }
+                case 930 -> { resetTiming(); wait = 120; }
+                case 931 -> { log("obsidian skin: " + timing()); shot(mc, "polish_skin_obsidian"); step = 16; wait = 5; }
                 case 16 -> { log("done"); mc.stop(); }
                 default -> { }
             }

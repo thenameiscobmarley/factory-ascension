@@ -69,6 +69,21 @@ public final class AttachmentRenderer extends BlockEntityWithoutLevelRenderer {
         if (a == null || a.shape.equals("none")) return;
         PoseStack.Pose top = pose.last();
         try {
+            // The detailed mesh (tools/guns/attach_mesh.py), fitted to the slot; the cuboid model if it's missing
+            GunMesh mesh = dev.factoryascension.client.FAClientConfig.gunMeshes() ? GunMesh.get("attach/" + a.shape) : null;
+            if (mesh != null) {
+                float[] b = {mesh.minX, mesh.minY, mesh.minZ, mesh.maxX, mesh.maxY, mesh.maxZ};
+                float cx = (b[0] + b[3]) / 32f, cy = (b[1] + b[4]) / 32f, cz = (b[2] + b[5]) / 32f;
+                float size = Math.max(b[3] - b[0], Math.max(b[4] - b[1], b[5] - b[2])) / 16f;
+                float k = Math.min(4f, 0.92f / Math.max(0.05f, size));
+                pose.pushPose();
+                pose.translate(0.5f, 0.5f, 0.5f);
+                pose.scale(k, k, k);
+                pose.translate(-cx, -cy, -cz);
+                mesh.draw(pose, buffers, light, overlay, a.colour, null, 0);
+                pose.popPose();
+                return;
+            }
             BakedModel m = Minecraft.getInstance().getModelManager().getModel(GunRenderer.shape(a.shape));
             List<BakedQuad> qs = quads(m);
             float[] f = fit(a.shape, qs);
