@@ -2,7 +2,8 @@
 // Ascension Lighting, reflections (half resolution): screen-space ray-traced reflections. Each pixel's reflected ray is
 // marched through the depth buffer; where it meets something on screen, that's what the surface reflects, otherwise the
 // sky (when the ray goes up, and only when you're under open sky). How much a surface reflects: water (blue, flat) is a
-// near mirror; anything flat and facing up is wet and reflective in the rain; flat ground has a faint sky sheen. All of it
+// near mirror; anything flat and facing up is wet and reflective in the rain; metal and polished stone (the material the
+// depth pack writes into the frame's alpha) reflect too. All of it
 // stronger at grazing angles (Fresnel). Output: rgb = the reflected colour, a = how much of it to show.
 uniform sampler2D DiffuseSampler;   // the frame's colour
 uniform sampler2D DepthSampler;     // the frame's depth
@@ -51,8 +52,13 @@ void main() {
     float flatUp = smoothstep(0.82, 0.97, up);
     float water = smoothstep(0.03, 0.16, albedo.b - max(albedo.r, albedo.g) * 0.9) * flatUp;
     float wet = Rain * SkyOpen * flatUp * 0.6;
-    // Dry ground doesn't mirror the scene (that read as a blurry film over every floor); water and wet ground do
-    float gloss = max(water * 0.9, wet);
+    // The block's material, from the depth pack's terrain shaders (frame alpha 0.99 .. 0.5 = dull .. metal; 1 = unknown):
+    // metal mirrors its surroundings at any angle, polished stone a little at a slant, the rest not at all
+    float sceneA = texture(DiffuseSampler, texCoord).a;
+    float mat = sceneA > 0.45 && sceneA < 0.995 ? clamp((0.99 - sceneA) / 0.49, 0.0, 1.0) : 0.0;
+    float shiny = smoothstep(0.5, 1.0, mat) * 0.6;
+    // Dry ground doesn't mirror the scene (that read as a blurry film over every floor); water, wet ground and metal do
+    float gloss = max(max(water * 0.9, wet), shiny);
     float fres = 0.04 + 0.96 * pow(1.0 - max(dot(-v, n), 0.0), 5.0);
     float w = gloss * mix(0.3, 1.0, fres) * Strength;
     if (w < 0.01) { fragColor = vec4(0.0); return; }

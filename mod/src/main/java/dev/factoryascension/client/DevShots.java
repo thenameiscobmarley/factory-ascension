@@ -188,7 +188,8 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.strafe")) step = 900;
                     if (Boolean.getBoolean("fa.break")) step = 950;
                     if (Boolean.getBoolean("fa.ui")) step = 970;
-                    if (Boolean.getBoolean("fa.screens")) step = 1200;   // only: trader tabs, weapons bench, Tarkov inventory
+                    if (Boolean.getBoolean("fa.screens")) step = 1200;
+                    if (Boolean.getBoolean("fa.shine")) step = 1300;     // only: reflections on metal, polished stone, plain blocks   // only: trader tabs, weapons bench, Tarkov inventory
                     if (Boolean.getBoolean("fa.hd")) step = 995;
                     if (Boolean.getBoolean("fa.feed")) step = 984;
                     if (Boolean.getBoolean("fa.skin2")) step = 1000;     // only: per-pixel weapon skins       // only: the pickup feed         // only: the HD texture pack, off then on      // only: waves, foam, glint, a boat riding them         // only: the redesigned screens (/ascension, containers)      // only: mining breaks pieces off, regrow, falling apart
@@ -881,6 +882,18 @@ public final class DevShots {
                 case 1208 -> { mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); wait = 60; }
                 case 1209 -> { log("inventory: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); shot(mc, "screens_inventory"); wait = 5; }
                 case 1210 -> { mc.setScreen(null); step = 16; wait = 5; }
+                case 1300 -> { cmd(mc, "gamemode spectator @a"); cmd(mc, "time set 4000"); cmd(mc, "weather clear");
+                    FAClientConfig.LIGHTING.set(3); FAClientConfig.REALISM.set(false);
+                    cmd(mc, "fill -6 -61 -12 6 -61 0 polished_andesite"); cmd(mc, "fill -6 -60 -12 6 -50 0 air");
+                    String[] wall = {"iron_block", "gold_block", "copper_block", "polished_granite", "stone", "oak_planks", "iron_block"};
+                    for (int i = 0; i < wall.length; i++) cmd(mc, "fill " + (-3 + i) + " -60 -9 " + (-3 + i) + " -58 -9 " + wall[i]);
+                    String[] wool = {"red_wool", "yellow_wool", "lime_wool", "light_blue_wool", "magenta_wool"};
+                    for (int i = 0; i < wool.length; i++) cmd(mc, "setblock " + (-2 + i) + " -60 -4 " + wool[i]);
+                    log("packs: " + mc.getResourcePackRepository().getSelectedIds());
+                    cmd(mc, "tp @a 0.5 -58.6 -1.5 180 18"); wait = 80; }
+                case 1301 -> { shot(mc, "shine_scene"); AscensionLighting.debugView = 5; wait = 20; }
+                case 1302 -> { shot(mc, "shine_reflections_only"); AscensionLighting.debugView = 0; cmd(mc, "tp @a -2.2 -59.2 -6.5 205 8"); wait = 40; }
+                case 1303 -> { shot(mc, "shine_metal_grazing"); step = 16; wait = 5; }
                 case 16 -> { log("done"); mc.stop(); }
                 default -> { }
             }

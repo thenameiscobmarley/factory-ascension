@@ -90,6 +90,13 @@ vec2 faLight(vec3 n, vec3 gu, vec3 gv, vec3 v, float slopeU, float slopeV, float
     return vec2(shade, spec * gloss * fade);
 }
 
+// The block's material (DepthHeights.gloss: 0 dull earth .. 1 metal), handed on to Ascension Lighting's reflections
+// (fa_ssr) in the frame's alpha, which solid blocks don't use: 1 = not known, 0.99 .. 0.5 = dull .. metal.
+float faMaterialAlpha(sampler2D tex, vec2 uv) {
+    float a = textureLod(tex, uv, float(FA_MIPS)).a;
+    return a > 0.45 && a < 0.76 ? 0.99 - clamp((a - 0.5) * 4.0, 0.0, 1.0) * 0.49 : 1.0;
+}
+
 // Blocks: the parallax-shifted coordinate, a shade and a highlight
 void faBlock(sampler2D tex, vec2 uv, vec3 p, vec3 dp1, vec3 dp2, vec2 duv1, vec2 duv2, float maxDepth,
              out vec2 outUv, out float shade, out float spec) {

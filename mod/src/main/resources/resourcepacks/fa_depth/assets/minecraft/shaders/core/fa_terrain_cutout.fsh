@@ -36,4 +36,5 @@ void main() {
         discard;
     }
     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
+    if (fragColor.a > 0.999) fragColor.a = faMaterialAlpha(Sampler0, texCoord0);   // for the reflections (fa_ssr)
 }
