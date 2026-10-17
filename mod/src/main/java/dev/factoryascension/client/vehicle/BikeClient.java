@@ -101,14 +101,9 @@ public final class BikeClient {
         int w = event.getWindow().getGuiScaledWidth(), h = event.getWindow().getGuiScaledHeight();
         int x = w - 112, y = h - 52;
         g.fillGradient(x - 6, y - 6, w - 6, h - 6, 0xC01C1C1B, 0xC00B0B0B);
-        g.fill(x - 6, y - 6, x - 4, h - 6, TarkovScreen.ACCENT);
         int kmh = Math.round(Math.abs(b.speed) * 72);
-        g.pose().pushPose();
-        g.pose().translate(x, y, 0);
-        g.pose().scale(2, 2, 1);
-        g.drawString(mc.font, TarkovScreen.uiBold(String.valueOf(kmh)), 0, 0, 0xFFF2EFE6, false);
-        g.pose().popPose();
-        g.drawString(mc.font, TarkovScreen.ui("km/h"), x + 2 + mc.font.width(TarkovScreen.uiBold(String.valueOf(kmh))) * 2, y + 8, 0xFF8C8A84, false);
+        g.drawString(mc.font, TarkovScreen.uiBold(String.valueOf(kmh)), x, y + 4, 0xFFF2EFE6, false);
+        g.drawString(mc.font, TarkovScreen.ui("km/h"), x + 4 + mc.font.width(TarkovScreen.uiBold(String.valueOf(kmh))), y + 4, 0xFF8C8A84, false);
         var st = b.stats();
         String gear = b.speed < -0.01f ? "R" : String.valueOf(b.gear + 1);
         g.drawString(mc.font, TarkovScreen.uiBold("GEAR " + gear + "/" + st.gears()), x + 56, y, 0xFFD6D4CC, false);

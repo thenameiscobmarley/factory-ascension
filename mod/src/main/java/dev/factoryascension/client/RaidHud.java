@@ -1,6 +1,7 @@
 package dev.factoryascension.client;
 
 import dev.factoryascension.FactoryAscension;
+import dev.factoryascension.client.ui.UiKit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
@@ -48,12 +49,10 @@ public final class RaidHud {
                 case "mia" -> "MISSING IN ACTION";
                 default -> "KILLED IN ACTION";
             };
-            int col = ended.equals("extracted") ? 0xFF6FB04A : 0xFFC8452E;
-            g.pose().pushPose();
-            g.pose().translate(w / 2f, 40, 0);
-            g.pose().scale(2, 2, 1);
-            g.drawCenteredString(mc.font, t, 0, 0, col);
-            g.pose().popPose();
+            int col = ended.equals("extracted") ? UiKit.OK : UiKit.BAD;
+            int tw = mc.font.width(t) + UiKit.PAD_L * 2;
+            UiKit.hudCard(g, w / 2 - tw / 2, 44, tw, 20);
+            g.drawCenteredString(mc.font, t, w / 2, 50, col);
         }
         if (xz.length < 2) return;
         // Time left, ticking down between updates
@@ -69,20 +68,23 @@ public final class RaidHud {
         }
         double ang = Math.toDegrees(Math.atan2(xz[best * 2 + 1] - p.getZ(), xz[best * 2] - p.getX())) - 90;
         float rel = Mth.wrapDegrees((float) ang - p.getYRot());
-        int cx = w / 2, y = 6;
-        g.fill(cx - 90, y - 3, cx + 90, y + 24, 0x90000000);
-        g.fill(cx - 90, y - 3, cx - 88, y + 24, dev.factoryascension.client.tarkov.TarkovScreen.ACCENT);
-        g.drawString(mc.font, "RAID " + time, cx - 82, y + 1, secs < 300 ? 0xFFC8452E : 0xFFF2EFE6, false);
+        int cx = w / 2, y = UiKit.PAD, cw = 184, ch = 32, x0 = cx - cw / 2;
+        UiKit.hudCard(g, x0, y, cw, ch);
+        g.drawString(mc.font, "RAID", x0 + UiKit.PAD_L, y + 6, UiKit.DIM, false);
+        g.drawString(mc.font, time, x0 + UiKit.PAD_L + mc.font.width("RAID") + UiKit.GAP * 2, y + 6, secs < 300 ? UiKit.BAD : UiKit.TEXT, false);
         String where = names.length > best ? names[best] : "Extraction";
-        g.drawString(mc.font, where + "  " + Math.round(bd) + "m", cx - 82, y + 12, 0xFF8FD46A, false);
-        // The arrow
+        g.drawString(mc.font, mc.font.plainSubstrByWidth(where, cw - 60), x0 + UiKit.PAD_L, y + 18, UiKit.OK, false);
+        String dist = Math.round(bd) + "m";
+        g.drawString(mc.font, dist, x0 + cw - 28 - mc.font.width(dist), y + 18, UiKit.DIM, false);
+        // The arrow to the nearest extraction
+        g.fill(x0 + cw - 24, y + UiKit.GAP, x0 + cw - 23, y + ch - UiKit.GAP, UiKit.EDGE_SOFT);
         g.pose().pushPose();
-        g.pose().translate(cx + 72, y + 10, 0);
+        g.pose().translate(x0 + cw - 12, y + ch / 2f, 0);
         g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(rel));
-        g.fill(-1, -8, 1, 6, 0xFF8FD46A);
-        g.fill(-4, -5, 4, -3, 0xFF8FD46A);
-        g.fill(-2, -7, 2, -5, 0xFF8FD46A);
+        g.fill(-1, -7, 1, 6, UiKit.OK);
+        g.fill(-4, -4, 4, -2, UiKit.OK);
+        g.fill(-2, -6, 2, -4, UiKit.OK);
         g.pose().popPose();
-        if (hold > 0) g.drawCenteredString(mc.font, "EXTRACTING", cx, y + 30, 0xFF8FD46A);
+        if (hold > 0) g.drawCenteredString(mc.font, "EXTRACTING", cx, y + ch + UiKit.GAP * 2, UiKit.OK);
     }
 }

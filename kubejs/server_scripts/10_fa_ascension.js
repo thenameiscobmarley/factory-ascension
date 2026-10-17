@@ -237,6 +237,16 @@ function faButton(label, command, hover) {
   return Text.green('[' + label + ']').clickRunCommand(command).hover(Text.gray(hover))
 }
 
+// /ascension: the mod's screen (it reads the pages below from "/ascension menu" etc.), or the chat menu without the mod
+function faOpenMenu(player) {
+  try {
+    if (Java.loadClass('dev.factoryascension.network.FANetwork$OpenMenu').openAscension(player)) return 1
+  } catch (err) {
+    // no mod here: chat it is
+  }
+  return faShowMenu(player)
+}
+
 // The /ascension menu: Essence bank, and the target item's enchants with upgrade buttons
 function faShowMenu(player) {
   let essence = faGetEssence(player)
@@ -791,7 +801,8 @@ ServerEvents.commandRegistry(event => {
       }))
 
   event.register(Commands.literal('ascension')
-    .executes(ctx => faShowMenu(ctx.source.getPlayerOrException()))
+    .executes(ctx => faOpenMenu(ctx.source.getPlayerOrException()))
+    .then(Commands.literal('menu').executes(ctx => faShowMenu(ctx.source.getPlayerOrException())))
     .then(upgrade)
     .then(tomeCmd)
     .then(Commands.literal('awaken').executes(ctx => faAwaken(ctx.source.getPlayerOrException())))

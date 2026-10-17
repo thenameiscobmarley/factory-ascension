@@ -103,11 +103,24 @@ public final class FxParticles {
         Minecraft.getInstance().particleEngine.add(new Foam(level, x, y, z, vx, vz));
     }
 
+    /**
+     * One cube cut from a block that's being mined (BreakChunks): `half` is half its size, the texture is the given
+     * piece of `sprite`, and it starts at rest where it sat in the block. Returns false when the cap is full.
+     */
+    public static boolean chunk(ClientLevel level, BlockState state, BlockPos pos, double x, double y, double z, double vx, double vy, double vz,
+                                TextureAtlasSprite sprite, float pu, float pv, float pw, float half, int tint) {
+        if (!FAClientConfig.on(FAClientConfig.DEBRIS) || liveDebris >= FAClientConfig.MAX_DEBRIS.get()) return false;
+        VoxelDebris d = new VoxelDebris(level, x, y - half, z, vx, vy, vz, state, pos);
+        d.cut(sprite, pu, pv, pw, half, tint);
+        Minecraft.getInstance().particleEngine.add(d);
+        return true;
+    }
+
     // ---- The particles ----
 
     /** A tumbling cube of block texture. */
     static final class VoxelDebris extends TextureSheetParticle {
-        private final float u0, v0, u1, v1, size;
+        private float u0, v0, u1, v1, size;
         private final Vector3f spinAxis;
         private float angle, angleO, spin;
         private boolean settled;
@@ -137,6 +150,25 @@ public final class FxParticles {
             liveDebris++;
         }
 
+        /** Re-cut as a BreakChunks piece: its own spot on the face texture, its size and tint. */
+        void cut(TextureAtlasSprite s, float pu, float pv, float pw, float half, int tint) {
+            setSprite(s);
+            u0 = s.getU(pu * 16); u1 = s.getU((pu + pw) * 16);
+            v0 = s.getV(pv * 16); v1 = s.getV((pv + pw) * 16);
+            size = half;
+            setSize(half * 2, half * 2);
+            if (tint == -1) rCol = gCol = bCol = 1;
+            else { rCol = (tint >> 16 & 255) / 255f; gCol = (tint >> 8 & 255) / 255f; bCol = (tint & 255) / 255f; }
+            // Tumbles end over end about a flat axis, so it can come to rest square on the ground (see tick)
+            spinAxis.set(random.nextBoolean() ? 1 : 0, 0, 0);
+            if (spinAxis.x == 0) spinAxis.z = 1;
+            spin = (0.18f + random.nextFloat() * 0.2f) * (random.nextBoolean() ? 1 : -1);
+            squares = true;
+            lifetime = 160 + random.nextInt(80);
+        }
+
+        private boolean squares;
+
         @Override
         public void tick() {
             xo = x; yo = y; zo = z;
@@ -153,6 +185,11 @@ public final class FxParticles {
             }
             xd *= friction; zd *= friction;
             if (!settled) angle += spin;
+            else if (squares) {
+                // Lying on the ground: ease onto the nearest flat side
+                float flat = Math.round(angle / Mth.HALF_PI) * Mth.HALF_PI;
+                angle += (flat - angle) * 0.5f;
+            }
             if (lifetime - age < 20) alpha = (lifetime - age) / 20f;
         }
 

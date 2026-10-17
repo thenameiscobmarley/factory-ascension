@@ -68,9 +68,26 @@ Released so far: **v26.1.0** (2026-10-16). Everything below "To do" is still ope
    scale, consistent panels/headers/buttons/hover states, icons, alignment. Apply to all FA screens and HUDs.
 6. **Weapon skins**: much higher quality, and fix their animations (most look wrong). Skins: `GunSkins.java`
    (per-vertex shaders now cached in `GunMesh.skin`; extras like snow/torn/moss strips).
+   Diagnosis (2026-10-17): colours are per mesh corner, so patterns smear into big gradients (see
+   screenshots/2026-10-16_v27-polish-3/fa_polish_skin_obsidian.png). Plan: GunMesh UVs are already box-projected
+   (model units / 8, wrapping), so bake each skin into a tileable 128-256px texture by evaluating its Shader per texel
+   on a probe plane (tileable via the 4-sample blend), draw skinned classes with RenderType.entityCutout(skinTex);
+   keep the per-corner colour only as a slow animated tint; animated skins: precompute a short frame loop.
 7. **Breaking, done the way the user wants**: real 3D chunks break OFF the block and FALL to the ground (physics
    pieces with the block's texture), progressively while mining; if mining stops, the block regrows. The current
    parallax-hole effect (`BreakChunks`) is NOT what they wanted: replace it (reuse `FxParticles` debris physics).
+
+8. **Physics water** (added 2026-10-17): water that looks simulated like a Blender render: real waves, foam, spray
+   particles; boats (and floating things) bob up and down and tilt with the waves.
+9. **FA item browser** (added 2026-10-17): an icon in the top-left of the inventory UI in the Factory Ascension look;
+   clicking it slides out our own styled JEI-like list with only Factory Ascension + KubeJS items (search, recipes).
+10. **Recipes for everything**: items with no recipe yet (drugs and others) get one (find them: no recipe outputs them).
+11. **Inventory auto-sort button + pickup filter**: sort button in the inventory UI; a filter list so Plunder at high
+    levels doesn't flood the inventory: unwanted drops are discarded immediately.
+12. **Pickup feed**: bottom-right, fancy, ~60% transparent list of what was just picked up (icon, name, xN, fades).
+13. **Style rule**: NO orange/amber accent strip on the left of panels and NO massive/scaled-up text anywhere; redesign
+    every UI that still has them (memory: fa-ui-style-dislikes). Also AAA block textures (see 1).
+14. The user had more requests in a long prompt that got lost; ask them if anything is missing.
 
 ## From the user's older prompt: check each really works (fix if not)
 - 3D textures with **Embeddium/Sodium**: no outlines on blocks/mobs, no "detached layer" look (test with

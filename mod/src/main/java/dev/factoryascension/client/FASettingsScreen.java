@@ -60,6 +60,8 @@ public class FASettingsScreen extends Screen {
         items.add((x, y) -> toggle(x, y, w, "Reflections (traced)", FAClientConfig.SCREEN_REFLECTIONS));
         items.add((x, y) -> toggle(x, y, w, "Sun shadows", FAClientConfig.SUN_SHADOWS));
         items.add((x, y) -> toggle(x, y, w, "Breaking chunks", FAClientConfig.BREAK_CHUNKS));
+        items.add((x, y) -> toggle(x, y, w, "Dark container screens", FAClientConfig.DARK_CONTAINERS));
+        items.add((x, y) -> toggle(x, y, w, "Pickup feed", FAClientConfig.PICKUP_FEED));
         items.add((x, y) -> toggle(x, y, w, "Cinematic grade + bloom", FAClientConfig.CINEMATIC));
         items.add((x, y) -> toggle(x, y, w, "Distance haze", FAClientConfig.HAZE));
         items.add((x, y) -> toggle(x, y, w, "Aim depth of field", FAClientConfig.AIM_DOF));

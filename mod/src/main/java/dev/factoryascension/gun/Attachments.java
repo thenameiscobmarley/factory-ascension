@@ -3,7 +3,6 @@ package dev.factoryascension.gun;
 import dev.factoryascension.gun.GunSpec.Kind;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -238,11 +237,5 @@ public final class Attachments {
     }
 
     private Attachments() {
-    }
-
-    public static List<Att> forSlot(Slot s) {
-        List<Att> out = new ArrayList<>();
-        for (Att a : ALL) if (a.slot == s) out.add(a);
-        return Collections.unmodifiableList(out);
     }
 }

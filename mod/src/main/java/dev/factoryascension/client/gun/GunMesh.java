@@ -308,7 +308,10 @@ public final class GunMesh {
     }
 
     public void draw(PoseStack pose, MultiBufferSource buffers, int light, int overlay, int tint, @Nullable Shader shader, float time) {
-        SkinCache sc = shader != null ? skin(shader, time) : null;
+        // Per-pixel skins when the shader's there (GunSkinGpu); the corners then only need moving, not colouring
+        int gpu = GunSkinGpu.number(shader);
+        if (gpu >= 0) GunSkinGpu.frame(time);
+        SkinCache sc = shader != null && (gpu < 0 || shader.moves()) ? skin(shader, time) : null;
         Matrix4f m = pose.last().pose();
         Matrix3f n = pose.last().normal();
         float[] p = new float[3];
@@ -323,7 +326,8 @@ public final class GunMesh {
         for (int c = 0; c < CLASSES.length; c++) {
             int q0 = classStart[c], q1 = classStart[c + 1];
             if (q0 == q1) continue;
-            VertexConsumer vc = buffers.getBuffer(type(c));
+            boolean skinned = gpu >= 0 && c != GLASS && c != GLOW && c != 4;
+            VertexConsumer vc = buffers.getBuffer(skinned ? GunSkinGpu.type(c) : type(c));
             for (int i = q0 * 4; i < q1 * 4; i++) {
                 float x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
                 if (moves && sc.moved != null) {
@@ -339,6 +343,13 @@ public final class GunMesh {
                 float vz = n.m02() * nx + n.m12() * ny + n.m22() * nz;
                 int argb = col[i];
                 int li = light;
+                if (skinned) {
+                    // The pattern stays put on the gun (original position) even where the surface moves
+                    int r = argb >> 16 & 255, g = argb >> 8 & 255, b = argb & 255;
+                    vc.vertex(wx, wy, wz).color(r, g, b, 255).uv(pos[i * 3], pos[i * 3 + 1])
+                        .overlayCoords(Math.round(pos[i * 3 + 2] * 64), gpu).uv2(li).normal(vx, vy, vz).endVertex();
+                    continue;
+                }
                 if (sc != null && c != GLASS && c != GLOW && c != 4) {
                     int s = sc.col[i];
                     if ((s >>> 24) != 0) argb = s;

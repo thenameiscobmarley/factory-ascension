@@ -45,7 +45,8 @@ public final class FxClient {
                 int per = kind == 0 ? 10 : kind == 3 ? 2 : Math.max(2, 12 - states.length / 4);
                 double speed = kind == 0 ? 0.12 : kind == 3 ? 0.18 : 0.25 + size * 0.05;
                 for (int i = 0; i < states.length && i < positions.length; i++)
-                    FxParticles.debris(level, BlockPos.of(positions[i]), Block.stateById(states[i]), kind == 0 || kind == 3 ? Vec3.atCenterOf(BlockPos.of(positions[i])).subtract(0, 0.6, 0) : at, per, speed);
+                    if (kind != 0 || !BreakChunks.justShattered(BlockPos.of(positions[i])))   // it already fell apart here
+                        FxParticles.debris(level, BlockPos.of(positions[i]), Block.stateById(states[i]), kind == 0 || kind == 3 ? Vec3.atCenterOf(BlockPos.of(positions[i])).subtract(0, 0.6, 0) : at, per, speed);
             }
             if (kind == 1 || kind == 2) FxParticles.smoke(level, x, y, z, size, Vec3.ZERO);
         } catch (Throwable err) {

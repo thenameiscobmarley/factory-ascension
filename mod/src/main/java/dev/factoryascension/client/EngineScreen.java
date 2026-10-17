@@ -82,11 +82,7 @@ public class EngineScreen extends AbstractContainerScreen<EngineMenu> {
     }
 
     private void big(GuiGraphics g, String text, int x, int y, int color) {
-        g.pose().pushPose();
-        g.pose().translate(x, y, 0);
-        g.pose().scale(2f, 2f, 1f);
-        g.drawString(font, text, 0, 0, color, false);
-        g.pose().popPose();
+        g.drawString(font, Component.literal(text).withStyle(net.minecraft.ChatFormatting.BOLD), x, y, color, false);
     }
 
     private Component status() {
@@ -118,9 +114,9 @@ public class EngineScreen extends AbstractContainerScreen<EngineMenu> {
         switch (menu.kind) {
             case EngineMenu.CORE -> {
                 big(g, menu.rpm() + "", 8, 20, FAGui.TEAL);
-                g.drawString(font, "RPM", 8 + font.width(menu.rpm() + "") * 2 + 4, 27, FAGui.TEXT_DIM, false);
+                g.drawString(font, "RPM", 8 + font.width(menu.rpm() + "") + 4, 20, FAGui.TEXT_DIM, false);
                 String su = String.format("%,d", menu.su());
-                big(g, su, 168 - font.width(su) * 2 - 18, 20, FAGui.GOLD);
+                big(g, su, 168 - font.width(su) - 18, 20, FAGui.GOLD);
                 g.drawString(font, "SU", 168 - 14, 27, FAGui.TEXT_DIM, false);
                 g.drawString(font, "x" + menu.coils() + " (" + menu.poweredCoils() + " on)", 26, 52, FAGui.TEXT, false);
                 g.drawString(font, "x" + menu.gears(), 80, 52, FAGui.TEXT, false);

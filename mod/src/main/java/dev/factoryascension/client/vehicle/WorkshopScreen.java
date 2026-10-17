@@ -52,7 +52,6 @@ public class WorkshopScreen extends Screen {
         TarkovScreen.shadowBox(g, x0, y0, w, h);
         g.fillGradient(x0, y0, x0 + w, y0 + h, 0xF01E1E1D, 0xF0101010);
         g.fill(x0, y0, x0 + w, y0 + 1, 0x30FFFFFF);
-        g.fill(x0, y0, x0 + 3, y0 + h, TarkovScreen.ACCENT);
         g.drawString(font, TarkovScreen.uiBold("WORKSHOP"), x0 + 12, y0 + 10, 0xFFF2EFE6, false);
         g.drawString(font, TarkovScreen.ui("Dirt bike"), x0 + 12 + font.width(TarkovScreen.uiBold("WORKSHOP")) + 8, y0 + 10, 0xFF8C8A84, false);
         // The bike

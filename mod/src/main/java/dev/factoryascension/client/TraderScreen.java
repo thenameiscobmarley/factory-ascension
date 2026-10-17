@@ -53,7 +53,6 @@ public class TraderScreen extends Screen {
         int x0 = (width - w) / 2, y0 = (height - h) / 2;
         TarkovScreen.shadowBox(g, x0, y0, w, h);
         g.fillGradient(x0, y0, x0 + w, y0 + h, 0xF01E1E1D, 0xF0101010);
-        g.fill(x0, y0, x0 + 3, y0 + h, TarkovScreen.ACCENT);
         g.drawString(font, TarkovScreen.uiBold(view.getString("Name")), x0 + 12, y0 + 9, 0xFFF2EFE6, false);
         g.drawString(font, TarkovScreen.ui(view.getString("About")), x0 + 12, y0 + 21, 0xFF8C8A84, false);
         String wallet = rubles(view.getLong("Rubles"));

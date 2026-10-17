@@ -102,18 +102,14 @@ public final class CarClient {
         int w = event.getWindow().getGuiScaledWidth(), h = event.getWindow().getGuiScaledHeight();
         int x = w - 112, y = h - 52;
         g.fillGradient(x - 6, y - 6, w - 6, h - 6, 0xC01C1C1B, 0xC00B0B0B);
-        g.fill(x - 6, y - 6, x - 4, h - 6, TarkovScreen.ACCENT);
         int bw = 98;
         if (c.gunner() == mc.player) {
             g.drawString(mc.font, TarkovScreen.uiBold(".50 BMG"), x, y, 0xFFF2EFE6, false);
-            g.pose().pushPose();
-            g.pose().translate(x, y + 11, 0);
-            g.pose().scale(2, 2, 1);
-            g.drawString(mc.font, TarkovScreen.uiBold(String.valueOf(c.ammo())), 0, 0, c.ammo() < 50 ? 0xFFC8452E : 0xFFF2EFE6, false);
-            g.pose().popPose();
-            g.drawString(mc.font, TarkovScreen.ui("/ " + Car.GUN_MAX), x + 50, y + 18, 0xFF8C8A84, false);
+            String ammo = String.valueOf(c.ammo());
+            g.drawString(mc.font, TarkovScreen.uiBold(ammo), x, y + 16, c.ammo() < 50 ? 0xFFC8452E : 0xFFF2EFE6, false);
+            g.drawString(mc.font, TarkovScreen.ui("/ " + Car.GUN_MAX), x + mc.font.width(TarkovScreen.uiBold(ammo)) + 4, y + 16, 0xFF8C8A84, false);
             g.fill(x, y + 33, x + bw, y + 37, 0xFF262626);
-            g.fill(x, y + 33, x + Math.round(bw * c.ammo() / (float) Car.GUN_MAX), y + 37, 0xFFC9A55A);
+            g.fill(x, y + 33, x + Math.round(bw * c.ammo() / (float) Car.GUN_MAX), y + 37, 0xFFB4BEC8);
             // A ring sight in the middle of the screen
             int cx = w / 2, cy = h / 2;
             for (int k = 0; k < 24; k++) {
@@ -123,16 +119,12 @@ public final class CarClient {
             return;
         }
         int kmh = Math.round(Math.abs(c.speed) * 72);
-        g.pose().pushPose();
-        g.pose().translate(x, y, 0);
-        g.pose().scale(2, 2, 1);
-        g.drawString(mc.font, TarkovScreen.uiBold(String.valueOf(kmh)), 0, 0, 0xFFF2EFE6, false);
-        g.pose().popPose();
-        g.drawString(mc.font, TarkovScreen.ui("km/h"), x + 2 + mc.font.width(TarkovScreen.uiBold(String.valueOf(kmh))) * 2, y + 8, 0xFF8C8A84, false);
+        g.drawString(mc.font, TarkovScreen.uiBold(String.valueOf(kmh)), x, y + 4, 0xFFF2EFE6, false);
+        g.drawString(mc.font, TarkovScreen.ui("km/h"), x + 4 + mc.font.width(TarkovScreen.uiBold(String.valueOf(kmh))), y + 4, 0xFF8C8A84, false);
         float cond = 1 - c.damage() / c.model().health;
         g.drawString(mc.font, TarkovScreen.ui("COND " + Math.round(cond * 100) + "%"), x + 56, y, cond < 0.4f ? 0xFFC8452E : 0xFFD6D4CC, false);
         g.fill(x, y + 22, x + bw, y + 26, 0xFF262626);
-        g.fill(x, y + 22, x + Math.round(bw * Mth.clamp(c.rpm, 0, 1)), y + 26, c.rpm > 0.9f ? 0xFFC8452E : 0xFFC9A55A);
+        g.fill(x, y + 22, x + Math.round(bw * Mth.clamp(c.rpm, 0, 1)), y + 26, c.rpm > 0.9f ? 0xFFC8452E : 0xFFB4BEC8);
         g.drawString(mc.font, TarkovScreen.ui("FUEL"), x, y + 31, 0xFF8C8A84, false);
         g.fill(x + 26, y + 33, x + bw, y + 37, 0xFF262626);
         g.fill(x + 26, y + 33, x + 26 + Math.round((bw - 26) * c.fuel() / 100f), y + 37, c.fuel() < 15 ? 0xFFC8452E : 0xFF6FB04A);

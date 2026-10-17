@@ -4,12 +4,13 @@
   "srcrgb": "srcalpha",
   "dstrgb": "1-srcalpha"
  },
- "vertex": "factoryascension:fa_break",
- "fragment": "factoryascension:fa_break",
+ "vertex": "factoryascension:fa_gun_skin",
+ "fragment": "factoryascension:fa_gun_skin",
  "attributes": [
   "Position",
   "Color",
   "UV0",
+  "UV1",
   "UV2",
   "Normal"
  ],
@@ -80,6 +81,26 @@
    ]
   },
   {
+   "name": "Light0_Direction",
+   "type": "float",
+   "count": 3,
+   "values": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Light1_Direction",
+   "type": "float",
+   "count": 3,
+   "values": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
    "name": "FogStart",
    "type": "float",
    "count": 1,
@@ -115,7 +136,7 @@
    ]
   },
   {
-   "name": "Progress",
+   "name": "FaSkinTime",
    "type": "float",
    "count": 1,
    "values": [
@@ -123,48 +144,7 @@
    ]
   },
   {
-   "name": "SpriteBox",
-   "type": "float",
-   "count": 4,
-   "values": [
-    0,
-    0,
-    1,
-    1
-   ]
-  },
-  {
-   "name": "FaceU",
-   "type": "float",
-   "count": 3,
-   "values": [
-    1,
-    0,
-    0
-   ]
-  },
-  {
-   "name": "FaceV",
-   "type": "float",
-   "count": 3,
-   "values": [
-    0,
-    1,
-    0
-   ]
-  },
-  {
-   "name": "FaceN",
-   "type": "float",
-   "count": 3,
-   "values": [
-    0,
-    0,
-    1
-   ]
-  },
-  {
-   "name": "Seed",
+   "name": "FaHeat",
    "type": "float",
    "count": 1,
    "values": [

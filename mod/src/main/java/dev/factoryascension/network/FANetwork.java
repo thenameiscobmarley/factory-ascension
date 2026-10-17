@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 /** The mod's custom messages: the Ascension Vault's search box, the guns' fire and reload, effects, and the Tarkov inventory grid. */
 public final class FANetwork {
-    private static final String VERSION = "8";
+    private static final String VERSION = "9";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(FactoryAscension.MODID, "main"),
         () -> VERSION, VERSION::equals, VERSION::equals);
 
@@ -40,6 +40,8 @@ public final class FANetwork {
         CHANNEL.registerMessage(16, ChemMix.class, ChemMix::encode, ChemMix::decode, ChemMix::handle);
         CHANNEL.registerMessage(17, MachineInfo.class, MachineInfo::encode, MachineInfo::decode, MachineInfo::handle);
         CHANNEL.registerMessage(18, MachineAsk.class, MachineAsk::encode, MachineAsk::decode, MachineAsk::handle);
+        CHANNEL.registerMessage(19, OpenMenu.class, OpenMenu::encode, OpenMenu::decode, OpenMenu::handle);
+        CHANNEL.registerMessage(20, InvAction.class, InvAction::encode, InvAction::decode, InvAction::handle);
     }
 
     /** Client -> server, at the Weapons Workbench: 0 install an attachment, 1 take one off (by index), 2 press rounds,
@@ -290,6 +292,61 @@ public final class FANetwork {
     }
 
     /** Server -> client: how thick the fog is (world/Weather). */
+    /**
+     * Server -> client: open the /ascension screen (it then asks for its pages with "/ascension menu" etc.). The pack
+     * calls openAscension; false means this player can't get it (no mod on their side), so the chat menu is used.
+     */
+    public record OpenMenu(int kind) {
+        public static boolean openAscension(ServerPlayer p) {
+            try {
+                if (!CHANNEL.isRemotePresent(p.connection.connection)) return false;
+                CHANNEL.send(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> p), new OpenMenu(0));
+                return true;
+            } catch (Throwable err) {
+                return false;
+            }
+        }
+
+        static void encode(OpenMenu msg, FriendlyByteBuf buf) {
+            buf.writeByte(msg.kind);
+        }
+
+        static OpenMenu decode(FriendlyByteBuf buf) {
+            return new OpenMenu(buf.readByte());
+        }
+
+        static void handle(OpenMenu msg, Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> dev.factoryascension.client.AscensionScreen.open());
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    /** Client -> server: sort the open container (kind 0), or here's my whole pickup filter (kind 1, the item ids). */
+    public record InvAction(int kind, java.util.List<String> ids) {
+        static void encode(InvAction msg, FriendlyByteBuf buf) {
+            buf.writeByte(msg.kind);
+            buf.writeVarInt(msg.ids.size());
+            for (String id : msg.ids) buf.writeUtf(id, 128);
+        }
+
+        static InvAction decode(FriendlyByteBuf buf) {
+            int kind = buf.readByte(), n = Math.min(buf.readVarInt(), dev.factoryascension.storage.LootFilter.MAX);
+            java.util.List<String> ids = new java.util.ArrayList<>();
+            for (int i = 0; i < n; i++) ids.add(buf.readUtf(128));
+            return new InvAction(kind, ids);
+        }
+
+        static void handle(InvAction msg, Supplier<NetworkEvent.Context> ctx) {
+            ServerPlayer p = ctx.get().getSender();
+            ctx.get().enqueueWork(() -> {
+                if (p == null) return;
+                if (msg.kind == 0) dev.factoryascension.storage.LootFilter.sort(p);
+                else dev.factoryascension.storage.LootFilter.set(p, msg.ids);
+            });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
     public record FogSync(float fog) {
         static void encode(FogSync msg, FriendlyByteBuf buf) {
             buf.writeFloat(msg.fog);

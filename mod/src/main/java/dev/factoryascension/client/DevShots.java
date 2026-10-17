@@ -70,6 +70,41 @@ public final class DevShots {
 
     private static int sliderIx = 0;
 
+    /** What the pack's /ascension menu prints (10_fa_ascension.js faShowMenu), for the screen test. */
+    private static java.util.List<net.minecraft.network.chat.Component> devMenu() {
+        java.util.List<net.minecraft.network.chat.Component> out = new java.util.ArrayList<>();
+        java.util.function.BiFunction<String, String, net.minecraft.network.chat.MutableComponent> btn = (label, cmd) -> net.minecraft.network.chat.Component.literal("[" + label + "]")
+            .withStyle(st -> st.withColor(net.minecraft.ChatFormatting.GREEN).withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, cmd))
+                .withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, net.minecraft.network.chat.Component.literal("Spend Essence on " + label))));
+        var gold = net.minecraft.ChatFormatting.GOLD; var gray = net.minecraft.ChatFormatting.GRAY;
+        out.add(net.minecraft.network.chat.Component.literal("Essence: ").withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE, net.minecraft.ChatFormatting.BOLD)
+            .append(net.minecraft.network.chat.Component.literal("12.4K").withStyle(net.minecraft.ChatFormatting.WHITE)).append("   ").append(btn.apply("Sell held item", "/ascension sell")));
+        out.add(net.minecraft.network.chat.Component.literal("Diamond Sword ★★").withStyle(gold).append(net.minecraft.network.chat.Component.literal(":").withStyle(gray)));
+        String[][] ench = {{"Sharpness", "12", "+18% damage"}, {"Lifesteal", "4", "heal 2% of damage dealt"}, {"Executioner", "1", "+40% damage to targets under 20% health"}};
+        for (String[] e : ench) {
+            var line = net.minecraft.network.chat.Component.literal(" " + e[0] + " " + e[1] + " ").withStyle(gold).append(net.minecraft.network.chat.Component.literal(e[2] + " ").withStyle(gray));
+            for (String st : new String[] {"+1", "+10", "+100", "Max"}) line.append(btn.apply(st, "/ascension upgrade x " + st)).append(" ");
+            line.append(net.minecraft.network.chat.Component.literal("[Extract]").withStyle(st -> st.withColor(gold).withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, "/ascension extract x"))));
+            out.add(line);
+        }
+        out.add(net.minecraft.network.chat.Component.literal(" Souls: 42").withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
+        out.add(net.minecraft.network.chat.Component.literal(" Rebirth at 500 total levels: ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY).append(btn.apply("Rebirth", "/ascension rebirth")));
+        return out;
+    }
+
+    private static int uiIndex, skinIndex;
+    private static final String[] SKIN_SHOTS = {"obsidian", "lava", "galaxy", "carbon", "damascus", "circuit", "frost", "tiger"};
+    private static final String[] UI_BLOCKS = {"crafting_table", "furnace", "blast_furnace", "chest", "barrel", "shulker_box", "anvil", "enchanting_table",
+        "brewing_stand", "hopper", "dispenser", "smithing_table", "grindstone", "stonecutter", "loom", "cartography_table"};
+
+    /** Hold the attack button (the game only counts it with a grabbed mouse, which xvfb never gives: pretend it's grabbed). */
+    private static void holdAttack(Minecraft mc, boolean down) throws ReflectiveOperationException {
+        var f = net.minecraft.client.MouseHandler.class.getDeclaredField("mouseGrabbed");
+        f.setAccessible(true);
+        f.setBoolean(mc.mouseHandler, down);
+        mc.options.keyAttack.setDown(down);
+    }
+
     private static void cmd(Minecraft mc, String c) {
         var server = mc.getSingleplayerServer();
         if (server != null) server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), c));
@@ -151,6 +186,12 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.fixes")) step = 867;
                     if (Boolean.getBoolean("fa.chunks")) step = 875;
                     if (Boolean.getBoolean("fa.strafe")) step = 900;
+                    if (Boolean.getBoolean("fa.break")) step = 950;
+                    if (Boolean.getBoolean("fa.ui")) step = 970;
+                    if (Boolean.getBoolean("fa.water")) step = 990;
+                    if (Boolean.getBoolean("fa.hd")) step = 995;
+                    if (Boolean.getBoolean("fa.feed")) step = 984;
+                    if (Boolean.getBoolean("fa.skin2")) step = 1000;     // only: per-pixel weapon skins       // only: the pickup feed         // only: the HD texture pack, off then on      // only: waves, foam, glint, a boat riding them         // only: the redesigned screens (/ascension, containers)      // only: mining breaks pieces off, regrow, falling apart
                     if (Boolean.getBoolean("fa.polish")) step = 920;     // only: helmets, thermal, fog, darker nights, the night hunter, raids, traders, workshop, quad and truck      // only: drag and drop in the inventory      // only: the cinematic look, haze, sun, aim depth of field, structure spacing  // only: stand among enemies (and a gas station, and water) for a while     // only: the creative tab (JEI's list) and tree shadows near and far  // only: drag every slider in the settings screen (crash hunt)     // only the depth pack, drugs, NODs, flashbang, raid blocks, crops
                     log("mods: oculus " + net.minecraftforge.fml.ModList.get().isLoaded("oculus") + ", embeddium " + net.minecraftforge.fml.ModList.get().isLoaded("embeddium")
                         + ", flywheel compat " + net.minecraftforge.fml.ModList.get().isLoaded("irisflw") + "; shader pack active " + AscensionLighting.shaderPackActive()); }
@@ -730,6 +771,78 @@ public final class DevShots {
                     wait = 20; }
                 case 930 -> { resetTiming(); wait = 120; }
                 case 931 -> { log("obsidian skin: " + timing()); shot(mc, "polish_skin_obsidian"); step = 16; wait = 5; }
+                case 950 -> { cmd(mc, "gamemode survival @a"); cmd(mc, "time set 6000"); cmd(mc, "clear @a"); cmd(mc, "fill -6 -60 -8 6 -55 2 air");
+                    cmd(mc, "fill -6 -61 -8 6 -61 2 stone"); cmd(mc, "setblock 0 -60 -3 stone"); cmd(mc, "setblock 1 -60 -3 grass_block"); cmd(mc, "setblock -1 -60 -3 oak_planks");
+                    cmd(mc, "tp @a 0.5 -60 -0.6 180 38"); wait = 40; }
+                case 951 -> { holdAttack(mc, true); wait = 50; }
+                case 952 -> { log("mining: " + mc.gameMode.getDestroyStage() + " stage, " + dev.factoryascension.client.render.BreakChunks.drawn + " faces (" + dev.factoryascension.client.render.BreakChunks.why + "), debris " + FxParticles.liveDebris());
+                    shot(mc, "break_mining_mid"); wait = 40; }
+                case 953 -> { log("mining: " + mc.gameMode.getDestroyStage() + " stage, debris " + FxParticles.liveDebris()); shot(mc, "break_mining_late"); holdAttack(mc, false); wait = 24; }
+                case 954 -> { shot(mc, "break_regrowing"); wait = 80; }
+                case 955 -> { log("regrown: " + dev.factoryascension.client.render.BreakChunks.why); shot(mc, "break_regrown");
+                    dev.factoryascension.client.render.BreakChunks.devHold = true;
+                    dev.factoryascension.client.render.BreakChunks.devSet(new net.minecraft.core.BlockPos(1, -60, -3), 0.8f);
+                    dev.factoryascension.client.render.BreakChunks.devSet(new net.minecraft.core.BlockPos(-1, -60, -3), 0.5f); wait = 30; }
+                case 956 -> { shot(mc, "break_grass_planks_carved"); dev.factoryascension.client.render.BreakChunks.devHold = false;
+                    mc.level.setBlock(new net.minecraft.core.BlockPos(1, -60, -3), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3); wait = 3; }
+                case 957 -> { shot(mc, "break_falling_apart"); wait = 40; }
+                case 958 -> { log("settled: debris " + FxParticles.liveDebris()); shot(mc, "break_settled"); step = 16; }
+                case 970 -> { cmd(mc, "gamemode creative @a"); cmd(mc, "time set 6000"); cmd(mc, "give @a minecraft:diamond_sword"); AscensionScreen.open(); wait = 20; }
+                case 971 -> { if (mc.screen instanceof AscensionScreen a) { log("ascension screen: " + a.devState()); a.devFeed(devMenu()); } wait = 20; }
+                case 972 -> { if (mc.screen instanceof AscensionScreen a) log("ascension screen: " + a.devState()); shot(mc, "ui_ascension_menu"); step = 979; wait = 10; }
+                case 979 -> { mc.setScreen(null); uiIndex = 0; cmd(mc, "gamemode creative @a");
+                    cmd(mc, "fill -3 -60 -5 3 -57 -1 air"); cmd(mc, "tp @a 0.5 -60 0.5 180 20"); cmd(mc, "give @a minecraft:iron_ingot 32"); cmd(mc, "give @a minecraft:coal 16"); wait = 20; }
+                case 980 -> { step = 973; }
+                case 973 -> {   // each container block in turn: place it, right-click it, picture
+                    mc.setScreen(null);
+                    if (uiIndex >= UI_BLOCKS.length) { step = 975; return; }
+                    cmd(mc, "setblock 0 -60 -2 " + UI_BLOCKS[uiIndex]);
+                    wait = 6; }
+                case 974 -> { var hit = new net.minecraft.world.phys.BlockHitResult(new net.minecraft.world.phys.Vec3(0.5, -59.5, -1.0), net.minecraft.core.Direction.SOUTH,
+                        new net.minecraft.core.BlockPos(0, -60, -2), false);
+                    mc.gameMode.useItemOn(mc.player, net.minecraft.world.InteractionHand.MAIN_HAND, hit); step = 976; wait = 40; }
+                case 976 -> { log("container " + UI_BLOCKS[uiIndex] + ": " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName()));
+                    shot(mc, "ui_dark_" + UI_BLOCKS[uiIndex].replaceAll("[^a-z_]", "")); uiIndex++; step = 973; wait = 30; }
+                case 975 -> { cmd(mc, "setblock 0 -60 -2 air");
+                    cmd(mc, "summon villager 0.5 -60 -2.5 {NoAI:1b,VillagerData:{profession:\"minecraft:armorer\",level:3,type:\"minecraft:plains\"}}"); step = 977; wait = 10; }
+                case 977 -> { var v = mc.level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, mc.player.getBoundingBox().inflate(6));
+                    if (!v.isEmpty()) mc.gameMode.interact(mc.player, v.get(0), net.minecraft.world.InteractionHand.MAIN_HAND); wait = 15; }
+                case 978 -> { log("villager: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); shot(mc, "ui_dark_villager"); step = 981; wait = 12; }
+                case 981 -> { mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); dev.factoryascension.client.ui.ItemBrowser.devOpen(""); wait = 20; }
+                case 982 -> { shot(mc, "ui_item_browser"); dev.factoryascension.client.ui.ItemBrowser.devOpen("ingot"); wait = 20; }
+                case 983 -> { shot(mc, "ui_item_browser_search_recipe"); step = 984; wait = 10; }
+                case 984 -> { mc.setScreen(null); cmd(mc, "gamemode survival @a"); wait = 10; }
+                case 985 -> { cmd(mc, "give @a minecraft:rotten_flesh 7"); cmd(mc, "give @a minecraft:bone 3"); cmd(mc, "give @a minecraft:gold_ingot 12"); wait = 8; }
+                case 986 -> { log("pickup feed rows: " + dev.factoryascension.client.ui.PickupFeed.devRows()); shot(mc, "ui_pickup_feed"); cmd(mc, "gamemode creative @a"); wait = 10; step = 16; }
+                case 990 -> { cmd(mc, "gamemode spectator @a"); cmd(mc, "time set 2000"); cmd(mc, "fill -20 -62 -40 20 -61 -6 water"); cmd(mc, "fill -20 -60 -40 20 -55 -6 air");
+                    cmd(mc, "summon boat 0.5 -61 -12 {Type:\"oak\"}"); cmd(mc, "tp @a 0.5 -58.5 -4 180 18"); wait = 60; }
+                case 991 -> { shot(mc, "water_waves_a"); wait = 25; }
+                case 992 -> { shot(mc, "water_waves_b"); cmd(mc, "tp @a 0.5 -60.3 -9 180 4"); wait = 40; }
+                case 993 -> { shot(mc, "water_boat_low"); cmd(mc, "time set 12600"); cmd(mc, "tp @a 0.5 -58 -4 270 12"); wait = 40; }
+                case 994 -> { shot(mc, "water_sunset_glint"); step = 16; }
+                case 995 -> { cmd(mc, "gamemode spectator @a"); cmd(mc, "time set 6000");
+                    String[] blocks = {"stone", "cobblestone", "oak_planks", "bricks", "diamond_ore", "oak_log", "grass_block", "iron_block", "oak_leaves", "crafting_table"};
+                    for (int i = 0; i < blocks.length; i++) cmd(mc, "setblock " + (-5 + i) + " -60 -4 " + blocks[i]);
+                    cmd(mc, "item replace entity @a weapon.mainhand with minecraft:diamond_sword"); cmd(mc, "tp @a -0.5 -59 -1.2 180 25"); wait = 60; }
+                case 996 -> { shot(mc, "hd_off"); var repo = mc.getResourcePackRepository(); var ids = new java.util.ArrayList<>(repo.getSelectedIds());
+                    log("hd pack found: " + (repo.getPack(dev.factoryascension.client.hd.HdPack.PACK_ID) != null));
+                    ids.add(dev.factoryascension.client.hd.HdPack.PACK_ID); repo.setSelected(ids); mc.reloadResourcePacks(); wait = 300; }
+                case 997 -> { shot(mc, "hd_on"); cmd(mc, "tp @a -3.5 -59.3 -2.6 200 40"); wait = 40; }
+                case 998 -> { shot(mc, "hd_on_close"); step = 16; }
+                case 1000 -> { cmd(mc, "gamemode creative @a"); cmd(mc, "time set 6000"); cmd(mc, "tp @a 0 -60 0 0 0"); skinIndex = 0;
+                    log("per-pixel skins ready: " + dev.factoryascension.client.gun.GunSkinGpu.ready()); wait = 40; }
+                case 1001 -> {   // each skin in turn on an M4: held, then a picture
+                    if (skinIndex >= SKIN_SHOTS.length) { step = 16; return; }
+                    String id = SKIN_SHOTS[skinIndex];
+                    var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        var g = new net.minecraft.world.item.ItemStack(dev.factoryascension.FactoryAscension.GUNS.get("m4a1").get());
+                        dev.factoryascension.gun.Skins.set(g, id);
+                        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, g);
+                    });
+                    wait = 40; }
+                case 1002 -> { shot(mc, "skin_" + SKIN_SHOTS[skinIndex]); skinIndex++; step = 1001; wait = 10; }
                 case 16 -> { log("done"); mc.stop(); }
                 default -> { }
             }

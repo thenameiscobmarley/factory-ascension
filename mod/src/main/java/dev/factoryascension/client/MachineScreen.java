@@ -51,7 +51,6 @@ public class MachineScreen extends Screen {
         TarkovScreen.shadowBox(g, x0, y0, w, h);
         g.fillGradient(x0, y0, x0 + w, y0 + h, 0xF01E1E1D, 0xF0101010);
         g.fill(x0, y0, x0 + w, y0 + 1, 0x30FFFFFF);
-        g.fill(x0, y0, x0 + 3, y0 + h, TarkovScreen.ACCENT);
         ItemStack icon = new ItemStack(minecraft.level.getBlockState(pos).getBlock());
         g.renderItem(icon, x0 + 10, y0 + 8);
         g.drawString(font, TarkovScreen.uiBold(title.getString().toUpperCase()), x0 + 32, y0 + 12, 0xFFF2EFE6, false);

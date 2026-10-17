@@ -108,6 +108,12 @@ minecraft {
                 if (project.hasProperty('faChunks')) property 'fa.chunks', 'true'
                 if (project.hasProperty('faStrafe')) property 'fa.strafe', 'true'
                 if (project.hasProperty('faPolish')) property 'fa.polish', 'true'
+                if (project.hasProperty('faBreak')) property 'fa.break', 'true'
+                if (project.hasProperty('faUi')) property 'fa.ui', 'true'
+                if (project.hasProperty('faWater')) property 'fa.water', 'true'
+                if (project.hasProperty('faHd')) property 'fa.hd', 'true'
+                if (project.hasProperty('faFeed')) property 'fa.feed', 'true'
+                if (project.hasProperty('faSkin2')) property 'fa.skin2', 'true'
                 if (project.hasProperty('faShot')) property 'fa.shot', project.property('faShot')
                 jvmArgs '-Xmx1500m'
                 args '--quickPlaySingleplayer', 'devworld', '--width', '1280', '--height', '720'

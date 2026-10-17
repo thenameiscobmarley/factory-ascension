@@ -10,11 +10,12 @@ public final class FAClientConfig {
     public static final ForgeConfigSpec.IntValue MAX_GLINTS;
     public static final ForgeConfigSpec.DoubleValue STRENGTH;
     public static final ForgeConfigSpec.BooleanValue CONFLICT_MESSAGES;
-    public static final ForgeConfigSpec.BooleanValue SCREEN_REFLECTIONS, SUN_SHADOWS, CINEMATIC, HAZE, AIM_DOF, AMBIENCE, BREAK_CHUNKS;
+    public static final ForgeConfigSpec.BooleanValue HD_ADDED, PICKUP_FEED, DARK_CONTAINERS, SCREEN_REFLECTIONS, SUN_SHADOWS, CINEMATIC, HAZE, AIM_DOF, AMBIENCE, BREAK_CHUNKS;
     public static final ForgeConfigSpec.BooleanValue SAFE_MODE, SUN_RAYS, SMOKE, DEBRIS, WATER, OCULUS_KEY_MOVED, DEPTH_ADDED, PACK_DEFAULTS, TARKOV_ANIMATION;
     public static final ForgeConfigSpec.BooleanValue GUN_MESHES, REALISM, DREAD;
     public static final ForgeConfigSpec.DoubleValue FISHEYE, GRAIN, DESATURATE, VIGNETTE, DEPTH_SMOOTH, DEPTH_STRENGTH;
     public static final ForgeConfigSpec.IntValue LIGHTING, MAX_DEBRIS;
+    public static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> LOOT_FILTER;
     public static final ForgeConfigSpec.DoubleValue LIGHT_STRENGTH, SMOKE_AMOUNT, WATER_AMOUNT;
 
     /** An effect is on: its own switch, and not in safe mode. */
@@ -70,7 +71,12 @@ public final class FAClientConfig {
         HAZE = b.comment("Ascension Lighting: aerial perspective, distant land fading into a sunlit haze").define("haze", true);
         AIM_DOF = b.comment("Ascension Lighting: depth of field while aiming down sights (what's far behind your target softens)").define("aimDepthOfField", true);
         SUN_SHADOWS = b.comment("Ascension Lighting: shadows cast by the sun (and moon), traced through the blocks around you").define("sunShadows", true);
-        BREAK_CHUNKS = b.comment("Breaking a block takes 3D chunks out of it (they grow back if you stop)").define("breakChunks", true);
+        HD_ADDED = b.comment("Set once the HD texture pack has been switched on for you (after that it's your choice in Resource Packs)").define("hdAdded", false);
+        LOOT_FILTER = b.comment("Items deleted instead of picked up or dropped by your kills (edit in any inventory: Filter)")
+            .defineListAllowEmpty(java.util.List.of("lootFilter"), java.util.List::of, o -> o instanceof String);
+        PICKUP_FEED = b.comment("Bottom right: a short list of what you just picked up").define("pickupFeed", true);
+        DARK_CONTAINERS = b.comment("Every container screen (chests, furnaces, crafting, backpacks...) in the dark Tarkov look, with drag and drop").define("darkContainers", true);
+        BREAK_CHUNKS = b.comment("Mining breaks real 3D pieces off a block that fall to the ground (it grows back if you stop)").define("breakChunks", true);
         SUN_RAYS = b.comment("Light shafts from the sun and moon").define("sunRays", true);
         SMOKE = b.comment("Real smoke from explosions, gunfire and fires").define("smoke", true);
         SMOKE_AMOUNT = b.comment("How much smoke").defineInRange("smokeAmount", 3.0, 0.1, 3.0);

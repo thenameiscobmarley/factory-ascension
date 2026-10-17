@@ -46,7 +46,7 @@ import java.util.Map;
 public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
     // Tarkov's palette: near-black panels, thin grey edges, warm light-grey text
     static final int BG = 0xEC0C0C0C, PANEL = 0xC0141414, EDGE = 0xFF3A3A38, EDGE_LIGHT = 0xFF5A5A56, CELL = 0xFF121212, CELL_LINE = 0xFF262626;
-    public static final int ACCENT = 0xFFC9A55A, SHADOW = 0x70000000, HILITE = 0x22FFFFFF;
+    public static final int ACCENT = 0xFFB4BEC8, SHADOW = 0x70000000, HILITE = 0x22FFFFFF;
     /** The UI font: the game's own (the mod ships no fonts). */
     static final net.minecraft.resources.ResourceLocation UI_FONT = new net.minecraft.resources.ResourceLocation(dev.factoryascension.FactoryAscension.MODID, "ui"),
         UI_BOLD = new net.minecraft.resources.ResourceLocation(dev.factoryascension.FactoryAscension.MODID, "ui_bold");
@@ -513,7 +513,6 @@ public class TarkovScreen extends AbstractContainerScreen<TarkovView> {
     private void drawBackpack(GuiGraphics g, int mx, int my) {
         panel(g, geo.sx, geo.sy, geo.sw, geo.sh);
         g.fillGradient(geo.sx + 1, geo.sy + 1, geo.sx + geo.sw - 1, geo.sy + 12, 0xFF2A2927, 0xFF1A1918);
-        g.fill(geo.sx + 1, geo.sy + 1, geo.sx + 3, geo.sy + 12, ACCENT);
         bold(g, "BACKPACK", geo.sx + 6, geo.sy + 3, 0xFFF2EFE6);
         String lvl = "LVL " + player.experienceLevel;
         text(g, lvl, geo.sx + geo.sw - tw(lvl) - 4, geo.sy + 3, DIM, false);

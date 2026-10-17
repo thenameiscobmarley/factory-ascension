@@ -155,8 +155,6 @@ public class SmelterBlockEntity extends KineticBlockEntity implements MenuProvid
         notifyUpdate();
     }
 
-    public long faSmelted() { return smelted; }
-
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.factoryascension.super_smelter");

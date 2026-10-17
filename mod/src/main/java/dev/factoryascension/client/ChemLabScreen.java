@@ -57,7 +57,6 @@ public class ChemLabScreen extends Screen {
         int x0 = (width - w) / 2, y0 = (height - h) / 2;
         TarkovScreen.shadowBox(g, x0, y0, w, h);
         g.fillGradient(x0, y0, x0 + w, y0 + h, 0xF01E1E1D, 0xF0101010);
-        g.fill(x0, y0, x0 + 3, y0 + h, TarkovScreen.ACCENT);
         g.renderItem(new ItemStack(DrugBlocks.CHEM_LAB_ITEM.get()), x0 + 10, y0 + 8);
         g.drawString(font, TarkovScreen.uiBold("CHEM LAB"), x0 + 32, y0 + 9, 0xFFF2EFE6, false);
         g.drawString(font, TarkovScreen.ui("Shift-click MIX to make as many as you can"), x0 + 32, y0 + 20, 0xFF8C8A84, false);

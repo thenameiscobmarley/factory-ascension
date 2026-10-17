@@ -118,8 +118,12 @@ ForgeEvents.onEvent('net.minecraftforge.event.entity.EntityJoinLevelEvent', even
       faSkinwalkers[mob.stringUuid] = { mob: mob, stalk: 0 }   // back from disk, or marked before it joined
       return
     }
-    if (event.loadedFromDisk() || S.animals.indexOf(String(mob.type)) < 0 || mob.isBaby()) return
+    if (S.animals.indexOf(String(mob.type)) < 0 || mob.isBaby()) return
+    // Each animal rolls once in its life. Not just fresh spawns: most animals come with the chunk when it's generated,
+    // and those join the world as "loaded from disk", so they used to never roll at all
     let data = mob.getPersistentData()
+    if (data.getBoolean('fa_sw_rolled')) return
+    data.putBoolean('fa_sw_rolled', true)
     if (data.contains('fa_variant') || mob.hasCustomName()) return
     let deep = global.FA_dangerLevel(mob.level, mob.getX(), mob.getZ()) >= S.minDanger
     if (Math.random() >= (deep ? S.chance : S.safeChance)) return

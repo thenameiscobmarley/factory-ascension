@@ -82,13 +82,6 @@ public final class AscensionLighting {
             } catch (Throwable err) {
                 LOG.error("Ascension Lighting shaders failed to load; the effect stays off", err);
             }
-            // Breaking chunks' shader (its own failure only turns that off)
-            try {
-                event.registerShader(new ShaderInstance(event.getResourceProvider(), new ResourceLocation(FactoryAscension.MODID, "fa_break"),
-                    DefaultVertexFormat.BLOCK), BreakChunks::setShader);
-            } catch (Throwable err) {
-                LOG.error("Breaking chunks shader failed to load; that effect stays off", err);
-            }
         }
 
         private static ShaderInstance load(RegisterShadersEvent event, String name) throws java.io.IOException {
