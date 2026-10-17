@@ -89,7 +89,7 @@ public final class PickupFeed {
             GuiGraphics g = event.getGuiGraphics();
             int w = event.getWindow().getGuiScaledWidth(), h = event.getWindow().getGuiScaledHeight();
             long t = net.minecraft.Util.getMillis();
-            int y = h - UiKit.PAD - ROW_H;
+            int y = h - 48 - ROW_H;   // above the hotbar and the XP bar, whatever the window width
             for (int i = ROWS.size() - 1; i >= 0; i--) {
                 Entry r = ROWS.get(i);
                 float fade = 1 - Mth.clamp((t - r.last - SHOW_MS) / (float) FADE_MS, 0, 1);

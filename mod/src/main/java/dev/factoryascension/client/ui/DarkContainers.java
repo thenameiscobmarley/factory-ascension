@@ -223,6 +223,15 @@ public final class DarkContainers {
             event.setCanceled(true);
         }
 
+        /** Every tooltip in the dark look too: near-black glass, a thin grey edge (instead of the game's purple). */
+        @SubscribeEvent
+        public static void tooltip(net.minecraftforge.client.event.RenderTooltipEvent.Color event) {
+            if (!on()) return;
+            event.setBackground(0xF00E0E0F);
+            event.setBorderStart(0xFF4A4A48);
+            event.setBorderEnd(0xFF2A2A29);
+        }
+
         /** The slot under the mouse: a soft steel glow instead of the game's bright white square (Forge's slotColor). */
         @SubscribeEvent
         public static void init(ScreenEvent.Init.Post event) {
