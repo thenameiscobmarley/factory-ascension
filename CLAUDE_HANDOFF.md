@@ -1,7 +1,7 @@
 # Factory Ascension: handoff for the next chat
 
 Start a new chat with: **"Continue Factory Ascension from CLAUDE_HANDOFF.md"**. Read this whole file first.
-Released so far: **v26.1.0** (2026-10-16). Everything below "To do" is still open.
+Released so far: **v27.0.0** (2026-10-17). Everything below "To do" is still open.
 
 ## Rules the user set (always follow)
 - End every reply with "(NN% Completed Response)".
@@ -68,14 +68,13 @@ Done this session (WIP commit e82244dd + later): see git log. Status per request
 6. Weapon skins: per-pixel GPU skins DONE (`client/gun/GunSkinGpu`, `shaders/core/fa_gun_skin`). Still: extras
    (snow lumps, torn strips...) quality; check moving skins look right in motion.
 7. Breaking: DONE (`client/render/BreakChunks` + `mixin/BreakHideMixin`/`EmbeddiumBreakHideMixin`).
-8. Water: DONE vanilla (`fa_depth` core/fa_water + include/fa_waves.glsl, `client/render/Waves`, boats via
-   `mixin/BoatWavesMixin`); Embeddium twin in assets/sodium/shaders + `mixin/EmbeddiumWavesMixin` (verify).
+8. Water waves: REMOVED on request (v27.0.0). Do not bring them back.
 9. FA item browser: DONE (`client/ui/ItemBrowser`, emblem from `tools/ui_art.py`), Sort + pickup Filter
    (`storage/LootFilter`, packet InvAction).
 10. Recipes: nearly all items already had one (drugs = Chem Lab, now shown in the browser). No recipe on purpose:
     cash, ores, realm crystal, trader contracts.
 11/12. Sort, filter, pickup feed (`client/ui/PickupFeed`): DONE.
-13. Style rule (no amber left strip, no scaled text): applied everywhere found.
+13. Style rule (no amber left strip, no scaled text): applied everywhere found. Vanilla buttons/hotbar stay grey (user choice).
 Still open from the older list: reflections (gloss now per material; SSR still only water/wet), Embeddium 3D
 texture outlines check, the user's lost requests (ask).
 - DevShots flags added: -PfaBreak, -PfaUi, -PfaWater, -PfaHd, -PfaFeed, -PfaSkin2. Never compile while a dev
