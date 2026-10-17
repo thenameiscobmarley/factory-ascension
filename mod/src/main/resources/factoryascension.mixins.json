@@ -4,11 +4,9 @@
   "package": "dev.factoryascension.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "BoatWavesMixin",
     "BreakHideMixin",
     "DarkLabelMixin",
     "EmbeddiumBreakHideMixin",
-    "EmbeddiumWavesMixin",
     "EmbeddiumShaderMixin",
     "HumanoidPoseMixin"
   ],

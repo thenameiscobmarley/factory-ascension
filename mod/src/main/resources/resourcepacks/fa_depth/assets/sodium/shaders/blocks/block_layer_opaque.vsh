@@ -1,18 +1,14 @@
 #version 330 core
-// Factory Ascension depth, Embeddium's block shader: as Embeddium's own, plus the camera-relative position the relief
-// needs, and water whose top rides the waves (as the vanilla pack's fa_water).
+// Factory Ascension depth, Embeddium's block shader: as Embeddium's own, plus the camera-relative position the relief needs.
 
 #import <sodium:include/fog.glsl>
 #import <sodium:include/chunk_vertex.glsl>
 #import <sodium:include/chunk_matrices.glsl>
 #import <sodium:include/chunk_material.glsl>
-#import <sodium:include/fa_waves.glsl>
 
 out vec4 v_Color;
 out vec2 v_TexCoord;
 out vec3 v_FaPos;
-out vec2 v_FaWorld;
-out float v_FaWaterTop;
 
 out float v_MaterialMipBias;
 #ifdef USE_FRAGMENT_DISCARD
@@ -25,8 +21,6 @@ out float v_FragDistance;
 
 uniform int u_FogShape;
 uniform vec3 u_RegionOffset;
-// Waves (client/render/Waves, set by mixin/EmbeddiumWavesMixin): camera x mod 256, camera y's fraction, z mod 256, seconds
-uniform vec4 u_FaWater;
 
 uniform sampler2D u_LightTex; // The light map texture sampler
 
@@ -48,15 +42,6 @@ void main() {
 
     vec3 translation = u_RegionOffset + _get_draw_translation(_draw_id);
     vec3 position = _vert_position + translation;
-
-    // Water's top rides the waves: blue-tinted (only water is) and at a water surface's height in its block
-    v_FaWorld = position.xz + u_FaWater.xz;
-    v_FaWaterTop = 0.0;
-    float fy = fract(position.y + u_FaWater.y);
-    if (u_FaWater.w > 0.0 && fa_is_water(_vert_color) && fy > 0.80 && fy < 0.95) {
-        position.y += fa_wave(v_FaWorld, u_FaWater.w).x;
-        v_FaWaterTop = 1.0;
-    }
 
 #ifdef USE_FOG
     v_FragDistance = getFragDistance(u_FogShape, position);

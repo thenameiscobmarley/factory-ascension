@@ -3,15 +3,10 @@
 
 #import <sodium:include/fog.glsl>
 #import <sodium:include/fa_parallax.glsl>
-#import <sodium:include/fa_waves.glsl>
 
 in vec4 v_Color; // The interpolated vertex color
 in vec2 v_TexCoord; // The interpolated block texture coordinates
 in vec3 v_FaPos; // Relative to the camera
-in vec2 v_FaWorld;
-in float v_FaWaterTop;
-uniform vec4 u_FaWater;
-uniform vec3 u_FaSun;
 in float v_FragDistance; // The fragment's distance from the camera
 
 in float v_MaterialMipBias;
@@ -54,24 +49,6 @@ void main() {
     diffuseColor.rgb *= v_Color.a;
     diffuseColor.rgb = diffuseColor.rgb * shade + spec * v_Color.rgb * v_Color.a;
 #endif
-
-    // Water's top: sky reflection (Fresnel), sun glint and crest foam, as the vanilla pack's fa_water.fsh
-    if (v_FaWaterTop > 0.5) {
-        vec3 w = fa_wave(v_FaWorld, u_FaWater.w);
-        vec2 slope = (w.yz + fa_ripple_slope(v_FaWorld, u_FaWater.w)) * 4.0;
-        vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
-        vec3 v = normalize(-v_FaPos);
-        float fresnel = 0.02 + 0.98 * pow(1.0 - max(dot(n, v), 0.0), 5.0);
-        float sky = clamp(max(v_Color.r, max(v_Color.g, v_Color.b)), 0.0, 1.0);
-        vec3 skyCol = mix(u_FogColor.rgb, vec3(0.62, 0.78, 1.0), 0.35) * sky;
-        vec3 col = mix(diffuseColor.rgb * mix(0.75, 1.0, fresnel), skyCol, clamp(fresnel * 0.85, 0.0, 1.0));
-        float glint = pow(max(dot(reflect(-v, n), normalize(u_FaSun)), 0.0), 220.0) * clamp(u_FaSun.y * 4.0, 0.0, 1.0) * sky;
-        col += vec3(1.0, 0.95, 0.85) * glint * 2.5;
-        float crest = smoothstep(0.040, 0.062, w.x);
-        float foam = crest * smoothstep(0.35, 0.75, texture(u_BlockTex, v_TexCoord).g + crest * 0.3);
-        col = mix(col, vec3(0.92, 0.95, 0.97) * max(sky, 0.15), foam * 0.8);
-        diffuseColor = vec4(col, clamp(mix(diffuseColor.a, 1.0, fresnel * 0.6) + foam * 0.5 + glint, 0.0, 1.0));
-    }
 
     fragColor = _linearFog(diffuseColor, v_FragDistance, u_FogColor, u_FogStart, u_FogEnd);
 }

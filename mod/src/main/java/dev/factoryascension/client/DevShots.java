@@ -188,7 +188,6 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.strafe")) step = 900;
                     if (Boolean.getBoolean("fa.break")) step = 950;
                     if (Boolean.getBoolean("fa.ui")) step = 970;
-                    if (Boolean.getBoolean("fa.water")) step = 990;
                     if (Boolean.getBoolean("fa.hd")) step = 995;
                     if (Boolean.getBoolean("fa.feed")) step = 984;
                     if (Boolean.getBoolean("fa.skin2")) step = 1000;     // only: per-pixel weapon skins       // only: the pickup feed         // only: the HD texture pack, off then on      // only: waves, foam, glint, a boat riding them         // only: the redesigned screens (/ascension, containers)      // only: mining breaks pieces off, regrow, falling apart
@@ -835,12 +834,6 @@ public final class DevShots {
                 case 1096 -> { mc.setScreen(new net.minecraft.client.gui.screens.OptionsScreen(null, mc.options)); step = 1095; wait = 15; }
                 case 1095 -> { shot(mc, "ui_dark_buttons_options"); step = 1094; wait = 5; }
                 case 1094 -> { mc.setScreen(null); step = 16; wait = 5; }
-                case 990 -> { cmd(mc, "gamemode spectator @a"); cmd(mc, "time set 2000"); cmd(mc, "fill -20 -62 -40 20 -61 -6 water"); cmd(mc, "fill -20 -60 -40 20 -55 -6 air");
-                    cmd(mc, "summon boat 0.5 -61 -12 {Type:\"oak\"}"); cmd(mc, "tp @a 0.5 -58.5 -4 180 18"); wait = 60; }
-                case 991 -> { shot(mc, "water_waves_a"); wait = 25; }
-                case 992 -> { shot(mc, "water_waves_b"); cmd(mc, "tp @a 0.5 -60.3 -9 180 4"); wait = 40; }
-                case 993 -> { shot(mc, "water_boat_low"); cmd(mc, "time set 12600"); cmd(mc, "tp @a 0.5 -58 -4 270 12"); wait = 40; }
-                case 994 -> { shot(mc, "water_sunset_glint"); step = 16; }
                 case 995 -> { cmd(mc, "gamemode spectator @a"); cmd(mc, "time set 6000");
                     String[] blocks = {"stone", "cobblestone", "oak_planks", "bricks", "diamond_ore", "oak_log", "grass_block", "iron_block", "oak_leaves", "crafting_table"};
                     for (int i = 0; i < blocks.length; i++) cmd(mc, "setblock " + (-5 + i) + " -60 -4 " + blocks[i]);

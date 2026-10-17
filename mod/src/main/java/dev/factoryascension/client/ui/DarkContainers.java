@@ -62,7 +62,7 @@ public final class DarkContainers {
     static boolean restyles(ResourceLocation loc) {
         String ns = loc.getNamespace(), path = loc.getPath();
         if (ns.equals(FactoryAscension.MODID)) return false;
-        return path.startsWith("textures/gui/container/") || path.equals("textures/gui/recipe_book.png") || isWidgets(loc)
+        return path.startsWith("textures/gui/container/") || path.equals("textures/gui/recipe_book.png")
             || (ns.startsWith("sophisticated") && path.startsWith("textures/gui/"));
     }
 
@@ -85,28 +85,6 @@ public final class DarkContainers {
             }
         }
         // A touch warm, like the Tarkov panels
-        int ro = Math.min(255, out + 1), go = out, bo = Math.max(0, out - 1);
-        return a << 24 | bo << 16 | go << 8 | ro;
-    }
-
-    /** The game's buttons, sliders and hotbar (villager trades, every vanilla button): dark too, with their own greys. */
-    static boolean isWidgets(ResourceLocation loc) {
-        return loc.getNamespace().equals("minecraft") && loc.getPath().equals("textures/gui/widgets.png");
-    }
-
-    /**
-     * widgets.png: buttons are mid greys (normal), blue-greys (hovered) and dark greys (disabled), so they need a
-     * different mapping from panels: everything dark steel, hovered a clear step lighter, nothing blue.
-     */
-    static int recolorWidget(int abgr) {
-        int a = abgr >>> 24, b = abgr >> 16 & 255, g = abgr >> 8 & 255, r = abgr & 255;
-        if (a == 0) return abgr;
-        int max = Math.max(r, Math.max(g, b)), min = Math.min(r, Math.min(g, b));
-        boolean hover = b > r + 20 && b > g + 10;
-        if (!hover && max - min > 40) return abgr;   // icons keep their colours
-        int lum = (r * 3 + g * 6 + b) / 10;
-        int out = hover ? 0x22 + lum * 40 / 100 : 0x12 + lum * 26 / 100;
-        out = Math.min(255, out);
         int ro = Math.min(255, out + 1), go = out, bo = Math.max(0, out - 1);
         return a << 24 | bo << 16 | go << 8 | ro;
     }
@@ -136,13 +114,9 @@ public final class DarkContainers {
                 NativeImage img = null;
                 try (InputStream in = e.getValue().open()) {
                     img = NativeImage.read(in);
-                    boolean widgets = isWidgets(e.getKey());
-                    if (widgets || looksVanilla(img)) {
+                    if (looksVanilla(img)) {
                         for (int y = 0; y < img.getHeight(); y++)
-                            for (int x = 0; x < img.getWidth(); x++) {
-                                int p = img.getPixelRGBA(x, y);
-                                img.setPixelRGBA(x, y, widgets ? recolorWidget(p) : recolor(p));
-                            }
+                            for (int x = 0; x < img.getWidth(); x++) img.setPixelRGBA(x, y, recolor(img.getPixelRGBA(x, y)));
                         out.put(e.getKey(), img);   // the DynamicTexture made from it owns it from here
                         img = null;
                     }
@@ -159,13 +133,6 @@ public final class DarkContainers {
         protected void apply(Map<ResourceLocation, NativeImage> images, ResourceManager rm, ProfilerFiller profiler) {
             var tm = Minecraft.getInstance().getTextureManager();
             for (var e : images.entrySet()) {
-                if (isWidgets(e.getKey())) {
-                    // The game preloads widgets.png itself and registers that copy at the very end of the reload,
-                    // after this: so ours goes in once the reload screen is gone (Events.lateWidgets)
-                    if (lateWidgets != null) lateWidgets.close();
-                    lateWidgets = e.getValue();
-                    continue;
-                }
                 try {
                     tm.register(e.getKey(), new DynamicTexture(e.getValue()));
                 } catch (Throwable err) {
@@ -186,7 +153,6 @@ public final class DarkContainers {
 
     // ---- Drag and drop (every container screen but creative, which has its own rules) ----
 
-    private static NativeImage lateWidgets;
     private static Slot dragFrom;
     private static int dragButton;
     private static boolean pressEmptyHand;
@@ -280,20 +246,6 @@ public final class DarkContainers {
                 if (slotColor != null) slotColor.setInt(s, 0x40B4BEC8);
             } catch (Throwable err) {
                 slotColorFailed = true;
-            }
-        }
-
-        /** The dark widgets.png from the last reload, put in after the game's own copy (see Reload.apply). */
-        @SubscribeEvent
-        public static void lateWidgets(net.minecraftforge.event.TickEvent.RenderTickEvent event) {
-            NativeImage img = lateWidgets;
-            if (img == null || event.phase != net.minecraftforge.event.TickEvent.Phase.START || Minecraft.getInstance().getOverlay() != null) return;
-            lateWidgets = null;
-            try {
-                Minecraft.getInstance().getTextureManager().register(new ResourceLocation("textures/gui/widgets.png"), new DynamicTexture(img));
-            } catch (Throwable err) {
-                img.close();
-                LOG.warn("Dark container screens: couldn't use the dark buttons ({})", err.toString());
             }
         }
 
