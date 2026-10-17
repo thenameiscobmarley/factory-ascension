@@ -1800,9 +1800,9 @@ global.FA = {
   // always an Elite, sometimes a rare variant as well, with extra loot.
   skinwalkers: {
     enabled: true,
-    chance: 0.05,              // per animal spawning at danger minDanger or deeper
+    chance: 0.08,              // per animal (rolled once, when it first appears) at danger minDanger or deeper
     minDanger: 2,
-    safeChance: 0.02,          // per animal spawning closer in, even in the safe zone: nowhere is safe
+    safeChance: 0.04,          // per animal closer in, even in the safe zone: nowhere is safe
     mimicChancePerSecond: 0.04, // while it stalks you: footsteps behind you, a knock, a voice, someone hurt...
     animals: ['minecraft:cow', 'minecraft:pig', 'minecraft:sheep', 'minecraft:chicken', 'minecraft:horse', 'minecraft:donkey', 'minecraft:goat',
       'minecraft:llama', 'minecraft:rabbit', 'minecraft:fox', 'minecraft:mooshroom', 'factoryascension:copper_cow', 'factoryascension:ember_hen'],
