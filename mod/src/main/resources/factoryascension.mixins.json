@@ -8,6 +8,7 @@
     "BreakHideMixin",
     "DarkLabelMixin",
     "EmbeddiumBreakHideMixin",
+    "EmbeddiumWavesMixin",
     "EmbeddiumShaderMixin",
     "HumanoidPoseMixin"
   ],

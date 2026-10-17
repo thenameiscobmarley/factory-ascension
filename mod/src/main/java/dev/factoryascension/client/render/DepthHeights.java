@@ -119,7 +119,7 @@ public final class DepthHeights {
             if (orig.getWidth() != w || orig.getHeight() != h) continue;          // animated
             if (!opaque(mips[0], w, h)) continue;
             float[] depth = heights(c.name().getPath(), mips[0], w, h);
-            write(mips, depth, w, h);
+            write(mips, depth, w, h, gloss(c.name().getPath()));
             s.uploadFirstFrame();
             n++;
         }
@@ -131,8 +131,24 @@ public final class DepthHeights {
         return true;
     }
 
-    /** Depth (0 = the surface, 1 = the deepest) into alpha, at every mip level (averaged down). */
-    static void write(NativeImage[] mips, float[] depth, int w, int h) {
+    /**
+     * How glossy a block is, 0..1: metal blocks most (sharp highlights and a sky sheen), polished and glazed stone,
+     * then ordinary blocks, and dull earth and cloth least. The depth shaders read it (fa_parallax.glsl, faBlock).
+     */
+    static float gloss(String path) {
+        String n = path.substring(path.lastIndexOf('/') + 1);
+        if (n.contains("ore")) return 0.3f;
+        if (n.matches(".*(iron_block|gold_block|copper|netherite_block|diamond_block|emerald_block|lapis_block|anvil|iron_bars|chain|cauldron|lantern|steel|brass|zinc|andesite_casing|voidsteel).*"))
+            return 1f;
+        if (n.matches(".*(polished|smooth|quartz|glazed|obsidian|prismarine|calcite|amethyst|purpur|end_stone_bricks|_concrete$|_tiles|marble|ascendite).*"))
+            return 0.66f;
+        if (n.matches(".*(dirt|grass|sand|gravel|wool|moss|mud|soul|clay|farmland|podzol|mycelium|snow|hay|_log|bark|path|rooted|nylium|wart).*"))
+            return 0f;
+        return 0.2f;   // plain stone, wood, bricks: a soft sheen only
+    }
+
+    /** Depth (0 = the surface, 1 = the deepest) into alpha, at every mip level (averaged down); `gloss` in the last level. */
+    static void write(NativeImage[] mips, float[] depth, int w, int h, float gloss) {
         float[] d = depth;
         int cw = w, ch = h;
         for (int l = 0; l < mips.length; l++) {
@@ -155,6 +171,14 @@ public final class DepthHeights {
             d = nd;
             cw = nw;
             ch = nh;
+        }
+        // The smallest level is the block's average, read only to know there's a height map: it carries the gloss
+        // instead (alpha 0.5..0.75; a height is always above 0.75, so the two never mix up)
+        NativeImage last = mips[mips.length - 1];
+        if (last != null && mips.length > 1) {
+            int a = 128 + Math.round(Math.max(0, Math.min(1, gloss)) * 63);
+            for (int y = 0; y < last.getHeight(); y++)
+                for (int x = 0; x < last.getWidth(); x++) last.setPixelRGBA(x, y, (last.getPixelRGBA(x, y) & 0x00FFFFFF) | (a << 24));
         }
     }
 

@@ -812,8 +812,9 @@ public final class DevShots {
                 case 982 -> { shot(mc, "ui_item_browser"); dev.factoryascension.client.ui.ItemBrowser.devOpen("ingot"); wait = 20; }
                 case 983 -> { shot(mc, "ui_item_browser_search_recipe"); step = 984; wait = 10; }
                 case 984 -> { mc.setScreen(null); cmd(mc, "gamemode survival @a"); wait = 10; }
-                case 985 -> { cmd(mc, "give @a minecraft:rotten_flesh 7"); cmd(mc, "give @a minecraft:bone 3"); cmd(mc, "give @a minecraft:gold_ingot 12"); wait = 8; }
-                case 986 -> { log("pickup feed rows: " + dev.factoryascension.client.ui.PickupFeed.devRows()); shot(mc, "ui_pickup_feed"); cmd(mc, "gamemode creative @a"); wait = 10; step = 16; }
+                case 985 -> { cmd(mc, "give @a minecraft:rotten_flesh 7"); cmd(mc, "give @a minecraft:bone 3"); cmd(mc, "give @a minecraft:gold_ingot 12"); wait = 60; }
+                case 986 -> { cmd(mc, "give @a minecraft:gold_ingot 1"); step = 988; wait = 25; }
+                case 988 -> { log("pickup feed rows: " + dev.factoryascension.client.ui.PickupFeed.devRows()); shot(mc, "ui_pickup_feed"); cmd(mc, "gamemode creative @a"); wait = 10; step = 16; }
                 case 990 -> { cmd(mc, "gamemode spectator @a"); cmd(mc, "time set 2000"); cmd(mc, "fill -20 -62 -40 20 -61 -6 water"); cmd(mc, "fill -20 -60 -40 20 -55 -6 air");
                     cmd(mc, "summon boat 0.5 -61 -12 {Type:\"oak\"}"); cmd(mc, "tp @a 0.5 -58.5 -4 180 18"); wait = 60; }
                 case 991 -> { shot(mc, "water_waves_a"); wait = 25; }

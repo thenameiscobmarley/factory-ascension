@@ -139,8 +139,12 @@ void faBlock(sampler2D tex, vec2 uv, vec3 p, vec3 dp1, vec3 dp2, vec2 duv1, vec2
     float hy = faDepth(tex, clamp(outUv + vec2(0.0, texel.y), lo, hi), org, spr, avg) - faDepth(tex, clamp(outUv - vec2(0.0, texel.y), lo, hi), org, spr, avg);
     float su = hx * 0.5 * depthWorld * length(gu) / texel.x;
     float sv = hy * 0.5 * depthWorld * length(gv) / texel.y;
-    float gloss = 1.0 - d * 0.7;                        // the raised parts catch the light, the cracks don't
+    // The block's material (DepthHeights.gloss, in the smallest mip's alpha 0.5..0.75): dull earth .. polished metal
+    float mat = avgC.a < 0.76 ? clamp((avgC.a - 0.5) * 4.0, 0.0, 1.0) : 0.33;
+    float gloss = (1.0 - d * 0.7) * mix(0.15, 2.4, mat);   // the raised parts catch the light, the cracks don't
     vec2 l = faLight(n, gu, gv, v, su, sv, gloss, fade);
+    // Metal and polished stone also show the sky at a slant (Fresnel)
+    l.y += pow(1.0 - max(dot(-v, n), 0.0), 4.0) * max(0.0, mat - 0.5) * 0.5 * fade;
     shade = l.x * (1.0 - max(0.0, d - 0.1) * 0.3 * fade);   // deep spots (cracks, mortar) are darker
     spec = l.y;
 }

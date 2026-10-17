@@ -137,8 +137,9 @@ void main() {
         float sh = SHEEN(10.0, 0.6) * (warp ? 1.0 : 0.4) * (0.7 + 0.3 * sin(t * 0.8));
         c = vec3(0.09, 0.09, 0.1) + 0.06 * f + sh;
     } else if (skin == 12) {    // damascus
-        float w = sin((P.y + P.z * 0.4) * 6.0 + fbm(P * 0.3, 4) * 14.0);
-        c = mix(hex(0x3A3C40), hex(0xB4B8BC), w * 0.5 + 0.5) + SHEEN(24.0, 0.35);
+        // Many thin folded layers, steel-grey, with a soft contrast (not zebra stripes)
+        float w = sin((P.y + P.z * 0.4) * 11.0 + fbm(P * 0.35, 4) * 18.0);
+        c = mix(hex(0x4A4D52), hex(0x9DA1A6), smoothstep(-0.6, 0.6, w)) + SHEEN(24.0, 0.35);
     } else if (skin == 13) {    // rust
         float n = fbm(P * 0.45, 4);
         vec3 rust = mix(hex(0x6A2E12), hex(0xB4602A), noise(P * 4.0) * 0.7 + noise(P * 12.0) * 0.3);
