@@ -26,6 +26,11 @@ public final class PackDefaults {
     public static void title(ScreenEvent.Init.Post event) {
         if (done || !(event.getScreen() instanceof net.minecraft.client.gui.screens.TitleScreen)) return;
         done = true;
+        try {
+            addPacksOnce(Minecraft.getInstance());
+        } catch (Throwable err) {
+            org.slf4j.LoggerFactory.getLogger("Factory Ascension").error("Couldn't switch the mod's resource packs on", err);
+        }
         if (FAClientConfig.PACK_DEFAULTS.get()) return;
         try {
             apply(Minecraft.getInstance());
@@ -36,6 +41,32 @@ public final class PackDefaults {
         FAClientConfig.SMOKE_AMOUNT.set(3.0);
         FAClientConfig.LIGHTING.set(3);
         FAClientConfig.PACK_DEFAULTS.save();
+    }
+
+    /**
+     * The first time the title screen opens (resources are loaded by then): switch on the mod's built-in packs, the
+     * depth pack and the HD pack, each only once ever (so turning one off sticks), with a single reload for both.
+     */
+    static void addPacksOnce(Minecraft mc) {
+        var repo = mc.getResourcePackRepository();
+        repo.reload();
+        var ids = new java.util.ArrayList<>(repo.getSelectedIds());
+        boolean changed = false;
+        if (!FAClientConfig.DEPTH_ADDED.get()) {
+            FAClientConfig.DEPTH_ADDED.set(true);
+            if (repo.getPack(DepthShaders.PACK_ID) != null && !ids.contains(DepthShaders.PACK_ID)) { ids.add(DepthShaders.PACK_ID); changed = true; }
+        }
+        if (!FAClientConfig.HD_ADDED.get()) {
+            FAClientConfig.HD_ADDED.set(true);
+            if (repo.getPack(dev.factoryascension.client.hd.HdPack.PACK_ID) != null && !ids.contains(dev.factoryascension.client.hd.HdPack.PACK_ID)) {
+                ids.add(dev.factoryascension.client.hd.HdPack.PACK_ID);
+                changed = true;
+            }
+        }
+        FAClientConfig.HD_ADDED.save();
+        if (!changed) return;
+        repo.setSelected(ids);
+        mc.options.updateResourcePacks(repo);   // saves the list and reloads once
     }
 
     static void apply(Minecraft mc) {

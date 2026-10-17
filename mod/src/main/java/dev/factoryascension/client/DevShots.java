@@ -807,7 +807,13 @@ public final class DevShots {
                     cmd(mc, "summon villager 0.5 -60 -2.5 {NoAI:1b,VillagerData:{profession:\"minecraft:armorer\",level:3,type:\"minecraft:plains\"}}"); step = 977; wait = 10; }
                 case 977 -> { var v = mc.level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, mc.player.getBoundingBox().inflate(6));
                     if (!v.isEmpty()) mc.gameMode.interact(mc.player, v.get(0), net.minecraft.world.InteractionHand.MAIN_HAND); wait = 15; }
-                case 978 -> { log("villager: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); shot(mc, "ui_dark_villager"); step = 981; wait = 12; }
+                case 978 -> { log("villager: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); shot(mc, "ui_dark_villager"); step = 1099; wait = 12; }
+                case 1099 -> { log("villager after shot: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); mc.setScreen(null); step = 1100; wait = 5; }
+                case 1100 -> { if (!net.minecraftforge.fml.ModList.get().isLoaded("sophisticatedbackpacks")) { step = 981; return; }
+                    cmd(mc, "item replace entity @a weapon.mainhand with sophisticatedbackpacks:backpack"); wait = 15; }
+                case 1101 -> { mc.gameMode.useItem(mc.player, net.minecraft.world.InteractionHand.MAIN_HAND); wait = 25; }
+                case 1102 -> { log("backpack: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getName())); shot(mc, "ui_dark_backpack");
+                    cmd(mc, "item replace entity @a weapon.mainhand with air"); step = 981; wait = 10; }
                 case 981 -> { mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
                     dev.factoryascension.client.ui.InvToolbar.devFilter(java.util.List.of("minecraft:rotten_flesh", "minecraft:bone", "minecraft:string", "minecraft:spider_eye")); wait = 30; }
                 case 982 -> { shot(mc, "ui_inventory_filter"); mc.setScreen(new net.minecraft.client.gui.screens.inventory.CraftingScreen(

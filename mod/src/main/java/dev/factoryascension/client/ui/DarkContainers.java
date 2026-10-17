@@ -89,7 +89,7 @@ public final class DarkContainers {
         return a << 24 | bo << 16 | go << 8 | ro;
     }
 
-    /** Only textures that really use the game's GUI panel grey (so other art in those folders is left alone). */
+    /** Only textures that really use the game's GUI panel or slot greys (so other art in those folders is left alone). */
     static boolean looksVanilla(NativeImage img) {
         int panel = 0, seen = 0;
         for (int y = 0; y < img.getHeight(); y += 2)
@@ -97,7 +97,9 @@ public final class DarkContainers {
                 int p = img.getPixelRGBA(x, y);
                 if (p >>> 24 == 0) continue;
                 seen++;
-                if ((p & 0xFFFFFF) == 0xC6C6C6) panel++;
+                int rgb = p & 0xFFFFFF;
+                // The panel grey, or the slot greys (Sophisticated Core keeps its slot grid in a texture of its own)
+                if (rgb == 0xC6C6C6 || rgb == 0x8B8B8B || rgb == 0x373737) panel++;
             }
         return seen > 0 && panel > seen / 20;
     }

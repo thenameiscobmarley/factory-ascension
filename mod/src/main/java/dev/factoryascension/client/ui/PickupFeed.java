@@ -90,6 +90,9 @@ public final class PickupFeed {
             int w = event.getWindow().getGuiScaledWidth(), h = event.getWindow().getGuiScaledHeight();
             long t = net.minecraft.Util.getMillis();
             int y = h - 48 - ROW_H;   // above the hotbar and the XP bar, whatever the window width
+            // Driving: the vehicle's HUD has that corner (vehicle/CarClient, BikeClient), so stack above it
+            var ride = mc.player == null ? null : mc.player.getVehicle();
+            if (ride instanceof dev.factoryascension.vehicle.Car || ride instanceof dev.factoryascension.vehicle.DirtBike) y = h - 64 - ROW_H;
             for (int i = ROWS.size() - 1; i >= 0; i--) {
                 Entry r = ROWS.get(i);
                 float fade = 1 - Mth.clamp((t - r.last - SHOW_MS) / (float) FADE_MS, 0, 1);

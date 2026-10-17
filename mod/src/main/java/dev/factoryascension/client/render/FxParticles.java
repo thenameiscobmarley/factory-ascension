@@ -60,6 +60,31 @@ public final class FxParticles {
         }
     };
 
+    /**
+     * Voxel debris: the game's terrain particle sheet, but opaque. With blending on, the depth pack's block heights
+     * (kept in the texture's alpha) made the pieces see-through.
+     */
+    static final ParticleRenderType SOLID_TERRAIN = new ParticleRenderType() {
+        @Override
+        public void begin(com.mojang.blaze3d.vertex.BufferBuilder b, net.minecraft.client.renderer.texture.TextureManager tm) {
+            com.mojang.blaze3d.systems.RenderSystem.disableBlend();
+            com.mojang.blaze3d.systems.RenderSystem.depthMask(true);
+            com.mojang.blaze3d.systems.RenderSystem.setShader(net.minecraft.client.renderer.GameRenderer::getParticleShader);
+            com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
+            b.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.PARTICLE);
+        }
+
+        @Override
+        public void end(com.mojang.blaze3d.vertex.Tesselator t) {
+            t.end();
+        }
+
+        @Override
+        public String toString() {
+            return "FACTORYASCENSION_SOLID_TERRAIN";
+        }
+    };
+
     public static int liveDebris() { return liveDebris; }
     public static int liveSmoke() { return liveSmoke; }
     public static int liveFoam() { return liveFoam; }
@@ -296,6 +321,24 @@ public final class FxParticles {
             }
         }
 
+        /**
+         * Lit by the brightest spot around it: a piece resting in a half-mined block's hole (or sunk a little into
+         * the ground) is inside a solid block as far as light goes, which is always dark.
+         */
+        @Override
+        protected int getLightColor(float partial) {
+            BlockPos at = BlockPos.containing(x, y + 0.05, z);
+            int best = 0, bestSum = -1;
+            for (BlockPos p : new BlockPos[] {at, at.above(), at.north(), at.south(), at.east(), at.west()}) {
+                if (!level.hasChunkAt(p)) continue;
+                int c = net.minecraft.client.renderer.LevelRenderer.getLightColor(level, p);
+                int sum = (c & 0xFFFF) + (c >>> 16);
+                if (sum > bestSum) { bestSum = sum; best = c; }
+                if (p == at && !level.getBlockState(p).isSolidRender(level, p)) break;   // in the open: its own light
+            }
+            return best;
+        }
+
         // Face normals and the two edge directions of each face (anticlockwise seen from outside)
         private static final float[][] FACES = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
@@ -336,7 +379,7 @@ public final class FxParticles {
 
         @Override
         public ParticleRenderType getRenderType() {
-            return ParticleRenderType.TERRAIN_SHEET;
+            return SOLID_TERRAIN;
         }
 
         @Override

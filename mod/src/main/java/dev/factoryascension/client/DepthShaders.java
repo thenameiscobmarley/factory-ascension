@@ -62,36 +62,7 @@ public final class DepthShaders {
     }
 
     /** On the first start with this version, turn it on (once; after that the player's choice stands). */
-    public static void enableOnce() {
-        if (FAClientConfig.DEPTH_ADDED.get()) return;
-        FAClientConfig.DEPTH_ADDED.set(true);
-        FAClientConfig.DEPTH_ADDED.save();
-        Minecraft mc = Minecraft.getInstance();
-        var repo = mc.getResourcePackRepository();
-        repo.reload();
-        if (repo.getPack(PACK_ID) == null || repo.getSelectedIds().contains(PACK_ID)) return;
-        List<String> ids = new ArrayList<>(repo.getSelectedIds());
-        ids.add(PACK_ID);
-        repo.setSelected(ids);
-        mc.options.updateResourcePacks(repo);   // saves it and reloads once
-    }
 
-    // The first time the title screen opens (resources are loaded by then), switch the pack on
-    @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
-    public static final class FirstStart {
-        private static boolean done = false;
-
-        @SubscribeEvent
-        public static void title(net.minecraftforge.client.event.ScreenEvent.Init.Post event) {
-            if (done || !(event.getScreen() instanceof net.minecraft.client.gui.screens.TitleScreen)) return;
-            done = true;
-            try {
-                enableOnce();
-            } catch (Throwable err) {
-                org.slf4j.LoggerFactory.getLogger("Factory Ascension").error("Couldn't switch the depth pack on", err);
-            }
-        }
-    }
 
     // ---- The settings, written into the shaders ----
 

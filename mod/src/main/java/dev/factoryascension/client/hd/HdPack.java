@@ -173,29 +173,4 @@ public final class HdPack implements PackResources {
         }
     }
 
-    @Mod.EventBusSubscriber(modid = FactoryAscension.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
-    public static final class FirstStart {
-        private static boolean done = false;
-
-        @SubscribeEvent
-        public static void title(net.minecraftforge.client.event.ScreenEvent.Init.Post event) {
-            if (done || !(event.getScreen() instanceof net.minecraft.client.gui.screens.TitleScreen)) return;
-            done = true;
-            try {
-                if (FAClientConfig.HD_ADDED.get()) return;
-                FAClientConfig.HD_ADDED.set(true);
-                FAClientConfig.HD_ADDED.save();
-                var mc = Minecraft.getInstance();
-                var repo = mc.getResourcePackRepository();
-                repo.reload();
-                if (repo.getPack(PACK_ID) == null || repo.getSelectedIds().contains(PACK_ID)) return;
-                var ids = new java.util.ArrayList<>(repo.getSelectedIds());
-                ids.add(PACK_ID);
-                repo.setSelected(ids);
-                mc.options.updateResourcePacks(repo);
-            } catch (Throwable err) {
-                LOG.error("Couldn't switch the HD pack on", err);
-            }
-        }
-    }
 }

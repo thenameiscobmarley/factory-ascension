@@ -9,6 +9,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
@@ -62,6 +63,8 @@ public final class BreakChunks {
     private static final Map<Long, Long> SHATTERED = new HashMap<>();
     private static boolean broken = false;
     public static boolean devHold = false;
+    /** Loaded with Ascension Lighting's shaders (fa_plain_block); null until then. */
+    public static net.minecraft.client.renderer.ShaderInstance plainShader;
     public static int drawn = 0;
     public static String why = "no frame yet";
 
@@ -387,7 +390,12 @@ public final class BreakChunks {
         Minecraft mc = Minecraft.getInstance();
         var cam = mc.gameRenderer.getMainCamera().getPosition();
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        VertexConsumer out = buffers.getBuffer(RenderType.cutout());
+        // Our plain block shader when it's loaded: the depth pack's terrain shaders give loose pieces of a block a
+        // smeared, see-through look (relief made for whole chunk faces, heights kept in the texture's alpha)
+        ShaderInstance plain = plainShader;
+        com.mojang.blaze3d.vertex.BufferBuilder own = plain != null ? com.mojang.blaze3d.vertex.Tesselator.getInstance().getBuilder() : null;
+        if (own != null) own.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.BLOCK);
+        VertexConsumer out = own != null ? own : buffers.getBuffer(RenderType.cutout());
         Matrix4f m = pose.last().pose();
         Matrix3f nm = pose.last().normal();
         drawn = 0;
@@ -434,7 +442,22 @@ public final class BreakChunks {
                 }
             }
         }
-        buffers.endBatch(RenderType.cutout());
+        if (own == null) {
+            buffers.endBatch(RenderType.cutout());
+            return;
+        }
+        com.mojang.blaze3d.systems.RenderSystem.enableDepthTest();
+        com.mojang.blaze3d.systems.RenderSystem.disableBlend();
+        com.mojang.blaze3d.systems.RenderSystem.enableCull();
+        com.mojang.blaze3d.systems.RenderSystem.depthMask(true);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS);
+        mc.gameRenderer.lightTexture().turnOnLightLayer();
+        com.mojang.blaze3d.systems.RenderSystem.setShader(() -> plain);
+        try {
+            com.mojang.blaze3d.vertex.BufferUploader.drawWithShader(own.end());
+        } finally {
+            mc.gameRenderer.lightTexture().turnOffLightLayer();
+        }
     }
 
     /**

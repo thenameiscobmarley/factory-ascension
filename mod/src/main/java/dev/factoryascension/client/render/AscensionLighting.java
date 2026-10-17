@@ -82,6 +82,13 @@ public final class AscensionLighting {
             } catch (Throwable err) {
                 LOG.error("Ascension Lighting shaders failed to load; the effect stays off", err);
             }
+            // Breaking chunks' plain block shader (without it they use the game's cutout one)
+            try {
+                event.registerShader(new ShaderInstance(event.getResourceProvider(), new ResourceLocation(FactoryAscension.MODID, "fa_plain_block"),
+                    DefaultVertexFormat.BLOCK), s -> BreakChunks.plainShader = s);
+            } catch (Throwable err) {
+                LOG.error("Breaking chunks' block shader failed to load; they use the game's", err);
+            }
         }
 
         private static ShaderInstance load(RegisterShadersEvent event, String name) throws java.io.IOException {
