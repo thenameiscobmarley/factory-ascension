@@ -188,6 +188,7 @@ public final class DevShots {
                     if (Boolean.getBoolean("fa.strafe")) step = 900;
                     if (Boolean.getBoolean("fa.break")) step = 950;
                     if (Boolean.getBoolean("fa.ui")) step = 970;
+                    if (Boolean.getBoolean("fa.screens")) step = 1200;   // only: trader tabs, weapons bench, Tarkov inventory
                     if (Boolean.getBoolean("fa.hd")) step = 995;
                     if (Boolean.getBoolean("fa.feed")) step = 984;
                     if (Boolean.getBoolean("fa.skin2")) step = 1000;     // only: per-pixel weapon skins       // only: the pickup feed         // only: the HD texture pack, off then on      // only: waves, foam, glint, a boat riding them         // only: the redesigned screens (/ascension, containers)      // only: mining breaks pieces off, regrow, falling apart
@@ -857,6 +858,29 @@ public final class DevShots {
                     });
                     wait = 40; }
                 case 1002 -> { shot(mc, "skin_" + SKIN_SHOTS[skinIndex]); skinIndex++; step = 1001; wait = 10; }
+                case 1200 -> { cmd(mc, "gamemode creative @a"); cmd(mc, "time set 6000"); cmd(mc, "clear @a"); cmd(mc, "tp @a 0 -60 0 0 0");
+                    cmd(mc, "summon factoryascension:trader 0 -60 3 {Kind:0,Rotation:[180f,0f],CustomName:'\"Volkov, Quartermaster\"'}");
+                    cmd(mc, "give @a factoryascension:cash_bundle 20"); cmd(mc, "give @a factoryascension:dog_tag 3"); cmd(mc, "give @a factoryascension:m4a1");
+                    cmd(mc, "give @a iron_ingot 7"); wait = 40; }
+                case 1201 -> { var sp = mc.getSingleplayerServer();
+                    if (sp != null) sp.execute(() -> {
+                        var p = sp.getPlayerList().getPlayers().get(0);
+                        dev.factoryascension.raid.Traders.addRubles(p, 48500);
+                        var t = p.serverLevel().getEntitiesOfClass(dev.factoryascension.raid.Trader.class, p.getBoundingBox().inflate(20));
+                        if (!t.isEmpty()) dev.factoryascension.raid.Traders.open(p, t.get(0));
+                    });
+                    wait = 40; }
+                case 1202 -> { shot(mc, "screens_trader_buy"); TraderScreen.devTab = 1; wait = 10; }
+                case 1203 -> { shot(mc, "screens_trader_sell"); TraderScreen.devTab = 2; wait = 10; }
+                case 1204 -> { shot(mc, "screens_trader_tasks"); mc.setScreen(null); cmd(mc, "kill @e[type=factoryascension:trader]");
+                    cmd(mc, "setblock 2 -60 0 factoryascension:weapons_workbench"); cmd(mc, "tp @a 2.5 -60 -1.5 0 40"); wait = 20; }
+                case 1205 -> { var hit = new net.minecraft.world.phys.BlockHitResult(new net.minecraft.world.phys.Vec3(2.5, -59, 0.5), net.minecraft.core.Direction.UP, new net.minecraft.core.BlockPos(2, -60, 0), false);
+                    mc.gameMode.useItemOn(mc.player, net.minecraft.world.InteractionHand.MAIN_HAND, hit); wait = 30; }
+                case 1206 -> { log("bench: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); shot(mc, "screens_bench"); wait = 5; }
+                case 1207 -> { mc.setScreen(null); cmd(mc, "gamemode survival @a"); wait = 10; }
+                case 1208 -> { mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); wait = 60; }
+                case 1209 -> { log("inventory: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); shot(mc, "screens_inventory"); wait = 5; }
+                case 1210 -> { mc.setScreen(null); step = 16; wait = 5; }
                 case 16 -> { log("done"); mc.stop(); }
                 default -> { }
             }

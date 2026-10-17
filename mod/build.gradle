@@ -110,6 +110,7 @@ minecraft {
                 if (project.hasProperty('faPolish')) property 'fa.polish', 'true'
                 if (project.hasProperty('faBreak')) property 'fa.break', 'true'
                 if (project.hasProperty('faUi')) property 'fa.ui', 'true'
+                if (project.hasProperty('faScreens')) property 'fa.screens', 'true'
                 if (project.hasProperty('faHd')) property 'fa.hd', 'true'
                 if (project.hasProperty('faFeed')) property 'fa.feed', 'true'
                 if (project.hasProperty('faSkin2')) property 'fa.skin2', 'true'

@@ -72,6 +72,7 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         super.init();
         search = new EditBox(font, leftPos + LIST_X, topPos + 19, 152, 12, Component.literal("Search"));
         search.setHint(Component.literal("Search attachments..."));
+        lastSlot = null;   // the list (and the hint's count) is worked out again now the box exists
         search.setBordered(true);
         addRenderableWidget(search);
     }
@@ -96,6 +97,8 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         }
         scroll = 0;
         picked = shown.isEmpty() ? -1 : 0;
+        // How many there are for this slot goes in the search box (a heading there sat under the box)
+        if (search != null) search.setHint(Component.literal("Search " + shown.size() + " " + slot.label.toLowerCase(Locale.ROOT) + " parts..."));
     }
 
     private void refreshGuns() {
@@ -202,6 +205,20 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         g.pose().popPose();
     }
 
+    /** A slot's name that fits its 32 px box (the long ones shortened, as a gunsmith would). */
+    private String cellLabel(Attachments.Slot sl) {
+        String full = sl.label.toUpperCase(Locale.ROOT);
+        if (font.width(full) * 2 / 3 <= 28) return full;
+        return switch (sl) {
+            case HANDGUARD -> "GUARD";
+            case FOREGRIP -> "FGRIP";
+            case MAGAZINE -> "MAG";
+            case UNDERBARREL -> "UNDER";
+            case TACTICAL -> "TAC";
+            default -> full.substring(0, Math.min(full.length(), 5));
+        };
+    }
+
     private void cell(GuiGraphics g, int x, int y) {
         g.fill(x - 1, y - 1, x + 17, y + 17, CELL_LINE);
         g.fill(x, y, x + 16, y + 16, CELL);
@@ -263,7 +280,7 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
             boolean sel = slots[i] == slot, hover = mx >= sx && mx < sx + 32 && my >= sy && my < sy + 19;
             g.fill(sx, sy, sx + 32, sy + 19, sel ? 0xFF2E2E2A : hover ? 0xFF222220 : CELL);
             g.renderOutline(sx, sy, 32, 19, sel ? TEXT : EDGE);
-            small(g, slots[i].label.toUpperCase(Locale.ROOT), sx + 2, sy + 2, sel ? TEXT : DIM);
+            small(g, cellLabel(slots[i]), sx + 2, sy + 2, sel ? TEXT : DIM);
             int n = 0;
             for (String id : ids) {
                 Attachments.Att a = Attachments.BY_ID.get(id);
@@ -278,7 +295,6 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
         }
         // The catalog
         panel(g, x0 + LIST_X - 2, y0 + 32, 156, LIST_ROWS * ROW + 4);
-        small(g, shown.size() + " for " + slot.label.toUpperCase(Locale.ROOT), x0 + LIST_X, y0 + 17 - 0, FAINT);
         for (int r = 0; r < LIST_ROWS; r++) {
             int i = scroll + r;
             if (i >= shown.size()) break;
@@ -314,7 +330,7 @@ public class WeaponsBenchScreen extends AbstractContainerScreen<WeaponsBenchMenu
                     g.pose().scale(0.6f, 0.6f, 1);
                     g.renderItem(need.items[k], 0, 0);
                     g.pose().popPose();
-                    String t = need.have[k] + "/" + need.counts[k];
+                    String t = need.counts[k] + " (have " + need.have[k] + ")";
                     small(g, t, nx + 11, iy + 30, need.have[k] >= need.counts[k] ? OK : BAD);
                     nx += 13 + font.width(t) * 2 / 3 + 6;
                 }

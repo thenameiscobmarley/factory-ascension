@@ -65,7 +65,8 @@ public class TraderScreen extends Screen {
         int tx = x0 + 12;
         for (int i = 0; i < 3; i++) {
             int tw = font.width(TarkovScreen.uiBold(names[i])) + 16;
-            g.fill(tx, y0 + 34, tx + tw, y0 + 48, i == tab ? 0x60C9A55A : 0x22FFFFFF);
+            g.fill(tx, y0 + 34, tx + tw, y0 + 48, i == tab ? 0x30B4BEC8 : 0x18FFFFFF);
+            if (i == tab) g.fill(tx, y0 + 47, tx + tw, y0 + 48, dev.factoryascension.client.ui.UiKit.ACCENT);
             g.drawString(font, TarkovScreen.uiBold(names[i]), tx + 8, y0 + 37, i == tab ? 0xFFF2EFE6 : 0xFF8C8A84, false);
             tabs.add(new int[] {tx, y0 + 34, tw, 14, i});
             tx += tw + 4;
@@ -98,7 +99,14 @@ public class TraderScreen extends Screen {
             }
             ItemStack s = ItemStack.of(e.getCompound("Item"));
             g.renderItem(s, x0 + 13, y + 3);
-            g.renderItemDecorations(font, s, x0 + 13, y + 3);
+            // Just the count: a gun's ammo/condition bar means nothing on a shelf
+            if (s.getCount() > 1) {
+                g.pose().pushPose();
+                g.pose().translate(0, 0, 200);
+                String n = String.valueOf(s.getCount());
+                g.drawString(font, n, x0 + 13 + 17 - font.width(n), y + 3 + 9, 0xFFFFFFFF, true);
+                g.pose().popPose();
+            }
             boolean locked = tab == 0 && e.getInt("Lvl") > view.getInt("Level");
             g.drawString(font, TarkovScreen.ui(s.getHoverName().getString()), x0 + 34, y + 7, locked ? 0xFF6A6864 : 0xFFE6E3DA, false);
             String price;
@@ -116,12 +124,19 @@ public class TraderScreen extends Screen {
         }
         if (list.isEmpty()) g.drawString(font, TarkovScreen.ui(tab == 1 ? "Nothing you carry interests them." : "Nothing here."), x0 + 16, top + 6, 0xFF8C8A84, false);
         g.disableScissor();
+        // Scrolling: stops at the last row, with a bar showing where you are
+        int contentH = list.size() * (rowH + 2), viewH = bottom - top;
+        maxScroll = Math.max(0, contentH - viewH);
+        if (scroll > maxScroll) scroll = maxScroll;
+        dev.factoryascension.client.ui.UiKit.scrollbar(g, x0 + w - 8, top, viewH, (int) scroll, viewH, contentH);
         super.render(g, mx, my, partial);
     }
 
+    private double maxScroll;
+
     @Override
     public boolean mouseScrolled(double mx, double my, double d) {
-        scroll = Math.max(0, scroll - d * 20);
+        scroll = Math.max(0, Math.min(maxScroll, scroll - d * 20));
         return true;
     }
 
