@@ -104,93 +104,172 @@ public final class FxParticles {
     }
 
     /**
-     * One cube cut from a block that's being mined (BreakChunks): `half` is half its size, the texture is the given
-     * piece of `sprite`, and it starts at rest where it sat in the block. Returns false when the cap is full.
+     * A piece broken off a block that's being mined (BreakChunks): a box `sx` x `sy` x `sz` (half sizes) centred at
+     * x, y, z, wearing the given piece of `sprite`. Returns false when the cap is full.
      */
     public static boolean chunk(ClientLevel level, BlockState state, BlockPos pos, double x, double y, double z, double vx, double vy, double vz,
-                                TextureAtlasSprite sprite, float pu, float pv, float pw, float half, int tint) {
+                                TextureAtlasSprite sprite, float pu, float pv, float uw, float vh, float sx, float sy, float sz, int tint) {
         if (!FAClientConfig.on(FAClientConfig.DEBRIS) || liveDebris >= FAClientConfig.MAX_DEBRIS.get()) return false;
-        VoxelDebris d = new VoxelDebris(level, x, y - half, z, vx, vy, vz, state, pos);
-        d.cut(sprite, pu, pv, pw, half, tint);
+        VoxelDebris d = new VoxelDebris(level, x, y - sy, z, vx, vy, vz, state, pos);
+        d.cut(sprite, pu, pv, uw, vh, sx, sy, sz, tint);
         Minecraft.getInstance().particleEngine.add(d);
         return true;
     }
 
+    /** Small crumbs and a little dust where a piece breaks off or lands (the game's own block particles). */
+    public static void crumbs(ClientLevel level, BlockState state, double x, double y, double z, int n, double spread) {
+        if (!FAClientConfig.on(FAClientConfig.DEBRIS)) return;
+        RandomSource r = level.random;
+        var crumb = new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK, state);
+        for (int i = 0; i < n; i++)
+            level.addParticle(crumb, x + (r.nextDouble() - 0.5) * spread, y + r.nextDouble() * spread * 0.5, z + (r.nextDouble() - 0.5) * spread,
+                (r.nextDouble() - 0.5) * 0.1, r.nextDouble() * 0.08, (r.nextDouble() - 0.5) * 0.1);
+    }
+
+    private static long soundTick;
+    private static int soundsThisTick;
+
+    /** A piece landing hard: a quiet knock in the block's own sound (a few a tick at most, or a pile would roar). */
+    static void knock(ClientLevel level, BlockState state, double x, double y, double z, float impact) {
+        long t = level.getGameTime();
+        if (t != soundTick) { soundTick = t; soundsThisTick = 0; }
+        if (soundsThisTick++ >= 3) return;
+        var st = state.getSoundType();
+        level.playLocalSound(x, y, z, st.getHitSound(), net.minecraft.sounds.SoundSource.BLOCKS, Math.min(0.35f, 0.08f + impact * 0.8f),
+            st.getPitch() * (1.15f + level.random.nextFloat() * 0.35f), false);
+    }
+
     // ---- The particles ----
 
-    /** A tumbling cube of block texture. */
+    /**
+     * A tumbling piece of a block: a small rigid box with the block's texture. It spins about any axis while it flies,
+     * bounces off the ground losing most of its speed (a hard landing knocks it into a new spin), slides and rolls to a
+     * stop and settles flat on one of its faces, then shrinks away at the end of its life. Its faces are shaded by
+     * which way they really face, like the blocks around it.
+     */
     static final class VoxelDebris extends TextureSheetParticle {
-        private float u0, v0, u1, v1, size;
-        private final Vector3f spinAxis;
-        private float angle, angleO, spin;
-        private boolean settled;
+        private float u0, v0, u1, v1;
+        private float hx, hy, hz;
+        private final BlockState state;
+        private final Quaternionf rot = new Quaternionf(), rotO = new Quaternionf();
+        private final Vector3f spin = new Vector3f();
+        private boolean resting, chunky;
+        private float shrink = 1, shrinkO = 1;
 
         VoxelDebris(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, BlockState state, BlockPos pos) {
             super(level, x, y, z);
+            this.state = state;
             setSprite(Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getParticleIcon(state));
             xd = vx; yd = vy; zd = vz;
-            gravity = 1.0f;
-            friction = 0.98f;
             hasPhysics = true;
-            size = 0.05f + random.nextFloat() * 0.07f;
-            setSize(size * 2, size * 2);
-            lifetime = 80 + random.nextInt(80);
+            float size = 0.05f + random.nextFloat() * 0.07f;
+            hx = size * (0.8f + random.nextFloat() * 0.4f);
+            hy = size * (0.8f + random.nextFloat() * 0.4f);
+            hz = size * (0.8f + random.nextFloat() * 0.4f);
+            lifetime = 90 + random.nextInt(80);
             // A random 4x4 corner of the block's texture, like vanilla breaking particles
             float pu = random.nextFloat() * 0.75f, pv = random.nextFloat() * 0.75f;
             u0 = sprite.getU(pu * 16); u1 = sprite.getU((pu + 0.25f) * 16);
             v0 = sprite.getV(pv * 16); v1 = sprite.getV((pv + 0.25f) * 16);
             int tint = Minecraft.getInstance().getBlockColors().getColor(state, level, pos, 0);
-            if (tint != -1 && !state.is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK)) {
-                rCol = (tint >> 16 & 255) / 255f; gCol = (tint >> 8 & 255) / 255f; bCol = (tint & 255) / 255f;
-            } else if (state.is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK)) {
-                rCol = 0.85f; gCol = 0.8f; bCol = 0.7f;   // grass blocks break into dirt-coloured bits
-            }
-            spinAxis = new Vector3f(random.nextFloat() - 0.5f, random.nextFloat() - 0.5f, random.nextFloat() - 0.5f).normalize();
-            spin = (random.nextFloat() - 0.5f) * 0.6f;
+            if (state.is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK)) { rCol = 0.85f; gCol = 0.8f; bCol = 0.7f; }   // dirt-coloured bits
+            else if (tint != -1) { rCol = (tint >> 16 & 255) / 255f; gCol = (tint >> 8 & 255) / 255f; bCol = (tint & 255) / 255f; }
+            rot.rotateXYZ(random.nextFloat() * 6.28f, random.nextFloat() * 6.28f, random.nextFloat() * 6.28f);
+            rotO.set(rot);
+            spin.set(random.nextFloat() - 0.5f, random.nextFloat() - 0.5f, random.nextFloat() - 0.5f).normalize().mul(0.15f + random.nextFloat() * 0.3f);
+            fitBox();
             liveDebris++;
         }
 
-        /** Re-cut as a BreakChunks piece: its own spot on the face texture, its size and tint. */
-        void cut(TextureAtlasSprite s, float pu, float pv, float pw, float half, int tint) {
+        /** Re-cut as a BreakChunks piece: its own spot on the face texture, its size and tint, starting square. */
+        void cut(TextureAtlasSprite s, float pu, float pv, float uw, float vh, float sx, float sy, float sz, int tint) {
             setSprite(s);
-            u0 = s.getU(pu * 16); u1 = s.getU((pu + pw) * 16);
-            v0 = s.getV(pv * 16); v1 = s.getV((pv + pw) * 16);
-            size = half;
-            setSize(half * 2, half * 2);
+            u0 = s.getU(pu * 16); u1 = s.getU((pu + uw) * 16);
+            v0 = s.getV(pv * 16); v1 = s.getV((pv + vh) * 16);
+            hx = sx; hy = sy; hz = sz;
             if (tint == -1) rCol = gCol = bCol = 1;
             else { rCol = (tint >> 16 & 255) / 255f; gCol = (tint >> 8 & 255) / 255f; bCol = (tint & 255) / 255f; }
-            // Tumbles end over end about a flat axis, so it can come to rest square on the ground (see tick)
-            spinAxis.set(random.nextBoolean() ? 1 : 0, 0, 0);
-            if (spinAxis.x == 0) spinAxis.z = 1;
-            spin = (0.18f + random.nextFloat() * 0.2f) * (random.nextBoolean() ? 1 : -1);
-            squares = true;
-            lifetime = 160 + random.nextInt(80);
+            rot.identity();
+            rotO.identity();
+            spin.set(random.nextFloat() - 0.5f, (random.nextFloat() - 0.5f) * 0.5f, random.nextFloat() - 0.5f).normalize().mul(0.08f + random.nextFloat() * 0.2f);
+            chunky = true;
+            lifetime = 180 + random.nextInt(100);
+            fitBox();
         }
 
-        private boolean squares;
+        /** How far the box reaches along each world axis, turned as it is now. */
+        private Vector3f extent() {
+            org.joml.Matrix3f m = new org.joml.Matrix3f().set(rot);
+            return new Vector3f(Math.abs(m.m00()) * hx + Math.abs(m.m10()) * hy + Math.abs(m.m20()) * hz,
+                Math.abs(m.m01()) * hx + Math.abs(m.m11()) * hy + Math.abs(m.m21()) * hz,
+                Math.abs(m.m02()) * hx + Math.abs(m.m12()) * hy + Math.abs(m.m22()) * hz).mul(shrink);
+        }
+
+        /** The collision box: around the turned box, standing on the particle's position (its bottom). */
+        private void fitBox() {
+            Vector3f e = extent();
+            setBoundingBox(new net.minecraft.world.phys.AABB(x - e.x, y, z - e.z, x + e.x, y + e.y * 2, z + e.z));
+        }
+
+        /** The nearest way to lie flat: each of its axes turned to the nearest world axis. */
+        private Quaternionf flat() {
+            Vector3f a = rot.transform(new Vector3f(1, 0, 0)), b = rot.transform(new Vector3f(0, 1, 0));
+            Vector3f sa = snap(a, null), sb = snap(b, sa);
+            Vector3f sc = new Vector3f(sa).cross(sb);
+            org.joml.Matrix3f m = new org.joml.Matrix3f(sa, sb, sc);
+            return new Quaternionf().setFromNormalized(m);
+        }
+
+        private static Vector3f snap(Vector3f v, @javax.annotation.Nullable Vector3f not) {
+            float ax = Math.abs(v.x), ay = Math.abs(v.y), az = Math.abs(v.z);
+            if (not != null) { if (not.x != 0) ax = -1; if (not.y != 0) ay = -1; if (not.z != 0) az = -1; }
+            if (ax >= ay && ax >= az) return new Vector3f(Math.signum(v.x) == 0 ? 1 : Math.signum(v.x), 0, 0);
+            if (ay >= az) return new Vector3f(0, Math.signum(v.y) == 0 ? 1 : Math.signum(v.y), 0);
+            return new Vector3f(0, 0, Math.signum(v.z) == 0 ? 1 : Math.signum(v.z));
+        }
 
         @Override
         public void tick() {
             xo = x; yo = y; zo = z;
-            angleO = angle;
+            rotO.set(rot);
+            shrinkO = shrink;
             if (age++ >= lifetime) { remove(); return; }
-            double vyBefore = yd;
-            yd -= 0.04 * gravity;
-            collideMove(xd, yd, zd);
-            if (onGround) {
-                // Bounce, losing most of the energy; then roll to a stop
-                if (Math.abs(vyBefore) > 0.12) { yd = -vyBefore * 0.35; spin *= 0.6f; }
-                else { yd = 0; settled = true; }
-                xd *= 0.6; zd *= 0.6;
+            int left = lifetime - age;
+            if (left < 16) shrink = left / 16f;
+            if (!resting) {
+                double vyBefore = yd;
+                yd -= 0.045;                     // gravity
+                xd *= 0.99; yd *= 0.99; zd *= 0.99;   // air
+                collideMove(xd, yd, zd);
+                if (onGround) {
+                    float impact = (float) -vyBefore;
+                    if (impact > 0.09f) {
+                        // A bounce: most of the speed goes, and the knock sets it spinning a new way
+                        yd = impact * 0.28;
+                        xd *= 0.72; zd *= 0.72;
+                        spin.mul(0.5f).add((random.nextFloat() - 0.5f) * impact * 3, (random.nextFloat() - 0.5f) * impact, (random.nextFloat() - 0.5f) * impact * 3);
+                        if (impact > 0.16f) {
+                            knock(level, state, x, y, z, impact);
+                            crumbs(level, state, x, y, z, chunky ? 2 : 1, hx * 2);
+                        }
+                    } else {
+                        // On the ground: slide and roll to a stop, and tip onto the nearest face
+                        yd = 0;
+                        xd *= 0.6; zd *= 0.6;
+                        spin.mul(0.45f);
+                        rot.slerp(flat(), 0.3f);
+                        if (xd * xd + zd * zd < 1e-5 && spin.lengthSquared() < 1e-4) {
+                            rot.set(flat());
+                            resting = true;
+                        }
+                    }
+                }
+                float w = spin.length();
+                if (w > 1e-4f) rot.premul(new Quaternionf().fromAxisAngleRad(spin.x / w, spin.y / w, spin.z / w, w));
+                fitBox();
+            } else if (left < 16) {
+                fitBox();
             }
-            xd *= friction; zd *= friction;
-            if (!settled) angle += spin;
-            else if (squares) {
-                // Lying on the ground: ease onto the nearest flat side
-                float flat = Math.round(angle / Mth.HALF_PI) * Mth.HALF_PI;
-                angle += (flat - angle) * 0.5f;
-            }
-            if (lifetime - age < 20) alpha = (lifetime - age) / 20f;
         }
 
         /**
@@ -206,8 +285,8 @@ public final class FxParticles {
                 setLocationFromBoundingbox();
             }
             onGround = oy != dy && oy < 0;
-            if (ox != dx) xd = -xd * 0.3;      // off a wall
-            if (oz != dz) zd = -zd * 0.3;
+            if (ox != dx) { xd = -xd * 0.35; spin.y += (float) (ox * 2); }   // off a wall, turning
+            if (oz != dz) { zd = -zd * 0.35; spin.y -= (float) (oz * 2); }
             if (oy != dy && oy > 0) yd = 0;    // under a ceiling: drop
             // Stuck inside a block (it spawned in one): let it fall through rather than hang there
             if (dx == 0 && dy == 0 && dz == 0 && oy < 0 && !level.getBlockState(net.minecraft.core.BlockPos.containing(x, y - 0.05, z)).isSolid()) {
@@ -217,32 +296,42 @@ public final class FxParticles {
             }
         }
 
+        // Face normals and the two edge directions of each face (anticlockwise seen from outside)
+        private static final float[][] FACES = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+
         @Override
         public void render(VertexConsumer out, Camera cam, float partial) {
             Vec3 c = cam.getPosition();
-            float px = (float) (Mth.lerp(partial, xo, x) - c.x), py = (float) (Mth.lerp(partial, yo, y) - c.y) + size, pz = (float) (Mth.lerp(partial, zo, z) - c.z);
-            Quaternionf q = new Quaternionf().fromAxisAngleRad(spinAxis, Mth.lerp(partial, angleO, angle));
+            Quaternionf q = new Quaternionf(rotO).slerp(rot, partial);
+            float s = Mth.lerp(partial, shrinkO, shrink);
+            if (s <= 0.01f) return;
+            Vector3f e = extent();
+            float px = (float) (Mth.lerp(partial, xo, x) - c.x), py = (float) (Mth.lerp(partial, yo, y) - c.y) + e.y, pz = (float) (Mth.lerp(partial, zo, z) - c.z);
             int light = getLightColor(partial);
-            float s = size;
-            // Six faces, each a quad of the texture piece, shaded a little per side like blocks
-            float[][] faces = {
-                {-1, 0, 0, 0.6f}, {1, 0, 0, 0.6f}, {0, -1, 0, 0.5f}, {0, 1, 0, 1f}, {0, 0, -1, 0.8f}, {0, 0, 1, 0.8f}};
-            for (float[] f : faces) {
+            float[] half = {hx * s, hy * s, hz * s};
+            for (float[] f : FACES) {
                 Vector3f n = new Vector3f(f[0], f[1], f[2]);
-                Vector3f a = Math.abs(n.y) > 0.5f ? new Vector3f(1, 0, 0) : new Vector3f(0, 1, 0);
-                Vector3f b = new Vector3f(n).cross(a);
-                Vector3f[] corners = new Vector3f[4];
-                float[][] sign = {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}};
+                // The two directions across this face, and how far the box reaches along each
+                int ai = n.x != 0 ? 1 : 0, bi = n.z != 0 ? 1 : 2;
+                if (n.y != 0) { ai = 0; bi = 2; }
+                Vector3f a = axis(ai), b = axis(bi);
+                if (new Vector3f(a).cross(b).dot(n) < 0) { Vector3f t = a; a = b; b = t; int ti = ai; ai = bi; bi = ti; }
+                float hn = n.x != 0 ? half[0] : n.y != 0 ? half[1] : half[2];
+                float[][] sign = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
+                Vector3f wn = q.transform(new Vector3f(n));
+                // Shaded by where it really faces, as blocks are: up bright, down dark, sides between
+                float shade = (Math.max(wn.y, 0) * 1.0f + Math.max(-wn.y, 0) * 0.5f + Math.abs(wn.x) * 0.6f + Math.abs(wn.z) * 0.8f);
+                float[][] uv = {{u0, v1}, {u1, v1}, {u1, v0}, {u0, v0}};
                 for (int k = 0; k < 4; k++) {
-                    Vector3f v = new Vector3f(n).mul(s).add(new Vector3f(a).mul(sign[k][0] * s)).add(new Vector3f(b).mul(sign[k][1] * s));
+                    Vector3f v = new Vector3f(n).mul(hn).add(new Vector3f(a).mul(sign[k][0] * half[ai])).add(new Vector3f(b).mul(sign[k][1] * half[bi]));
                     q.transform(v);
-                    corners[k] = v.add(px, py, pz);
+                    out.vertex(v.x + px, v.y + py, v.z + pz).uv(uv[k][0], uv[k][1]).color(rCol * shade, gCol * shade, bCol * shade, alpha).uv2(light).endVertex();
                 }
-                float shade = f[3];
-                float[][] uv = {{u0, v1}, {u0, v0}, {u1, v0}, {u1, v1}};
-                for (int k = 0; k < 4; k++)
-                    out.vertex(corners[k].x, corners[k].y, corners[k].z).uv(uv[k][0], uv[k][1]).color(rCol * shade, gCol * shade, bCol * shade, alpha).uv2(light).endVertex();
             }
+        }
+
+        private static Vector3f axis(int i) {
+            return i == 0 ? new Vector3f(1, 0, 0) : i == 1 ? new Vector3f(0, 1, 0) : new Vector3f(0, 0, 1);
         }
 
         @Override

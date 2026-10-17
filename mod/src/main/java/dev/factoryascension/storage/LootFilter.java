@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The pickup filter and the sort button (both from the inventory screens: client/ui/ItemBrowser).
+ * The pickup filter and the sort button (both from the inventory screens: client/ui/InvToolbar).
  *  - Filter: items a player never wants (rotten flesh from a Plunder farm...) are deleted the moment they'd drop from
  *    that player's kills or be picked up by them. Something a player threw is never deleted. Kept on the player.
  *  - Sort: the open chest (or, with none open, the main inventory, not the hotbar) is merged and ordered: weapons,

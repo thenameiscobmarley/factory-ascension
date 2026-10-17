@@ -808,9 +808,11 @@ public final class DevShots {
                 case 977 -> { var v = mc.level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, mc.player.getBoundingBox().inflate(6));
                     if (!v.isEmpty()) mc.gameMode.interact(mc.player, v.get(0), net.minecraft.world.InteractionHand.MAIN_HAND); wait = 15; }
                 case 978 -> { log("villager: " + (mc.screen == null ? "no screen" : mc.screen.getClass().getSimpleName())); shot(mc, "ui_dark_villager"); step = 981; wait = 12; }
-                case 981 -> { mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)); dev.factoryascension.client.ui.ItemBrowser.devOpen(""); wait = 20; }
-                case 982 -> { shot(mc, "ui_item_browser"); dev.factoryascension.client.ui.ItemBrowser.devOpen("ingot"); wait = 20; }
-                case 983 -> { shot(mc, "ui_item_browser_search_recipe"); step = 984; wait = 10; }
+                case 981 -> { mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+                    dev.factoryascension.client.ui.InvToolbar.devFilter(java.util.List.of("minecraft:rotten_flesh", "minecraft:bone", "minecraft:string", "minecraft:spider_eye")); wait = 30; }
+                case 982 -> { shot(mc, "ui_inventory_filter"); mc.setScreen(new net.minecraft.client.gui.screens.inventory.CraftingScreen(
+                        new net.minecraft.world.inventory.CraftingMenu(0, mc.player.getInventory()), mc.player.getInventory(), net.minecraft.network.chat.Component.literal("Crafting"))); wait = 30; }
+                case 983 -> { shot(mc, "ui_crafting_filter"); step = 984; wait = 10; }
                 case 984 -> { mc.setScreen(null); cmd(mc, "gamemode survival @a"); wait = 10; }
                 case 985 -> { cmd(mc, "give @a minecraft:rotten_flesh 7"); cmd(mc, "give @a minecraft:bone 3"); cmd(mc, "give @a minecraft:gold_ingot 12"); wait = 60; }
                 case 986 -> { cmd(mc, "give @a minecraft:gold_ingot 1"); step = 988; wait = 25; }

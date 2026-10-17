@@ -72,14 +72,18 @@ public final class BreakChunks {
     static final class Carve {
         final BlockPos pos;
         final BlockState state;
+        final Direction face;
         final int[] order = new int[CELLS];
         final boolean[] gone = new boolean[CELLS];
         final float[] grow = new float[CELLS];
-        int goneCount, idle;
+        /** The cubes broken off, in order (they grow back last first). */
+        final java.util.ArrayList<Integer> taken = new java.util.ArrayList<>();
+        int next, idle;
 
         Carve(BlockPos pos, BlockState state, Direction face) {
             this.pos = pos;
             this.state = state;
+            this.face = face;
             java.util.Arrays.fill(grow, 1);
             // Front layer first (the face being hit), the middle of it a little sooner, with some randomness
             RandomSource r = RandomSource.create(pos.asLong() * 31 + face.ordinal());
@@ -206,11 +210,12 @@ public final class BreakChunks {
             for (int i = 0; i < CELLS; i++) if (!c.gone[i] && c.grow[i] < 1) c.grow[i] = Math.min(1, c.grow[i] + 0.2f);
             if (c.pos.equals(at)) { c.idle = 0; dig(level, c, progress); continue; }
             if (devHold || ++c.idle < REGROW_DELAY) continue;
-            if (c.goneCount > 0) {
+            if (!c.taken.isEmpty()) {
                 if (c.idle % REGROW_EVERY == 0) {
-                    int cell = c.order[--c.goneCount];
+                    int cell = c.taken.remove(c.taken.size() - 1);
                     c.gone[cell] = false;
                     c.grow[cell] = 0;
+                    c.next = 0;   // the order is walked again from the front next time it's dug
                 }
             } else if (allGrown(c)) {
                 it.remove();
@@ -240,37 +245,101 @@ public final class BreakChunks {
             Minecraft.getInstance().levelRenderer.setBlocksDirty(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
     }
 
-    /** Break off cubes until as many are gone as this much digging takes. */
+    /**
+     * Break off pieces until as many cubes are gone as this much digging takes. A piece is one cube, or two or three
+     * neighbours that come away together, so the bits aren't all the same.
+     */
     static void dig(ClientLevel level, Carve c, float progress) {
         int want = Math.round(progress * MAX_GONE * CELLS);
-        while (c.goneCount < want) {
-            int cell = c.order[c.goneCount++];
-            c.gone[cell] = true;
-            drop(level, c, cell, 0.03, 0.05);
+        RandomSource r = level.random;
+        while (c.taken.size() < want) {
+            while (c.next < CELLS && c.gone[c.order[c.next]]) c.next++;
+            if (c.next >= CELLS) return;
+            java.util.List<Integer> piece = new java.util.ArrayList<>();
+            piece.add(c.order[c.next]);
+            int extra = r.nextFloat() < 0.45f ? (r.nextFloat() < 0.4f ? 2 : 1) : 0;
+            for (int k = 0; k < extra && c.taken.size() + piece.size() < want + 2; k++) {
+                int n = neighbour(c, piece.get(piece.size() - 1), piece, r);
+                if (n < 0) break;
+                piece.add(n);
+            }
+            for (int cell : piece) { c.gone[cell] = true; c.taken.add(cell); }
+            drop(level, c, piece, false);
         }
     }
 
-    /** The block's gone: every cube still there falls. */
+    /** A cube next to `cell` still on the block (not in `piece`), or -1. */
+    static int neighbour(Carve c, int cell, java.util.List<Integer> piece, RandomSource r) {
+        int x = cell % N, y = cell / N % N, z = cell / (N * N);
+        int[][] d = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+        int start = r.nextInt(6);
+        for (int k = 0; k < 6; k++) {
+            int[] o = d[(start + k) % 6];
+            int nx = x + o[0], ny = y + o[1], nz = z + o[2];
+            if (nx < 0 || ny < 0 || nz < 0 || nx >= N || ny >= N || nz >= N) continue;
+            int n = nx + N * (ny + N * nz);
+            if (!c.gone[n] && !piece.contains(n)) return n;
+        }
+        return -1;
+    }
+
+    /** The block's gone: what's left of it falls apart, in pieces of one to three cubes. */
     static void shatter(ClientLevel level, Carve c) {
-        for (int i = 0; i < CELLS; i++) if (!c.gone[i]) drop(level, c, i, 0.07, 0.12);
+        RandomSource r = level.random;
+        for (int i = 0; i < CELLS; i++) {
+            if (c.gone[i]) continue;
+            java.util.List<Integer> piece = new java.util.ArrayList<>();
+            piece.add(i);
+            c.gone[i] = true;
+            if (r.nextFloat() < 0.5f) {
+                int n = neighbour(c, i, piece, r);
+                if (n >= 0) { piece.add(n); c.gone[n] = true; }
+            }
+            drop(level, c, piece, true);
+        }
         SHATTERED.put(c.pos.asLong(), level.getGameTime());
     }
 
-    /** One cube comes loose: a physics piece at its spot, pushed out from the block's middle a little. */
-    static void drop(ClientLevel level, Carve c, int cell, double push, double up) {
-        int x = cell % N, y = cell / N % N, z = cell / (N * N);
-        double cx = (x + 0.5) * CELL, cy = (y + 0.5) * CELL, cz = (z + 0.5) * CELL;
+    /**
+     * A piece comes loose: a box over its cubes, wearing the matching bit of the face it was nearest the outside of.
+     * Dug off, it's knocked out of the face you're hitting; shattered, it falls outward from the middle. Crumbs too.
+     */
+    static void drop(ClientLevel level, Carve c, java.util.List<Integer> cells, boolean shatter) {
+        int x0 = N, y0 = N, z0 = N, x1 = -1, y1 = -1, z1 = -1;
+        for (int cell : cells) {
+            int x = cell % N, y = cell / N % N, z = cell / (N * N);
+            x0 = Math.min(x0, x); y0 = Math.min(y0, y); z0 = Math.min(z0, z);
+            x1 = Math.max(x1, x); y1 = Math.max(y1, y); z1 = Math.max(z1, z);
+        }
+        double cx = (x0 + x1 + 1) * 0.5 * CELL, cy = (y0 + y1 + 1) * 0.5 * CELL, cz = (z0 + z1 + 1) * 0.5 * CELL;
+        float sx = (x1 - x0 + 1) * CELL / 2 * 0.96f, sy = (y1 - y0 + 1) * CELL / 2 * 0.96f, sz = (z1 - z0 + 1) * CELL / 2 * 0.96f;
         // Its texture: the matching piece of the face it's closest to the outside of
         Direction d = Math.abs(cy - 0.5) >= Math.max(Math.abs(cx - 0.5), Math.abs(cz - 0.5)) ? (cy > 0.5 ? Direction.UP : Direction.DOWN)
             : Math.abs(cx - 0.5) > Math.abs(cz - 0.5) ? (cx > 0.5 ? Direction.EAST : Direction.WEST) : (cz > 0.5 ? Direction.SOUTH : Direction.NORTH);
         BakedQuad q = firstQuad(c.state, d);
         TextureAtlasSprite s = q != null ? q.getSprite() : Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getParticleIcon(c.state);
-        float[] uv = faceUV(d, (float) cx, (float) cy, (float) cz);
+        float[] uv0 = faceUV(d, (float) (x0 * CELL), (float) (y0 * CELL), (float) (z0 * CELL));
+        float[] uv1 = faceUV(d, (float) ((x1 + 1) * CELL), (float) ((y1 + 1) * CELL), (float) ((z1 + 1) * CELL));
+        float pu = Math.min(uv0[0], uv1[0]), pv = Math.min(uv0[1], uv1[1]);
+        float uw = Math.max(CELL, Math.abs(uv1[0] - uv0[0])), vh = Math.max(CELL, Math.abs(uv1[1] - uv0[1]));
         int tint = q != null && q.isTinted() ? Minecraft.getInstance().getBlockColors().getColor(c.state, level, c.pos, q.getTintIndex()) : -1;
         RandomSource r = level.random;
-        double ox = cx - 0.5 + r.nextGaussian() * 0.1, oz = cz - 0.5 + r.nextGaussian() * 0.1;
-        FxParticles.chunk(level, c.state, c.pos, c.pos.getX() + cx, c.pos.getY() + cy, c.pos.getZ() + cz,
-            ox * push * 4, up * r.nextDouble(), oz * push * 4, s, uv[0] - CELL / 2, uv[1] - CELL / 2, CELL, CELL / 2 * 0.96f, tint);
+        double vx, vy, vz;
+        if (shatter) {
+            vx = (cx - 0.5) * 0.25 + r.nextGaussian() * 0.03;
+            vy = 0.04 + r.nextDouble() * 0.08;
+            vz = (cz - 0.5) * 0.25 + r.nextGaussian() * 0.03;
+        } else {
+            // Out of the face being hit, a little up, a little to the side
+            var n = c.face.getNormal();
+            double push = 0.05 + r.nextDouble() * 0.06;
+            vx = n.getX() * push + r.nextGaussian() * 0.02;
+            vy = Math.max(0, n.getY()) * push + 0.03 + r.nextDouble() * 0.05;
+            vz = n.getZ() * push + r.nextGaussian() * 0.02;
+        }
+        double wx = c.pos.getX() + cx, wy = c.pos.getY() + cy, wz = c.pos.getZ() + cz;
+        FxParticles.chunk(level, c.state, c.pos, wx, wy, wz, vx, vy, vz, s, pu, pv, uw, vh, sx, sy, sz, tint);
+        FxParticles.crumbs(level, c.state, wx, wy, wz, shatter ? 1 : 3, 0.3);
     }
 
     // ---- Drawing what's left of each carved block ----
