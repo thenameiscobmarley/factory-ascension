@@ -1568,8 +1568,113 @@ global.FA = {
       gearbox_race: [['DGD', 'LRL', 'DGD'], { D: 'minecraft:diamond', G: 'factoryascension:gearbox_6', L: 'create:large_cogwheel', R: 'minecraft:redstone_block' }],
       fuel_can: [['I I', 'ICI', 'III'], { I: 'minecraft:iron_ingot', C: 'minecraft:coal_block' }],
       fuelCansPerCraft: 2,
-      racing_fuel: [['BGB', 'GFG', 'BGB'], { B: 'minecraft:blaze_powder', G: 'minecraft:glowstone_dust', F: 'factoryascension:fuel_can' }]
-    }
+      racing_fuel: [['BGB', 'GFG', 'BGB'], { B: 'minecraft:blaze_powder', G: 'minecraft:glowstone_dust', F: 'factoryascension:fuel_can' }],
+      wrench: [[' I ', ' II', 'I  '], { I: 'minecraft:iron_ingot' }],
+      quad_bike: [['LSL', 'EFG', 'TBT'], { L: 'minecraft:iron_ingot', S: 'minecraft:leather', E: 'factoryascension:engine_250', F: 'factoryascension:frame_standard',
+        G: 'factoryascension:gearbox_4', T: 'minecraft:dried_kelp_block', B: 'minecraft:iron_block' }],
+      pickup_truck: [['GWG', 'EBX', 'TIT'], { G: 'minecraft:glass_pane', W: 'factoryascension:m82', E: 'factoryascension:engine_450', B: 'minecraft:iron_block',
+        X: 'factoryascension:gearbox_6', T: 'minecraft:dried_kelp_block', I: 'minecraft:iron_ingot' }]
+    },
+    // The quad bike and the pickup truck: accel and top speed (blocks/tick), turn rate, mass (kg), health, fuel per tick at full throttle
+    cars: {
+      QUAD: { accel: 0.032, top: 1.05, turn: 1.15, mass: 290, health: 50, fuelUse: 0.007 },
+      PICKUP: { accel: 0.022, top: 1.25, turn: 0.7, mass: 2100, health: 160, fuelUse: 0.012 }
+    },
+    // The truck's mounted .50 (load it by right-clicking the truck with .50 BMG): ticks between rounds, spread (degrees),
+    // damage multiplier; and how much a wrench repairs per click
+    turret: { cooldownTicks: 2, spread: 0.8, damage: 0.85, wrenchRepair: 12 }
+  },
+
+  // ---- Realism (Full download) ----
+  // Bodies: limbs with their own health (head, thorax, stomach, arms, legs); a broken leg limps (splint it), heavy
+  // bleeding needs a tourniquet, a surgical kit restores a destroyed limb. You get thirsty: drink (canteen, water,
+  // milk, energy drinks). damageScale: how much a hit takes off a limb (x the damage); fractureFall: fall damage that
+  // breaks a leg; fractureHit / heavyBleedHit: a hit this big can break / open an artery (heavyBleedChance);
+  // waterHours: hours of play (real time) from full to empty; mendPerSecond: limb health back per second when not bleeding
+  body: { enabled: true, damageScale: 4.5, fractureFall: 6, fractureHit: 18, heavyBleedHit: 6, heavyBleedChance: 0.25, waterHours: 1, mendPerSecond: 0.15 },
+  // Guns wear and heat: every shot adds wear (x the caliber) and heat; worn and hot guns jam (R clears it); a hot barrel
+  // spreads its rounds and smokes. A Weapon Cleaning Kit takes `cleaningKitRestore` wear off per use
+  gunWear: { enabled: true, wearPerShot: 0.035, heatPerShot: 2.2, heatCooling: 0.35, jamBase: 0.0005, jamWorn: 0.08, jamHot: 0.03,
+    cleaningKitRestore: 35, cleaningKitUses: 6 },
+  // Weather: fog banks roll in (chance per minute, more at night and in the rain; how many minutes they last); nights
+  // are darker out under the sky (0 = vanilla, 0.9 = pitch black away from light)
+  weather: { fogBanks: true, fogChancePerMinute: 0.015, fogMinutes: 5, nightDarkness: 0.45 },
+  // The night hunter: chance per minute per player at night, out at this danger level or deeper (one at a time)
+  nightHunter: { enabled: true, chancePerMinute: 0.08, minDanger: 2 },
+  // Extraction raids: a Raid Map starts one. Three extraction points (green smoke) between minDist and maxDist blocks
+  // out; stand within `radius` of one for `seconds` to get home with `xp`. Out of time: missing in action (marked,
+  // hunted). Die on a raid: your things stay in a body bag where you fell (a day)
+  extraction: { minutes: 45, minDist: 250, maxDist: 700, radius: 5, seconds: 10, xp: 250, bodyBags: true },
+  // Traders: a Trader Contract brings one (Quartermaster, Medic, the Fence). Rubles go in your wallet (cash bundles
+  // from operators: right-click to bank, sneak for the stack). Offers: [trader, item ("id", "id*count" or
+  // "cartridge:CAL*count"), rubles, loyalty level, barter ("id*count,...")]. Tasks: [trader, id, title, kill|collect|extract,
+  // target (operator kind/faction, item, or ''), count, rubles, trust]. Loyalty levels open at these trust values
+  traders: {
+    cashBundle: 1000, operatorCashChance: 0.55, loyalty: [0, 0.35, 0.75],
+    offers: [
+      ['QUARTERMASTER', 'factoryascension:mp5', 12000, 1, ''], ['QUARTERMASTER', 'factoryascension:ak74', 18000, 1, ''],
+      ['QUARTERMASTER', 'factoryascension:m870', 9000, 1, ''], ['QUARTERMASTER', 'factoryascension:m4a1', 24000, 2, ''],
+      ['QUARTERMASTER', 'factoryascension:hk416', 32000, 2, ''], ['QUARTERMASTER', 'factoryascension:awm', 65000, 3, ''],
+      ['QUARTERMASTER', 'cartridge:P9*30', 900, 1, ''], ['QUARTERMASTER', 'cartridge:R545*30', 1500, 1, ''],
+      ['QUARTERMASTER', 'cartridge:R556*30', 1700, 1, ''], ['QUARTERMASTER', 'cartridge:R762S*30', 1600, 1, ''],
+      ['QUARTERMASTER', 'cartridge:G12*16', 900, 1, ''], ['QUARTERMASTER', 'cartridge:R762N*20', 2400, 2, ''],
+      ['QUARTERMASTER', 'cartridge:R338*10', 4000, 3, ''], ['QUARTERMASTER', 'cartridge:B50*50', 6000, 2, ''],
+      ['QUARTERMASTER', 'factoryascension:plate_carrier', 6000, 1, ''], ['QUARTERMASTER', 'factoryascension:steel_plate', 4000, 1, ''],
+      ['QUARTERMASTER', 'factoryascension:ceramic_plate', 7000, 2, ''], ['QUARTERMASTER', 'factoryascension:hybrid_plate', 12000, 2, ''],
+      ['QUARTERMASTER', 'factoryascension:steel_helmet', 3000, 1, ''], ['QUARTERMASTER', 'factoryascension:pasgt_helmet', 6000, 1, ''],
+      ['QUARTERMASTER', 'factoryascension:fast_helmet', 14000, 2, ''], ['QUARTERMASTER', 'factoryascension:altyn_helmet', 30000, 3, ''],
+      ['QUARTERMASTER', 'factoryascension:fast_helmet', 0, 2, 'factoryascension:dog_tag*6'],
+      ['QUARTERMASTER', 'factoryascension:nods_green', 25000, 2, ''], ['QUARTERMASTER', 'factoryascension:thermal_goggles', 80000, 3, ''],
+      ['QUARTERMASTER', 'factoryascension:frag_grenade', 1200, 1, ''], ['QUARTERMASTER', 'factoryascension:flashbang', 900, 1, ''],
+      ['QUARTERMASTER', 'factoryascension:weapon_cleaning_kit', 2500, 1, ''], ['QUARTERMASTER', 'factoryascension:raid_map', 1500, 1, ''],
+      ['MEDIC', 'factoryascension:bandage', 300, 1, ''], ['MEDIC', 'factoryascension:medkit', 2500, 1, ''],
+      ['MEDIC', 'factoryascension:splint', 900, 1, ''], ['MEDIC', 'factoryascension:tourniquet', 800, 1, ''],
+      ['MEDIC', 'factoryascension:canteen', 600, 1, ''], ['MEDIC', 'factoryascension:surgical_kit', 9000, 2, ''],
+      ['MEDIC', 'factoryascension:surgical_kit', 0, 1, 'minecraft:gold_ingot*2,factoryascension:medkit'],
+      ['MEDIC', 'factoryascension:morphine', 2000, 1, ''], ['MEDIC', 'factoryascension:adrenaline_shot', 3500, 2, ''],
+      ['MEDIC', 'factoryascension:energy_drink', 700, 1, ''], ['MEDIC', 'factoryascension:xanax', 1500, 2, ''],
+      ['FENCE', 'factoryascension:raid_map', 1000, 1, ''], ['FENCE', 'factoryascension:fuel_can', 800, 1, ''],
+      ['FENCE', 'factoryascension:dirt_bike', 40000, 2, ''], ['FENCE', 'factoryascension:quad_bike', 60000, 2, ''],
+      ['FENCE', 'factoryascension:pickup_truck', 140000, 3, ''], ['FENCE', 'minecraft:iron_ingot*10', 600, 1, '']
+    ],
+    tasks: [
+      ['QUARTERMASTER', 'clean_up', 'Clean Up', 'kill', 'SCAV', 8, 15000, 0.15],
+      ['QUARTERMASTER', 'tags', 'Bring Me Tags', 'collect', 'factoryascension:dog_tag', 5, 20000, 0.15],
+      ['QUARTERMASTER', 'deep_strike', 'Deep Strike', 'extract', '', 3, 30000, 0.25],
+      ['QUARTERMASTER', 'raider_problem', 'The Raider Problem', 'kill', 'RAIDER', 10, 40000, 0.25],
+      ['MEDIC', 'supplies', 'Supplies', 'collect', 'factoryascension:cannabis_leaf', 12, 8000, 0.15],
+      ['MEDIC', 'survivor', 'Survivor', 'extract', '', 2, 15000, 0.2],
+      ['MEDIC', 'night_work', 'Night Work', 'kill', 'night_hunter', 1, 35000, 0.3],
+      ['FENCE', 'scrap_run', 'Scrap Run', 'collect', 'minecraft:iron_ingot', 32, 6000, 0.15],
+      ['FENCE', 'hot_goods', 'Hot Goods', 'collect', 'factoryascension:m82', 1, 50000, 0.3]
+    ],
+    // What things are worth to traders (rubles each); anything else is priced by kind (guns by caliber, plates, ...)
+    values: { 'factoryascension:dog_tag': 3000, 'minecraft:diamond': 1200, 'minecraft:gold_ingot': 400, 'minecraft:emerald': 600,
+      'kubejs:ascendite_ingot': 5000, 'factoryascension:cash_bundle': 1000 }
+  },
+  // Light in your hands: holding a torch, lantern, glowstone, ... (either hand) lights the area around you, `dim`
+  // levels dimmer than the block placed
+  heldLights: { enabled: true, dim: 1 },
+  // Movement (Source-style): air strafe (in the air, hold A or D and turn the mouse that way to curve and gain speed;
+  // airCap / airAccel in blocks per tick) and bunny hop (jump right as you land to keep `bhopKeep` of your speed), up
+  // to `maxSpeed` blocks per tick (1 = 72 km/h)
+  movement: { airStrafe: true, bhop: true, airCap: 0.035, airAccel: 0.035, maxSpeed: 0.75, bhopKeep: 0.98 },
+  // Recipes for the realism kit (shaped: rows, keys)
+  realismRecipes: {
+    splint: [['S S', 'PSP', 'S S'], { S: 'minecraft:stick', P: 'minecraft:paper' }],
+    tourniquet: [[' S ', 'WIW', ' S '], { S: 'minecraft:string', W: 'minecraft:black_wool', I: 'minecraft:iron_nugget' }],
+    surgical_kit: [['IMI', 'SBS', 'IMI'], { I: 'minecraft:iron_ingot', M: 'factoryascension:medkit', S: 'minecraft:shears', B: 'minecraft:glass_bottle' }],
+    canteen: [[' L ', 'IBI', ' I '], { L: 'minecraft:leather', I: 'minecraft:iron_ingot', B: 'minecraft:glass_bottle' }],
+    weapon_cleaning_kit: [['RSO', 'WCW'], { R: 'minecraft:iron_ingot', S: 'minecraft:string', O: 'minecraft:honey_bottle', W: 'minecraft:white_wool', C: 'minecraft:chest' }],
+    steel_helmet: [['III', 'I I'], { I: 'minecraft:iron_ingot' }],
+    pasgt_helmet: [['KIK', 'I I'], { K: 'minecraft:leather', I: 'factoryascension:steel_helmet' }],
+    fast_helmet: [['PRP', 'H H'], { P: 'factoryascension:polyethylene_plate', R: 'minecraft:redstone', H: 'factoryascension:pasgt_helmet' }],
+    altyn_helmet: [['TGT', 'THT'], { T: 'factoryascension:titanium_plate', G: 'factoryascension:ballistic_glass_pane', H: 'factoryascension:fast_helmet' }],
+    thermal_goggles: [['DND', 'BRB'], { D: 'minecraft:diamond', N: 'factoryascension:nods_white', B: 'minecraft:blaze_powder', R: 'minecraft:redstone_block' }],
+    raid_map: [['PCP', 'PMP', 'PCP'], { P: 'minecraft:paper', C: 'minecraft:compass', M: 'minecraft:map' }],
+    trader_contract_quartermaster: [['GPG', 'PEP', 'GPG'], { G: 'minecraft:gunpowder', P: 'minecraft:paper', E: 'minecraft:emerald' }],
+    trader_contract_medic: [['BPB', 'PEP', 'BPB'], { B: 'factoryascension:bandage', P: 'minecraft:paper', E: 'minecraft:emerald' }],
+    trader_contract_fence: [['IPI', 'PEP', 'IPI'], { I: 'minecraft:iron_ingot', P: 'minecraft:paper', E: 'minecraft:emerald' }]
   },
 
   // Structures: at least `spacing` blocks between any two of the mod's overworld structures (outposts, ruins, crypts);
@@ -2520,6 +2625,10 @@ global.FA_meteorPool = () => {
     put(P.machines, ['plate_carrier', 'steel_plate', 'ceramic_plate', 'titanium_plate', 'nods_green', 'chem_lab', 'cocaine', 'methamphetamine',
       'magic_mushrooms', 'ballistic_concrete', 'ballistic_glass', 'ballistic_glass_pane', 'steel_door', 'steel_trapdoor'].map(b => 'factoryascension:' + b))
     put(P.bigMachines, ['hybrid_plate', 'ascendite_plate', 'nods_white', 'engine_v12', 'gearbox_race', 'frame_long'].map(b => 'factoryascension:' + b))
+    put(P.basics, ['splint', 'tourniquet', 'canteen', 'cash_bundle', 'raid_map', 'wrench', 'steel_helmet'].map(b => 'factoryascension:' + b))
+    put(P.machines, ['surgical_kit', 'weapon_cleaning_kit', 'pasgt_helmet', 'fast_helmet', 'trader_contract_quartermaster', 'trader_contract_medic',
+      'trader_contract_fence', 'quad_bike'].map(b => 'factoryascension:' + b))
+    put(P.bigMachines, ['altyn_helmet', 'thermal_goggles', 'pickup_truck'].map(b => 'factoryascension:' + b))
     put(P.machines, ['dirt_bike', 'engine_125', 'engine_250', 'engine_450', 'frame_standard', 'gearbox_4', 'gearbox_6', 'fuel_can', 'racing_fuel'].map(b => 'factoryascension:' + b))
     put(P.machines, ['factoryascension:weapons_workbench'])
     put(P.bigMachines, ['realm_gate', 'realm_stone', 'realm_moss', 'realm_crystal', 'essence_crystal_ore', 'voidsteel_ore', 'astral_ore'].map(b => 'factoryascension:' + b))
